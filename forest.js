@@ -1,5 +1,5 @@
 'use strict';
-// Original procedural artwork. Cached woodland planes + pixel-character animation.
+// v0.5 pixel edition: consistent chunky pixels, deterministic tile layers and crisp sprites.
 // All coordinates use the original 960 × 540 gameplay space; art never changes hitboxes.
 let visualTime=0,quality='full';
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -7,10 +7,32 @@ try{quality=localStorage.getItem('realm-runners-quality')==='low'?'low':'full';}
 function qualityLabel(){$('#quality').textContent='Grafik: '+(quality==='full'?'Voll':'Sparsam');}
 qualityLabel();$('#quality').onclick=()=>{quality=quality==='full'?'low':'full';qualityLabel();try{localStorage.setItem('realm-runners-quality',quality);}catch{}};
 function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let n=Math.imul(seed^seed>>>15,1|seed);n=n+Math.imul(n^n>>>7,61|n)^n;return((n^n>>>14)>>>0)/4294967296;};}
-function ellipse(c,x,y,rx,ry,color){c.fillStyle=color;c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();}
+function ellipse(c,x,y,rx,ry,color){
+ c.fillStyle=color;
+ const cell=4;
+ if(rx<3||ry<3){
+  c.fillRect(Math.round((x-rx)/cell)*cell,Math.round((y-ry)/cell)*cell,
+    Math.max(cell,Math.ceil(rx*2/cell)*cell),Math.max(cell,Math.ceil(ry*2/cell)*cell));
+  return;
+ }
+ for(let yy=Math.ceil((y-ry)/cell)*cell;yy<y+ry;yy+=cell){
+  const dy=Math.min(1,Math.abs((yy+cell/2-y)/ry));
+  const half=rx*Math.sqrt(1-dy*dy);
+  const left=Math.floor((x-half)/cell)*cell,right=Math.ceil((x+half)/cell)*cell;
+  c.fillRect(left,yy,Math.max(cell,right-left),cell);
+ }
+}
 function poly(c,points,color){c.fillStyle=color;c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill();}
 function line(c,x,y,xx,yy,color,width=1){c.strokeStyle=color;c.lineWidth=width;c.beginPath();c.moveTo(x,y);c.lineTo(xx,yy);c.stroke();}
-function glow(x,y,r,color){let g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,color);g.addColorStop(1,'#b9e9b000');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);}
+function glow(x,y,r,color){
+ ctx.save();ctx.fillStyle=color;
+ for(let i=3;i>=1;i--){
+  const d=Math.max(4,Math.floor(r*i/12)*4);
+  ctx.globalAlpha=(4-i)*.21;
+  ctx.fillRect(Math.floor((x-d)/4)*4,Math.floor((y-d)/4)*4,d*2,d*2);
+ }
+ ctx.restore();
+}
 const planes=[];
 function makePlane(index){const c=document.createElement('canvas');c.width=1600;c.height=540;let p=c.getContext('2d'),r=rng(900+index*120),near=index===2;
  const colors=[['#244f57','#35656a','#427778'],['#183f43','#285b53','#3a7360'],['#0e2c30','#1a453c','#37644a']][index];
@@ -81,7 +103,28 @@ function drawEnemy(e,i){if(!e.alive)return;const squash=Math.sin(t*.13+i)*1.6;el
  poly(ctx,[[-9,-10],[-10,-23],[-1,-13]],'#739b6a');poly(ctx,[[0,-12],[8,-23],[9,-9]],'#95b275');ellipse(ctx,3,-1,2,3,'#102f35');ellipse(ctx,11,-1,2,3,'#102f35');ellipse(ctx,4,-2,.7,.8,'#eef7d2');line(ctx,5,5,9,5,'#335b4e');ctx.restore();}
 function finishFlag(cp){const x=cp.x,y=G;ellipse(ctx,x+8,y,25,5,'#071b2666');poly(ctx,[[x-10,y],[x-6,y-12],[x+22,y-12],[x+27,y]],'#75887b');ctx.fillStyle='#a9baa0';ctx.fillRect(x+5,y-83,4,72);let flap=Math.sin(visualTime*3+x)*4;
  poly(ctx,[[x+9,y-82],[x+52,y-77+flap],[x+45,y-54+flap],[x+9,y-58]],'#e1c686');line(ctx,x+14,y-76,x+14,y-63,'#edf0c8',2);glow(x+8,y-84,25,'#c7edaa44');ellipse(ctx,x+7,y-87,4,4,'#d6e7b5');}
-function draw(){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#071b22';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore();ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();background();motes(false);
+// Single 480 x 270 pixel art buffer. The DOM HUD remains crisp and touch-friendly.
+const pixelCanvas=document.createElement('canvas');
+pixelCanvas.width=W/2;pixelCanvas.height=H/2;
+const pixelCtx=pixelCanvas.getContext('2d');
+function draw(){
+ const screen=ctx;
+ screen.save();screen.setTransform(1,0,0,1,0,0);
+ screen.fillStyle='#091b20';screen.fillRect(0,0,canvas.width,canvas.height);
+ screen.restore();
+ ctx=pixelCtx;
+ try{
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,pixelCanvas.width,pixelCanvas.height);
+  ctx.setTransform(.5,0,0,.5,0,0);
+  ctx.imageSmoothingEnabled=false;
+  drawPixelScene();
+ }finally{ctx=screen;}
+ screen.save();screen.imageSmoothingEnabled=false;
+ screen.drawImage(pixelCanvas,0,0,W,H);
+ screen.restore();
+}
+function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();background();motes(false);
  ctx.save();ctx.translate(-cam,0);
  for(const [i,p] of solids().entries()){if(p.x+p.w<cam-20||p.x>cam+W+20)continue;ctx.drawImage(terrain(p,i),p.x-16,p.y-20);}
  // Ferns, luminous mushrooms and stones are fixed to safe ground, not gaps.
@@ -92,8 +135,8 @@ function draw(){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#071b22'
  for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}ctx.globalAlpha=1;ctx.restore();
  if(quality==='full'){motes(true);let vignette=ctx.createRadialGradient(W/2,H/2,180,W/2,H/2,600);vignette.addColorStop(0,'#02191d00');vignette.addColorStop(1,'#0211198a');ctx.fillStyle=vignette;ctx.fillRect(0,0,W,H);}
  // Minimal in-world labels leave the playfield visible on a phone.
- if(scene==='game'&&t<240){ctx.globalAlpha=Math.min(1,(240-t)/60);ctx.textAlign='center';ctx.font='11px system-ui';ctx.fillStyle='#e0ebce';ctx.fillText('SMARAGDWALD  /  '+stages[stage].name.toUpperCase(),W/2,84);ctx.globalAlpha=1;}
- if(scene==='game'&&hero){const x=W-150,y=H-21;ctx.fillStyle='#152e32bb';ctx.fillRect(x,y,120,3);ctx.fillStyle='#b8d9ae';ctx.fillRect(x,y,120*(1-dashCooldown/70),3);ctx.font='9px system-ui';ctx.textAlign='right';ctx.fillStyle='#c1d9bd';ctx.fillText(dashCooldown>0?'FÄHIGKEIT LÄDT':'FÄHIGKEIT BEREIT',W-30,y-6);}
+ if(scene==='game'&&t<240){ctx.globalAlpha=Math.min(1,(240-t)/60);ctx.textAlign='center';ctx.font='bold 12px monospace';ctx.fillStyle='#e0ebce';ctx.fillText('SMARAGDWALD  /  '+stages[stage].name.toUpperCase(),W/2,84);ctx.globalAlpha=1;}
+ if(scene==='game'&&hero){const x=W-150,y=H-21;ctx.fillStyle='#152e32bb';ctx.fillRect(x,y,120,3);ctx.fillStyle='#b8d9ae';ctx.fillRect(x,y,120*(1-dashCooldown/70),3);ctx.font='bold 10px monospace';ctx.textAlign='right';ctx.fillStyle='#c1d9bd';ctx.fillText(dashCooldown>0?'FÄHIGKEIT LÄDT':'FÄHIGKEIT BEREIT',W-30,y-6);}
  ctx.restore();}
 // Fixed 60 Hz simulation: refresh rate does not alter jumps or movement on 120 Hz phones.
 let accumulator=0;
