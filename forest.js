@@ -136,23 +136,32 @@ function terrain(p,index){
  const c=document.createElement('canvas');
  c.width=p.w+32;c.height=(p.y===G?H-p.y:42)+35;
  const q=c.getContext('2d'),r=rng(p.x+stage*200+21),soil=c.height-26,tile=8;
- q.fillStyle='#10292d';q.fillRect(16,20,p.w,soil);
- q.fillStyle='#25433b';q.fillRect(16,20,p.w,24);
- q.fillStyle='#1c3736';q.fillRect(16,44,p.w,Math.max(0,soil-28));
+ const [dark,mid,low,block,grass,deep,detail]=stageThemes[stage].soil;
+ q.fillStyle=dark;q.fillRect(16,20,p.w,soil);
+ q.fillStyle=mid;q.fillRect(16,20,p.w,24);
+ q.fillStyle=low;q.fillRect(16,44,p.w,Math.max(0,soil-28));
  for(let y=26;y<20+soil;y+=tile)for(let x=16;x<16+p.w;x+=tile){
-  const choice=r();
-  if(choice<.22){q.fillStyle='#355245';q.fillRect(x,y,tile,tile);}
-  else if(choice>.88){q.fillStyle='#172f32';q.fillRect(x+tile/2,y+tile/2,tile/2,tile/2);}
+  const choice=r();if(choice<.23){q.fillStyle=block;q.fillRect(x,y,tile,tile);}
+  else if(choice>.85){q.fillStyle=dark;q.fillRect(x+tile/2,y+tile/2,tile/2,tile/2);}
  }
- q.fillStyle='#4a6f47';q.fillRect(16,14,p.w,12);
- q.fillStyle='#a4bf6d';q.fillRect(16,14,p.w,4);
+ q.fillStyle=deep;q.fillRect(16,14,p.w,12);
+ q.fillStyle=grass;q.fillRect(16,14,p.w,5);
  for(let x=16;x<16+p.w;x+=tile){
-  if(r()>.2){q.fillStyle=r()>.5?'#7caa61':'#bdd181';q.fillRect(x,8,tile/2,6);}
-  if(r()>.76){q.fillStyle='#789f56';q.fillRect(x+2,26,tile/2,8);}
+  if(r()>.2){q.fillStyle=r()>.5?detail:grass;q.fillRect(x,8,tile/2,6);}
+  if(r()>.76){q.fillStyle=deep;q.fillRect(x+2,26,tile/2,8);}
+ }
+ if(stage===1){ // Tree canopy: exposed wood planks and vertical hanging roots.
+  for(let x=24;x<p.w;x+=24){q.fillStyle=dark;q.fillRect(x,32,3,17);}
+  for(let x=28;x<p.w;x+=62){q.fillStyle=detail;q.fillRect(x,21,15,3);}
+ }else if(stage===2){ // Moss ruins: unmistakable cracked stone-brick masonry.
+  for(let y=30;y<20+soil;y+=18)for(let x=17+((y/18|0)%2)*15;x<16+p.w;x+=38){
+   q.fillStyle=dark;q.fillRect(x,y,30,2);q.fillRect(x+29,y,2,14);
+  }
+ }else{ // Woodland: grassy foliage and tiny yellow blossoms.
+  for(let x=28;x<p.w;x+=52){q.fillStyle=stageThemes[stage].flower;q.fillRect(x,10,4,4);}
  }
  if(p.y!==G)for(let x=28;x<p.w;x+=64){
-  q.fillStyle='#54734b';q.fillRect(x,27,4,16);
-  q.fillRect(x+4,39,8,4);
+  q.fillStyle=deep;q.fillRect(x,27,4,16);q.fillRect(x+4,39,8,4);
  }
  terrainCache.set(key,c);return c;
 }
