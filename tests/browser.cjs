@@ -22,6 +22,30 @@ const fs=require('node:fs');
   await page.screenshot({path:'test-output/'+name+'-startup-failure.png'});
   throw error;
  }
+ 
+ // Exercise jump duration with the actual touch input route in the browser.
+ const heights=await page.evaluate(()=>{
+  const touch=(type,id)=>{
+   const button=document.querySelector('[data-control="jump"]');
+   const event=new Event(type,{bubbles:true,cancelable:true});
+   Object.defineProperty(event,'changedTouches',{value:[{identifier:id,target:button}]});
+   button.dispatchEvent(event);
+  };
+  const height=hold=>{
+   start(0);touch('touchstart',301);let top=hero.y;
+   for(let i=0;i<65;i++){
+    if(i===1&&!hold)touch('touchend',301);
+    step(1);top=Math.min(top,hero.y);
+   }
+   if(hold)touch('touchend',301);
+   return 422-top;
+  };
+  return {short:height(false),high:height(true),hasCheckpoints:typeof checkpoints!=='undefined'};
+ });
+ assert.ok(heights.short>25&&heights.high>heights.short+65,name+' variable jump: '+JSON.stringify(heights));
+ assert.equal(heights.hasCheckpoints,false);
+ await page.evaluate(()=>start(0));
+ 
  await page.keyboard.down('KeyD');try{await page.waitForFunction(()=>hero.x>70,{},{timeout:20000});}catch(e){console.error(name,await page.evaluate(()=>({scene,x:hero.x,t,input,hidden:document.hidden})));throw e;}await page.keyboard.up('KeyD');
  await page.keyboard.down('Space');await page.waitForFunction(()=>hero.vy<0,{},{timeout:20000});await page.keyboard.up('Space');
  await page.evaluate(()=>{start(0);for(let i=0;i<60;i++)step(1);});

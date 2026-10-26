@@ -41,6 +41,15 @@ function ensureRpgSave(){
   if(!/^1-[123]$/.test(level)||typeof save.bestTimes[level]!=='object'||!save.bestTimes[level]){delete save.bestTimes[level];continue;}
   for(const kind of Object.keys(save.bestTimes[level]))if(!classes[kind]||!Number.isFinite(save.bestTimes[level][kind])||save.bestTimes[level][kind]<=0)delete save.bestTimes[level][kind];
  }
+ // Layout changes invalidate comparisons but never erase historical v0.4 records.
+ if(!save.bestTimesV05||typeof save.bestTimesV05!=='object'||Array.isArray(save.bestTimesV05))save.bestTimesV05={};
+ for(const level of Object.keys(save.bestTimesV05)){
+  if(!/^1-[123]$/.test(level)||typeof save.bestTimesV05[level]!=='object'||!save.bestTimesV05[level]){delete save.bestTimesV05[level];continue;}
+  for(const kind of Object.keys(save.bestTimesV05[level])){
+   const ms=save.bestTimesV05[level][kind];
+   if(!classes[kind]||!Number.isFinite(ms)||ms<=0)delete save.bestTimesV05[level][kind];
+  }
+ }
  const spent=Object.values(save.skills).reduce((sum,ids)=>sum+ids.length,0);
  save.skillPoints=Math.max(0,save.level-1-spent);
  save.saveVersion=3;
@@ -54,8 +63,8 @@ function currentTime(){return Math.round(runFrames*1000/60);}
 function medal(ms){return ms<=70000?'🥇':ms<=105000?'🥈':ms<=150000?'🥉':'✓';}
 function recordTime(){
  const level='1-'+(stage+1),kind=save.class,ms=currentTime();
- if(!save.bestTimes[level])save.bestTimes[level]={};
- if(!save.bestTimes[level][kind]||ms<save.bestTimes[level][kind])save.bestTimes[level][kind]=ms;
+ if(!save.bestTimesV05[level])save.bestTimesV05[level]={};
+ if(!save.bestTimesV05[level][kind]||ms<save.bestTimesV05[level][kind])save.bestTimesV05[level][kind]=ms;
  persist();
  return ms;
 }
@@ -130,13 +139,13 @@ function equipItem(id){
 }
 function renderRpgMenu(){
  const root=$('#rpgPanels');if(!root)return;
- const kind=save.class,levelTimes=save.bestTimes['1-'+(selected+1)]||{};
+ const kind=save.class,levelTimes=save.bestTimesV05['1-'+(selected+1)]||{};
  const timeRows=Object.entries(classes).map(([id,c])=>'<div>'+c.label+': '+(levelTimes[id]?formatRunTime(levelTimes[id])+' '+medal(levelTimes[id]):'—')+'</div>').join('');
  const skills=skillCatalog[kind].map(([id,name,desc],i)=>'<button data-skill="'+id+'" '+(save.skills[kind].includes(id)||!save.skillPoints||(i>0&&!save.skills[kind].includes(skillCatalog[kind][i-1][0]))?'disabled':'')+'>'+(save.skills[kind].includes(id)?'✓ ':'✦ ')+name+' – '+desc+'</button>').join('');
  const items=save.inventory.filter(id=>{const o=itemCatalog[id];return o&&(!o.class||o.class===kind)}).map(id=>{
   const o=itemCatalog[id];return '<button data-equip="'+id+'" '+(save.equipment[kind][o.slot]===id?'disabled':'')+'>'+(save.equipment[kind][o.slot]===id?'✓ ':'')+o.name+'</button>';
  }).join('');
- root.innerHTML='<details><summary>⏱ Bestzeiten · '+stages[selected].name+'</summary>'+timeRows+'</details>'+
+ root.innerHTML='<details><summary>⏱ v0.5-Bestzeiten · '+stages[selected].name+'</summary>'+timeRows+'</details>'+
  '<details><summary>✦ Skilltree · '+save.skillPoints+' Punkte</summary><div class="rpg-options">'+skills+'</div></details>'+
  '<details><summary>🎒 Ausrüstung · '+save.inventory.length+' Gegenstände</summary><div class="rpg-options">'+items+'</div></details>';
  root.querySelectorAll('[data-skill]').forEach(b=>b.onclick=()=>unlockSkill(b.dataset.skill));
