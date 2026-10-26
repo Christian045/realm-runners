@@ -166,3 +166,72 @@ test('v0.5.2 visual changes leave jump rules and game physics unchanged',()=>{
  assert.equal(h.run('JUMP.cut'),.58);
  assert.equal(h.run('classes.mage.jump'),14.4);
 });
+
+test('v0.6 adds two fully playable levels and preserves old save data',()=>{
+ const old=harness({class:'warrior',unlocked:3,stars:[3,2,1],xp:74,level:6,custom:'old-progress'});
+ assert.equal(old.run('stages.length'),5);
+ assert.equal(old.run('save.unlocked'),3);
+ assert.equal(old.run('save.stars.length'),5);
+ assert.equal(old.run('save.stars[2]'),1);
+ assert.equal(old.run('save.custom'),'old-progress');
+ assert.equal(old.run("stages[3].name.includes('Leuchtpilz')"),true);
+ assert.equal(old.run("stages[4].boss"),true);
+ old.run('save.unlocked=5;persist()');
+ const again=harness(JSON.parse(old.storage.get('realm-runners-save-v2')));
+ assert.equal(again.run('save.unlocked'),5);
+});
+test('v0.6 fifth level cannot finish until the Slime King is defeated',()=>{
+ h.run("start(4);hero.x=2749;step(1)");
+ assert.equal(h.run('scene'),'game');
+ assert.equal(h.run('boss.engaged'),true);
+ assert.equal(h.run('boss.hp'),20);
+ h.run('boss.hurt=0;boss.hp=1;damageBoss(5);hero.x=2750;step(1)');
+ assert.equal(h.run('boss.alive'),false);
+ assert.equal(h.run('scene'),'end');
+ const saved=JSON.parse(h.storage.get('realm-runners-save-v2'));
+ assert.equal(saved.slimeKingWins>=1,true);
+ assert.ok(saved.bestTimesPixelV051['1-5'].mage>0);
+});
+test('v0.6 Slime King red health bar tracks damage and boss resets on death',()=>{
+ h.run("start(4);hero.x=2070;step(1)");
+ assert.equal(h.run('boss.engaged'),true);
+ h.run('damageBoss(4)');
+ assert.equal(h.run('boss.hp'),16);
+ assert.equal(h.run("document.querySelector('#bossHealthFill').style.width"),'80%');
+ assert.equal(h.run("document.querySelector('#bossHealthTrack').attrs['aria-valuenow']"),'16');
+ h.run('die()');
+ assert.equal(h.run('hero.hearts'),2);
+ assert.equal(h.run('boss.hp'),20);
+ assert.equal(h.run('boss.engaged'),false);
+ assert.equal(h.run('bossGoo.length+bossWaves.length'),0);
+});
+test('v0.6 three classes can use their regular weapons against the boss',()=>{
+ for(const kind of ['warrior','hunter','mage']){
+  h.run(`save.class='${kind}';start(4);boss.engaged=true;hero.face=1;hero.y=G-43;hero.x=boss.x-${kind==='warrior'?65:175};performAttack();for(let k=0;k<30;k++)combatTick(1)`);
+  assert.ok(h.run('boss.hp')<20,`${kind} must damage the boss`);
+ }
+});
+test('v0.6 Slime King telegraphs and lands a shockwave stomp',()=>{
+ h.run("start(4);boss.engaged=true;boss.phase='warn';boss.timer=1;hero.x=2100;hero.y=140;hero.on=false;bossTick(1,hero.y)");
+ assert.equal(h.run('boss.phase'),'leap');
+ for(let i=0;i<45;i++)h.run('bossTick(1,hero.y)');
+ assert.equal(h.run('boss.slamCount'),1);
+ assert.ok(h.run('bossWaves.length')>0);
+ assert.equal(h.run('boss.phase'),'recover');
+});
+test('v0.6 ground shockwave harms nonjumping hero while jump avoids it',()=>{
+ h.run("start(4);boss.engaged=true;hero.x=2170;hero.y=422;bossWaves=[{x:hero.x+hero.w/2-6,dir:1,ttl:30}]");
+ h.run('bossTick(1,hero.y)');
+ assert.equal(h.run('hero.hearts'),2);
+ assert.equal(h.run('hero.x'),50);
+ h.run("start(4);boss.engaged=true;hero.x=2170;hero.y=315;hero.on=false;bossWaves=[{x:hero.x+hero.w/2-6,dir:1,ttl:30}]");
+ h.run('bossTick(1,hero.y)');
+ assert.equal(h.run('hero.hearts'),3);
+});
+test('v0.6 boss death grants rewards without changing historic records',()=>{
+ h.run("save.class='hunter';save.bestTimes={'1-1':{hunter:72000}};save.bestTimesV05={'1-1':{hunter:76000}};start(4);boss.engaged=true;boss.hurt=0;boss.hp=2;damageBoss(2)");
+ assert.equal(h.run('bossDefeated()'),true);
+ assert.ok(h.run('hero.earned')>=120);
+ assert.equal(h.run("save.bestTimes['1-1'].hunter"),72000);
+ assert.equal(h.run("save.bestTimesV05['1-1'].hunter"),76000);
+});
