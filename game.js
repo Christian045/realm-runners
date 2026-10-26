@@ -78,6 +78,8 @@ function end(win){if(scene!=='game')return;scene='end';clearInput();updateBossHu
 function step(dt){
  if(scene!=='game')return;
  t+=dt;
+ // Freeze player movement and all hazards during the short boss-victory sequence.
+ if(stages[stage].boss&&boss&&!boss.alive){bossTick(dt,hero?.y??0);return;}
  const h=hero,cl=classes[save.class],movement=(input.right?1:0)-(input.left?1:0);
  if(movement)h.face=movement;
  h.vx=movement*(cl.speed+equipBonus('speed'));
@@ -134,7 +136,7 @@ function step(dt){
  if(scene!=='game')return;
  for(const spike of spikes)if(h.x+h.w>spike.x+3&&h.x<spike.x+spike.w-3&&h.y+h.h>spike.y+8&&h.y<spike.y+spike.h){die();return;}
  if(h.y>H+110){die();return;}
- if(h.x>WIDTH-85&&(!stages[stage].boss||bossDefeated()))end(true);
+ if(h.x>WIDTH-85&&!stages[stage].boss)end(true);
  invincible=Math.max(0,invincible-dt);
  dashCooldown=Math.max(0,dashCooldown-dt);
  cam=Math.max(0,Math.min(WIDTH-W,h.x-350));
