@@ -238,3 +238,64 @@ test('v0.6 boss death grants rewards without changing historic records',()=>{
  assert.equal(h.run("save.bestTimes['1-1'].hunter"),72000);
  assert.equal(h.run("save.bestTimesV05['1-1'].hunter"),76000);
 });
+
+test('v0.6.1 boss stage is a boss-only castle arena with immediate spawn',()=>{
+ h.run('start(4)');
+ assert.equal(h.run('hero.x'),2030);
+ assert.equal(h.run('stages[4].gaps.length'),0);
+ assert.equal(h.run('bad.length'),0);
+ assert.equal(h.run('spikes.length'),0);
+ assert.equal(h.run('things.length'),0);
+ assert.equal(h.run('movingPlatforms.length'),0);
+ assert.ok(h.run('cam')>1500);
+ h.run('for(let k=0;k<30;k++)step(1);draw()');
+ assert.equal(h.run('scene'),'game');
+ assert.equal(h.run('boss.engaged'),true);
+});
+test('v0.6.1 moving platforms carry their rider horizontally and vertically',()=>{
+ h.run("start(3);hero.x=movingPlatforms[1].x+35;hero.y=movingPlatforms[1].y-hero.h;hero.on=true;hero.riding=movingPlatforms[1].id;hero.vy=0");
+ const before=h.run('hero.x'),platformBefore=h.run('movingPlatforms[1].x');
+ h.run('step(1)');
+ const distance=h.run('movingPlatforms[1].x')-platformBefore;
+ assert.ok(distance>0);
+ assert.ok(Math.abs(h.run('hero.x')-before-distance)<.01);
+ assert.equal(h.run('hero.riding'),'m1');
+ h.run("start(3);hero.x=movingPlatforms[0].x+35;hero.y=movingPlatforms[0].y-hero.h;hero.on=true;hero.riding=movingPlatforms[0].id;hero.vy=0");
+ const beforeY=h.run('hero.y'),platformY=h.run('movingPlatforms[0].y');
+ h.run('step(1)');
+ const diffY=h.run('movingPlatforms[0].y')-platformY;
+ assert.ok(diffY>0);
+ assert.ok(Math.abs(h.run('hero.y')-beforeY-diffY)<1.5);
+});
+test('v0.6.1 crumble platforms warn, fall, respawn and restart at initial location',()=>{
+ h.run('start(3);hero.x=movingPlatforms[2].x+24;hero.y=movingPlatforms[2].y-hero.h-8;hero.vy=10;hero.on=false;step(1)');
+ assert.equal(h.run("movingPlatforms[2].state"),'shaking');
+ h.run('for(let i=0;i<35;i++)platformTick(1)');
+ assert.equal(h.run("movingPlatforms[2].state"),'falling');
+ assert.equal(h.run('activePlatforms().some(p=>p.id===\'c0\')'),false);
+ h.run('for(let i=0;i<100;i++)platformTick(1)');
+ assert.equal(h.run("movingPlatforms[2].state"),'gone');
+ h.run('for(let i=0;i<220;i++)platformTick(1)');
+ assert.equal(h.run("movingPlatforms[2].state"),'ready');
+ assert.equal(h.run('movingPlatforms[2].y'),386);
+ h.run('movingPlatforms[2].state=\'falling\';die()');
+ assert.equal(h.run("movingPlatforms[2].state"),'ready');
+});
+test('v0.6.1 static early stages and physics are preserved',()=>{
+ h.run('start(0)');
+ assert.equal(h.run('movingPlatforms.length'),0);
+ assert.equal(h.run('JUMP.holdFrames'),14);
+ assert.equal(h.run('JUMP.holdGravity'),.5);
+ const y=h.run('hero.y');h.run('input.jump=true;step(1)');
+ assert.ok(h.run('hero.y')<y);
+});
+test('v0.6.1 original HD-pixel castle exterior and throne interior render',()=>{
+ for(const stageIndex of [3,4]){
+  h.run(`start(${stageIndex});cam=1840;draw()`);
+  const pixel=h.canvas.getContext('2d').getImageData(300,155,1,1).data;
+  assert.equal(pixel[3],255);
+ }
+ assert.equal(h.run("typeof drawCastleApproach"),'function');
+ assert.equal(h.run("typeof drawCastleInterior"),'function');
+ assert.equal(h.run("typeof drawCastleThrone"),'function');
+});
