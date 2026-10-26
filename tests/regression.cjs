@@ -40,12 +40,13 @@ test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';
 // Guard against missing or stale runtime scripts in the published HTML.
 test('v0.4 HTML loads RPG systems before forest startup',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- const game=html.indexOf('src="game.js?v=0.5.1"');
- const rpg=html.indexOf('src="rpg.js?v=0.5.1"');
- const forest=html.indexOf('src="forest.js?v=0.5.1"');
+ const game=html.indexOf('src="game.js?v=0.5.2"');
+ const rpg=html.indexOf('src="rpg.js?v=0.5.2"');
+ const forest=html.indexOf('src="forest.js?v=0.5.2"');
  assert.ok(game>=0 && rpg>game && forest>rpg,'game.js -> rpg.js -> forest.js must load in that order');
  assert.ok(html.includes('id="rpgPanels"'));
  assert.ok(html.includes('data-control="attack"'));
+ assert.ok(html.includes('PIXEL-WELTEN  ·  VERSION 0.5.2'));
 });
 
 // New movement regression suite (fixed 60 Hz simulation).
@@ -141,4 +142,24 @@ test('Pixel Edition: previous time trials remain untouched after recording new r
 test('Pixel Edition: maximum terrain gap remains passable without forced long dash',()=>{
  const gapLengths=h.run('stages.flatMap(s=>s.gaps.map(([a,b])=>b-a))');
  assert.ok(Math.max(...gapLengths)<=185);
+});
+
+test('v0.5.2 sky palette is visibly different in each biome',()=>{
+ const colors=h.run("(()=>{const colors=[];for(let i=0;i<3;i++){quality='low';start(i);draw();colors.push([...pixelCtx.getImageData(50,15,1,1).data].slice(0,3))}return colors})()");
+ assert.equal(new Set(colors.map(rgb=>rgb.join(','))).size,3);
+ const distance=(a,b)=>a.reduce((total,x,i)=>total+Math.abs(x-b[i]),0);
+ assert.ok(distance(colors[0],colors[1])>100,'Waldanfang and Baumkronen must differ strongly');
+ assert.ok(distance(colors[1],colors[2])>60,'Baumkronen and Moosruinen must differ strongly');
+});
+test('v0.5.2 each stage has unique tile colors and parallax planes',()=>{
+ const colors=h.run("(()=>{const colors=[];for(let i=0;i<3;i++){stage=i;const tile=terrain({x:0,y:G,w:140},0);colors.push([...tile.getContext('2d').getImageData(35,17,1,1).data].slice(0,3));}return colors})()");
+ assert.equal(new Set(colors.map(rgb=>rgb.join(','))).size,3);
+ assert.equal(h.run('planeSets.length'),3);
+ assert.ok(h.run('planeSets.every(set=>set.length===3)'));
+});
+test('v0.5.2 visual changes leave jump rules and game physics unchanged',()=>{
+ assert.equal(h.run('JUMP.holdFrames'),14);
+ assert.equal(h.run('JUMP.holdGravity'),.50);
+ assert.equal(h.run('JUMP.cut'),.58);
+ assert.equal(h.run('classes.mage.jump'),14.4);
 });
