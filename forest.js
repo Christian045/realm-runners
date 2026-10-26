@@ -68,6 +68,30 @@ const stageThemes=[
   ],
   soil:['#252c35','#4e5157','#383f47','#62605c','#ae9e79','#726d60','#9d8e6a'],
   flower:'#ffd48c',detail:'#d8cba7'
+ },
+ {
+  // Luminescent mushrooms and teal marshes; quiet background lets platforms pop.
+  sky:['#233750','#32475d','#4a6371','#506f68','#2d514d','#1b3b3d'],
+  sun:'#c2b4ff',sunCore:'#efc7ff',haze:'#8eacac',
+  trees:[
+   ['#334257','#42576a','#506a79','#719195'],
+   ['#283d54','#3a5868','#4c7776','#66998f'],
+   ['#1c393f','#305950','#45806c','#7dac79']
+  ],
+  soil:['#152c38','#2b555a','#1b3b47','#36716a','#b8df8d','#538579','#8dc9a0'],
+  flower:'#e9b8ff',detail:'#bcf8d9'
+ },
+ {
+  // Boss throne uses ink-dark red/purple hues with bright gold floor accents.
+  sky:['#2a263d','#362e48','#543d56','#584252','#352d42','#211e33'],
+  sun:'#b07b8d',sunCore:'#f9ce9b',haze:'#a77b81',
+  trees:[
+   ['#343042','#473b50','#624e60','#886a77'],
+   ['#2c2b41','#45374b','#604857','#7d6465'],
+   ['#272a39','#3d3341','#554052','#76605e']
+  ],
+  soil:['#211d2d','#494051','#2e2938','#61505b','#f0c77e','#876c61','#ffdf98'],
+  flower:'#f5b76c',detail:'#ffe2ad'
  }
 ];
 // Reusable tile-based planes; only the palette/geometry changes between biomes.
@@ -126,7 +150,7 @@ function makePlane(depth,biome){
  }
  return c;
 }
-const planeSets=Array.from({length:3},(_,biome)=>Array.from({length:3},(_,depth)=>makePlane(depth,biome)));
+const planeSets=Array.from({length:stages.length},(_,biome)=>Array.from({length:3},(_,depth)=>makePlane(depth,biome)));
 // Ground textures are cached once per level rather than regenerated every frame.
 // Caches avoid repeated drawing work on slow mobile devices.
 const terrainCache=new Map();
