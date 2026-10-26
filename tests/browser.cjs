@@ -111,7 +111,9 @@ const fs=require('node:fs');
  assert.ok(await page.evaluate(()=>bossWaves.length)>0);
  // The victory is driven by defeating the boss, not by crossing the finish line.
  await page.evaluate(()=>{
-  start(4);hero.x=2220;boss.engaged=true;boss.hp=1;boss.hurt=0;
+  start(4);hero.x=2220;
+  for(let i=0;i<30;i++)step(1); // A real boss run takes time; zero-frame wins have no record duration.
+  boss.engaged=true;boss.hp=1;boss.hurt=0;
   damageBoss(1);
   if(boss.defeatTimer!==42||scene!=='game')throw Error('Victory cue missing');
  });
