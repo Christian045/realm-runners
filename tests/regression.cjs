@@ -36,3 +36,14 @@ test('v0.4 local leaderboard records best time per class',()=>{h.run("save.class
 test('v0.4 skills unlock in order and survive persistence',()=>{h.run("save.class='mage';save.level=5;ensureRpgSave()");assert.equal(h.run("unlockSkill('double_fireball')"),false);assert.equal(h.run("unlockSkill('fireball_damage')"),true);assert.ok(JSON.parse(h.storage.get('realm-runners-save-v2')).skills.mage.includes('fireball_damage'));});
 test('v0.4 mage projectile damages an enemy',()=>{h.run("save.class='mage';start(0);hero.x=370;hero.y=420;hero.face=1;performAttack();for(let i=0;i<12;i++)combatTick(1)");assert.ok(h.run('bad[0].hp<2||!bad[0].alive'));});
 test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';save.inventory.push('ember_staff');equipItem('ember_staff')");assert.equal(h.run("save.equipment.mage.weapon"),'ember_staff');assert.equal(h.run("equipItem('swift_bow')"),false);});
+
+// Guard against missing or stale runtime scripts in the published HTML.
+test('v0.4 HTML loads RPG systems before forest startup',()=>{
+ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ const game=html.indexOf('src="game.js?v=0.4.0"');
+ const rpg=html.indexOf('src="rpg.js?v=0.4.0"');
+ const forest=html.indexOf('src="forest.js?v=0.4.0"');
+ assert.ok(game>=0 && rpg>game && forest>rpg,'game.js -> rpg.js -> forest.js must load in that order');
+ assert.ok(html.includes('id="rpgPanels"'));
+ assert.ok(html.includes('data-control="attack"'));
+});
