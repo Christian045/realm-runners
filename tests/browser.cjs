@@ -57,6 +57,14 @@ const fs=require('node:fs');
  assert.ok(pixelArt.pixelCss==='pixelated'||pixelArt.pixelCss==='crisp-edges');
  assert.equal(pixelArt.buttonRadius,'4px');
  assert.ok(pixelArt.hasRecordBoard);
+ assert.ok(await page.locator('#pixelEditionBadge').isVisible());
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\\.5\\.2/);
+ // Store each biome in the CI artifacts so pixel-style changes are reviewable.
+ for(const [level,label] of [[0,'forest'],[1,'canopy'],[2,'ruins']]){
+  await page.evaluate(index=>{start(index);draw();},level);
+  await page.screenshot({path:`test-output/${name}-pixel-${label}.png`});
+ }
+ await page.evaluate(()=>start(0));
  await page.evaluate(()=>start(0));
  
  await page.keyboard.down('KeyD');try{await page.waitForFunction(()=>hero.x>70,{},{timeout:20000});}catch(e){console.error(name,await page.evaluate(()=>({scene,x:hero.x,t,input,hidden:document.hidden})));throw e;}await page.keyboard.up('KeyD');
