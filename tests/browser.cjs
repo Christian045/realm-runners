@@ -168,8 +168,11 @@ const fs=require('node:fs');
  // Leave a touch held: pause must clear it as well.
  await page.evaluate(()=>testTouch('touchstart',[[43,'right']]));
  await page.locator('#pause').click();assert.equal(await page.evaluate(()=>scene),'pause');assert.equal(await page.evaluate(()=>input.right),false);await page.locator('#resume').click();
+ const xpBeforeLevel1=await page.evaluate(()=>save.xp);
  await page.evaluate(()=>{hero.x=2750;hero.stars=2;hero.earned=25;step(1)});assert.equal(await page.evaluate(()=>scene),'end');
- await page.reload();assert.equal(await page.evaluate(()=>save.level),4);assert.equal(await page.evaluate(()=>save.xp),182);assert.equal(await page.evaluate(()=>save.stars[0]),3);
+ await page.reload();assert.equal(await page.evaluate(()=>save.level),4);
+ assert.equal(await page.evaluate(()=>save.xp),xpBeforeLevel1+95,'boss rewards must survive reload alongside regular level XP');
+ assert.equal(await page.evaluate(()=>save.stars[0]),3);
  await page.locator('#play').click();await page.screenshot({path:`test-output/${name}-landscape.png`});
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:`test-output/${name}-portrait.png`});
  for(const b of await page.locator('[data-control]').all()){const box=await b.boundingBox();assert.ok(box&&box.x>=0&&box.y>=0&&box.x+box.width<=390&&box.y+box.height<=844);}
