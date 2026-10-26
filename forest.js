@@ -300,8 +300,51 @@ function draw(){
 function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();background();motes(false);
  ctx.save();ctx.translate(-cam,0);
  for(const [i,p] of solids().entries()){if(p.x+p.w<cam-20||p.x>cam+W+20)continue;ctx.drawImage(terrain(p,i),p.x-16,p.y-20);}
- // Ferns, luminous mushrooms and stones are fixed to safe ground, not gaps.
- for(const p of land()){for(let x=p.x+70;x<p.x+p.w-20;x+=133){if(x<cam-30||x>cam+W+30)continue;for(let j=0;j<5;j++){const angle=-Math.PI*.85+j*.28;line(ctx,x,G-2,x+Math.cos(angle)*19,G-2+Math.sin(angle)*20,'#6a9a65',2);for(let k=1;k<4;k++)ellipse(ctx,x+Math.cos(angle)*k*4,G-2+Math.sin(angle)*k*4,4,1.6,'#75a16b');}if(x%3<2){ctx.fillStyle='#adcbb0';ctx.fillRect(x+29,G-11,3,10);ellipse(ctx,x+30,G-12,8,4,'#82bcb0');ellipse(ctx,x+28,G-13,2,1,'#e0e9bf');}}}
+ // Each biome has its own clearly recognizable foreground decorations.
+ for(const p of land())for(let x=p.x+66;x<p.x+p.w-20;x+=136){
+  if(x<cam-60||x>cam+W+60)continue;
+  const tx=Math.floor(x/4)*4;
+  if(stage===0){
+   // Giant woodland mushrooms, golden flower heads, bright leafy shrubs.
+   ctx.fillStyle='#2c6241';ctx.fillRect(tx-20,G-20,40,20);
+   ctx.fillStyle='#70a84e';ctx.fillRect(tx-15,G-33,32,16);
+   ctx.fillStyle='#b7d875';ctx.fillRect(tx-9,G-37,16,5);
+   ctx.fillStyle='#f4db8b';ctx.fillRect(tx+29,G-25,5,25);
+   ctx.fillRect(tx+20,G-32,24,8);ctx.fillStyle='#f8ecbd';ctx.fillRect(tx+26,G-35,12,5);
+   ctx.fillStyle='#5a9b54';ctx.fillRect(tx+40,G-14,14,14);
+  }else if(stage===1){
+   // Pale luminous cyan crystals and wind-blown violet foliage.
+   ctx.fillStyle='#1b697d';ctx.fillRect(tx-18,G-26,32,26);
+   ctx.fillStyle='#83d9e0';ctx.fillRect(tx-10,G-34,16,34);
+   ctx.fillStyle='#bdebf5';ctx.fillRect(tx-6,G-42,8,22);
+   ctx.fillStyle='#ce9bdf';ctx.fillRect(tx+24,G-24,28,7);
+   ctx.fillRect(tx+32,G-34,12,10);
+   ctx.fillStyle='#6599b5';ctx.fillRect(tx+32,G-18,8,18);
+  }else{
+   // Broken masonry, moss drapes and glowing amber relics.
+   ctx.fillStyle='#655c66';ctx.fillRect(tx-16,G-36,36,36);
+   ctx.fillStyle='#a28d83';ctx.fillRect(tx-20,G-40,44,9);
+   ctx.fillStyle='#3c424b';ctx.fillRect(tx-5,G-24,10,12);
+   ctx.fillStyle='#89a371';ctx.fillRect(tx-20,G-40,24,4);
+   ctx.fillStyle='#e4b471';ctx.fillRect(tx+31,G-37,13,20);
+   ctx.fillStyle='#ffdf97';ctx.fillRect(tx+34,G-34,7,13);
+   ctx.fillStyle='#7a5861';ctx.fillRect(tx+28,G-17,18,17);
+  }
+ }
+ for(const ledge of stages[stage].ledges)if(ledge[0]+ledge[2]>cam-60&&ledge[0]<cam+W+60){
+  const [x,y,w]=ledge;
+  if(stage===1){ // Hanging blue ropes visually anchor canopy platforms.
+   for(let k=16;k<w;k+=64){
+    ctx.fillStyle='#65b5b3';ctx.fillRect(x+k,y+6,5,52);
+    ctx.fillStyle='#b1ddd1';ctx.fillRect(x+k-3,y+45,12,7);
+   }
+  }else if(stage===2){
+   for(let k=24;k<w;k+=75){
+    ctx.fillStyle='#7f9972';ctx.fillRect(x+k,y+6,8,20);
+    ctx.fillRect(x+k+4,y+24,6,11);
+   }
+  }
+ }
  for(const s of spikes){for(let k=0;k<3;k++)poly(ctx,[[s.x+k*15,s.y+18],[s.x+8+k*15,s.y],[s.x+15+k*15,s.y+18]],'#bdc6b4');for(let k=0;k<3;k++)line(ctx,s.x+8+k*15,s.y+2,s.x+12+k*15,s.y+17,'#637c78',2);}
  for(const a of things){if(a.taken||a.x<cam-25||a.x>cam+W+25)continue;const y=a.y+(reducedMotion?0:Math.sin(visualTime*3+a.x)*3);if(a.type==='star'){glow(a.x,y,26,'#f3df8b35');let pts=[];for(let j=0;j<10;j++){const an=j*Math.PI/5-Math.PI/2,r=j%2?7:16;pts.push([a.x+Math.cos(an)*r,y+Math.sin(an)*r]);}poly(ctx,pts,'#f4dd93');line(ctx,a.x,y-10,a.x-3,y-1,'#fff4d0',2);}else{const rx=reducedMotion?6:3+Math.abs(Math.cos(visualTime*2+a.x))*4;ellipse(ctx,a.x,y,rx,9,'#99774b');ellipse(ctx,a.x,y-1,rx-1,7,'#e5be6c');line(ctx,a.x,y-5,a.x,y+3,'#fff0b0',1);}}
  bad.forEach(drawEnemy);finishFlag({x:WIDTH-77});drawHero();drawCombatEffects();
