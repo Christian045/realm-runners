@@ -160,7 +160,11 @@ function terrain(p,index){
  const c=document.createElement('canvas');
  c.width=p.w+32;c.height=(p.y===G?H-p.y:42)+35;
  const q=c.getContext('2d'),r=rng(p.x+stage*200+21),soil=c.height-26,tile=8;
- const [dark,mid,low,block,grass,deep,detail]=stageThemes[stage].soil;
+ // In the final third of the castle approach, swamp soil becomes fortress paving.
+ const fortress=stage===4||(stage===3&&p.x>=2020);
+ const [dark,mid,low,block,grass,deep,detail]=fortress?
+  ['#211d2d','#494151','#302c3f','#625969','#e3c793','#827271','#edd5a8']:
+  stageThemes[stage].soil;
  q.fillStyle=dark;q.fillRect(16,20,p.w,soil);
  q.fillStyle=mid;q.fillRect(16,20,p.w,24);
  q.fillStyle=low;q.fillRect(16,44,p.w,Math.max(0,soil-28));
@@ -174,14 +178,25 @@ function terrain(p,index){
   if(r()>.2){q.fillStyle=r()>.5?detail:grass;q.fillRect(x,8,tile/2,6);}
   if(r()>.76){q.fillStyle=deep;q.fillRect(x+2,26,tile/2,8);}
  }
- if(stage===1){ // Tree canopy: exposed wood planks and vertical hanging roots.
+ // Detailed 8-pixel masonry or organic mineral pixels, without blurry gradients.
+ for(let y=45;y<Math.min(20+soil,c.height);y+=16)for(let x=17+(Math.floor(y/16)%2)*16;x<16+p.w;x+=32){
+  q.fillStyle=dark;q.fillRect(x,y,26,2);q.fillRect(x+25,y,2,12);
+  q.fillStyle=block;q.fillRect(x+3,y+3,12,3);
+  if(r()>.63){q.fillStyle=detail;q.fillRect(x+18,y+5,3,3);}
+ }
+ if(fortress){
+  for(let x=16;x<16+p.w;x+=28){
+   q.fillStyle='#292638';q.fillRect(x,28,3,24);
+   q.fillStyle='#c6af8d';q.fillRect(x+7,23,14,3);
+  }
+ }else if(stage===1){ // Tree canopy: exposed wood planks and vertical hanging roots.
   for(let x=24;x<p.w;x+=24){q.fillStyle=dark;q.fillRect(x,32,3,17);}
   for(let x=28;x<p.w;x+=62){q.fillStyle=detail;q.fillRect(x,21,15,3);}
  }else if(stage===2){ // Moss ruins: unmistakable cracked stone-brick masonry.
   for(let y=30;y<20+soil;y+=18)for(let x=17+((y/18|0)%2)*15;x<16+p.w;x+=38){
    q.fillStyle=dark;q.fillRect(x,y,30,2);q.fillRect(x+29,y,2,14);
   }
- }else if(stage===3){ // Glowing mushroom mycelium grows under the platforms.
+ }else if(stage===3&&!fortress){ // Glowing mushroom mycelium grows under the platforms.
   for(let x=28;x<p.w;x+=44){
    q.fillStyle='#6fbcb0';q.fillRect(x,28,4,12);
    q.fillStyle='#dbb3ee';q.fillRect(x-7,24,18,5);
@@ -201,6 +216,7 @@ function terrain(p,index){
  terrainCache.set(key,c);return c;
 }
 function background(){
+ if(stage===4){drawCastleInterior();return;}
  const theme=stageThemes[stage];
  const sky=theme.sky;
  // Big flat color bands deliberately distinguish the three fantasy regions.
@@ -364,9 +380,11 @@ function draw(){
  screen.drawImage(pixelCanvas,0,0,W,H);
  screen.restore();
 }
-function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();background();motes(false);
+function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();background();if(stage!==4)motes(false);
  ctx.save();ctx.translate(-cam,0);
- for(const [i,p] of solids().entries()){
+ if(stage===3)drawCastleApproach();
+ if(stage===4)drawCastleThrone();
+ for(const [i,p] of solids().filter(p=>!p.kind).entries()){
   if(p.x+p.w<cam-20||p.x>cam+W+20)continue;
   ctx.imageSmoothingEnabled=false;
   ctx.drawImage(terrain(p,i),p.x-16,p.y-20);
@@ -374,6 +392,7 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
   ctx.fillStyle=stageThemes[stage].soil[4];ctx.fillRect(p.x,p.y-3,p.w,4);
   ctx.fillStyle=stageThemes[stage].soil[0];ctx.fillRect(p.x,p.y+2,p.w,3);
  }
+ drawDynamicPlatforms();
  // Each biome has its own clearly recognizable foreground decorations.
  for(const p of land())for(let x=p.x+66;x<p.x+p.w-20;x+=136){
   if(x<cam-60||x>cam+W+60)continue;
@@ -394,6 +413,14 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
    ctx.fillStyle='#ce9bdf';ctx.fillRect(tx+24,G-24,28,7);
    ctx.fillRect(tx+32,G-34,12,10);
    ctx.fillStyle='#6599b5';ctx.fillRect(tx+32,G-18,8,18);
+  }else if(stage===3&&tx>2080){
+   // Approaching the gate: broken battlements and warm torchlights.
+   ctx.fillStyle='#3a3449';ctx.fillRect(tx-16,G-34,40,34);
+   ctx.fillStyle='#8b7581';ctx.fillRect(tx-21,G-39,51,8);
+   ctx.fillStyle='#a98f7b';ctx.fillRect(tx-11,G-30,11,5);
+   ctx.fillStyle='#b97d55';ctx.fillRect(tx+31,G-33,13,29);
+   ctx.fillStyle='#ffcd79';ctx.fillRect(tx+34,G-48,7,20);
+   ctx.fillStyle='#fff0b6';ctx.fillRect(tx+36,G-43,3,10);
   }else if(stage===3){
    // Neon fungi and contrasting cyan glow below active platforms.
    ctx.fillStyle='#273d4f';ctx.fillRect(tx-16,G-30,36,30);
@@ -442,7 +469,7 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
   }
  }
  for(const a of things){if(a.taken||a.x<cam-25||a.x>cam+W+25)continue;const y=a.y+(reducedMotion?0:Math.sin(visualTime*3+a.x)*3);if(a.type==='star'){glow(a.x,y,26,'#f3df8b35');let pts=[];for(let j=0;j<10;j++){const an=j*Math.PI/5-Math.PI/2,r=j%2?7:16;pts.push([a.x+Math.cos(an)*r,y+Math.sin(an)*r]);}poly(ctx,pts,'#f4dd93');line(ctx,a.x,y-10,a.x-3,y-1,'#fff4d0',2);}else{const rx=reducedMotion?6:3+Math.abs(Math.cos(visualTime*2+a.x))*4;ellipse(ctx,a.x,y,rx,9,'#99774b');ellipse(ctx,a.x,y-1,rx-1,7,'#e5be6c');line(ctx,a.x,y-5,a.x,y+3,'#fff0b0',1);}}
- bad.forEach(drawEnemy);drawBoss();if(!stages[stage].boss||bossDefeated())finishFlag({x:WIDTH-77});drawHero();drawCombatEffects();
+ bad.forEach(drawEnemy);drawBoss();if(stage!==3&&(!stages[stage].boss||bossDefeated()))finishFlag({x:WIDTH-77});drawHero();drawCombatEffects();
  for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}ctx.globalAlpha=1;ctx.restore();
  if(quality==='full'){motes(true);ctx.fillStyle='#07191c46';ctx.fillRect(0,0,32,H);ctx.fillRect(W-32,0,32,H);ctx.fillRect(32,0,W-64,24);ctx.fillRect(32,H-24,W-64,24);}
  // Minimal in-world labels leave the playfield visible on a phone.
