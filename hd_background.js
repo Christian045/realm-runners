@@ -186,6 +186,7 @@ function hdWindow(c,x,y,w,h){
  c.restore();
 }
 function hdDrawCastle(c){
+ hdPlanes(stage); // Release forest layers when entering the interior; iPhone memory stays bounded.
  // Existing castle structure gets physically separate full-resolution glass and light.
  drawCastleInterior();
  c.fillStyle='#17182970';c.fillRect(0,0,W,H);
