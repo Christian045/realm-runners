@@ -4,16 +4,16 @@ const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path'),asse
 const {createCanvas}=require('@napi-rs/canvas');
 const root=path.resolve(__dirname,'..');
 function harness(initial){const elements=new Map(),listeners={},storage=new Map(initial?[['realm-runners-save-v2',JSON.stringify(initial)]]:[]);let raf;
- class El {constructor(){this.dataset={};this.listeners={};this.classList={add(){},remove(){},toggle(){}};}addEventListener(k,f){(this.listeners[k]??=[]).push(f)}setPointerCapture(){}querySelectorAll(){return [];}dispatch(type,data){for(const f of this.listeners[type]||[])f({preventDefault(){},...data});}}
+ class El {constructor(){this.dataset={};this.listeners={};this.style={};this.attrs={};this.classList={add(){},remove(){},toggle(){}};}setAttribute(k,v){this.attrs[k]=String(v);}addEventListener(k,f){(this.listeners[k]??=[]).push(f)}setPointerCapture(){}querySelectorAll(){return [];}dispatch(type,data){for(const f of this.listeners[type]||[])f({preventDefault(){},...data});}}
  const canvas=createCanvas(960,540);elements.set('#view',canvas);const buttons=['left','right','jump','dash','attack'].map(k=>{let el=new El();el.dataset.control=k;return el});
  const sandbox={console,Math,JSON,Number,Map,Set,Object,Array,devicePixelRatio:1,innerWidth:960,innerHeight:540,performance:{now:()=>1000},matchMedia:()=>({matches:false}),localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},addEventListener:(k,f)=>(listeners[k]??=[]).push(f),requestAnimationFrame:f=>raf=f,document:{hidden:false,querySelector:s=>{if(!elements.has(s))elements.set(s,new El());return elements.get(s)},querySelectorAll:()=>buttons,addEventListener:(k,f)=>(listeners[k]??=[]).push(f),createElement:tag=>tag==='canvas'?createCanvas(1,1):new El()}};
- vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);
+ vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'boss.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);
  return {run:s=>vm.runInContext(s,sandbox),canvas,buttons,storage,emit:(k,e)=>{for(const f of listeners[k]||[])f({preventDefault(){},...e})}};
 }
 let checks=0;function test(name,fn){fn();checks++;console.log('PASS',name);}
 const h=harness({class:'mage',unlocked:3,stars:[3,2,1],xp:87,level:4,custom:'preserved'});
-test('v0.2 progress and unknown fields survive loading and saving',()=>{h.run('persist()');const data=JSON.parse(h.storage.get('realm-runners-save-v2'));for(const [k,v] of Object.entries({class:'mage',unlocked:3,stars:[3,2,1],xp:87,level:4,custom:'preserved'}))assert.deepEqual(data[k],v);assert.equal(data.saveVersion,3);});
-test('all levels and classes render; terrain cache bounded',()=>{for(let s=0;s<3;s++)for(const c of ['warrior','hunter','mage']){h.run(`save.class='${c}';start(${s});for(let i=0;i<40;i++)step(1);draw()`);}assert.ok(h.run('terrainCache.size')<=24);});
+test('v0.2 progress and unknown fields survive loading and saving',()=>{h.run('persist()');const data=JSON.parse(h.storage.get('realm-runners-save-v2'));for(const [k,v] of Object.entries({class:'mage',unlocked:3,xp:87,level:4,custom:'preserved'}))assert.deepEqual(data[k],v);assert.deepEqual(data.stars,[3,2,1,0,0]);assert.equal(data.saveVersion,4);});
+test('all levels and classes render; terrain cache bounded',()=>{for(let s=0;s<5;s++)for(const c of ['warrior','hunter','mage']){h.run(`save.class='${c}';start(${s});for(let i=0;i<40;i++)step(1);draw()`);}assert.ok(h.run('terrainCache.size')<=64);});
 test('ground collision and jump',()=>{h.run('start(0);for(let i=0;i<60;i++)step(1)');assert.equal(h.run('hero.on'),true);const y=h.run('hero.y');h.run('input.jump=true;step(1)');assert.ok(h.run('hero.y')<y);});
 test('coin and star rewards emit particles',()=>{h.run("start(0);things=[{x:hero.x+15,y:hero.y+20,type:'star',taken:false}];step(1)");assert.equal(h.run('hero.stars'),1);assert.equal(h.run('hero.earned'),25);assert.ok(h.run('particles.length')>0);});
 test('stomping enemy',()=>{h.run('start(0);hero.x=420;hero.y=394;hero.vy=5;step(1)');assert.equal(h.run('bad[0].alive'),false);assert.ok(h.run('hero.vy')<0);});
@@ -40,13 +40,16 @@ test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';
 // Guard against missing or stale runtime scripts in the published HTML.
 test('v0.4 HTML loads RPG systems before forest startup',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- const game=html.indexOf('src="game.js?v=0.5.2"');
- const rpg=html.indexOf('src="rpg.js?v=0.5.2"');
- const forest=html.indexOf('src="forest.js?v=0.5.2"');
- assert.ok(game>=0 && rpg>game && forest>rpg,'game.js -> rpg.js -> forest.js must load in that order');
+ const game=html.indexOf('src="game.js?v=0.6.0"');
+ const rpg=html.indexOf('src="rpg.js?v=0.6.0"');
+ const boss=html.indexOf('src="boss.js?v=0.6.0"');
+ const forest=html.indexOf('src="forest.js?v=0.6.0"');
+ assert.ok(game>=0 && rpg>game && boss>rpg && forest>boss,'game.js -> rpg.js -> boss.js -> forest.js must load in order');
  assert.ok(html.includes('id="rpgPanels"'));
  assert.ok(html.includes('data-control="attack"'));
- assert.ok(html.includes('PIXEL-WELTEN  ·  VERSION 0.5.2'));
+ assert.ok(html.includes('BOSS-UPDATE 0.6.0'));
+ assert.ok(html.includes('id="bossHealthFill"'));
+ assert.ok(html.includes('boss-health-fill'));
 });
 
 // New movement regression suite (fixed 60 Hz simulation).
@@ -80,7 +83,7 @@ test('v0.5 buffered jump fires upon landing even after releasing input',()=>{
 test('v0.5 stages have safe gaps, distinct paths, stars and no checkpoint state',()=>{
  const geometry=h.run('stages.map(s=>({gaps:s.gaps,ledges:s.ledges,stars:s.stars,enemies:s.enemies,spikes:s.spikes}))');
  const signatures=new Set(geometry.map(s=>JSON.stringify(s.gaps)));
- assert.equal(signatures.size,3);
+ assert.equal(signatures.size,5);
  assert.ok(geometry.every(s=>s.ledges.length>=5&&s.stars.length===3));
  for(const s of geometry){
   for(const [a,b] of s.gaps)assert.ok(a>150&&b-a<=210&&b<2700);
@@ -154,7 +157,7 @@ test('v0.5.2 sky palette is visibly different in each biome',()=>{
 test('v0.5.2 each stage has unique tile colors and parallax planes',()=>{
  const colors=h.run("(()=>{const colors=[];for(let i=0;i<3;i++){stage=i;const tile=terrain({x:0,y:G,w:140},0);colors.push([...tile.getContext('2d').getImageData(35,17,1,1).data].slice(0,3));}return colors})()");
  assert.equal(new Set(colors.map(rgb=>rgb.join(','))).size,3);
- assert.equal(h.run('planeSets.length'),3);
+ assert.equal(h.run('planeSets.length'),5);
  assert.ok(h.run('planeSets.every(set=>set.length===3)'));
 });
 test('v0.5.2 visual changes leave jump rules and game physics unchanged',()=>{
