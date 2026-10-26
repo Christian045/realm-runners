@@ -118,7 +118,8 @@ test('Pixel Edition: held jump apex is around 12 percent lower, short tap is unc
   };
   const tap=height(false),hold=height(true),ratio=hold/previous[kind];
   assert.ok(ratio>.84&&ratio<.90,`${kind}: ${ratio.toFixed(3)} of old apex`);
-  assert.ok(tap>36&&tap<50,`${kind}: short tap must remain close to original`);
+  const legacyTap={warrior:50.988,hunter:53.1348,mage:56.8248}[kind];
+  assert.ok(Math.abs(tap-legacyTap)<1.5,`${kind}: short tap ${tap.toFixed(2)} vs old ${legacyTap}`);
   assert.ok(hold>tap+100,`${kind}: held jump remains distinguishable`);
  }
 });
