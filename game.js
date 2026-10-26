@@ -6,8 +6,10 @@ const stages=[
  {name:'1-1 · Waldanfang',base:5,gaps:[[500,610],[1140,1270],[1960,2110]],ledges:[[250,398,160],[745,365,165],[1410,375,180],[1770,410,125],[2280,352,175]],enemies:[420,910,1590,2390],spikes:[980,1680,2520],stars:[[332,330],[1480,315],[2360,290]]},
  {name:'1-2 · Baumkronen',base:8,gaps:[[540,700],[1260,1430],[2030,2210]],ledges:[[230,395,150],[440,335,140],[710,365,160],[975,300,145],[1480,395,165],[1730,330,145],[2250,350,160],[2470,295,135]],enemies:[355,895,1580,2370],spikes:[1160,1660,2440],stars:[[495,275],[1040,245],[2525,240]]},
  {name:'1-3 · Moosruinen',base:12,gaps:[[600,760],[1320,1505],[2080,2265]],ledges:[[265,385,160],[475,330,165],[795,355,170],[1075,305,160],[1520,370,165],[1790,315,165],[2300,345,150],[2510,295,135]],enemies:[405,965,1670,2430],spikes:[1010,1730,2440],stars:[[530,272],[1150,245],[2565,240]]},
- {name:'1-4 · Leuchtpilz-Sumpf',base:15,gaps:[[465,600],[1050,1210],[1680,1845]],ledges:[[240,402,165],[635,365,180],[895,318,160],[1300,378,165],[1550,325,150],[1910,382,150],[2250,330,185]],enemies:[365,810,1440,2015,2410],spikes:[940,1510,2140,2570],stars:[[308,348],[962,255],[2325,265]]},
- {name:'1-5 · Thron des Schleimkönigs',base:18,gaps:[[510,625],[1110,1240],[1840,1980]],ledges:[[270,397,170],[740,355,190],[1340,380,155],[2030,398,165],[2350,342,160]],enemies:[405,870,1480,2040],spikes:[990,1700,2160],stars:[[345,335],[1410,310],[2420,280]],boss:true}
+ {name:'1-4 · Zum Schlosstor',base:15,gaps:[[465,600],[1050,1210],[1680,1855]],ledges:[[240,402,165],[635,365,180],[895,318,160],[1300,378,165],[1510,330,160],[2020,382,160],[2310,394,155]],enemies:[365,810,1440,2030],spikes:[940,1510,2140],stars:[[308,348],[970,258],[2300,310]],
+  moving:[[700,360,110,'y',57,1.3],[1090,377,130,'x',52,1.45]],
+  crumbling:[[1740,386,125],[2240,364,115]]},
+ {name:'1-5 · Schloss des Schleimkönigs',base:18,gaps:[],ledges:[[2190,350,145],[2510,338,140]],enemies:[],spikes:[],stars:[],boss:true,spawnX:2030}
 ];
 // v0.5 pixel phase: roughly 12.5% less maximum height without changing tap jump.
 const JUMP={coyote:7,buffer:7,holdFrames:14,holdGravity:.50,gravity:.70,cut:.58};
@@ -61,9 +63,9 @@ $('#pause').onclick=pause;$('#resume').onclick=resume;
 function size(){let d=Math.min(devicePixelRatio||1,2),s=Math.min(innerWidth/W,innerHeight/H);canvas.width=innerWidth*d;canvas.height=innerHeight*d;ctx.setTransform(d*s,0,0,d*s,(innerWidth-W*s)*d/2,(innerHeight-H*s)*d/2)}addEventListener('resize',size);size();
 function menu(){clearInput();$('#play').classList.remove('hide');$('#resume').classList.add('hide');scene='menu';updateBossHud();layer.classList.remove('hide');hud.classList.add('hide');controls.classList.add('hide');$('#menu').classList.remove('hide');$('#return').classList.add('hide');$('#heading').textContent='REALM RUNNERS';$('#intro').textContent='Welt 1: Smaragdwald · 5 Level, inklusive Schleimkönig! Kurz tippen = kleiner Sprung, lang halten = hoher Sprung.';$('#play').textContent='Level starten';$('#classes').innerHTML=Object.entries(classes).map(([id,c])=>'<button data-class="'+id+'" class="'+(save.class===id?'active':'')+'">'+({warrior:'[K]',hunter:'[J]',mage:'[M]'}[id])+' '+c.label+'</button>').join('');$('#classes').querySelectorAll('button').forEach(b=>b.onclick=()=>{save.class=b.dataset.class;persist();menu()});$('#levels').innerHTML=stages.map((s,i)=>'<button data-level="'+i+'" '+(i>=save.unlocked?'disabled':'')+' class="'+(i===selected?'active':'')+'">'+(i>=save.unlocked?'🔒 ':'')+s.name+'<br>'+'★'.repeat(save.stars[i]||0)+'</button>').join('');$('#levels').querySelectorAll('button:not(:disabled)').forEach(b=>b.onclick=()=>{selected=Number(b.dataset.level);menu()});if(selected>=save.unlocked)selected=save.unlocked-1;$('#progress').textContent='Level '+save.level+' · '+save.xp+'/'+save.level*100+' XP · ★ '+save.stars.reduce((a,b)=>a+b,0)+'/'+(stages.length*3);$('#play').onclick=()=>start(selected);renderRpgMenu()}
 function land(){let gaps=stages[stage].gaps,ends=[0,...gaps.map(g=>g[1])],begins=[...gaps.map(g=>g[0]),WIDTH];return ends.map((x,i)=>({x,w:begins[i]-x,y:G}))}
-function solids(){return [...land(),...stages[stage].ledges.map(a=>({x:a[0],y:a[1],w:a[2]}))]}
+function solids(){return [...land(),...stages[stage].ledges.map(a=>({x:a[0],y:a[1],w:a[2]})),...activePlatforms()]}
 function floorY(x){let p=solids().filter(s=>x>=s.x+10&&x<=s.x+s.w-10).sort((a,b)=>b.y-a.y);return p.length?p[0].y:G}
-function start(i,hearts=3){if(!Number.isInteger(i)||i<0||i>=stages.length)return;clearInput();resetRpgRun();particles=[];$('#play').classList.remove('hide');$('#resume').classList.add('hide');stage=i;scene='game';cam=0;dashCooldown=0;jumpWas=false;invincible=0;t=0;hero={x:50,y:G-43,w:30,h:43,vx:0,vy:0,on:true,face:1,hearts,stars:0,earned:0,dash:0,usedDash:false,coyote:JUMP.coyote,jumpBuffer:0,jumpHeld:0,jumpActive:false};things=[];bad=[];spikes=stages[i].spikes.map(x=>({x,y:G-18,w:44,h:18}));for(let n=0;n<30;n++){let x=125+n*82,y=floorY(x)-42-(n%3)*9;if(solids().some(p=>x>p.x+8&&x<p.x+p.w-8))things.push({x,y,type:'coin',taken:false})}for(const [x,y] of stages[i].stars)things.push({x,y,type:'star',taken:false});for(let x of stages[i].enemies)bad.push({x,y:G-27,home:x,dir:1,alive:true});resetBossRun();layer.classList.add('hide');controls.classList.remove('hide');hud.classList.remove('hide')}
+function start(i,hearts=3){if(!Number.isInteger(i)||i<0||i>=stages.length)return;clearInput();resetRpgRun();particles=[];$('#play').classList.remove('hide');$('#resume').classList.add('hide');stage=i;scene='game';cam=0;dashCooldown=0;jumpWas=false;invincible=0;t=0;hero={x:stages[i].spawnX??50,y:G-43,w:30,h:43,vx:0,vy:0,on:true,face:1,hearts,stars:0,earned:0,dash:0,usedDash:false,coyote:JUMP.coyote,jumpBuffer:0,jumpHeld:0,jumpActive:false,riding:null};cam=Math.max(0,Math.min(WIDTH-W,hero.x-350));resetPlatforms();things=[];bad=[];spikes=stages[i].spikes.map(x=>({x,y:G-18,w:44,h:18}));if(!stages[i].boss)for(let n=0;n<30;n++){let x=125+n*82,y=floorY(x)-42-(n%3)*9;if(solids().some(p=>x>p.x+8&&x<p.x+p.w-8))things.push({x,y,type:'coin',taken:false})}for(const [x,y] of stages[i].stars)things.push({x,y,type:'star',taken:false});for(let x of stages[i].enemies)bad.push({x,y:G-27,home:x,dir:1,alive:true});resetBossRun();layer.classList.add('hide');controls.classList.remove('hide');hud.classList.remove('hide')}
 function xp(n){save.xp+=n;while(save.xp>=save.level*100){save.xp-=save.level*100;save.level++;ensureRpgSave()}persist()}
 // Each mistake restarts the whole level, timer and collectibles; three hearts remain.
 function die(){
@@ -72,7 +74,7 @@ function die(){
  if(remaining<=0){end(false);return;}
  start(stage,remaining);
 }
-function end(win){if(scene!=='game')return;scene='end';clearInput();updateBossHud();$('#play').classList.remove('hide');let finishedMs=0;if(win){finishedMs=recordTime();xp(70+hero.earned);save.stars[stage]=Math.max(save.stars[stage],hero.stars);save.unlocked=Math.max(save.unlocked,Math.min(stages.length,stage+2));if(stages[stage].boss)save.slimeKingWins=(Number(save.slimeKingWins)||0)+1;persist()}layer.classList.remove('hide');hud.classList.add('hide');controls.classList.add('hide');$('#menu').classList.add('hide');$('#return').classList.remove('hide');$('#return').onclick=menu;$('#heading').textContent=win?'LEVEL GESCHAFFT!':'Versuch es erneut';$('#intro').textContent=win?'Zeit: '+formatRunTime(finishedMs)+' '+medal(finishedMs)+' · Du hast '+hero.stars+'/3 Sterne gesammelt und '+(hero.earned+70)+' XP erhalten.':'Alle Herzen aufgebraucht! Versuche das Level erneut – ohne Checkpoints. Taste R startet direkt neu.';$('#play').textContent=win&&stage<stages.length-1?'Nächstes Level':'Erneut spielen';$('#play').onclick=()=>start(win&&stage<stages.length-1?stage+1:stage)}
+function end(win){if(scene!=='game')return;scene='end';clearInput();updateBossHud();$('#play').classList.remove('hide');let finishedMs=0;if(win){finishedMs=recordTime();xp(70+hero.earned);save.stars[stage]=Math.max(save.stars[stage],hero.stars);save.unlocked=Math.max(save.unlocked,Math.min(stages.length,stage+2));if(stages[stage].boss)save.slimeKingWins=(Number(save.slimeKingWins)||0)+1;persist()}layer.classList.remove('hide');hud.classList.add('hide');controls.classList.add('hide');$('#menu').classList.add('hide');$('#return').classList.remove('hide');$('#return').onclick=menu;$('#heading').textContent=win?'LEVEL GESCHAFFT!':'Versuch es erneut';$('#intro').textContent=win?(stages[stage].boss?'Der Schleimkönig ist besiegt! · Zeit: '+formatRunTime(finishedMs)+' · '+(hero.earned+70)+' XP erhalten.':'Zeit: '+formatRunTime(finishedMs)+' '+medal(finishedMs)+' · Du hast '+hero.stars+'/3 Sterne gesammelt und '+(hero.earned+70)+' XP erhalten.'):'Alle Herzen aufgebraucht! Versuche das Level erneut – ohne Checkpoints. Taste R startet direkt neu.';$('#play').textContent=win&&stage<stages.length-1?'Nächstes Level':'Erneut spielen';$('#play').onclick=()=>start(win&&stage<stages.length-1?stage+1:stage)}
 function step(dt){
  if(scene!=='game')return;
  t+=dt;
@@ -101,11 +103,14 @@ function step(dt){
   if(h.vy>=0)h.jumpActive=false;
  }
  if(h.dash>0&&Math.floor(t)%2===0)burst(h.x+15,h.y+24,cl.color,2,1);
- const wasOn=h.on,prevY=h.y;
+ const wasOn=h.on;
+ platformTick(dt);
+ const prevY=h.y;
  h.x=Math.max(0,Math.min(WIDTH-30,h.x+h.vx*dt));
- h.y+=h.vy*dt;h.on=false;
- for(const p of solids())if(h.x+h.w>p.x&&h.x<p.x+p.w&&prevY+h.h<=p.y+9&&h.y+h.h>=p.y&&h.vy>=0){
+ h.y+=h.vy*dt;h.on=false;h.riding=null;
+ for(const p of solids())if(h.x+h.w>p.x&&h.x<p.x+p.w&&prevY+h.h<=(p.prevY??p.y)+9&&h.y+h.h>=p.y&&h.vy>=0){
   h.y=p.y-h.h;h.vy=0;h.on=true;h.usedDash=false;h.jumpActive=false;h.coyote=JUMP.coyote;
+  if(p.kind){h.riding=p.id;if(p.kind==='crumble')triggerCrumble(p);}
  }
  if(h.on&&!wasOn)burst(h.x+15,h.y+h.h,'#a1c59a',8,1.7);
  for(const a of things)if(!a.taken&&Math.hypot(a.x-h.x-15,a.y-h.y-20)<30){
@@ -133,6 +138,6 @@ function step(dt){
  invincible=Math.max(0,invincible-dt);
  dashCooldown=Math.max(0,dashCooldown-dt);
  cam=Math.max(0,Math.min(WIDTH-W,h.x-350));
- $('#hudLeft').textContent='HP '+h.hearts+'  ★ '+h.stars+'/3  $ '+Math.round(h.earned/5);
+ $('#hudLeft').textContent='HP '+h.hearts+(stages[stage].boss?'  SCHLEIMKÖNIG':'  ★ '+h.stars+'/3  $ '+Math.round(h.earned/5));
  $('#hudRight').textContent=stages[stage].name+' · '+cl.label+' · ⏱ '+formatRunTime(currentTime());
 }
