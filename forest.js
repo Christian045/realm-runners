@@ -180,11 +180,23 @@ function terrain(p,index){
    const seed=r();
    q.fillStyle=seed<.19?material.shadow:seed<.56?material.base:material.side;
    q.fillRect(xx+1,y+1,Math.max(0,w-2),14);
-   q.fillStyle=material.outline;q.fillRect(xx,y,Math.max(1,w),2);
-   q.fillRect(xx,y,2,16);
-   q.fillStyle=material.light;q.fillRect(xx+3,y+3,Math.max(0,w-6),2);
-   if(seed>.53){q.fillStyle=material.chip;q.fillRect(xx+5,y+7,3,3);}
-   if(seed<.25){q.fillStyle=material.shadow;q.fillRect(xx+9,y+10,5,2);}
+   if(stone){
+    // Staggered rectangular stone blocks with visibly separate mortar.
+    q.fillStyle=material.outline;q.fillRect(xx,y,Math.max(1,w),2);
+    q.fillRect(xx,y,2,16);
+    q.fillStyle=material.light;q.fillRect(xx+3,y+3,Math.max(0,w-6),2);
+    if(seed>.53){q.fillStyle=material.chip;q.fillRect(xx+5,y+7,3,3);}
+    if(seed<.25){q.fillStyle=material.shadow;q.fillRect(xx+9,y+10,5,2);}
+   }else{
+    // Forest/swampland: irregular earth patches, roots and embedded pebbles.
+    // No mortar grid: organic ground must not look like castle bricks.
+    q.fillStyle=seed>.63?material.side:material.base;
+    q.fillRect(xx,y,Math.max(1,w),16);
+    if(seed<.4){q.fillStyle=material.shadow;q.fillRect(xx+2,y+6,8,4);}
+    if(seed>.27){q.fillStyle=material.light;q.fillRect(xx+8,y+3,4,4);}
+    if(seed>.75){q.fillStyle=material.chip;q.fillRect(xx+5,y+11,3,3);}
+    if(seed<.14){q.fillStyle=material.shadow;q.fillRect(xx+12,y+9,3,7);}
+   }
   }
  }
  // Upper platform edge has a strong 3-tone silhouette against distant art.
