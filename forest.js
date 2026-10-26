@@ -34,20 +34,52 @@ function glow(x,y,r,color){
  ctx.restore();
 }
 // Deterministic rectangular tree canopies on three cached parallax planes.
-const planes=[];
-function makePlane(index){
+// Each stage has an unmistakable color story while keeping the original pixel sprites.
+const stageThemes=[
+ {
+  sky:['#75afbd','#93c9b9','#d0dba1','#8bb68b','#486e53','#26493d'],
+  sun:'#fff0a4',sunCore:'#ffe2a3',haze:'#dbe6aa',
+  trees:[
+   ['#426a61','#568779','#84b39b','#a3c497'],
+   ['#285b52','#3b795b','#65a86e','#9acc78'],
+   ['#173e35','#285c3e','#4e8347','#79a650']
+  ],
+  soil:['#162d25','#37543a','#253d30','#416145','#a5d368','#527740','#7eab53'],
+  flower:'#f4d977',detail:'#d6ec9d'
+ },
+ {
+  sky:['#172c62','#284780','#406c9a','#548a98','#335d81','#193454'],
+  sun:'#9bd3f5',sunCore:'#d6eaff',haze:'#8ac1d9',
+  trees:[
+   ['#293f71','#405f9c','#5480af','#78a9ce'],
+   ['#173a65','#286290','#3d8eaf','#71b7c5'],
+   ['#163a53','#1e5c71','#32848a','#63b9a4']
+  ],
+  soil:['#132c42','#24546b','#1b394e','#327080','#79c8cb','#397d92','#54aab7'],
+  flower:'#f6b5e3',detail:'#9adff2'
+ },
+ {
+  sky:['#382f55','#55416b','#81577a','#a17b74','#685767','#322f45'],
+  sun:'#eecb95',sunCore:'#f8e4b2',haze:'#c9a9a0',
+  trees:[
+   ['#50475e','#655574','#8a6681','#a38299'],
+   ['#3b4454','#54605e','#747d65','#a89b72'],
+   ['#263a3c','#3b5650','#63785b','#a79f71']
+  ],
+  soil:['#252c35','#4e5157','#383f47','#62605c','#ae9e79','#726d60','#9d8e6a'],
+  flower:'#ffd48c',detail:'#d8cba7'
+ }
+];
+// Reusable tile-based planes; only the palette/geometry changes between biomes.
+function makePlane(depth,biome){
  const c=document.createElement('canvas');c.width=1600;c.height=540;
- const p=c.getContext('2d'),r=rng(900+index*120),tile=8;
- const pal=[
-  ['#23454b','#31575a','#3f6563','#52766c'],
-  ['#173c40','#265047','#36644f','#4b7659'],
-  ['#112e34','#21453e','#346047','#56754f']
- ][index];
- const trees=[14,13,11][index];
+ const p=c.getContext('2d'),r=rng(900+depth*120+biome*101),tile=8;
+ const pal=stageThemes[biome].trees[depth],trees=[14,13,11][depth];
+ const level2=biome===1,ruins=biome===2;
  for(let i=0;i<trees;i++){
-  const x=Math.round((i*1600/trees+(r()-.5)*100)/tile)*tile;
-  const top=Math.round((80+r()*155)/tile)*tile;
-  const tw=(index===2?4:2+index)*tile+Math.floor(r()*3)*tile;
+  const x=Math.round((i*1600/trees+(r()-.5)*95)/tile)*tile;
+  const top=Math.round((65+r()*165)/tile)*tile;
+  const tw=(depth===2?4:2+depth)*tile+Math.floor(r()*3)*tile;
   p.fillStyle=pal[0];p.fillRect(x-tw/2,top,tw,540-top);
   p.fillStyle=pal[1];p.fillRect(x-tw/2+tile,top,Math.max(tile,tw/3),540-top);
   for(let k=0;k<3;k++){
@@ -55,25 +87,46 @@ function makePlane(index){
    p.fillStyle=pal[k%2];p.fillRect(x+(dir<0?-reach:0),by,reach,tile*2);
    p.fillRect(x+(dir<0?-reach:reach-tile),by-tile*2,tile,tile*4);
   }
-  const crownW=(index===2?15:18)*tile,cy=top+20;
+  const crownW=(depth===2?15:18)*tile,cy=top+20;
   for(let k=0;k<3;k++){
    const w=crownW-k*tile*3;
    p.fillStyle=pal[1+k%3];
    p.fillRect(Math.round((x-w/2)/tile)*tile,cy+k*tile*3,w,tile*6);
   }
-  for(let k=0;k<75;k++){
+  for(let k=0;k<74;k++){
    const lx=Math.round((x+(r()-.5)*crownW*1.25)/tile)*tile;
    const ly=Math.round((cy+r()*tile*13)/tile)*tile;
    p.fillStyle=pal[2+(k%2)];p.fillRect(lx,ly,tile*(1+(k%3===0)),tile);
   }
-  if(index===2)for(let k=0;k<4;k++){
-   const vx=x+Math.floor((r()-.5)*crownW/tile)*tile,vy=cy+tile*9;
-   p.fillStyle=pal[3];p.fillRect(vx,vy,tile/2,16+Math.floor(r()*6)*tile);
+  if(level2){
+   // The canopy level has unmistakable long hanging ropes and fluorescent leaves.
+   for(let k=0;k<4;k++){
+    const vx=x+Math.floor((r()-.5)*crownW/tile)*tile;
+    const len=55+Math.floor(r()*8)*tile;
+    p.fillStyle='#87bac1';p.fillRect(vx,cy+62,tile/2,len);
+    p.fillStyle='#cf97d7';p.fillRect(vx-4,cy+len+52,tile*1.5,tile);
+   }
+  }else if(ruins){
+   for(let k=0;k<4;k++){
+    const vx=x+Math.floor((r()-.5)*crownW/tile)*tile;
+    p.fillStyle=pal[3];p.fillRect(vx,cy+tile*9,tile/2,16+Math.floor(r()*6)*tile);
+   }
   }
+ }
+ // Distant blocks make the world's silhouette different even when stationary.
+ if(ruins)for(let i=0;i<6;i++){
+  const x=i*283+45,y=330+Math.floor(r()*8)*8;
+  p.fillStyle=pal[0];p.fillRect(x,y,80,540-y);
+  p.fillRect(x-16,y,112,20);p.fillRect(x+16,y-40,48,40);
+  p.fillStyle=pal[2];p.fillRect(x+8,y+25,16,24);p.fillRect(x+56,y+25,16,24);
+ }else if(level2)for(let i=0;i<8;i++){
+  const x=i*206+30,y=210+Math.floor(r()*10)*8;
+  p.fillStyle=pal[2];p.fillRect(x,y,110,18);
+  p.fillStyle=pal[0];p.fillRect(x+20,y+18,70,16);
  }
  return c;
 }
-for(let i=0;i<3;i++)planes.push(makePlane(i));
+const planeSets=Array.from({length:3},(_,biome)=>Array.from({length:3},(_,depth)=>makePlane(depth,biome)));
 // Ground textures are cached once per level rather than regenerated every frame.
 // Caches avoid repeated drawing work on slow mobile devices.
 const terrainCache=new Map();
