@@ -32,7 +32,7 @@ h.run("save.class='hunter';start(0);for(let i=0;i<60;i++)step(1);hero.x=300;cam=
 console.log(`${checks} checks passed. Canvas preview: test-output/forest-v03.png`);
 
 test('v0.4 timer only advances during active simulation',()=>{h.run("start(0);for(let i=0;i<60;i++)step(1)");assert.equal(h.run('currentTime()'),1000);h.run("pause();step(1)");assert.equal(h.run('currentTime()'),1000);h.run('resume()');});
-test('v0.4 local leaderboard records best time per class',()=>{h.run("save.class='mage';start(0);for(let i=0;i<80;i++)step(1);recordTime()");const first=h.run("save.bestTimesV05['1-1'].mage");h.run('start(0);for(let i=0;i<100;i++)step(1);recordTime()');assert.equal(h.run("save.bestTimesV05['1-1'].mage"),first);});
+test('v0.4 local leaderboard records best time per class',()=>{h.run("save.class='mage';start(0);for(let i=0;i<80;i++)step(1);recordTime()");const first=h.run("save.bestTimesPixelV051['1-1'].mage");h.run('start(0);for(let i=0;i<100;i++)step(1);recordTime()');assert.equal(h.run("save.bestTimesPixelV051['1-1'].mage"),first);});
 test('v0.4 skills unlock in order and survive persistence',()=>{h.run("save.class='mage';save.level=5;ensureRpgSave()");assert.equal(h.run("unlockSkill('double_fireball')"),false);assert.equal(h.run("unlockSkill('fireball_damage')"),true);assert.ok(JSON.parse(h.storage.get('realm-runners-save-v2')).skills.mage.includes('fireball_damage'));});
 test('v0.4 mage projectile damages an enemy',()=>{h.run("save.class='mage';start(0);hero.x=370;hero.y=420;hero.face=1;performAttack();for(let i=0;i<12;i++)combatTick(1)");assert.ok(h.run('bad[0].hp<2||!bad[0].alive'));});
 test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';save.inventory.push('ember_staff');equipItem('ember_staff')");assert.equal(h.run("save.equipment.mage.weapon"),'ember_staff');assert.equal(h.run("equipItem('swift_bow')"),false);});
@@ -40,9 +40,9 @@ test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';
 // Guard against missing or stale runtime scripts in the published HTML.
 test('v0.4 HTML loads RPG systems before forest startup',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- const game=html.indexOf('src="game.js?v=0.5.0"');
- const rpg=html.indexOf('src="rpg.js?v=0.5.0"');
- const forest=html.indexOf('src="forest.js?v=0.5.0"');
+ const game=html.indexOf('src="game.js?v=0.5.1"');
+ const rpg=html.indexOf('src="rpg.js?v=0.5.1"');
+ const forest=html.indexOf('src="forest.js?v=0.5.1"');
  assert.ok(game>=0 && rpg>game && forest>rpg,'game.js -> rpg.js -> forest.js must load in that order');
  assert.ok(html.includes('id="rpgPanels"'));
  assert.ok(html.includes('data-control="attack"'));
@@ -101,4 +101,43 @@ test('v0.5 third death shows retry and R key restarts with full hearts',()=>{
  assert.equal(h.run('scene'),'game');
  assert.equal(h.run('hero.hearts'),3);
  assert.equal(h.run('hero.x'),50);
+});
+
+test('Pixel Edition: held jump apex is around 12 percent lower, short tap is unchanged',()=>{
+ const previous={warrior:189.8,hunter:197.6,mage:210.8};
+ for(const kind of Object.keys(previous)){
+  const height=held=>{
+   h.run(`save.class='${kind}';start(0);input.jump=true;step(1)`);
+   let min=h.run('hero.y');
+   for(let frame=0;frame<65;frame++){
+    if(frame===0&&!held)h.run('input.jump=false');
+    h.run('step(1)');
+    min=Math.min(min,h.run('hero.y'));
+   }
+   return 422-min;
+  };
+  const tap=height(false),hold=height(true),ratio=hold/previous[kind];
+  assert.ok(ratio>.84&&ratio<.90,`${kind}: ${ratio.toFixed(3)} of old apex`);
+  assert.ok(tap>36&&tap<50,`${kind}: short tap must remain close to original`);
+  assert.ok(hold>tap+100,`${kind}: held jump remains distinguishable`);
+ }
+});
+test('Pixel Edition: half-resolution pixel buffer, nearest-neighbour upscale and context restoration',()=>{
+ h.run('innerWidth=960;innerHeight=540;size();start(0);draw()');
+ assert.equal(h.run('pixelCanvas.width'),480);
+ assert.equal(h.run('pixelCanvas.height'),270);
+ assert.equal(h.run("ctx===canvas.getContext('2d')"),true);
+ const data=h.canvas.getContext('2d').getImageData(200,140,2,2).data;
+ for(let i=4;i<16;i+=4)for(let j=0;j<4;j++)assert.equal(data[i+j],data[j]);
+ assert.ok(data[3]>0);
+});
+test('Pixel Edition: previous time trials remain untouched after recording new runs',()=>{
+ h.run("save.class='mage';save.bestTimes={'1-1':{mage:69000}};save.bestTimesV05={'1-1':{mage:72000}};start(0);for(let i=0;i<90;i++)step(1);recordTime()");
+ assert.equal(h.run("save.bestTimes['1-1'].mage"),69000);
+ assert.equal(h.run("save.bestTimesV05['1-1'].mage"),72000);
+ assert.ok(h.run("save.bestTimesPixelV051['1-1'].mage")>0);
+});
+test('Pixel Edition: maximum terrain gap remains passable without forced long dash',()=>{
+ const gapLengths=h.run('stages.flatMap(s=>s.gaps.map(([a,b])=>b-a))');
+ assert.ok(Math.max(...gapLengths)<=185);
 });
