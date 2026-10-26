@@ -1,0 +1,28 @@
+const {chromium,webkit}=require('playwright');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+(async()=>{fs.mkdirSync('test-output',{recursive:true});for(const [name,engine] of Object.entries({chromium,webkit})){
+ const browser=await engine.launch();
+ try{const context=await browser.newContext({viewport:{width:844,height:390},deviceScaleFactor:2,isMobile:true,hasTouch:true});const page=await context.newPage(),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:8000');
+ await page.evaluate(()=>localStorage.setItem('realm-runners-save-v2',JSON.stringify({class:'hunter',unlocked:3,stars:[3,2,1],xp:87,level:4})));
+ await page.reload();await page.locator('#play').click();
+ await page.waitForTimeout(400);assert.equal(await page.evaluate(()=>scene),'game');
+ await page.keyboard.down('KeyD');await page.waitForTimeout(250);await page.keyboard.up('KeyD');assert.ok(await page.evaluate(()=>hero.x)>70);
+ await page.keyboard.press('Space');assert.ok(await page.evaluate(()=>hero.vy)<0);
+ await page.evaluate(()=>{start(0);for(let i=0;i<60;i++)step(1);});
+ // Dispatch concurrent pointer contacts; physical Safari touch remains a manual check.
+ await page.evaluate(()=>{for(const [k,id] of [['right',1],['jump',2]]){const b=document.querySelector(`[data-control="${k}"]`);b.setPointerCapture=()=>{};b.dispatchEvent(new PointerEvent('pointerdown',{pointerId:id,bubbles:true}));}});
+ assert.equal(await page.evaluate(()=>input.right&&input.jump),true);
+ await page.evaluate(()=>document.querySelector('[data-control="jump"]').dispatchEvent(new PointerEvent('pointercancel',{pointerId:2})));
+ assert.equal(await page.evaluate(()=>input.right&&!input.jump),true);
+ await page.locator('#pause').click();assert.equal(await page.evaluate(()=>scene),'pause');assert.equal(await page.evaluate(()=>input.right),false);await page.locator('#resume').click();
+ await page.evaluate(()=>{hero.x=2750;hero.stars=2;hero.earned=25;step(1)});assert.equal(await page.evaluate(()=>scene),'end');
+ await page.reload();assert.equal(await page.evaluate(()=>save.level),4);assert.equal(await page.evaluate(()=>save.xp),182);assert.equal(await page.evaluate(()=>save.stars[0]),3);
+ await page.locator('#play').click();await page.screenshot({path:`test-output/${name}-landscape.png`});
+ await page.setViewportSize({width:390,height:844});await page.screenshot({path:`test-output/${name}-portrait.png`});
+ for(const b of await page.locator('[data-control]').all()){const box=await b.boundingBox();assert.ok(box&&box.x>=0&&box.y>=0&&box.x+box.width<=390&&box.y+box.height<=844);}
+ assert.deepEqual(errors,[]);console.log(`PASS ${name}: startup, movement, jump, concurrent pointers, pause, save, responsive controls, no JS errors`);
+ }finally{await browser.close();}
+}})().catch(e=>{console.error(e);process.exitCode=1});

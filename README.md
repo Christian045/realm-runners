@@ -1,38 +1,70 @@
-# Realm Runners 🎮 — Version 0.2
+# Realm Runners — v0.3 · Smaragdwald
 
-Ein kostenloser **2D-Jump-'n'-Run-Prototyp mit RPG-Fortschritt** für Windows und iPhone Safari.
+Ein Jump-'n'-Run mit RPG-Fortschritt für **Windows-Browser und iPhone Safari**.
 
-## Spielen
-Nach einmaliger Aktivierung von GitHub Pages: **https://christian045.github.io/realm-runners/**
+**Spielen: https://christian045.github.io/realm-runners/**
 
-### Inhalt
-- Weltkarte mit **drei spielbaren Wald-Leveln**, weitere Welten als Vorschau.
-- Drei auswählbare Klassen: **Krieger, Jäger, Magier** mit unterschiedlichen Bewegungswerten.
-- Sprünge, Dash, Abgründe, Stacheln, Gegner, Münzen und **drei Sterne pro Level**.
-- Checkpoints, drei Herzen und Levelabschluss an der Zielflagge.
-- **XP und Charakterlevel**, Freischaltung des nächsten Levels und gespeicherte Bestleistung pro Level.
-- Automatisches Speichern via `localStorage` auf dem jeweiligen Gerät und Browser.
+## Neu in v0.3
 
-### Steuerung
-- **Windows:** A/D oder Links/Rechts bewegen · Leertaste springen · Shift oder J Dash.
-- **iPhone:** Bildschirmtasten · Querformat empfohlen.
-- Gegner durch Sprung von oben oder Dash besiegen.
+- Originale, prozedural gezeichnete Waldgrafik im HD-2D-Stil: drei separat bewegte Wald-Ebenen, atmosphärischer Nebel, Lichtstrahlen, Blattwerk, Farne, Pilze und strukturierte Moosplattformen. Moosruinen erhalten Steinbögen.
+- Pixel-Figuren mit Lauf-, Sprung- und Ruheanimationen, bewegten Umhängen und eigener Klassen-Ausrüstung (Schwert, Bogen, Stab).
+- Animierte Waldgeister, schwebende Sterne und rotierende Münzen.
+- Partikel beim Springen, Landen, Dash, Sammeln, Schaden, Gegnerbesiegen und Aktivieren eines Checkpoints; Glühwürmchen und Blätter.
+- Wald-Menü, kompakte Anzeigen, Dash-Bereitschaft und Pause. App-Wechsel/Fokusverlust pausiert und löst gehaltene Tasten.
+- Mehrere Finger und Tastatur können gleichzeitig verwendet werden. 60-Hz-Simulation unabhängig von 60-/120-Hz-Displays.
+- Grafikschalter „Voll / Sparsam“, begrenzte Partikelzahl, gecachte Grafik und Berücksichtigung von „Bewegung reduzieren“.
 
-## Veröffentlichung über GitHub Pages
-1. Im Repository **Settings → Pages** öffnen.
-2. **Build and deployment → Source → Deploy from a branch**.
-3. Branch `main`, Ordner `/(root)` wählen und speichern.
-4. Nach Veröffentlichung die GitHub-Pages-URL in iPhone Safari öffnen.
-5. Optional: Safari → Teilen → Zum Home-Bildschirm.
+Die Grafik ist originale Canvas-/Pixel-Art mit simulierter Tiefe, keine 3D-Engine. Das Spiel bleibt ein weiterentwickelbarer Prototyp. Die drei Level, Klassen-Bewegungswerte, Sprünge, Gegnerregeln und RPG-Belohnungen aus v0.2 bleiben erhalten.
 
-Neue Commits auf `main` werden automatisch bereitgestellt. Falls die vorige Version angezeigt wird, Seite neu laden.
+## Steuerung
 
-## Entwicklung
-Für lokale Tests genügt `index.html` im Windows-Browser; kein Build-System, keine Installation. Dies ist noch ein **Prototyp mit geometrischer Platzhaltergrafik**, kein fertiges HD-2D-Spiel. Die späteren Welten, Klassen-Skilltrees und das endgültige Grafiksystem sind noch nicht umgesetzt.
+- **Windows:** A/D oder ←/→ bewegen; Leertaste, W oder ↑ springen; Shift oder J Dash; Escape Pause/Fortsetzen.
+- **iPhone:** Links/Rechts gedrückt halten, gleichzeitig Sprung oder ✦ drücken. Querformat empfohlen. Oben rechts: Pause.
+- Gegner von oben oder mit einem Dash besiegen. Drei Herzen; Checkpoint heilt ein Herz. Zielflagge beendet den Abschnitt.
 
-## Roadmap
-1. Präzises Sprunggefühl und iPhone-Touch-Tests.
-2. Animierte HD-2D-Sprites, Parallax-Hintergründe und Sounds.
-3. Mehr Bewegungstechniken, Geheimnisse und Klassen-Skilltrees.
-4. Zusätzliche Welten, Bosse, Level-Editor und Balancing.
-5. Umfangreichere Weltkarte und plattformübergreifende Speicherung.
+## Bestehende Spielstände
+
+Der Schlüssel **`realm-runners-save-v2`** und das Datenformat bleiben gleich: Klasse, Level, XP, freigeschaltete Abschnitte und beste Sterne werden übernommen. Zusätzliche Felder werden nicht gelöscht. Grafikpräferenz wird separat gespeichert.
+
+Der Fortschritt bleibt lokal in demselben Browser und derselben Website-Adresse. Browserdaten nicht löschen. Ein Wechsel von Browser, Gerät oder URL-Ursprung überträgt keinen Spielstand. Gespeichert wird der RPG-Fortschritt; die aktuelle Position innerhalb eines Levels wird wie zuvor nicht dauerhaft gespeichert.
+
+## Testanleitung
+
+1. Die Spieladresse im bisherigen Browser öffnen und neu laden. Im Menü muss **v0.3** stehen. Bei altem Cache einmal `?v=0.3` anhängen (gleicher Ursprung, gleicher Spielstand).
+2. Vor dem Start bisherige Klasse, XP, Level, Sterne und Freischaltungen vergleichen.
+3. iPhone quer halten. Rechts halten und mit zweitem Finger springen, danach Dash. Finger außerhalb des Buttons loslassen: Bewegung muss stoppen.
+4. App wechseln und zurückkehren: Pause. „Fortsetzen“ drücken. Hoch-/Querformat drehen und die vier Tasten prüfen.
+5. Münze/Stern sammeln, Gegner von oben und per Dash besiegen. Partikel und Animationen beobachten. Hintergrund-Ebenen bewegen sich unterschiedlich schnell.
+6. Checkpoint erreichen, Schaden/Abgrund ausprobieren, Zielflagge erreichen. Nach Neuladen müssen XP, Sterne und Freischaltungen erhalten sein.
+7. Alle Klassen und drei Level ausprobieren. Bei Ruckeln im Menü oder Pausenmenü Grafik auf „Sparsam“ stellen.
+8. Windows: dieselben Gameplay-Prüfungen mit Tastatur durchführen; Escape und Fokuswechsel testen.
+
+## Entwicklung und automatisierte Tests
+
+Kein Build erforderlich; HTML, game.js und forest.js werden direkt ausgeliefert. Lokal über HTTP starten:
+
+```sh
+python3 -m http.server 8000
+```
+
+Dann http://localhost:8000 öffnen. Entwicklungsabhängigkeiten und Tests:
+
+```sh
+npm install
+npm test
+npx playwright install --with-deps chromium webkit
+# In einem zweiten Terminal läuft der HTTP-Server auf Port 8000:
+npm run test:browser
+```
+
+`tests/regression.cjs` prüft 16 Fälle mit echtem Canvas-Rasterizer und simuliertem DOM: Speicherkompatibilität, alle Klassen/Level, Physik, Belohnungen, Gegner, Checkpoints, Mehrfinger-Eingaben, Pause, Partikelbudget und 60/120 Hz. `tests/browser.cjs` prüft Chromium und WebKit, Darstellung in Hoch-/Querformat sowie Konsolenfehler. Screenshots entstehen unter `test-output/`.
+
+GitHub Actions führt beide Tests bei Push auf `main` aus. WebKit-Tests ersetzen keinen Test auf einem echten iPhone; Multitouch im Browser-Test verwendet synthetische Pointer-Ereignisse. Reale Geräte-Performance und Safari-App-Wechsel bitte mit obiger Anleitung prüfen.
+
+## Veröffentlichung
+
+GitHub Pages: Branch `main`, Ordner `/(root)`. Neue Commits werden automatisch bereitgestellt. Kein Service Worker, keine externen Grafik-CDNs oder Webfonts.
+
+## Nächste Ausbaustufen
+
+Sound und Musik, zusätzliche Animationsframes, mehr Levelgeheimnisse, Klassenfähigkeiten/Skilltrees und Bosse. Frostgipfel, Glutberge und Himmelsruinen sind weiterhin Vorschauen.

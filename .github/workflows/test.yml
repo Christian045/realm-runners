@@ -1,0 +1,29 @@
+name: Realm Runners regression
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  game:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --ignore-scripts
+      - run: node --check game.js && node --check forest.js
+      - run: npm test
+      - run: npx playwright install --with-deps chromium webkit
+      - run: |
+          python3 -m http.server 8000 > /tmp/realm-server.log 2>&1 &
+          for i in $(seq 1 20); do curl -fsS http://127.0.0.1:8000/ > /dev/null && break || sleep 1; done
+          npm run test:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: realm-runners-test-previews
+          path: test-output/
