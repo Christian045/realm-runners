@@ -34,20 +34,52 @@ function glow(x,y,r,color){
  ctx.restore();
 }
 // Deterministic rectangular tree canopies on three cached parallax planes.
-const planes=[];
-function makePlane(index){
+// Each stage has an unmistakable color story while keeping the original pixel sprites.
+const stageThemes=[
+ {
+  sky:['#75afbd','#93c9b9','#d0dba1','#8bb68b','#486e53','#26493d'],
+  sun:'#fff0a4',sunCore:'#ffe2a3',haze:'#dbe6aa',
+  trees:[
+   ['#426a61','#568779','#84b39b','#a3c497'],
+   ['#285b52','#3b795b','#65a86e','#9acc78'],
+   ['#173e35','#285c3e','#4e8347','#79a650']
+  ],
+  soil:['#162d25','#37543a','#253d30','#416145','#a5d368','#527740','#7eab53'],
+  flower:'#f4d977',detail:'#d6ec9d'
+ },
+ {
+  sky:['#172c62','#284780','#406c9a','#548a98','#335d81','#193454'],
+  sun:'#9bd3f5',sunCore:'#d6eaff',haze:'#8ac1d9',
+  trees:[
+   ['#293f71','#405f9c','#5480af','#78a9ce'],
+   ['#173a65','#286290','#3d8eaf','#71b7c5'],
+   ['#163a53','#1e5c71','#32848a','#63b9a4']
+  ],
+  soil:['#132c42','#24546b','#1b394e','#327080','#79c8cb','#397d92','#54aab7'],
+  flower:'#f6b5e3',detail:'#9adff2'
+ },
+ {
+  sky:['#714769','#815479','#ad6b83','#ba8e85','#685267','#3e314b'],
+  sun:'#eecb95',sunCore:'#f8e4b2',haze:'#c9a9a0',
+  trees:[
+   ['#50475e','#655574','#8a6681','#a38299'],
+   ['#3b4454','#54605e','#747d65','#a89b72'],
+   ['#263a3c','#3b5650','#63785b','#a79f71']
+  ],
+  soil:['#252c35','#4e5157','#383f47','#62605c','#ae9e79','#726d60','#9d8e6a'],
+  flower:'#ffd48c',detail:'#d8cba7'
+ }
+];
+// Reusable tile-based planes; only the palette/geometry changes between biomes.
+function makePlane(depth,biome){
  const c=document.createElement('canvas');c.width=1600;c.height=540;
- const p=c.getContext('2d'),r=rng(900+index*120),tile=8;
- const pal=[
-  ['#23454b','#31575a','#3f6563','#52766c'],
-  ['#173c40','#265047','#36644f','#4b7659'],
-  ['#112e34','#21453e','#346047','#56754f']
- ][index];
- const trees=[14,13,11][index];
+ const p=c.getContext('2d'),r=rng(900+depth*120+biome*101),tile=8;
+ const pal=stageThemes[biome].trees[depth],trees=[14,13,11][depth];
+ const level2=biome===1,ruins=biome===2;
  for(let i=0;i<trees;i++){
-  const x=Math.round((i*1600/trees+(r()-.5)*100)/tile)*tile;
-  const top=Math.round((80+r()*155)/tile)*tile;
-  const tw=(index===2?4:2+index)*tile+Math.floor(r()*3)*tile;
+  const x=Math.round((i*1600/trees+(r()-.5)*95)/tile)*tile;
+  const top=Math.round((65+r()*165)/tile)*tile;
+  const tw=(depth===2?4:2+depth)*tile+Math.floor(r()*3)*tile;
   p.fillStyle=pal[0];p.fillRect(x-tw/2,top,tw,540-top);
   p.fillStyle=pal[1];p.fillRect(x-tw/2+tile,top,Math.max(tile,tw/3),540-top);
   for(let k=0;k<3;k++){
@@ -55,25 +87,46 @@ function makePlane(index){
    p.fillStyle=pal[k%2];p.fillRect(x+(dir<0?-reach:0),by,reach,tile*2);
    p.fillRect(x+(dir<0?-reach:reach-tile),by-tile*2,tile,tile*4);
   }
-  const crownW=(index===2?15:18)*tile,cy=top+20;
+  const crownW=(depth===2?15:18)*tile,cy=top+20;
   for(let k=0;k<3;k++){
    const w=crownW-k*tile*3;
    p.fillStyle=pal[1+k%3];
    p.fillRect(Math.round((x-w/2)/tile)*tile,cy+k*tile*3,w,tile*6);
   }
-  for(let k=0;k<75;k++){
+  for(let k=0;k<74;k++){
    const lx=Math.round((x+(r()-.5)*crownW*1.25)/tile)*tile;
    const ly=Math.round((cy+r()*tile*13)/tile)*tile;
    p.fillStyle=pal[2+(k%2)];p.fillRect(lx,ly,tile*(1+(k%3===0)),tile);
   }
-  if(index===2)for(let k=0;k<4;k++){
-   const vx=x+Math.floor((r()-.5)*crownW/tile)*tile,vy=cy+tile*9;
-   p.fillStyle=pal[3];p.fillRect(vx,vy,tile/2,16+Math.floor(r()*6)*tile);
+  if(level2){
+   // The canopy level has unmistakable long hanging ropes and fluorescent leaves.
+   for(let k=0;k<4;k++){
+    const vx=x+Math.floor((r()-.5)*crownW/tile)*tile;
+    const len=55+Math.floor(r()*8)*tile;
+    p.fillStyle='#87bac1';p.fillRect(vx,cy+62,tile/2,len);
+    p.fillStyle='#cf97d7';p.fillRect(vx-4,cy+len+52,tile*1.5,tile);
+   }
+  }else if(ruins){
+   for(let k=0;k<4;k++){
+    const vx=x+Math.floor((r()-.5)*crownW/tile)*tile;
+    p.fillStyle=pal[3];p.fillRect(vx,cy+tile*9,tile/2,16+Math.floor(r()*6)*tile);
+   }
   }
+ }
+ // Distant blocks make the world's silhouette different even when stationary.
+ if(ruins)for(let i=0;i<6;i++){
+  const x=i*283+45,y=330+Math.floor(r()*8)*8;
+  p.fillStyle=pal[0];p.fillRect(x,y,80,540-y);
+  p.fillRect(x-16,y,112,20);p.fillRect(x+16,y-40,48,40);
+  p.fillStyle=pal[2];p.fillRect(x+8,y+25,16,24);p.fillRect(x+56,y+25,16,24);
+ }else if(level2)for(let i=0;i<8;i++){
+  const x=i*206+30,y=210+Math.floor(r()*10)*8;
+  p.fillStyle=pal[2];p.fillRect(x,y,110,18);
+  p.fillStyle=pal[0];p.fillRect(x+20,y+18,70,16);
  }
  return c;
 }
-for(let i=0;i<3;i++)planes.push(makePlane(i));
+const planeSets=Array.from({length:3},(_,biome)=>Array.from({length:3},(_,depth)=>makePlane(depth,biome)));
 // Ground textures are cached once per level rather than regenerated every frame.
 // Caches avoid repeated drawing work on slow mobile devices.
 const terrainCache=new Map();
@@ -83,56 +136,108 @@ function terrain(p,index){
  const c=document.createElement('canvas');
  c.width=p.w+32;c.height=(p.y===G?H-p.y:42)+35;
  const q=c.getContext('2d'),r=rng(p.x+stage*200+21),soil=c.height-26,tile=8;
- q.fillStyle='#10292d';q.fillRect(16,20,p.w,soil);
- q.fillStyle='#25433b';q.fillRect(16,20,p.w,24);
- q.fillStyle='#1c3736';q.fillRect(16,44,p.w,Math.max(0,soil-28));
+ const [dark,mid,low,block,grass,deep,detail]=stageThemes[stage].soil;
+ q.fillStyle=dark;q.fillRect(16,20,p.w,soil);
+ q.fillStyle=mid;q.fillRect(16,20,p.w,24);
+ q.fillStyle=low;q.fillRect(16,44,p.w,Math.max(0,soil-28));
  for(let y=26;y<20+soil;y+=tile)for(let x=16;x<16+p.w;x+=tile){
-  const choice=r();
-  if(choice<.22){q.fillStyle='#355245';q.fillRect(x,y,tile,tile);}
-  else if(choice>.88){q.fillStyle='#172f32';q.fillRect(x+tile/2,y+tile/2,tile/2,tile/2);}
+  const choice=r();if(choice<.23){q.fillStyle=block;q.fillRect(x,y,tile,tile);}
+  else if(choice>.85){q.fillStyle=dark;q.fillRect(x+tile/2,y+tile/2,tile/2,tile/2);}
  }
- q.fillStyle='#4a6f47';q.fillRect(16,14,p.w,12);
- q.fillStyle='#a4bf6d';q.fillRect(16,14,p.w,4);
+ q.fillStyle=deep;q.fillRect(16,14,p.w,12);
+ q.fillStyle=grass;q.fillRect(16,14,p.w,5);
  for(let x=16;x<16+p.w;x+=tile){
-  if(r()>.2){q.fillStyle=r()>.5?'#7caa61':'#bdd181';q.fillRect(x,8,tile/2,6);}
-  if(r()>.76){q.fillStyle='#789f56';q.fillRect(x+2,26,tile/2,8);}
+  if(r()>.2){q.fillStyle=r()>.5?detail:grass;q.fillRect(x,8,tile/2,6);}
+  if(r()>.76){q.fillStyle=deep;q.fillRect(x+2,26,tile/2,8);}
+ }
+ if(stage===1){ // Tree canopy: exposed wood planks and vertical hanging roots.
+  for(let x=24;x<p.w;x+=24){q.fillStyle=dark;q.fillRect(x,32,3,17);}
+  for(let x=28;x<p.w;x+=62){q.fillStyle=detail;q.fillRect(x,21,15,3);}
+ }else if(stage===2){ // Moss ruins: unmistakable cracked stone-brick masonry.
+  for(let y=30;y<20+soil;y+=18)for(let x=17+((y/18|0)%2)*15;x<16+p.w;x+=38){
+   q.fillStyle=dark;q.fillRect(x,y,30,2);q.fillRect(x+29,y,2,14);
+  }
+ }else{ // Woodland: grassy foliage and tiny yellow blossoms.
+  for(let x=28;x<p.w;x+=52){q.fillStyle=stageThemes[stage].flower;q.fillRect(x,10,4,4);}
  }
  if(p.y!==G)for(let x=28;x<p.w;x+=64){
-  q.fillStyle='#54734b';q.fillRect(x,27,4,16);
-  q.fillRect(x+4,39,8,4);
+  q.fillStyle=deep;q.fillRect(x,27,4,16);q.fillRect(x+4,39,8,4);
  }
  terrainCache.set(key,c);return c;
 }
 function background(){
- // Palette-locked sky and layered tile trees, without smooth gradients.
- const sky=['#142f3a','#1d3f47','#315851','#456c60','#38594f','#25463c'];
- for(let i=0;i<sky.length;i++){ctx.fillStyle=sky[i];ctx.fillRect(0,i*90,W,90);}
- const sx=Math.round((630-cam*.025)/4)*4;
- ctx.fillStyle='#96b892';ctx.fillRect(sx,100,64,64);
- ctx.fillStyle='#bed29d';ctx.fillRect(sx+12,112,40,40);
+ const theme=stageThemes[stage];
+ const sky=theme.sky;
+ // Big flat color bands deliberately distinguish the three fantasy regions.
+ for(let i=0;i<sky.length;i++){
+  ctx.fillStyle=sky[i];ctx.fillRect(0,i*90,W,90);
+ }
+ const moonX=Math.round((666-cam*.025)/8)*8;
+ ctx.fillStyle=theme.sun;ctx.fillRect(moonX,96,72,72);
+ ctx.fillStyle=theme.sunCore;ctx.fillRect(moonX+12,108,48,48);
+ if(stage===0){ // Warm woodland: clouds, sunlit hills and clumps of wildflowers.
+  for(let i=0;i<8;i++){
+   const x=(i*176-Math.round(cam*.08/8)*8+W*4)%(W+176)-80;
+   ctx.fillStyle='#e3eac48f';ctx.fillRect(x,124+(i%3)*24,80,16);
+   ctx.fillRect(x+16,116+(i%3)*24,48,8);
+  }
+  for(let i=0;i<11;i++){
+   const x=i*110-Math.round(cam*.15/8)*8;
+   ctx.fillStyle=i%2?'#679776':'#538468';
+   ctx.fillRect(x,350-(i%3)*15,120,160);
+   ctx.fillRect(x+24,328-(i%3)*15,72,32);
+  }
+ }else if(stage===1){ // Blue high canopy: distant floating islands and waterfalls.
+  for(let i=0;i<10;i++){
+   const x=i*142-Math.round(cam*.17/8)*8;
+   const y=245+(i%3)*34;
+   ctx.fillStyle='#314e80';ctx.fillRect(x,y,112,22);
+   ctx.fillStyle='#507ea3';ctx.fillRect(x+12,y-10,92,12);
+   ctx.fillStyle='#25456c';ctx.fillRect(x+26,y+22,60,20);
+   if(i%2===0){
+    ctx.fillStyle='#7ac6e0b0';ctx.fillRect(x+84,y+22,12,195);
+    ctx.fillStyle='#d4e7f8aa';ctx.fillRect(x+88,y+22,4,170);
+   }
+  }
+ }else{ // Purple twilight ruins, massive silhouette towers and warm windows.
+  for(let i=0;i<9;i++){
+   const x=i*145-Math.round(cam*.14/8)*8,y=286+(i%4)*22;
+   ctx.fillStyle='#50445e';ctx.fillRect(x,y,104,540-y);
+   ctx.fillStyle='#6c5a70';ctx.fillRect(x-8,y,120,18);
+   ctx.fillRect(x+16,y-35,72,35);
+   ctx.fillStyle='#f2c77f';ctx.fillRect(x+21,y+40,12,22);
+   ctx.fillRect(x+65,y+40,12,22);
+   ctx.fillStyle='#a9816e';ctx.fillRect(x+26,y+45,4,9);
+  }
+ }
+ // Cached three-depth tree silhouettes with palette varying by biome.
  for(let i=0;i<3;i++){
   const par=[.12,.32,.58][i],offset=((cam*par)%1600+1600)%1600;
-  ctx.globalAlpha=[.65,.8,1][i];
+  ctx.globalAlpha=[.65,.82,1][i];
   ctx.imageSmoothingEnabled=false;
   const shift=Math.round(offset/4)*4;
-  ctx.drawImage(planes[i],-shift,0);
-  ctx.drawImage(planes[i],1600-shift,0);
+  ctx.drawImage(planeSets[stage][i],-shift,0);
+  ctx.drawImage(planeSets[stage][i],1600-shift,0);
   ctx.globalAlpha=1;
-  if(i<2){ctx.fillStyle=i===0?'#8aad8612':'#a5bd9314';ctx.fillRect(0,288+i*35,W,52);}
+  if(i<2){
+   ctx.fillStyle=stage===0?'#ffe7bd18':stage===1?'#69accb1c':'#caa8a31d';
+   ctx.fillRect(0,282+i*36,W,42);
+  }
  }
- if(quality==='full')for(let i=0;i<5;i++){
-  const x=340+i*145-Math.round(cam*.05/4)*4;
-  poly(ctx,[[x,0],[x+24,0],[x-130,H],[x-192,H]],'#d0d6a012');
+ if(quality==='full')for(let i=0;i<4;i++){
+  const x=150+i*250-Math.round(cam*.05/4)*4;
+  poly(ctx,[[x,0],[x+16,0],[x-104,H],[x-148,H]],
+    stage===0?'#f9eeac13':stage===1?'#a4d9ff10':'#f9be9112');
  }
- // Moosruinen: stacked block pillars and stair-step arches.
+ // Distinctive pixel-masonry archways in Moosruinen.
  if(stage===2){
   ctx.save();ctx.translate(Math.round((730-cam*.65)/4)*4,0);
-  for(let n=0;n<4;n++){
-   const x=n*330;
-   ctx.fillStyle='#314f4b';ctx.fillRect(x,230,28,240);ctx.fillRect(x+116,230,28,240);
-   ctx.fillRect(x+24,198,96,24);ctx.fillRect(x+40,181,64,17);
-   ctx.fillStyle='#4e7263';ctx.fillRect(x+8,250,4,170);ctx.fillRect(x+124,250,4,170);
-   ctx.fillStyle='#698e70';ctx.fillRect(x+35,196,68,5);
+  for(let n=0;n<5;n++){
+   const x=n*290;
+   ctx.fillStyle='#554f62';ctx.fillRect(x,230,32,240);ctx.fillRect(x+112,230,32,240);
+   ctx.fillRect(x+24,190,96,26);ctx.fillRect(x+40,173,64,18);
+   ctx.fillStyle='#a28c77';ctx.fillRect(x+8,246,4,170);ctx.fillRect(x+124,246,4,170);
+   ctx.fillStyle='#83a277';ctx.fillRect(x+35,188,68,5);
   }
   ctx.restore();
  }
@@ -195,8 +300,51 @@ function draw(){
 function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();background();motes(false);
  ctx.save();ctx.translate(-cam,0);
  for(const [i,p] of solids().entries()){if(p.x+p.w<cam-20||p.x>cam+W+20)continue;ctx.drawImage(terrain(p,i),p.x-16,p.y-20);}
- // Ferns, luminous mushrooms and stones are fixed to safe ground, not gaps.
- for(const p of land()){for(let x=p.x+70;x<p.x+p.w-20;x+=133){if(x<cam-30||x>cam+W+30)continue;for(let j=0;j<5;j++){const angle=-Math.PI*.85+j*.28;line(ctx,x,G-2,x+Math.cos(angle)*19,G-2+Math.sin(angle)*20,'#6a9a65',2);for(let k=1;k<4;k++)ellipse(ctx,x+Math.cos(angle)*k*4,G-2+Math.sin(angle)*k*4,4,1.6,'#75a16b');}if(x%3<2){ctx.fillStyle='#adcbb0';ctx.fillRect(x+29,G-11,3,10);ellipse(ctx,x+30,G-12,8,4,'#82bcb0');ellipse(ctx,x+28,G-13,2,1,'#e0e9bf');}}}
+ // Each biome has its own clearly recognizable foreground decorations.
+ for(const p of land())for(let x=p.x+66;x<p.x+p.w-20;x+=136){
+  if(x<cam-60||x>cam+W+60)continue;
+  const tx=Math.floor(x/4)*4;
+  if(stage===0){
+   // Giant woodland mushrooms, golden flower heads, bright leafy shrubs.
+   ctx.fillStyle='#2c6241';ctx.fillRect(tx-20,G-20,40,20);
+   ctx.fillStyle='#70a84e';ctx.fillRect(tx-15,G-33,32,16);
+   ctx.fillStyle='#b7d875';ctx.fillRect(tx-9,G-37,16,5);
+   ctx.fillStyle='#f4db8b';ctx.fillRect(tx+29,G-25,5,25);
+   ctx.fillRect(tx+20,G-32,24,8);ctx.fillStyle='#f8ecbd';ctx.fillRect(tx+26,G-35,12,5);
+   ctx.fillStyle='#5a9b54';ctx.fillRect(tx+40,G-14,14,14);
+  }else if(stage===1){
+   // Pale luminous cyan crystals and wind-blown violet foliage.
+   ctx.fillStyle='#1b697d';ctx.fillRect(tx-18,G-26,32,26);
+   ctx.fillStyle='#83d9e0';ctx.fillRect(tx-10,G-34,16,34);
+   ctx.fillStyle='#bdebf5';ctx.fillRect(tx-6,G-42,8,22);
+   ctx.fillStyle='#ce9bdf';ctx.fillRect(tx+24,G-24,28,7);
+   ctx.fillRect(tx+32,G-34,12,10);
+   ctx.fillStyle='#6599b5';ctx.fillRect(tx+32,G-18,8,18);
+  }else{
+   // Broken masonry, moss drapes and glowing amber relics.
+   ctx.fillStyle='#655c66';ctx.fillRect(tx-16,G-36,36,36);
+   ctx.fillStyle='#a28d83';ctx.fillRect(tx-20,G-40,44,9);
+   ctx.fillStyle='#3c424b';ctx.fillRect(tx-5,G-24,10,12);
+   ctx.fillStyle='#89a371';ctx.fillRect(tx-20,G-40,24,4);
+   ctx.fillStyle='#e4b471';ctx.fillRect(tx+31,G-37,13,20);
+   ctx.fillStyle='#ffdf97';ctx.fillRect(tx+34,G-34,7,13);
+   ctx.fillStyle='#7a5861';ctx.fillRect(tx+28,G-17,18,17);
+  }
+ }
+ for(const ledge of stages[stage].ledges)if(ledge[0]+ledge[2]>cam-60&&ledge[0]<cam+W+60){
+  const [x,y,w]=ledge;
+  if(stage===1){ // Hanging blue ropes visually anchor canopy platforms.
+   for(let k=16;k<w;k+=64){
+    ctx.fillStyle='#65b5b3';ctx.fillRect(x+k,y+6,5,52);
+    ctx.fillStyle='#b1ddd1';ctx.fillRect(x+k-3,y+45,12,7);
+   }
+  }else if(stage===2){
+   for(let k=24;k<w;k+=75){
+    ctx.fillStyle='#7f9972';ctx.fillRect(x+k,y+6,8,20);
+    ctx.fillRect(x+k+4,y+24,6,11);
+   }
+  }
+ }
  for(const s of spikes){for(let k=0;k<3;k++)poly(ctx,[[s.x+k*15,s.y+18],[s.x+8+k*15,s.y],[s.x+15+k*15,s.y+18]],'#bdc6b4');for(let k=0;k<3;k++)line(ctx,s.x+8+k*15,s.y+2,s.x+12+k*15,s.y+17,'#637c78',2);}
  for(const a of things){if(a.taken||a.x<cam-25||a.x>cam+W+25)continue;const y=a.y+(reducedMotion?0:Math.sin(visualTime*3+a.x)*3);if(a.type==='star'){glow(a.x,y,26,'#f3df8b35');let pts=[];for(let j=0;j<10;j++){const an=j*Math.PI/5-Math.PI/2,r=j%2?7:16;pts.push([a.x+Math.cos(an)*r,y+Math.sin(an)*r]);}poly(ctx,pts,'#f4dd93');line(ctx,a.x,y-10,a.x-3,y-1,'#fff4d0',2);}else{const rx=reducedMotion?6:3+Math.abs(Math.cos(visualTime*2+a.x))*4;ellipse(ctx,a.x,y,rx,9,'#99774b');ellipse(ctx,a.x,y-1,rx-1,7,'#e5be6c');line(ctx,a.x,y-5,a.x,y+3,'#fff0b0',1);}}
  bad.forEach(drawEnemy);finishFlag({x:WIDTH-77});drawHero();drawCombatEffects();
