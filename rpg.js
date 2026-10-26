@@ -54,7 +54,7 @@ function ensureRpgSave(){
  // Preserve both old leaderboards and expose the Pixel Edition board separately.
  if(!save.bestTimesPixelV051||typeof save.bestTimesPixelV051!=='object'||Array.isArray(save.bestTimesPixelV051))save.bestTimesPixelV051={};
  for(const level of Object.keys(save.bestTimesPixelV051)){
-  if(!/^1-[123]$/.test(level)||!save.bestTimesPixelV051[level]||typeof save.bestTimesPixelV051[level]!=='object'){
+  if(!/^1-[1-5]$/.test(level)||!save.bestTimesPixelV051[level]||typeof save.bestTimesPixelV051[level]!=='object'){
    delete save.bestTimesPixelV051[level];continue;
   }
   for(const kind of Object.keys(save.bestTimesPixelV051[level])){
@@ -64,7 +64,8 @@ function ensureRpgSave(){
  }
  const spent=Object.values(save.skills).reduce((sum,ids)=>sum+ids.length,0);
  save.skillPoints=Math.max(0,save.level-1-spent);
- save.saveVersion=3;
+ save.slimeKingWins=Number.isFinite(Number(save.slimeKingWins))?Math.max(0,Math.floor(Number(save.slimeKingWins))):0;
+ save.saveVersion=4;
 }
 ensureRpgSave();
 let runFrames=0,attackWas=false,attackCooldown=0,projectiles=[],attackFlash=0,groundLoot=[];
@@ -97,6 +98,12 @@ function performAttack(){
   for(const e of bad)if(e.alive&&Math.abs(e.y-hero.y)<65&&
    (hasSkill('whirlwind')?Math.abs(e.x-hero.x)<reach:(e.x-hero.x)*hero.face>=-20&&(e.x-hero.x)*hero.face<reach))
    damageEnemy(e,2+bonus+(hasSkill('sword_damage')?1:0));
+  // The boss uses the same class weapons, upgrades and cooldowns as ordinary enemies.
+  if(boss&&boss.alive&&boss.engaged&&Math.abs((boss.y+boss.h/2)-(hero.y+hero.h/2))<90){
+   const dx=(boss.x+boss.w/2)-(hero.x+hero.w/2);
+   if(hasSkill('whirlwind')?Math.abs(dx)<reach+boss.w/2:dx*hero.face>=-boss.w/2&&dx*hero.face<reach+boss.w/2)
+    damageBoss(2+bonus+(hasSkill('sword_damage')?1:0));
+  }
  }else{
   const mage=kind==='mage',triple=hasSkill('triple_arrow'),double=hasSkill('double_fireball');
   attackCooldown=mage?29:(hasSkill('arrow_speed')?14:22);
@@ -122,6 +129,9 @@ function combatTick(dt){
   p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;
   for(const e of bad)if(e.alive&&p.x>e.x-5&&p.x<e.x+32&&p.y>e.y-6&&p.y<e.y+34){
    damageEnemy(e,p.damage);p.life=0;break;
+  }
+  if(p.life>0&&boss&&boss.alive&&boss.engaged&&p.x>boss.x&&p.x<boss.x+boss.w&&p.y>boss.y&&p.y<boss.y+boss.h){
+   damageBoss(p.damage);p.life=0;
   }
  }
  projectiles=projectiles.filter(p=>p.life>0&&p.x>=0&&p.x<WIDTH&&p.y>=0&&p.y<H);
