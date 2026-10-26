@@ -1,13 +1,14 @@
 
 'use strict';
-const $=s=>document.querySelector(s),canvas=$('#view'),ctx=canvas.getContext('2d'),layer=$('#layer'),hud=$('#hud'),controls=$('#controls');const W=960,H=540,G=465,WIDTH=2800;let scene='menu',stage=0,selected=0,t=0,last=0,cam=0,hero=null,things=[],bad=[],spikes=[],particles=[],dashCooldown=0,jumpWas=false,invincible=0;
+const $=s=>document.querySelector(s),canvas=$('#view'),layer=$('#layer'),hud=$('#hud'),controls=$('#controls');let ctx=canvas.getContext('2d');const W=960,H=540,G=465,WIDTH=2800;let scene='menu',stage=0,selected=0,t=0,last=0,cam=0,hero=null,things=[],bad=[],spikes=[],particles=[],dashCooldown=0,jumpWas=false,invincible=0;
 // Redesigned platform geometry; HD-2D artwork remains unchanged.
 const stages=[
  {name:'1-1 · Waldanfang',base:5,gaps:[[500,610],[1140,1270],[1960,2110]],ledges:[[250,398,160],[745,365,165],[1410,375,180],[1770,410,125],[2280,352,175]],enemies:[420,910,1590,2390],spikes:[980,1680,2520],stars:[[332,330],[1480,315],[2360,290]]},
  {name:'1-2 · Baumkronen',base:8,gaps:[[540,700],[1260,1430],[2030,2210]],ledges:[[230,395,150],[440,335,140],[710,365,160],[975,300,145],[1480,395,165],[1730,330,145],[2250,350,160],[2470,295,135]],enemies:[355,895,1580,2370],spikes:[1160,1660,2440],stars:[[495,275],[1040,245],[2525,240]]},
- {name:'1-3 · Moosruinen',base:12,gaps:[[600,760],[1320,1505],[2080,2285]],ledges:[[265,385,160],[475,330,165],[795,355,170],[1075,305,160],[1520,370,165],[1790,315,165],[2300,345,150],[2510,295,135]],enemies:[405,965,1670,2430],spikes:[1010,1730,2440],stars:[[530,272],[1150,245],[2565,240]]}
+ {name:'1-3 · Moosruinen',base:12,gaps:[[600,760],[1320,1505],[2080,2265]],ledges:[[265,385,160],[475,330,165],[795,355,170],[1075,305,160],[1520,370,165],[1790,315,165],[2300,345,150],[2510,295,135]],enemies:[405,965,1670,2430],spikes:[1010,1730,2440],stars:[[530,272],[1150,245],[2565,240]]}
 ];
-const JUMP={coyote:7,buffer:7,holdFrames:18,holdGravity:.44,gravity:.70,cut:.58};
+// v0.5 pixel phase: roughly 12.5% less maximum height without changing tap jump.
+const JUMP={coyote:7,buffer:7,holdFrames:14,holdGravity:.50,gravity:.70,cut:.58};
 const classes={warrior:{label:'Krieger',color:'#66aaf0',speed:4.75,jump:13.6},hunter:{label:'Jäger',color:'#90df8b',speed:5.7,jump:13.9},mage:{label:'Magier',color:'#bf9cf1',speed:4.9,jump:14.4}};
 let save;try{save=JSON.parse(localStorage.getItem('realm-runners-save-v2')||'null')}catch{}save=save&&typeof save==='object'?save:{class:'warrior',unlocked:1,stars:[0,0,0],xp:0,level:1};save.unlocked=Math.max(1,Math.min(3,Number(save.unlocked)||1));save.stars=Array.isArray(save.stars)?save.stars.slice(0,3):[0,0,0];while(save.stars.length<3)save.stars.push(0);if(!classes[save.class])save.class='warrior';save.xp=Number.isFinite(Number(save.xp))?Math.max(0,Math.floor(Number(save.xp))):0;save.level=Number.isFinite(Number(save.level))?Math.max(1,Math.floor(Number(save.level))):1;save.stars=save.stars.map(n=>Math.max(0,Math.min(3,Math.floor(Number(n)||0))));function persist(){try{localStorage.setItem('realm-runners-save-v2',JSON.stringify(save))}catch{}}
 // Keyboard and pointer sources are independent: releasing one finger cannot cancel another.
