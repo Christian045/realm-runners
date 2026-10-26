@@ -132,12 +132,12 @@ test('Pixel Edition: held jump apex is around 12 percent lower, short tap is unc
 });
 test('Pixel Edition: half-resolution pixel buffer, nearest-neighbour upscale and context restoration',()=>{
  h.run('innerWidth=960;innerHeight=540;size();start(0);draw()');
- assert.equal(h.run('pixelCanvas.width'),480);
- assert.equal(h.run('pixelCanvas.height'),270);
+ assert.equal(h.run('pixelCanvas.width'),720);
+ assert.equal(h.run('pixelCanvas.height'),405);
  assert.equal(h.run("ctx===canvas.getContext('2d')"),true);
  const data=h.canvas.getContext('2d').getImageData(200,140,2,2).data;
- for(let i=4;i<16;i+=4)for(let j=0;j<4;j++)assert.equal(data[i+j],data[j]);
  assert.ok(data[3]>0);
+ assert.equal(h.run('pixelCtx.imageSmoothingEnabled'),false);
 });
 test('Pixel Edition: previous time trials remain untouched after recording new runs',()=>{
  h.run("save.class='mage';save.bestTimes={'1-1':{mage:69000}};save.bestTimesV05={'1-1':{mage:72000}};start(0);for(let i=0;i<90;i++)step(1);recordTime()");
@@ -190,10 +190,12 @@ test('v0.6 fifth level cannot finish until the Slime King is defeated',()=>{
  assert.equal(h.run('boss.hp'),20);
  h.run('boss.hurt=0;boss.hp=1;damageBoss(5);hero.x=2750;step(1)');
  assert.equal(h.run('boss.alive'),false);
- assert.equal(h.run('scene'),'end');
+ assert.equal(h.run('scene'),'game','the short boss victory effect must be visible');
+ h.run('for(let frame=0;frame<BOSS_VICTORY_FRAMES;frame++)step(1)');
+ assert.equal(h.run('scene'),'end','boss death alone must finish without reaching any flag');
  const saved=JSON.parse(h.storage.get('realm-runners-save-v2'));
  assert.equal(saved.slimeKingWins>=1,true);
- assert.ok(saved.bestTimesPixelV051['1-5'].mage>0);
+ assert.ok(saved.bestTimesBossV062['1-5'].mage>0);
 });
 test('v0.6 Slime King red health bar tracks damage and boss resets on death',()=>{
  h.run("start(4);hero.x=2070;step(1)");
@@ -298,4 +300,41 @@ test('v0.6.1 original HD-pixel castle exterior and throne interior render',()=>{
  assert.equal(h.run("typeof drawCastleApproach"),'function');
  assert.equal(h.run("typeof drawCastleInterior"),'function');
  assert.equal(h.run("typeof drawCastleThrone"),'function');
+});
+
+test('v0.6.2 auto-win triggers after a short animation without visiting level exit',()=>{
+ h.run("start(4);hero.x=2270;boss.engaged=true;boss.hp=1;boss.hurt=0;damageBoss(1)");
+ assert.equal(h.run('scene'),'game');
+ assert.equal(h.run('boss.defeatTimer'),42);
+ assert.equal(h.run("document.querySelector('#bossHealthFill').style.width"),'0%');
+ assert.equal(h.run("document.querySelector('#bossState').textContent"),'SCHLEIMKÖNIG BESIEGT!');
+ assert.equal(h.run('bossGoo.length+bossWaves.length'),0);
+ h.run('step(1)');
+ assert.equal(h.run('hero.x'),2270,'player controls freeze during victory');
+ h.run('for(let frame=0;frame<42;frame++)step(1)');
+ assert.equal(h.run('scene'),'end');
+ assert.equal(h.run('hero.hearts'),3);
+ assert.equal(h.run('save.slimeKingWins')>0,true);
+ const wins=h.run('save.slimeKingWins');
+ h.run('for(let frame=0;frame<100;frame++)step(1)');
+ assert.equal(h.run('save.slimeKingWins'),wins,'win rewarded exactly once');
+});
+test('v0.6.2 boss arena exit alone cannot finish before the final hit',()=>{
+ h.run("start(4);hero.x=WIDTH-33;boss.engaged=true;step(1)");
+ assert.equal(h.run('scene'),'game');
+ h.run('boss.hurt=0;boss.hp=1;damageBoss(1)');
+ h.run('for(let frame=0;frame<43;frame++)step(1)');
+ assert.equal(h.run('scene'),'end');
+});
+test('v0.6.2 old boss best times are preserved and new ones use their own board',()=>{
+ h.run("save.bestTimesPixelV051['1-5']={mage:75000};start(4);boss.engaged=true;boss.hp=1;boss.hurt=0;damageBoss(1);for(let i=0;i<42;i++)step(1)");
+ assert.equal(h.run("save.bestTimesPixelV051['1-5'].mage"),75000);
+ assert.ok(h.run("save.bestTimesBossV062['1-5'].mage")>0);
+});
+test('v0.6.2 foreground pixels are individually textured and separated from the backdrop',()=>{
+ const sample=h.run("(()=>{start(0);draw();const tile=terrain(land()[0],0),q=tile.getContext('2d');return [[...q.getImageData(21,17,1,1).data].slice(0,3),[...q.getImageData(21,33,1,1).data].slice(0,3),[...q.getImageData(32,55,1,1).data].slice(0,3)]})()");
+ assert.notDeepEqual(sample[0],sample[1],'platform cap should contrast with block face');
+ assert.notDeepEqual(sample[1],sample[2],'soil should have individual detailed brick tiles');
+ assert.equal(h.run('pixelCanvas.width'),720);
+ assert.equal(h.run('pixelCanvas.height'),405);
 });
