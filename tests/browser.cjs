@@ -17,6 +17,33 @@ const fs=require('node:fs');
  assert.equal(await page.evaluate(()=>input.right&&input.jump),true);
  await page.evaluate(()=>document.querySelector('[data-control="jump"]').dispatchEvent(new PointerEvent('pointercancel',{pointerId:2})));
  assert.equal(await page.evaluate(()=>input.right&&!input.jump),true);
+
+ // Exercise the iOS Touch Event route independently from mouse/pen pointers.
+ await page.evaluate(()=>{clearInput();window.testTouch=(type,contacts)=>{
+   const touches=contacts.map(([id,k])=>({identifier:id,target:document.querySelector('[data-control="'+k+'"]')}));
+   const event=new Event(type,{bubbles:true,cancelable:true});
+   Object.defineProperty(event,'changedTouches',{value:touches});
+   touches[0].target.dispatchEvent(event);return event.defaultPrevented;
+ };});
+ assert.equal(await page.evaluate(()=>testTouch('touchstart',[[41,'right'],[42,'jump']])),true);
+ assert.equal(await page.evaluate(()=>input.right&&input.jump),true);
+ assert.equal(await page.evaluate(()=>testTouch('touchmove',[[41,'right']])),true);
+ await page.evaluate(()=>testTouch('touchend',[[42,'jump']]));
+ assert.equal(await page.evaluate(()=>input.right&&!input.jump),true);
+ await page.evaluate(()=>testTouch('touchcancel',[[41,'right']]));
+ assert.equal(await page.evaluate(()=>input.right),false);
+ assert.equal(await page.evaluate(()=>{
+   const event=new Event('contextmenu',{bubbles:true,cancelable:true});
+   document.querySelector('#view').dispatchEvent(event);return event.defaultPrevented;
+ }),true);
+ await page.evaluate(()=>{
+   const range=document.createRange();range.selectNodeContents(document.querySelector('#hudLeft'));
+   document.getSelection().addRange(range);document.dispatchEvent(new Event('selectionchange'));
+ });
+ assert.equal(await page.evaluate(()=>document.getSelection().rangeCount),0);
+ assert.equal(await page.evaluate(()=>getComputedStyle(document.querySelector('#hudLeft')).webkitUserSelect||getComputedStyle(document.querySelector('#hudLeft')).userSelect),'none');
+ // Leave a touch held: pause must clear it as well.
+ await page.evaluate(()=>testTouch('touchstart',[[43,'right']]));
  await page.locator('#pause').click();assert.equal(await page.evaluate(()=>scene),'pause');assert.equal(await page.evaluate(()=>input.right),false);await page.locator('#resume').click();
  await page.evaluate(()=>{hero.x=2750;hero.stars=2;hero.earned=25;step(1)});assert.equal(await page.evaluate(()=>scene),'end');
  await page.reload();assert.equal(await page.evaluate(()=>save.level),4);assert.equal(await page.evaluate(()=>save.xp),182);assert.equal(await page.evaluate(()=>save.stars[0]),3);

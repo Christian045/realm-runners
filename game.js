@@ -5,15 +5,47 @@ const stages=[{name:'1-1 · Waldanfang',base:5,gaps:[[510,640],[1120,1280],[1850
 const classes={warrior:{label:'Krieger',color:'#66aaf0',speed:4.75,jump:13.6},hunter:{label:'Jäger',color:'#90df8b',speed:5.7,jump:13.9},mage:{label:'Magier',color:'#bf9cf1',speed:4.9,jump:14.4}};
 let save;try{save=JSON.parse(localStorage.getItem('realm-runners-save-v2')||'null')}catch{}save=save&&typeof save==='object'?save:{class:'warrior',unlocked:1,stars:[0,0,0],xp:0,level:1};save.unlocked=Math.max(1,Math.min(3,Number(save.unlocked)||1));save.stars=Array.isArray(save.stars)?save.stars.slice(0,3):[0,0,0];while(save.stars.length<3)save.stars.push(0);if(!classes[save.class])save.class='warrior';save.xp=Number.isFinite(Number(save.xp))?Math.max(0,Math.floor(Number(save.xp))):0;save.level=Number.isFinite(Number(save.level))?Math.max(1,Math.floor(Number(save.level))):1;save.stars=save.stars.map(n=>Math.max(0,Math.min(3,Math.floor(Number(n)||0))));function persist(){try{localStorage.setItem('realm-runners-save-v2',JSON.stringify(save))}catch{}}
 // Keyboard and pointer sources are independent: releasing one finger cannot cancel another.
-const input={left:false,right:false,jump:false,dash:false},heldKeys=new Set(),heldPointers=new Map();
+const input={left:false,right:false,jump:false,dash:false},heldKeys=new Set(),heldPointers=new Map(),heldTouches=new Map();
 const keymap={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'jump',KeyW:'jump',Space:'jump',ShiftLeft:'dash',ShiftRight:'dash',KeyJ:'dash'};
-function syncInput(){for(const k of Object.keys(input))input[k]=[...heldKeys].some(code=>keymap[code]===k)||[...heldPointers.values()].includes(k);document.querySelectorAll('[data-control]').forEach(b=>b.classList.toggle('pressed',input[b.dataset.control]));}
-function clearInput(){heldKeys.clear();heldPointers.clear();syncInput();jumpWas=false;}
+function syncInput(){for(const k of Object.keys(input))input[k]=[...heldKeys].some(code=>keymap[code]===k)||[...heldPointers.values(),...heldTouches.values()].includes(k);document.querySelectorAll('[data-control]').forEach(b=>b.classList.toggle('pressed',input[b.dataset.control]));}
+function clearInput(){heldKeys.clear();heldPointers.clear();heldTouches.clear();clearSelection();syncInput();jumpWas=false;}
 addEventListener('keydown',e=>{if(e.code==='Escape'){e.preventDefault();if(scene==='game')pause();else if(scene==='pause')resume();}if(keymap[e.code]){e.preventDefault();if(scene==='game'){heldKeys.add(e.code);syncInput();}}});
 addEventListener('keyup',e=>{heldKeys.delete(e.code);syncInput();});
 addEventListener('blur',()=>{clearInput();if(scene==='game')pause();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInput();if(scene==='game')pause();}});
-document.querySelectorAll('[data-control]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();if(scene!=='game')return;b.setPointerCapture(e.pointerId);heldPointers.set(e.pointerId,b.dataset.control);syncInput();});for(const evt of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(evt,e=>{heldPointers.delete(e.pointerId);syncInput();});});
+document.querySelectorAll('[data-control]').forEach(b=>{b.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')return;e.preventDefault();if(scene!=='game')return;b.setPointerCapture(e.pointerId);heldPointers.set(e.pointerId,b.dataset.control);syncInput();});for(const evt of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(evt,e=>{heldPointers.delete(e.pointerId);syncInput();});});
+
+// iOS can begin native selection despite pointer preventDefault / touch-action.
+// Own Touch Events explicitly; keep each finger independent and never also register
+// touch Pointer Events (Safari may cancel them when touchstart is prevented).
+function clearSelection(){const selection=document.getSelection?.();if(selection&&selection.rangeCount)selection.removeAllRanges();}
+function gameTouchTarget(target){return scene==='game'&&!target.closest?.('#pause');}
+document.addEventListener('touchstart',e=>{
+  if(!gameTouchTarget(e.target))return;
+  if(e.cancelable)e.preventDefault();
+  clearSelection();
+  for(const touch of e.changedTouches){
+    const button=touch.target.closest?.('[data-control]');
+    if(button)heldTouches.set(touch.identifier,button.dataset.control);
+  }
+  syncInput();
+},{passive:false,capture:true});
+document.addEventListener('touchmove',e=>{
+  if(gameTouchTarget(e.target)||heldTouches.size){
+    if(e.cancelable)e.preventDefault();
+    clearSelection();
+  }
+},{passive:false,capture:true});
+for(const eventName of ['touchend','touchcancel']){
+  document.addEventListener(eventName,e=>{
+    let handled=false;
+    for(const touch of e.changedTouches)handled=heldTouches.delete(touch.identifier)||handled;
+    if(handled&&e.cancelable)e.preventDefault();
+    syncInput();
+  },{passive:false,capture:true});
+}
+document.addEventListener('selectionchange',()=>{if(scene==='game')clearSelection();});
+
 function pause(){if(scene!=='game')return;scene='pause';clearInput();layer.classList.remove('hide');controls.classList.add('hide');$('#menu').classList.add('hide');$('#play').classList.add('hide');$('#resume').classList.remove('hide');$('#return').classList.remove('hide');$('#return').onclick=menu;$('#heading').textContent='PAUSE';$('#intro').textContent='Der Wald wartet auf dich.';}
 function resume(){if(scene!=='pause')return;clearInput();scene='game';layer.classList.add('hide');controls.classList.remove('hide');last=performance.now();}
 $('#pause').onclick=pause;$('#resume').onclick=resume;
