@@ -1,8 +1,19 @@
-# Realm Runners v0.6.1 – Schloss-Update
-
-Ein Jump-'n'-Run mit RPG-Fortschritt für **Windows-Browser und iPhone Safari**.
+# Realm Runners v0.6.2 – HD-Pixel-Kontrast und direkter Boss-Siegn Jump-'n'-Run mit RPG-Fortschritt für **Windows-Browser und iPhone Safari**.
 
 **Spielen: https://christian045.github.io/realm-runners/**
+
+## Neu in v0.6.2 – klare Tiefe und direkter Bossabschluss
+
+- **Spieler und Gefahren im Vordergrund:** Der Pixelrenderer zeichnet mit 720 × 405 Pixeln (statt 480 × 270) und ohne Weichzeichnung. Plattformen besitzen feste, helle Oberkanten, schwarze Konturen, getrennte Erd- und Steinblöcke mit einzelnen 16-Pixel-Tiles und kleinen Materialdetails.
+- **Klar zurückgesetzter Hintergrund:** Wald- und Burg-Silhouetten sind dunkler, weniger gesättigt und weniger kontrastreich. Beleuchtungspartikel wurden reduziert. Kein Nebel über spielbaren Blöcken, Spielfigur oder Gegnern.
+- **Eigenständiger Retro-Pixel-Look** mit klassischer Sandbox-Pixelspiel-Anmutung. Keine externen Grafiken aus anderen Spielen werden verwendet.
+- **Schleimkönig: 0 HP = automatischer Levelabschluss.** Die rote Boss-Lebensleiste fällt auf 0, „BOSS BESIEGT!“ wird etwa 0,7 Sekunden gezeigt, anschließend erscheint ohne Zielflagge oder Laufen zum Ausgang der normale Siegbildschirm samt XP, gespeicherten Bestzeiten und Sieg-Zähler.
+- **Neue faire Boss-Bestzeiten:** Erfolge der automatischen Siege werden getrennt unter `bestTimesBossV062` gespeichert. Historische Boss-Rekorde bleiben in `bestTimesPixelV051` erhalten.
+- Springen, Gegner-KI, zwei bewegliche und zwei fallende Plattformen, das Schloss, Ausrüstung und bestehende Spielstände bleiben unverändert.
+
+Die Version im Startmenü muss **„KONTRAST-UPDATE 0.6.2“** anzeigen. Der iPhone-Cache wird mit `?v=0.6.2` umgangen, ohne Spielstände zu löschen.
+
+
 
 ## Neu in Version 0.6.1
 
