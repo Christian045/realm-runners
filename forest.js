@@ -314,12 +314,27 @@ function spriteFrame(kind,frame,air){const key=kind+frame+air;if(characterFrames
  if(kind==='hunter'){q.strokeStyle='#d3b87b';q.lineWidth=1;q.beginPath();q.moveTo(20,11);q.quadraticCurveTo(27,17,20,24);q.stroke();q.fillStyle='#d2d7b1';q.fillRect(20,11,1,14);}
  characterFrames.set(key,c);return c;
 }
+// Cached dark sprite silhouette: foreground stays legible against every pixel biome.
+const heroOutlines=new Map();
+function heroOutline(kind,frame,air){
+ const key=kind+':'+frame+':'+air;
+ if(heroOutlines.has(key))return heroOutlines.get(key);
+ const img=spriteFrame(kind,frame,air);
+ const buffer=document.createElement('canvas');buffer.width=img.width;buffer.height=img.height;
+ const p=buffer.getContext('2d');p.drawImage(img,0,0);
+ p.globalCompositeOperation='source-in';p.fillStyle='#111b28';p.fillRect(0,0,buffer.width,buffer.height);
+ heroOutlines.set(key,buffer);return buffer;
+}
 function drawHero(){const h=hero;if(!h)return;ellipse(ctx,h.x+15,h.y+h.h+2,18,4,'#081b2260');if(invincible&&Math.floor(invincible/6)%2)return;
  const running=h.on&&Math.abs(h.vx)>.1,frame=running?Math.floor(t/5)%8:0,bob=h.on?(running?Math.sin(t*.6)*.8:Math.sin(visualTime*3)*.7):0;
  ctx.save();ctx.translate(Math.round(h.x+15),Math.round(h.y+20+bob));ctx.scale(h.face,1);
  // Cloth trails behind the facing direction, animated separately from the legs.
  let flap=reducedMotion?0:Math.sin(t*.23)*3;poly(ctx,[[-9,-8],[-20-(running?5:0),12+flap],[-9,20],[-3,2]],save.class==='mage'?'#6a6089':save.class==='hunter'?'#477757':'#4c7186');
- ctx.imageSmoothingEnabled=false;ctx.drawImage(spriteFrame(save.class,frame,!h.on),-24,-27,48,56);ctx.restore();ctx.imageSmoothingEnabled=true;
+ ctx.imageSmoothingEnabled=false;
+ const silhouette=heroOutline(save.class,frame,!h.on);
+ for(const [dx,dy] of [[-3,0],[3,0],[0,-3],[0,3]])ctx.drawImage(silhouette,-24+dx,-27+dy,48,56);
+ ctx.drawImage(spriteFrame(save.class,frame,!h.on),-24,-27,48,56);
+ ctx.restore();ctx.imageSmoothingEnabled=false;
  if(h.dash>0){ctx.strokeStyle='#d5f6e5aa';ctx.lineWidth=2;for(let i=0;i<3;i++)line(ctx,h.x+15-h.face*40,h.y+12+i*10,h.x+15,h.y+12+i*10,'#cceff0aa',2);}
 }
 function drawEnemy(e,i){if(!e.alive)return;const squash=Math.sin(t*.13+i)*1.6;ellipse(ctx,e.x+14,G+1,17,4,'#061e2670');ctx.save();ctx.translate(e.x+14,e.y+16);ctx.scale(e.dir,1);
