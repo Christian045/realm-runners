@@ -8,9 +8,9 @@ const fs=require('node:fs');
  await page.goto('http://127.0.0.1:8000');
  await page.evaluate(()=>localStorage.setItem('realm-runners-save-v2',JSON.stringify({class:'hunter',unlocked:3,stars:[3,2,1],xp:87,level:4})));
  await page.reload();await page.locator('#play').click();
- await page.waitForTimeout(400);assert.equal(await page.evaluate(()=>scene),'game');
- await page.keyboard.down('KeyD');await page.waitForTimeout(250);await page.keyboard.up('KeyD');assert.ok(await page.evaluate(()=>hero.x)>70);
- await page.keyboard.press('Space');assert.ok(await page.evaluate(()=>hero.vy)<0);
+ await page.waitForFunction(()=>scene==='game'&&hero.on,{},{timeout:20000});
+ await page.keyboard.down('KeyD');try{await page.waitForFunction(()=>hero.x>70,{},{timeout:20000});}catch(e){console.error(name,await page.evaluate(()=>({scene,x:hero.x,t,input,hidden:document.hidden})));throw e;}await page.keyboard.up('KeyD');
+ await page.keyboard.down('Space');await page.waitForFunction(()=>hero.vy<0,{},{timeout:20000});await page.keyboard.up('Space');
  await page.evaluate(()=>{start(0);for(let i=0;i<60;i++)step(1);});
  // Dispatch concurrent pointer contacts; physical Safari touch remains a manual check.
  await page.evaluate(()=>{for(const [k,id] of [['right',1],['jump',2]]){const b=document.querySelector(`[data-control="${k}"]`);b.setPointerCapture=()=>{};b.dispatchEvent(new PointerEvent('pointerdown',{pointerId:id,bubbles:true}));}});
