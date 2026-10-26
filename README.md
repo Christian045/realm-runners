@@ -1,6 +1,19 @@
-# Realm Runners v0.6.2 – HD-Pixel-Kontrast und direkter Boss-Siegn Jump-'n'-Run mit RPG-Fortschritt für **Windows-Browser und iPhone Safari**.
+# Realm Runners v0.7 – HD-Hintergründe und Pixel-Vordergrund
 
 **Spielen: https://christian045.github.io/realm-runners/**
+
+## Neu in v0.7.0 – HD-2D-Kulisse, klarer Pixel-Vordergrund
+
+- **Zwei komplett unabhängige Canvas-Ebenen:** Alle Hintergründe werden in voller logischer Auflösung von **960 × 540 Pixeln** gezeichnet und weich geglättet; Spieler, Waffen, Items, Gegner, Plattformen und Gefahren bleiben auf einer **transparenten 720 × 405-Pixel-Art-Ebene** mit Nearest-Neighbor-Upscaling. Die alte Verpixelung des Hintergrunds entfällt vollständig.
+- **HD-Wälder mit malerischer Tiefe:** Farbverläufe am Himmel, abgestufte Bergketten, organische Baumstämme und Äste, schattierte Blätter, fein gezeichnete Farne/Lianen und weiche Sonnenstrahlen. Farbpalette und Dekoration unterscheiden sich nach Level.
+- **HD-Schloss:** Der Innenraum erhält weich beleuchtete Buntglasfenster, natürliche Lichtreflexe und ein stimmungsvoll dunkles Ambiente. Im Schlosszugang bleiben das Tor und die Burgsilhouette hinter den spielbaren Elementen.
+- **Sichtbarkeit:** Die HD-Kulisse ist entsättigt und relativ kontrastarm, damit die hellen Plattformränder, Sprite-Outlines, Angriffswarnungen und roten Gefahren die höchste Aufmerksamkeit bekommen. Keine Farb- oder Nebelschicht wird über den Spielfiguren gerendert.
+- **Mobiloptimiert:** Nur zwei prozedurale Parallax-Leinwände für das aktuell gespielte Level werden im Speicher gehalten. Ein Qualitätsmodus reduziert HD-Effekte, ohne die Gameplay-Ebene oder Kollisionsgeometrie zu verändern. Es werden keine externen Asset-Dateien benötigt.
+- **Unverändert:** Fünf Level, bewegliche/einstürzende Plattformen, Touch-Steuerung, Sprungphysik, Boss-Stampfattacke, automatischer Boss-Sieg, XP, Ausrüstung, Freischaltungen und alle Bestzeiten.
+
+Im Titelbildschirm muss **„HD-HINTERGRÜNDE 0.7.0“** stehen. Zum Cache-Bypass auf dem iPhone `?v=0.7.0` an die Adresse anhängen. Bestehende Spielstände nicht löschen.
+
+
 
 ## Neu in v0.6.2 – klare Tiefe und direkter Bossabschluss
 
