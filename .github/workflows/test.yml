@@ -1,29 +1,74 @@
-name: Realm Runners regression
+name: Realm Runners checks
 on:
   push:
     branches: [main]
   pull_request:
+
 permissions:
   contents: read
+
+concurrency:
+  group: realm-runners-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  game:
+  regression:
+    name: Syntax and regression
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-      - run: npm install --ignore-scripts
-      - run: node --check game.js && node --check rpg.js && node --check forest.js
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci --ignore-scripts
+      - name: Check JavaScript syntax
+        run: node --check game.js && node --check rpg.js && node --check forest.js
       - run: npm test
-      - run: npx playwright install --with-deps chromium webkit
-      - run: |
-          python3 -m http.server 8000 > /tmp/realm-server.log 2>&1 &
-          for i in $(seq 1 20); do curl -fsS http://127.0.0.1:8000/ > /dev/null && break || sleep 1; done
-          npm run test:browser
-      - uses: actions/upload-artifact@v4
-        if: always()
+
+  browsers:
+    name: Browser smoke (Chromium + WebKit)
+    needs: regression
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          name: realm-runners-test-previews
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci --ignore-scripts
+      - name: Cache Playwright browser binaries
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-ubuntu-24.04-${{ hashFiles('package-lock.json') }}
+      - name: Install browser system dependencies
+        run: npx playwright install-deps chromium webkit
+      - name: Install Playwright browser binaries on cache miss
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium webkit
+      - name: Run browser smoke tests
+        timeout-minutes: 4
+        run: |
+          python3 -m http.server 8000 > /tmp/realm-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for i in $(seq 1 20); do
+            if curl --silent --fail http://127.0.0.1:8000/ > /dev/null; then ready=true; break; fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then cat /tmp/realm-server.log; exit 1; fi
+          npm run test:browser
+      - name: Upload screenshots and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: realm-runners-browser-previews
           path: test-output/
+          if-no-files-found: ignore
