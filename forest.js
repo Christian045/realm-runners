@@ -33,18 +33,43 @@ function glow(x,y,r,color){
  }
  ctx.restore();
 }
+// Deterministic rectangular tree canopies on three cached parallax planes.
 const planes=[];
-function makePlane(index){const c=document.createElement('canvas');c.width=1600;c.height=540;let p=c.getContext('2d'),r=rng(900+index*120),near=index===2;
- const colors=[['#244f57','#35656a','#427778'],['#183f43','#285b53','#3a7360'],['#0e2c30','#1a453c','#37644a']][index];
- for(let j=0;j<(near?11:24);j++){const x=j*c.width/(near?10:23)+r()*45-30,y=475+r()*45,w=(near?24:10)+r()*(near?46:25),top=-80+r()*150;
- poly(p,[[x-w*.6,y],[x-w*.36,top],[x+w*.3,top-10],[x+w*.55,y]],colors[0]);
- poly(p,[[x+2,y],[x+3,top],[x+w*.3,top-10],[x+w*.43,y]],colors[1]);
- for(let k=0;k<4;k++){const by=top+80+k*75,dir=k%2?1:-1;poly(p,[[x,by+35],[x+dir*(65+r()*60),by-55],[x+dir*(42+r()*20),by-40],[x+4,by+65]],colors[0]);}
- for(let k=0;k<8;k++)line(p,x-w*.25+r()*w*.6,top+50+r()*90,x-w*.2+r()*w*.4,y-r()*40,colors[2],near?2:1);
- for(let k=0;k<14;k++){const lx=x+(r()-.5)*200,ly=top+30+r()*120;ellipse(p,lx,ly,35+r()*75,17+r()*35,colors[k%3]);}
- // Broken foliage silhouettes and sunlit leaf clusters replace flat crown edges.
- for(let k=0;k<95;k++){const lx=x+(r()-.5)*240,ly=top+20+r()*125;const col=k%4===0?(near?'#557a54':'#537f6a'):colors[k%3];poly(p,[[lx,ly-3],[lx+7+r()*8,ly],[lx+10,ly+5],[lx-4,ly+3]],col);}
- if(near){for(let k=0;k<7;k++)poly(p,[[x,y-7],[x-70+r()*140,y+18],[x+(r()-.5)*20,y-36]],colors[0]);}
+function makePlane(index){
+ const c=document.createElement('canvas');c.width=1600;c.height=540;
+ const p=c.getContext('2d'),r=rng(900+index*120),tile=8;
+ const pal=[
+  ['#23454b','#31575a','#3f6563','#52766c'],
+  ['#173c40','#265047','#36644f','#4b7659'],
+  ['#112e34','#21453e','#346047','#56754f']
+ ][index];
+ const trees=[14,13,11][index];
+ for(let i=0;i<trees;i++){
+  const x=Math.round((i*1600/trees+(r()-.5)*100)/tile)*tile;
+  const top=Math.round((80+r()*155)/tile)*tile;
+  const tw=(index===2?4:2+index)*tile+Math.floor(r()*3)*tile;
+  p.fillStyle=pal[0];p.fillRect(x-tw/2,top,tw,540-top);
+  p.fillStyle=pal[1];p.fillRect(x-tw/2+tile,top,Math.max(tile,tw/3),540-top);
+  for(let k=0;k<3;k++){
+   const by=top+54+k*80,dir=k%2?1:-1,reach=(6+Math.floor(r()*8))*tile;
+   p.fillStyle=pal[k%2];p.fillRect(x+(dir<0?-reach:0),by,reach,tile*2);
+   p.fillRect(x+(dir<0?-reach:reach-tile),by-tile*2,tile,tile*4);
+  }
+  const crownW=(index===2?15:18)*tile,cy=top+20;
+  for(let k=0;k<3;k++){
+   const w=crownW-k*tile*3;
+   p.fillStyle=pal[1+k%3];
+   p.fillRect(Math.round((x-w/2)/tile)*tile,cy+k*tile*3,w,tile*6);
+  }
+  for(let k=0;k<75;k++){
+   const lx=Math.round((x+(r()-.5)*crownW*1.25)/tile)*tile;
+   const ly=Math.round((cy+r()*tile*13)/tile)*tile;
+   p.fillStyle=pal[2+(k%2)];p.fillRect(lx,ly,tile*(1+(k%3===0)),tile);
+  }
+  if(index===2)for(let k=0;k<4;k++){
+   const vx=x+Math.floor((r()-.5)*crownW/tile)*tile,vy=cy+tile*9;
+   p.fillStyle=pal[3];p.fillRect(vx,vy,tile/2,16+Math.floor(r()*6)*tile);
+  }
  }
  return c;
 }
