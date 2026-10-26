@@ -52,14 +52,14 @@ const fs=require('node:fs');
   buttonRadius:getComputedStyle(document.querySelector('[data-control="jump"]')).borderRadius,
   hasRecordBoard:!!save.bestTimesPixelV051
  }));
- assert.deepEqual(pixelArt.buffer,[480,270]);
+ assert.deepEqual(pixelArt.buffer,[720,405]);
  assert.equal(pixelArt.nearest,true);
  assert.ok(pixelArt.pixelCss==='pixelated'||pixelArt.pixelCss==='crisp-edges');
  assert.equal(pixelArt.buttonRadius,'4px');
  assert.ok(pixelArt.hasRecordBoard);
  await page.evaluate(()=>menu());
  assert.ok(await page.locator('#pixelEditionBadge').isVisible());
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.6\.1/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.6\.2/);
  // Store each biome in the CI artifacts so pixel-style changes are reviewable.
  for(const [level,label] of [[0,'forest'],[1,'canopy'],[2,'ruins'],[3,'swamp'],[4,'slime-king']]){
   await page.evaluate(index=>{start(index);if(index===4){hero.x=2220;step(1);cam=1840;}draw();},level);
@@ -109,6 +109,19 @@ const fs=require('node:fs');
  });
  assert.equal(await page.evaluate(()=>boss.slamCount),1);
  assert.ok(await page.evaluate(()=>bossWaves.length)>0);
+ // The victory is driven by defeating the boss, not by crossing the finish line.
+ await page.evaluate(()=>{
+  start(4);hero.x=2220;boss.engaged=true;boss.hp=1;boss.hurt=0;
+  damageBoss(1);
+  if(boss.defeatTimer!==42||scene!=='game')throw Error('Victory cue missing');
+ });
+ assert.equal(await page.locator('#bossHealthTrack').getAttribute('aria-valuenow'),'0');
+ assert.equal(await page.locator('#bossState').innerText(),'SCHLEIMKÖNIG BESIEGT!');
+ await page.screenshot({path:`test-output/${name}-boss-defeated.png`});
+ await page.evaluate(()=>{for(let i=0;i<42;i++)step(1)});
+ assert.equal(await page.evaluate(()=>scene),'end','Slime King must end level automatically');
+ assert.match(await page.locator('#heading').innerText(),/LEVEL GESCHAFFT/);
+ assert.ok(await page.evaluate(()=>save.bestTimesBossV062['1-5'].hunter>0));
  await page.evaluate(()=>start(0));
  
  await page.keyboard.down('KeyD');try{await page.waitForFunction(()=>hero.x>70,{},{timeout:20000});}catch(e){console.error(name,await page.evaluate(()=>({scene,x:hero.x,t,input,hidden:document.hidden})));throw e;}await page.keyboard.up('KeyD');
