@@ -21,6 +21,8 @@ function updateBossHud(){
  ui.classList.toggle('hide',!show);
  if(!boss)return;
  const hp=Math.max(0,Math.round(boss.hp));
+ // Defeated HP must become visually empty immediately, not animate from 80% to 0.
+ bar.style.transition=boss.phase==='defeated'?'none':'';
  bar.style.width=(hp/boss.maxHp*100)+'%';
  const track=$('#bossHealthTrack');
  if(track){track.setAttribute('aria-valuenow',String(hp));track.setAttribute('aria-valuemax',String(boss.maxHp));}
