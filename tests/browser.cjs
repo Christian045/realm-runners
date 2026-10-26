@@ -59,12 +59,32 @@ const fs=require('node:fs');
  assert.ok(pixelArt.hasRecordBoard);
  await page.evaluate(()=>menu());
  assert.ok(await page.locator('#pixelEditionBadge').isVisible());
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.5\.2/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.6\.0/);
  // Store each biome in the CI artifacts so pixel-style changes are reviewable.
- for(const [level,label] of [[0,'forest'],[1,'canopy'],[2,'ruins']]){
-  await page.evaluate(index=>{start(index);draw();},level);
+ for(const [level,label] of [[0,'forest'],[1,'canopy'],[2,'ruins'],[3,'swamp'],[4,'slime-king']]){
+  await page.evaluate(index=>{start(index);if(index===4){hero.x=2220;step(1);cam=1840;}draw();},level);
   await page.screenshot({path:`test-output/${name}-pixel-${label}.png`});
  }
+ // Real in-browser encounter: red bar appears, three classes and stamp attacks run.
+ await page.evaluate(()=>{
+  save.class='mage';start(4);hero.x=boss.x-175;hero.y=G-43;
+  boss.engaged=true;performAttack();
+  for(let i=0;i<35;i++)combatTick(1);
+  updateBossHud();
+ });
+ assert.ok(await page.locator('#bossHud').isVisible());
+ assert.equal(await page.evaluate(()=>boss.maxHp),20);
+ const hp=await page.evaluate(()=>boss.hp);
+ assert.ok(hp>0&&hp<20,name+' mage fireball must damage Slime King: '+hp);
+ assert.equal(await page.locator('#bossHealthTrack').getAttribute('aria-valuenow'),String(hp));
+ assert.ok((await page.locator('#bossHealthFill').evaluate(el=>getComputedStyle(el).backgroundColor)).includes('237, 52, 62'));
+ await page.evaluate(()=>{
+  start(4);hero.x=2080;hero.y=130;hero.on=false;
+  boss.engaged=true;boss.phase='warn';boss.timer=1;
+  for(let i=0;i<47;i++)bossTick(1,hero.y);
+ });
+ assert.equal(await page.evaluate(()=>boss.slamCount),1);
+ assert.ok(await page.evaluate(()=>bossWaves.length)>0);
  await page.evaluate(()=>start(0));
  
  await page.keyboard.down('KeyD');try{await page.waitForFunction(()=>hero.x>70,{},{timeout:20000});}catch(e){console.error(name,await page.evaluate(()=>({scene,x:hero.x,t,input,hidden:document.hidden})));throw e;}await page.keyboard.up('KeyD');

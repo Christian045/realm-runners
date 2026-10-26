@@ -68,6 +68,30 @@ const stageThemes=[
   ],
   soil:['#252c35','#4e5157','#383f47','#62605c','#ae9e79','#726d60','#9d8e6a'],
   flower:'#ffd48c',detail:'#d8cba7'
+ },
+ {
+  // Luminescent mushrooms and teal marshes; quiet background lets platforms pop.
+  sky:['#233750','#32475d','#4a6371','#506f68','#2d514d','#1b3b3d'],
+  sun:'#c2b4ff',sunCore:'#efc7ff',haze:'#8eacac',
+  trees:[
+   ['#334257','#42576a','#506a79','#719195'],
+   ['#283d54','#3a5868','#4c7776','#66998f'],
+   ['#1c393f','#305950','#45806c','#7dac79']
+  ],
+  soil:['#152c38','#2b555a','#1b3b47','#36716a','#b8df8d','#538579','#8dc9a0'],
+  flower:'#e9b8ff',detail:'#bcf8d9'
+ },
+ {
+  // Boss throne uses ink-dark red/purple hues with bright gold floor accents.
+  sky:['#2a263d','#362e48','#543d56','#584252','#352d42','#211e33'],
+  sun:'#b07b8d',sunCore:'#f9ce9b',haze:'#a77b81',
+  trees:[
+   ['#343042','#473b50','#624e60','#886a77'],
+   ['#2c2b41','#45374b','#604857','#7d6465'],
+   ['#272a39','#3d3341','#554052','#76605e']
+  ],
+  soil:['#211d2d','#494051','#2e2938','#61505b','#f0c77e','#876c61','#ffdf98'],
+  flower:'#f5b76c',detail:'#ffe2ad'
  }
 ];
 // Reusable tile-based planes; only the palette/geometry changes between biomes.
@@ -126,7 +150,7 @@ function makePlane(depth,biome){
  }
  return c;
 }
-const planeSets=Array.from({length:3},(_,biome)=>Array.from({length:3},(_,depth)=>makePlane(depth,biome)));
+const planeSets=Array.from({length:stages.length},(_,biome)=>Array.from({length:3},(_,depth)=>makePlane(depth,biome)));
 // Ground textures are cached once per level rather than regenerated every frame.
 // Caches avoid repeated drawing work on slow mobile devices.
 const terrainCache=new Map();
@@ -156,6 +180,17 @@ function terrain(p,index){
  }else if(stage===2){ // Moss ruins: unmistakable cracked stone-brick masonry.
   for(let y=30;y<20+soil;y+=18)for(let x=17+((y/18|0)%2)*15;x<16+p.w;x+=38){
    q.fillStyle=dark;q.fillRect(x,y,30,2);q.fillRect(x+29,y,2,14);
+  }
+ }else if(stage===3){ // Glowing mushroom mycelium grows under the platforms.
+  for(let x=28;x<p.w;x+=44){
+   q.fillStyle='#6fbcb0';q.fillRect(x,28,4,12);
+   q.fillStyle='#dbb3ee';q.fillRect(x-7,24,18,5);
+   q.fillStyle='#9ce8cc';q.fillRect(x-2,19,8,5);
+  }
+ }else if(stage===4){ // Thick red/golden paving stones of the royal arena.
+  for(let x=16;x<16+p.w;x+=35){
+   q.fillStyle='#211d30';q.fillRect(x,32,3,Math.min(35,soil));
+   q.fillStyle='#ebba7b';q.fillRect(x+7,26,15,4);
   }
  }else{ // Woodland: grassy foliage and tiny yellow blossoms.
   for(let x=28;x<p.w;x+=52){q.fillStyle=stageThemes[stage].flower;q.fillRect(x,10,4,4);}
@@ -199,7 +234,7 @@ function background(){
     ctx.fillStyle='#d4e7f8aa';ctx.fillRect(x+88,y+22,4,170);
    }
   }
- }else{ // Purple twilight ruins, massive silhouette towers and warm windows.
+ }else if(stage===2){ // Purple twilight ruins, massive silhouette towers and warm windows.
   for(let i=0;i<9;i++){
    const x=i*145-Math.round(cam*.14/8)*8,y=286+(i%4)*22;
    ctx.fillStyle='#50445e';ctx.fillRect(x,y,104,540-y);
@@ -209,25 +244,42 @@ function background(){
    ctx.fillRect(x+65,y+40,12,22);
    ctx.fillStyle='#a9816e';ctx.fillRect(x+26,y+45,4,9);
   }
+ }else if(stage===3){ // Fireflies and giant, clearly distant mushroom caps.
+  for(let i=0;i<9;i++){
+   const x=i*173-Math.round(cam*.14/8)*8,y=290+(i%3)*35;
+   ctx.fillStyle='#2e4959';ctx.fillRect(x+22,y,32,540-y);
+   ctx.fillStyle='#465f71';ctx.fillRect(x-20,y-10,116,26);
+   ctx.fillStyle='#718391';ctx.fillRect(x-5,y-30,86,20);
+   ctx.fillStyle='#a18eab';ctx.fillRect(x+10,y-40,55,11);
+   ctx.fillStyle='#bb9ad1';ctx.fillRect(x+45,y-30,10,10);
+  }
+ }else{ // Royal red-violet throne hall with strong structural silhouettes.
+  for(let i=0;i<9;i++){
+   const x=i*160-Math.round(cam*.13/8)*8,y=260+(i%2)*30;
+   ctx.fillStyle='#252136';ctx.fillRect(x,y,85,H-y);
+   ctx.fillStyle='#49384b';ctx.fillRect(x-12,y,109,18);
+   ctx.fillStyle='#785264';ctx.fillRect(x+6,y+50,12,32);ctx.fillRect(x+61,y+50,12,32);
+   ctx.fillStyle='#ce9468';ctx.fillRect(x+9,y+54,5,23);ctx.fillRect(x+64,y+54,5,23);
+  }
  }
  // Cached three-depth tree silhouettes with palette varying by biome.
  for(let i=0;i<3;i++){
   const par=[.12,.32,.58][i],offset=((cam*par)%1600+1600)%1600;
-  ctx.globalAlpha=[.65,.82,1][i];
+  ctx.globalAlpha=[.42,.58,.74][i];
   ctx.imageSmoothingEnabled=false;
   const shift=Math.round(offset/4)*4;
   ctx.drawImage(planeSets[stage][i],-shift,0);
   ctx.drawImage(planeSets[stage][i],1600-shift,0);
   ctx.globalAlpha=1;
   if(i<2){
-   ctx.fillStyle=stage===0?'#ffe7bd18':stage===1?'#69accb1c':'#caa8a31d';
+   ctx.fillStyle=stage===0?'#ffe7bd18':stage===1?'#69accb1c':stage===3?'#92c6ae0f':stage===4?'#a985a50d':'#caa8a31d';
    ctx.fillRect(0,282+i*36,W,42);
   }
  }
  if(quality==='full')for(let i=0;i<4;i++){
   const x=150+i*250-Math.round(cam*.05/4)*4;
   poly(ctx,[[x,0],[x+16,0],[x-104,H],[x-148,H]],
-    stage===0?'#f9eeac13':stage===1?'#a4d9ff10':'#f9be9112');
+    stage===0?'#f9eeac13':stage===1?'#a4d9ff10':stage===3?'#e2afff0d':stage===4?'#f0ae9a0d':'#f9be9112');
  }
  // Distinctive pixel-masonry archways in Moosruinen.
  if(stage===2){
@@ -262,12 +314,27 @@ function spriteFrame(kind,frame,air){const key=kind+frame+air;if(characterFrames
  if(kind==='hunter'){q.strokeStyle='#d3b87b';q.lineWidth=1;q.beginPath();q.moveTo(20,11);q.quadraticCurveTo(27,17,20,24);q.stroke();q.fillStyle='#d2d7b1';q.fillRect(20,11,1,14);}
  characterFrames.set(key,c);return c;
 }
+// Cached dark sprite silhouette: foreground stays legible against every pixel biome.
+const heroOutlines=new Map();
+function heroOutline(kind,frame,air){
+ const key=kind+':'+frame+':'+air;
+ if(heroOutlines.has(key))return heroOutlines.get(key);
+ const img=spriteFrame(kind,frame,air);
+ const buffer=document.createElement('canvas');buffer.width=img.width;buffer.height=img.height;
+ const p=buffer.getContext('2d');p.drawImage(img,0,0);
+ p.globalCompositeOperation='source-in';p.fillStyle='#111b28';p.fillRect(0,0,buffer.width,buffer.height);
+ heroOutlines.set(key,buffer);return buffer;
+}
 function drawHero(){const h=hero;if(!h)return;ellipse(ctx,h.x+15,h.y+h.h+2,18,4,'#081b2260');if(invincible&&Math.floor(invincible/6)%2)return;
  const running=h.on&&Math.abs(h.vx)>.1,frame=running?Math.floor(t/5)%8:0,bob=h.on?(running?Math.sin(t*.6)*.8:Math.sin(visualTime*3)*.7):0;
  ctx.save();ctx.translate(Math.round(h.x+15),Math.round(h.y+20+bob));ctx.scale(h.face,1);
  // Cloth trails behind the facing direction, animated separately from the legs.
  let flap=reducedMotion?0:Math.sin(t*.23)*3;poly(ctx,[[-9,-8],[-20-(running?5:0),12+flap],[-9,20],[-3,2]],save.class==='mage'?'#6a6089':save.class==='hunter'?'#477757':'#4c7186');
- ctx.imageSmoothingEnabled=false;ctx.drawImage(spriteFrame(save.class,frame,!h.on),-24,-27,48,56);ctx.restore();ctx.imageSmoothingEnabled=true;
+ ctx.imageSmoothingEnabled=false;
+ const silhouette=heroOutline(save.class,frame,!h.on);
+ for(const [dx,dy] of [[-3,0],[3,0],[0,-3],[0,3]])ctx.drawImage(silhouette,-24+dx,-27+dy,48,56);
+ ctx.drawImage(spriteFrame(save.class,frame,!h.on),-24,-27,48,56);
+ ctx.restore();ctx.imageSmoothingEnabled=false;
  if(h.dash>0){ctx.strokeStyle='#d5f6e5aa';ctx.lineWidth=2;for(let i=0;i<3;i++)line(ctx,h.x+15-h.face*40,h.y+12+i*10,h.x+15,h.y+12+i*10,'#cceff0aa',2);}
 }
 function drawEnemy(e,i){if(!e.alive)return;const squash=Math.sin(t*.13+i)*1.6;ellipse(ctx,e.x+14,G+1,17,4,'#061e2670');ctx.save();ctx.translate(e.x+14,e.y+16);ctx.scale(e.dir,1);
@@ -299,7 +366,14 @@ function draw(){
 }
 function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();background();motes(false);
  ctx.save();ctx.translate(-cam,0);
- for(const [i,p] of solids().entries()){if(p.x+p.w<cam-20||p.x>cam+W+20)continue;ctx.drawImage(terrain(p,i),p.x-16,p.y-20);}
+ for(const [i,p] of solids().entries()){
+  if(p.x+p.w<cam-20||p.x>cam+W+20)continue;
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(terrain(p,i),p.x-16,p.y-20);
+  // Strong bright traversable edge + a dark layer immediately below it.
+  ctx.fillStyle=stageThemes[stage].soil[4];ctx.fillRect(p.x,p.y-3,p.w,4);
+  ctx.fillStyle=stageThemes[stage].soil[0];ctx.fillRect(p.x,p.y+2,p.w,3);
+ }
  // Each biome has its own clearly recognizable foreground decorations.
  for(const p of land())for(let x=p.x+66;x<p.x+p.w-20;x+=136){
   if(x<cam-60||x>cam+W+60)continue;
@@ -320,6 +394,21 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
    ctx.fillStyle='#ce9bdf';ctx.fillRect(tx+24,G-24,28,7);
    ctx.fillRect(tx+32,G-34,12,10);
    ctx.fillStyle='#6599b5';ctx.fillRect(tx+32,G-18,8,18);
+  }else if(stage===3){
+   // Neon fungi and contrasting cyan glow below active platforms.
+   ctx.fillStyle='#273d4f';ctx.fillRect(tx-16,G-30,36,30);
+   ctx.fillStyle='#81d6c4';ctx.fillRect(tx-12,G-38,30,10);
+   ctx.fillStyle='#d8b0ed';ctx.fillRect(tx-4,G-45,15,9);
+   ctx.fillStyle='#b3efd0';ctx.fillRect(tx+30,G-17,8,17);
+   ctx.fillStyle='#edc5fd';ctx.fillRect(tx+20,G-27,28,10);
+  }else if(stage===4){
+   // Royal banners and torch pixels; kept away from collision silhouettes.
+   ctx.fillStyle='#3b2e45';ctx.fillRect(tx-17,G-42,36,42);
+   ctx.fillStyle='#7b4c58';ctx.fillRect(tx-20,G-46,42,10);
+   ctx.fillStyle='#ebbf7e';ctx.fillRect(tx-4,G-36,10,14);
+   ctx.fillStyle='#fbe09d';ctx.fillRect(tx-2,G-38,6,9);
+   ctx.fillStyle='#8d444f';ctx.fillRect(tx+28,G-45,10,26);
+   ctx.fillStyle='#e9a05b';ctx.fillRect(tx+30,G-43,6,12);
   }else{
    // Broken masonry, moss drapes and glowing amber relics.
    ctx.fillStyle='#655c66';ctx.fillRect(tx-16,G-36,36,36);
@@ -345,9 +434,15 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
    }
   }
  }
- for(const s of spikes){for(let k=0;k<3;k++)poly(ctx,[[s.x+k*15,s.y+18],[s.x+8+k*15,s.y],[s.x+15+k*15,s.y+18]],'#bdc6b4');for(let k=0;k<3;k++)line(ctx,s.x+8+k*15,s.y+2,s.x+12+k*15,s.y+17,'#637c78',2);}
+ for(const s of spikes){
+  ctx.fillStyle='#351e2b';ctx.fillRect(s.x,s.y+14,s.w,6);
+  for(let k=0;k<3;k++){
+   poly(ctx,[[s.x+k*15,s.y+18],[s.x+8+k*15,s.y],[s.x+15+k*15,s.y+18]],'#ff837a');
+   ctx.fillStyle='#ffe5a4';ctx.fillRect(s.x+6+k*15,s.y+7,4,7);
+  }
+ }
  for(const a of things){if(a.taken||a.x<cam-25||a.x>cam+W+25)continue;const y=a.y+(reducedMotion?0:Math.sin(visualTime*3+a.x)*3);if(a.type==='star'){glow(a.x,y,26,'#f3df8b35');let pts=[];for(let j=0;j<10;j++){const an=j*Math.PI/5-Math.PI/2,r=j%2?7:16;pts.push([a.x+Math.cos(an)*r,y+Math.sin(an)*r]);}poly(ctx,pts,'#f4dd93');line(ctx,a.x,y-10,a.x-3,y-1,'#fff4d0',2);}else{const rx=reducedMotion?6:3+Math.abs(Math.cos(visualTime*2+a.x))*4;ellipse(ctx,a.x,y,rx,9,'#99774b');ellipse(ctx,a.x,y-1,rx-1,7,'#e5be6c');line(ctx,a.x,y-5,a.x,y+3,'#fff0b0',1);}}
- bad.forEach(drawEnemy);finishFlag({x:WIDTH-77});drawHero();drawCombatEffects();
+ bad.forEach(drawEnemy);drawBoss();if(!stages[stage].boss||bossDefeated())finishFlag({x:WIDTH-77});drawHero();drawCombatEffects();
  for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}ctx.globalAlpha=1;ctx.restore();
  if(quality==='full'){motes(true);ctx.fillStyle='#07191c46';ctx.fillRect(0,0,32,H);ctx.fillRect(W-32,0,32,H);ctx.fillRect(32,0,W-64,24);ctx.fillRect(32,H-24,W-64,24);}
  // Minimal in-world labels leave the playfield visible on a phone.

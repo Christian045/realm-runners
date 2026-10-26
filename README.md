@@ -1,8 +1,23 @@
-# Realm Runners — v0.5.2 Pixel-Welten · Smaragdwald
+# Realm Runners — v0.6 · Der Schleimkönig
 
 Ein Jump-'n'-Run mit RPG-Fortschritt für **Windows-Browser und iPhone Safari**.
 
 **Spielen: https://christian045.github.io/realm-runners/**
+
+## Neu in v0.6: Zwei Level + Schleimkönig
+
+- **Level 1-4 · Leuchtpilz-Sumpf:** neue lila/türkise Pixel-Welt mit leuchtenden Pilzen, fünf Gegnern, neuen Sprungabständen und drei Sternen.
+- **Level 1-5 · Thron des Schleimkönigs:** dunkler Königsthron, Bodenpassagen, drei Sterne und ein Bosskampf am Ende.
+- **Schleimkönig (20 HP):** roter Lebensbalken mit zugänglichem Fortschrittswert. Alle drei Klassen können den Boss mit ihren normalen Waffen und Verbesserungen treffen.
+- **Zwei Angriffsarten:** gerichtete Schleimgeschosse und eine angekündigte Stampfattacke mit auslaufenden Boden-Schockwellen; bei niedriger Gesundheit beschleunigen die Angriffe. Springe über Schockwellen und weiche den Geschossen aus.
+- Das Ziel öffnet sich **erst nach dem Sieg**. Ein erfolgreicher Durchlauf vergibt zusätzliche XP und zählt deine Siege über den Schleimkönig.
+- Nach Treffer oder Sturz beginnt das Level wie gewohnt ohne Checkpoint erneut; der Boss erhält wieder volle HP und der Spieler verliert ein Herz.
+- **Speicherkompatibilität:** Bestehende drei Sterne-Wertungen werden zu fünf Einträgen erweitert; alte XP, Skilltrees, Ausrüstung, Bestzeiten und Freischaltungen bleiben erhalten. Die neuen Level werden nach Abschluss des vorherigen Levels freigeschaltet.
+- Pixel-Stil mit klarer Charakterkontur, hellen Plattformkanten, roten Gefahren und zurückhaltenderen Hintergründen – für bessere Lesbarkeit auf dem iPhone. Sprungphysik und bisherige Level bleiben bestehen.
+
+**iPhone-Test:** Nach der Veröffentlichung im Hauptmenü `BOSS-UPDATE 0.6.0` prüfen, Level 1-3 abschließen, Level 1-4 freischalten, dann nach dessen Abschluss den Schleimkönig in 1-5 mit dem Touch-Angriffsbutton bekämpfen. Die Stampf-Warnung erscheint am Boden; über die danach auslaufenden roten Wellen springen. Safari-Neuladen darf keinen Fortschritt löschen.
+
+
 
 ## Sichtbares Pixel-Welten-Update v0.5.2
 
