@@ -7,7 +7,7 @@ function harness(initial){const elements=new Map(),listeners={},storage=new Map(
  class El {constructor(){this.dataset={};this.listeners={};this.style={};this.attrs={};this.classList={add(){},remove(){},toggle(){}};}setAttribute(k,v){this.attrs[k]=String(v);}addEventListener(k,f){(this.listeners[k]??=[]).push(f)}setPointerCapture(){}querySelectorAll(){return [];}dispatch(type,data){for(const f of this.listeners[type]||[])f({preventDefault(){},...data});}}
  const canvas=createCanvas(960,540);elements.set('#view',canvas);const buttons=['left','right','jump','dash','attack'].map(k=>{let el=new El();el.dataset.control=k;return el});
  const sandbox={console,Math,JSON,Number,Map,Set,Object,Array,devicePixelRatio:1,innerWidth:960,innerHeight:540,performance:{now:()=>1000},matchMedia:()=>({matches:false}),localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},addEventListener:(k,f)=>(listeners[k]??=[]).push(f),requestAnimationFrame:f=>raf=f,document:{hidden:false,querySelector:s=>{if(!elements.has(s))elements.set(s,new El());return elements.get(s)},querySelectorAll:()=>buttons,addEventListener:(k,f)=>(listeners[k]??=[]).push(f),createElement:tag=>tag==='canvas'?createCanvas(1,1):new El()}};
- vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'boss.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'platforms.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'castle_art.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);
+ vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'boss.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'platforms.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'castle_art.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'hd_background.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);
  return {run:s=>vm.runInContext(s,sandbox),canvas,buttons,storage,emit:(k,e)=>{for(const f of listeners[k]||[])f({preventDefault(){},...e})}};
 }
 let checks=0;function test(name,fn){fn();checks++;console.log('PASS',name);}
@@ -130,7 +130,7 @@ test('Pixel Edition: held jump apex is around 12 percent lower, short tap is unc
   assert.ok(hold>tap+100,`${kind}: held jump remains distinguishable`);
  }
 });
-test('Pixel Edition: half-resolution pixel buffer, nearest-neighbour upscale and context restoration',()=>{
+test('v0.7 dual-resolution background, crisp pixel buffer, and context restoration',()=>{
  h.run('innerWidth=960;innerHeight=540;size();start(0);draw()');
  assert.equal(h.run('pixelCanvas.width'),720);
  assert.equal(h.run('pixelCanvas.height'),405);
@@ -138,6 +138,11 @@ test('Pixel Edition: half-resolution pixel buffer, nearest-neighbour upscale and
  const data=h.canvas.getContext('2d').getImageData(200,140,2,2).data;
  assert.ok(data[3]>0);
  assert.equal(h.run('pixelCtx.imageSmoothingEnabled'),false);
+ assert.equal(h.run('hdCanvas.width'),960);
+ assert.equal(h.run('hdCanvas.height'),540);
+ assert.equal(h.run('hdCtx.imageSmoothingEnabled'),true);
+ assert.equal(h.run('pixelCtx.getImageData(95,13,1,1).data[3]'),0,'background must not be baked into pixel layer');
+ assert.equal(h.run('hdCtx.getImageData(95,13,1,1).data[3]'),255,'HD background must render opaque');
 });
 test('Pixel Edition: previous time trials remain untouched after recording new runs',()=>{
  h.run("save.class='mage';save.bestTimes={'1-1':{mage:69000}};save.bestTimesV05={'1-1':{mage:72000}};start(0);for(let i=0;i<90;i++)step(1);recordTime()");
@@ -150,18 +155,25 @@ test('Pixel Edition: maximum terrain gap remains passable without forced long da
  assert.ok(Math.max(...gapLengths)<=185);
 });
 
-test('v0.5.2 sky palette is visibly different in each biome',()=>{
- const colors=h.run("(()=>{const colors=[];for(let i=0;i<3;i++){quality='low';start(i);draw();colors.push([...pixelCtx.getImageData(50,15,1,1).data].slice(0,3))}return colors})()");
+test('v0.7 native-resolution HD sky remains distinct in each biome',()=>{
+ const colors=h.run("(()=>{const colors=[];for(let i=0;i<3;i++){quality='low';start(i);draw();colors.push([...hdCtx.getImageData(50,15,1,1).data].slice(0,3))}return colors})()");
  assert.equal(new Set(colors.map(rgb=>rgb.join(','))).size,3);
  const distance=(a,b)=>a.reduce((total,x,i)=>total+Math.abs(x-b[i]),0);
  assert.ok(distance(colors[0],colors[1])>100,'Waldanfang and Baumkronen must differ strongly');
  assert.ok(distance(colors[1],colors[2])>60,'Baumkronen and Moosruinen must differ strongly');
 });
-test('v0.5.2 each stage has unique tile colors and parallax planes',()=>{
+test('v0.7 each stage retains individual foreground tiles and bounded HD parallax',()=>{
  const colors=h.run("(()=>{const colors=[];for(let i=0;i<3;i++){stage=i;const tile=terrain({x:0,y:G,w:140},0);colors.push([...tile.getContext('2d').getImageData(35,17,1,1).data].slice(0,3));}return colors})()");
  assert.equal(new Set(colors.map(rgb=>rgb.join(','))).size,3);
- assert.equal(h.run('planeSets.length'),5);
- assert.ok(h.run('planeSets.every(set=>set.length===3)'));
+ h.run('start(3);draw()');
+ assert.equal(h.run('hdCacheStage'),3);
+ assert.equal(h.run('hdCachedPlanes.length'),2);
+ h.run('start(4);draw()');
+ assert.equal(h.run('hdCachedPlanes.length'),0,'castle should not allocate forest trees');
+ h.run('start(0);draw()');
+ assert.equal(h.run('hdCacheStage'),0);
+ assert.equal(h.run('hdCachedPlanes.length'),2);
+ assert.equal(h.run('hdCachedPlanes[0].width'),1600);
 });
 test('v0.5.2 visual changes leave jump rules and game physics unchanged',()=>{
  assert.equal(h.run('JUMP.holdFrames'),14);
@@ -337,4 +349,31 @@ test('v0.6.2 foreground pixels are individually textured and separated from the 
  assert.ok(sample.unique>=4,'organic dirt must have several distinct pixel colors');
  assert.equal(h.run('pixelCanvas.width'),720);
  assert.equal(h.run('pixelCanvas.height'),405);
+});
+
+test('v0.7 all five levels render high-definition atmospheric backgrounds independently',()=>{
+ for(let stageIndex=0;stageIndex<5;stageIndex++){
+  h.run(`start(${stageIndex});draw()`);
+  assert.equal(h.run('hdCanvas.width'),960);
+  assert.equal(h.run('hdCanvas.height'),540);
+  assert.equal(h.run("ctx===canvas.getContext('2d')"),true,'drawing context must always be restored');
+  assert.equal(h.run('hdCtx.getImageData(50,60,1,1).data[3]'),255,'every HD backdrop needs full opacity');
+ }
+});
+test('v0.7 960x540 background contains smooth HD color changes, pixel foreground stays isolated',()=>{
+ h.run("quality='full';start(0);draw()");
+ const details=h.run("(()=>{const hd=[],px=[];for(let x=600;x<635;x++){hd.push([...hdCtx.getImageData(x,130,1,1).data].slice(0,3).join(','));px.push(pixelCtx.getImageData(Math.round(x*.75),Math.round(130*.75),1,1).data[3]);}return {unique:new Set(hd).size,alpha:px.reduce((a,b)=>a+b,0)}})()");
+ assert.ok(details.unique>=10,'HD foliage and graduated daylight should not be flat 8-pixel blocks');
+ assert.equal(details.alpha,0,'all scenery must remain behind an alpha-transparent gameplay layer');
+});
+test('v0.7 backdrop cache holds only the current biome, including graphic quality changes',()=>{
+ h.run("start(0);draw()");
+ const cached=h.run('hdCachedPlanes[0]');
+ h.run("start(1);quality='low';draw()");
+ assert.equal(h.run('hdCacheStage'),1);
+ assert.equal(h.run('hdCachedPlanes.length'),2);
+ assert.notEqual(h.run('hdCachedPlanes[0]'),cached);
+ h.run("start(4);draw()");
+ assert.equal(h.run('hdCachedPlanes.length'),0);
+ h.run("start(0);quality='full';draw()");
 });
