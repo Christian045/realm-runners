@@ -40,16 +40,17 @@ test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';
 // Guard against missing or stale runtime scripts in the published HTML.
 test('v0.4 HTML loads RPG systems before forest startup',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- const game=html.indexOf('src="game.js?v=0.6.2"');
- const rpg=html.indexOf('src="rpg.js?v=0.6.2"');
- const boss=html.indexOf('src="boss.js?v=0.6.2"');
- const platforms=html.indexOf('src="platforms.js?v=0.6.2"');
- const castleArt=html.indexOf('src="castle_art.js?v=0.6.2"');
- const forest=html.indexOf('src="forest.js?v=0.6.2"');
- assert.ok(game>=0 && rpg>game && boss>rpg && platforms>boss && castleArt>platforms && forest>castleArt,'runtime scripts must load in order');
+ const game=html.indexOf('src="game.js?v=0.7.0"');
+ const rpg=html.indexOf('src="rpg.js?v=0.7.0"');
+ const boss=html.indexOf('src="boss.js?v=0.7.0"');
+ const platforms=html.indexOf('src="platforms.js?v=0.7.0"');
+ const castleArt=html.indexOf('src="castle_art.js?v=0.7.0"');
+ const hd=html.indexOf('src="hd_background.js?v=0.7.0"');
+ const forest=html.indexOf('src="forest.js?v=0.7.0"');
+ assert.ok(game>=0 && rpg>game && boss>rpg && platforms>boss && castleArt>platforms && hd>castleArt && forest>hd,'runtime scripts must load in order');
  assert.ok(html.includes('id="rpgPanels"'));
  assert.ok(html.includes('data-control="attack"'));
- assert.ok(html.includes('KONTRAST-UPDATE 0.6.2'));
+ assert.ok(html.includes('HD-HINTERGRÜNDE 0.7.0'));
  assert.ok(html.includes('id="bossHealthFill"'));
  assert.ok(html.includes('boss-health-fill'));
 });
