@@ -1,7 +1,7 @@
 'use strict';
 // Pixel-art Slime King. Logic runs at the same deterministic 60 Hz as game.js.
 // There are no checkpoints: damage resets the encounter along with the level.
-const BOSS_LEVEL=4, BOSS_HP=20;
+const BOSS_LEVEL=4, BOSS_HP=20, BOSS_VICTORY_FRAMES=42;
 let boss=null,bossGoo=[],bossWaves=[];
 function resetBossRun(){
  bossGoo=[];bossWaves=[];
@@ -9,7 +9,7 @@ function resetBossRun(){
   x:2460,y:G-94,w:108,h:94,baseY:G-94,vy:0,
   hp:BOSS_HP,maxHp:BOSS_HP,hurt:0,alive:true,
   engaged:false,phase:'patrol',timer:105,shotTimer:68,
-  targetX:2460,slamCount:0
+  targetX:2460,slamCount:0,defeatTimer:0
  }:null;
  updateBossHud();
 }
@@ -17,14 +17,14 @@ function bossDefeated(){return !boss||!boss.alive;}
 function updateBossHud(){
  const ui=$('#bossHud'),bar=$('#bossHealthFill'),label=$('#bossState');
  if(!ui||!bar||!label)return;
- const show=scene==='game'&&boss?.engaged&&boss.alive;
+ const show=scene==='game'&&boss?.engaged;
  ui.classList.toggle('hide',!show);
  if(!boss)return;
  const hp=Math.max(0,Math.round(boss.hp));
  bar.style.width=(hp/boss.maxHp*100)+'%';
  const track=$('#bossHealthTrack');
  if(track){track.setAttribute('aria-valuenow',String(hp));track.setAttribute('aria-valuemax',String(boss.maxHp));}
- label.textContent=boss.phase==='warn'?'STAMPSCHLAG! AUSWEICHEN':boss.phase==='leap'?'SCHLEIMKÖNIG SPRINGT':'SCHLEIMKÖNIG';
+ label.textContent=boss.phase==='defeated'?'SCHLEIMKÖNIG BESIEGT!':boss.phase==='warn'?'STAMPSCHLAG! AUSWEICHEN':boss.phase==='leap'?'SCHLEIMKÖNIG SPRINGT':'SCHLEIMKÖNIG';
 }
 function damageBoss(amount){
  if(!boss||!boss.alive||!boss.engaged||boss.hurt>0||!Number.isFinite(amount)||amount<=0)return false;
@@ -32,7 +32,7 @@ function damageBoss(amount){
  boss.hurt=9;
  burst(boss.x+boss.w/2,boss.y+boss.h/2,'#f6ca92',16,3);
  if(boss.hp===0){
-  boss.alive=false;boss.phase='defeated';
+  boss.alive=false;boss.phase='defeated';boss.defeatTimer=BOSS_VICTORY_FRAMES;
   bossGoo=[];bossWaves=[];hero.earned+=120;
   burst(boss.x+boss.w/2,boss.y+boss.h/2,'#c9ed7f',55,5);
  }
@@ -51,8 +51,18 @@ function shootBossGoo(){
  bossGoo.push({x:fromX,y:fromY,vx,vy,r:11,ttl:115});
 }
 function bossTick(dt,prevY){
- if(!boss||!boss.alive||scene!=='game')return false;
+ if(!boss||scene!=='game')return false;
  const b=boss;
+ // The final hit starts a short visible victory sequence. No goal/flag is required.
+ // Trigger completion from the fixed-step loop, never from a timeout.
+ if(!b.alive){
+  if(b.phase==='defeated'){
+   b.defeatTimer=Math.max(0,b.defeatTimer-dt);
+   if(b.defeatTimer===0){end(true);return true;}
+   updateBossHud();
+  }
+  return true;
+ }
  if(hero.x>2015)b.engaged=true;
  if(!b.engaged)return false;
  b.hurt=Math.max(0,b.hurt-dt);
@@ -132,7 +142,21 @@ function drawBoss(){
   ctx.fillStyle='#b6ef70';ctx.fillRect(shot.x-9,shot.y-9,18,15);
   ctx.fillStyle='#f1ffba';ctx.fillRect(shot.x-5,shot.y-7,7,5);
  }
- if(!b.alive)return;
+ if(!b.alive){
+  if(b.phase==='defeated'){
+   const x=Math.round(b.x+b.w/2),y=G-20;
+   ctx.fillStyle='#15262d';ctx.fillRect(x-43,y,86,16);
+   ctx.fillStyle='#81b54f';ctx.fillRect(x-36,y+1,72,8);
+   ctx.fillStyle='#d6af65';ctx.fillRect(x-23,y-19,46,12);
+   ctx.fillStyle='#f9de9b';ctx.fillRect(x-5,y-29,11,16);
+   ctx.fillStyle='#b64b5c';ctx.fillRect(x-4,y-14,9,6);
+   ctx.save();ctx.textAlign='center';ctx.font='bold 21px monospace';
+   ctx.fillStyle='#1b202f';ctx.fillRect(x-135,y-112,270,37);
+   ctx.fillStyle='#f8dc98';ctx.fillText('BOSS BESIEGT!',x,y-87);
+   ctx.restore();
+  }
+  return;
+ }
  const x=Math.round(b.x/4)*4,y=Math.round(b.y/4)*4;
  ctx.save();
  // Dark, thick silhouette keeps the boss legible against bright backgrounds.
