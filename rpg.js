@@ -50,6 +50,18 @@ function ensureRpgSave(){
    if(!classes[kind]||!Number.isFinite(ms)||ms<=0)delete save.bestTimesV05[level][kind];
   }
  }
+ // New physics means v0.5.1 runs are not directly comparable to v0.5.0 times.
+ // Preserve both old leaderboards and expose the Pixel Edition board separately.
+ if(!save.bestTimesPixelV051||typeof save.bestTimesPixelV051!=='object'||Array.isArray(save.bestTimesPixelV051))save.bestTimesPixelV051={};
+ for(const level of Object.keys(save.bestTimesPixelV051)){
+  if(!/^1-[123]$/.test(level)||!save.bestTimesPixelV051[level]||typeof save.bestTimesPixelV051[level]!=='object'){
+   delete save.bestTimesPixelV051[level];continue;
+  }
+  for(const kind of Object.keys(save.bestTimesPixelV051[level])){
+   const ms=save.bestTimesPixelV051[level][kind];
+   if(!classes[kind]||!Number.isFinite(ms)||ms<=0)delete save.bestTimesPixelV051[level][kind];
+  }
+ }
  const spent=Object.values(save.skills).reduce((sum,ids)=>sum+ids.length,0);
  save.skillPoints=Math.max(0,save.level-1-spent);
  save.saveVersion=3;
@@ -60,11 +72,11 @@ function hasSkill(id){return save.skills[save.class].includes(id);}
 function equipBonus(stat){return Object.values(save.equipment[save.class]).reduce((n,id)=>n+(itemCatalog[id]?.[stat]||0),0);}
 function formatRunTime(ms){const seconds=Math.floor(ms/1000);return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')+'.'+String(Math.floor(ms%1000/10)).padStart(2,'0');}
 function currentTime(){return Math.round(runFrames*1000/60);}
-function medal(ms){return ms<=70000?'🥇':ms<=105000?'🥈':ms<=150000?'🥉':'✓';}
+function medal(ms){return ms<=70000?'GOLD':ms<=105000?'SILBER':ms<=150000?'BRONZE':'ZIEL';}
 function recordTime(){
  const level='1-'+(stage+1),kind=save.class,ms=currentTime();
- if(!save.bestTimesV05[level])save.bestTimesV05[level]={};
- if(!save.bestTimesV05[level][kind]||ms<save.bestTimesV05[level][kind])save.bestTimesV05[level][kind]=ms;
+ if(!save.bestTimesPixelV051[level])save.bestTimesPixelV051[level]={};
+ if(!save.bestTimesPixelV051[level][kind]||ms<save.bestTimesPixelV051[level][kind])save.bestTimesPixelV051[level][kind]=ms;
  persist();
  return ms;
 }
@@ -139,15 +151,15 @@ function equipItem(id){
 }
 function renderRpgMenu(){
  const root=$('#rpgPanels');if(!root)return;
- const kind=save.class,levelTimes=save.bestTimesV05['1-'+(selected+1)]||{};
+ const kind=save.class,levelTimes=save.bestTimesPixelV051['1-'+(selected+1)]||{};
  const timeRows=Object.entries(classes).map(([id,c])=>'<div>'+c.label+': '+(levelTimes[id]?formatRunTime(levelTimes[id])+' '+medal(levelTimes[id]):'—')+'</div>').join('');
  const skills=skillCatalog[kind].map(([id,name,desc],i)=>'<button data-skill="'+id+'" '+(save.skills[kind].includes(id)||!save.skillPoints||(i>0&&!save.skills[kind].includes(skillCatalog[kind][i-1][0]))?'disabled':'')+'>'+(save.skills[kind].includes(id)?'✓ ':'✦ ')+name+' – '+desc+'</button>').join('');
  const items=save.inventory.filter(id=>{const o=itemCatalog[id];return o&&(!o.class||o.class===kind)}).map(id=>{
   const o=itemCatalog[id];return '<button data-equip="'+id+'" '+(save.equipment[kind][o.slot]===id?'disabled':'')+'>'+(save.equipment[kind][o.slot]===id?'✓ ':'')+o.name+'</button>';
  }).join('');
- root.innerHTML='<details><summary>⏱ v0.5-Bestzeiten · '+stages[selected].name+'</summary>'+timeRows+'</details>'+
+ root.innerHTML='<details><summary>[TIME] Pixel-Bestzeiten · '+stages[selected].name+'</summary>'+timeRows+'</details>'+
  '<details><summary>✦ Skilltree · '+save.skillPoints+' Punkte</summary><div class="rpg-options">'+skills+'</div></details>'+
- '<details><summary>🎒 Ausrüstung · '+save.inventory.length+' Gegenstände</summary><div class="rpg-options">'+items+'</div></details>';
+ '<details><summary>[BAG] Ausrüstung · '+save.inventory.length+' Gegenstände</summary><div class="rpg-options">'+items+'</div></details>';
  root.querySelectorAll('[data-skill]').forEach(b=>b.onclick=()=>unlockSkill(b.dataset.skill));
  root.querySelectorAll('[data-equip]').forEach(b=>b.onclick=()=>equipItem(b.dataset.equip));
 }

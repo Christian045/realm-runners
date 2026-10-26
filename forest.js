@@ -1,5 +1,5 @@
 'use strict';
-// Original procedural artwork. Cached woodland planes + pixel-character animation.
+// v0.5 pixel edition: consistent chunky pixels, deterministic tile layers and crisp sprites.
 // All coordinates use the original 960 × 540 gameplay space; art never changes hitboxes.
 let visualTime=0,quality='full';
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -7,46 +7,135 @@ try{quality=localStorage.getItem('realm-runners-quality')==='low'?'low':'full';}
 function qualityLabel(){$('#quality').textContent='Grafik: '+(quality==='full'?'Voll':'Sparsam');}
 qualityLabel();$('#quality').onclick=()=>{quality=quality==='full'?'low':'full';qualityLabel();try{localStorage.setItem('realm-runners-quality',quality);}catch{}};
 function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let n=Math.imul(seed^seed>>>15,1|seed);n=n+Math.imul(n^n>>>7,61|n)^n;return((n^n>>>14)>>>0)/4294967296;};}
-function ellipse(c,x,y,rx,ry,color){c.fillStyle=color;c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();}
+function ellipse(c,x,y,rx,ry,color){
+ c.fillStyle=color;
+ const cell=4;
+ if(rx<3||ry<3){
+  c.fillRect(Math.round((x-rx)/cell)*cell,Math.round((y-ry)/cell)*cell,
+    Math.max(cell,Math.ceil(rx*2/cell)*cell),Math.max(cell,Math.ceil(ry*2/cell)*cell));
+  return;
+ }
+ for(let yy=Math.ceil((y-ry)/cell)*cell;yy<y+ry;yy+=cell){
+  const dy=Math.min(1,Math.abs((yy+cell/2-y)/ry));
+  const half=rx*Math.sqrt(1-dy*dy);
+  const left=Math.floor((x-half)/cell)*cell,right=Math.ceil((x+half)/cell)*cell;
+  c.fillRect(left,yy,Math.max(cell,right-left),cell);
+ }
+}
 function poly(c,points,color){c.fillStyle=color;c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill();}
 function line(c,x,y,xx,yy,color,width=1){c.strokeStyle=color;c.lineWidth=width;c.beginPath();c.moveTo(x,y);c.lineTo(xx,yy);c.stroke();}
-function glow(x,y,r,color){let g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,color);g.addColorStop(1,'#b9e9b000');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);}
+function glow(x,y,r,color){
+ ctx.save();ctx.fillStyle=color;
+ for(let i=3;i>=1;i--){
+  const d=Math.max(4,Math.floor(r*i/12)*4);
+  ctx.globalAlpha=(4-i)*.21;
+  ctx.fillRect(Math.floor((x-d)/4)*4,Math.floor((y-d)/4)*4,d*2,d*2);
+ }
+ ctx.restore();
+}
+// Deterministic rectangular tree canopies on three cached parallax planes.
 const planes=[];
-function makePlane(index){const c=document.createElement('canvas');c.width=1600;c.height=540;let p=c.getContext('2d'),r=rng(900+index*120),near=index===2;
- const colors=[['#244f57','#35656a','#427778'],['#183f43','#285b53','#3a7360'],['#0e2c30','#1a453c','#37644a']][index];
- for(let j=0;j<(near?11:24);j++){const x=j*c.width/(near?10:23)+r()*45-30,y=475+r()*45,w=(near?24:10)+r()*(near?46:25),top=-80+r()*150;
- poly(p,[[x-w*.6,y],[x-w*.36,top],[x+w*.3,top-10],[x+w*.55,y]],colors[0]);
- poly(p,[[x+2,y],[x+3,top],[x+w*.3,top-10],[x+w*.43,y]],colors[1]);
- for(let k=0;k<4;k++){const by=top+80+k*75,dir=k%2?1:-1;poly(p,[[x,by+35],[x+dir*(65+r()*60),by-55],[x+dir*(42+r()*20),by-40],[x+4,by+65]],colors[0]);}
- for(let k=0;k<8;k++)line(p,x-w*.25+r()*w*.6,top+50+r()*90,x-w*.2+r()*w*.4,y-r()*40,colors[2],near?2:1);
- for(let k=0;k<14;k++){const lx=x+(r()-.5)*200,ly=top+30+r()*120;ellipse(p,lx,ly,35+r()*75,17+r()*35,colors[k%3]);}
- // Broken foliage silhouettes and sunlit leaf clusters replace flat crown edges.
- for(let k=0;k<95;k++){const lx=x+(r()-.5)*240,ly=top+20+r()*125;const col=k%4===0?(near?'#557a54':'#537f6a'):colors[k%3];poly(p,[[lx,ly-3],[lx+7+r()*8,ly],[lx+10,ly+5],[lx-4,ly+3]],col);}
- if(near){for(let k=0;k<7;k++)poly(p,[[x,y-7],[x-70+r()*140,y+18],[x+(r()-.5)*20,y-36]],colors[0]);}
+function makePlane(index){
+ const c=document.createElement('canvas');c.width=1600;c.height=540;
+ const p=c.getContext('2d'),r=rng(900+index*120),tile=8;
+ const pal=[
+  ['#23454b','#31575a','#3f6563','#52766c'],
+  ['#173c40','#265047','#36644f','#4b7659'],
+  ['#112e34','#21453e','#346047','#56754f']
+ ][index];
+ const trees=[14,13,11][index];
+ for(let i=0;i<trees;i++){
+  const x=Math.round((i*1600/trees+(r()-.5)*100)/tile)*tile;
+  const top=Math.round((80+r()*155)/tile)*tile;
+  const tw=(index===2?4:2+index)*tile+Math.floor(r()*3)*tile;
+  p.fillStyle=pal[0];p.fillRect(x-tw/2,top,tw,540-top);
+  p.fillStyle=pal[1];p.fillRect(x-tw/2+tile,top,Math.max(tile,tw/3),540-top);
+  for(let k=0;k<3;k++){
+   const by=top+54+k*80,dir=k%2?1:-1,reach=(6+Math.floor(r()*8))*tile;
+   p.fillStyle=pal[k%2];p.fillRect(x+(dir<0?-reach:0),by,reach,tile*2);
+   p.fillRect(x+(dir<0?-reach:reach-tile),by-tile*2,tile,tile*4);
+  }
+  const crownW=(index===2?15:18)*tile,cy=top+20;
+  for(let k=0;k<3;k++){
+   const w=crownW-k*tile*3;
+   p.fillStyle=pal[1+k%3];
+   p.fillRect(Math.round((x-w/2)/tile)*tile,cy+k*tile*3,w,tile*6);
+  }
+  for(let k=0;k<75;k++){
+   const lx=Math.round((x+(r()-.5)*crownW*1.25)/tile)*tile;
+   const ly=Math.round((cy+r()*tile*13)/tile)*tile;
+   p.fillStyle=pal[2+(k%2)];p.fillRect(lx,ly,tile*(1+(k%3===0)),tile);
+  }
+  if(index===2)for(let k=0;k<4;k++){
+   const vx=x+Math.floor((r()-.5)*crownW/tile)*tile,vy=cy+tile*9;
+   p.fillStyle=pal[3];p.fillRect(vx,vy,tile/2,16+Math.floor(r()*6)*tile);
+  }
  }
  return c;
 }
 for(let i=0;i<3;i++)planes.push(makePlane(i));
 // Ground textures are cached once per level rather than regenerated every frame.
+// Caches avoid repeated drawing work on slow mobile devices.
 const terrainCache=new Map();
-function terrain(p,index){const key=[stage,p.x,p.y,p.w].join(':');if(terrainCache.has(key))return terrainCache.get(key);
- const c=document.createElement('canvas');c.width=p.w+32;c.height=(p.y===G?H-p.y:42)+35;const q=c.getContext('2d'),r=rng(p.x+stage*200+21),h=c.height-25;
- let g=q.createLinearGradient(0,20,0,h+20);g.addColorStop(0,'#456150');g.addColorStop(.19,'#263d38');g.addColorStop(1,'#101f25');q.fillStyle=g;q.fillRect(16,20,p.w,h);
- for(let k=0;k<p.w/7;k++){let x=16+r()*p.w,y=30+r()*h;poly(q,[[x,y],[x+9,y-3],[x+16,y+5],[x+5,y+10]],r()>.5?'#3a5143':'#1b302f');}
- for(let x=16;x<16+p.w;x+=8){let deep=7+r()*15;poly(q,[[x,20],[x+9,20],[x+6,20+deep],[x+2,25+deep]],'#426c4b');}
- q.fillStyle='#70945a';q.fillRect(16,18,p.w,5);q.fillStyle='#b0c780';q.fillRect(16,18,p.w,2);
- for(let x=18;x<p.w+12;x+=4){const ht=3+r()*10;line(q,x,20,x-2+r()*5,20-ht,r()>.5?'#99b875':'#4f8158',1.5);}
- for(let x=28;x<p.w;x+=63){if(r()>.35){let y=16;line(q,x,y,x+1,y-10,'#7b9c69');ellipse(q,x+1,y-11,2,2,r()>.5?'#e1cd8c':'#a1c8ba');}}
- if(p.y!==G){for(let x=27;x<p.w;x+=48){q.strokeStyle='#517b58';q.lineWidth=2;q.beginPath();q.moveTo(x,30);q.quadraticCurveTo(x-9,48,x+2,58);q.stroke();ellipse(q,x-2,45,4,2,'#608b5f');}}
+function terrain(p,index){
+ const key=[stage,p.x,p.y,p.w].join(':');
+ if(terrainCache.has(key))return terrainCache.get(key);
+ const c=document.createElement('canvas');
+ c.width=p.w+32;c.height=(p.y===G?H-p.y:42)+35;
+ const q=c.getContext('2d'),r=rng(p.x+stage*200+21),soil=c.height-26,tile=8;
+ q.fillStyle='#10292d';q.fillRect(16,20,p.w,soil);
+ q.fillStyle='#25433b';q.fillRect(16,20,p.w,24);
+ q.fillStyle='#1c3736';q.fillRect(16,44,p.w,Math.max(0,soil-28));
+ for(let y=26;y<20+soil;y+=tile)for(let x=16;x<16+p.w;x+=tile){
+  const choice=r();
+  if(choice<.22){q.fillStyle='#355245';q.fillRect(x,y,tile,tile);}
+  else if(choice>.88){q.fillStyle='#172f32';q.fillRect(x+tile/2,y+tile/2,tile/2,tile/2);}
+ }
+ q.fillStyle='#4a6f47';q.fillRect(16,14,p.w,12);
+ q.fillStyle='#a4bf6d';q.fillRect(16,14,p.w,4);
+ for(let x=16;x<16+p.w;x+=tile){
+  if(r()>.2){q.fillStyle=r()>.5?'#7caa61':'#bdd181';q.fillRect(x,8,tile/2,6);}
+  if(r()>.76){q.fillStyle='#789f56';q.fillRect(x+2,26,tile/2,8);}
+ }
+ if(p.y!==G)for(let x=28;x<p.w;x+=64){
+  q.fillStyle='#54734b';q.fillRect(x,27,4,16);
+  q.fillRect(x+4,39,8,4);
+ }
  terrainCache.set(key,c);return c;
 }
-function background(){let g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#102f3b');g.addColorStop(.52,'#65928b');g.addColorStop(1,'#203e42');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
- glow(660,104,300,'#ecf1be60');
- for(let i=0;i<3;i++){const par=[.12,.32,.58][i],offset=((cam*par)%1600+1600)%1600;ctx.globalAlpha=[.65,.8,1][i];ctx.drawImage(planes[i],-offset,0);ctx.drawImage(planes[i],1600-offset,0);ctx.globalAlpha=1;
- if(i<2){let fog=ctx.createLinearGradient(0,240,0,490);fog.addColorStop(0,'#a6d1b900');fog.addColorStop(.65,'#a6d1b922');fog.addColorStop(1,'#a6d1b900');ctx.fillStyle=fog;ctx.fillRect(0,240,W,250);}}
- if(quality==='full'){ctx.save();ctx.globalCompositeOperation='screen';for(let i=0;i<5;i++){const x=350+i*140-cam*.05+Math.sin(visualTime*.1+i)*12;let beam=ctx.createLinearGradient(x,0,x-150,H);beam.addColorStop(0,'#f7efba17');beam.addColorStop(1,'#e7efc000');poly(ctx,[[x,0],[x+28,0],[x-80,H],[x-280,H]],beam);}ctx.restore();}
- // Stone arch ruins give the third level its own silhouette.
- if(stage===2){ctx.save();ctx.translate(730-cam*.65,0);for(let n=0;n<4;n++){ctx.fillStyle='#385856';ctx.fillRect(n*330,220,28,250);ctx.fillRect(n*330+115,220,28,250);ctx.strokeStyle='#385856';ctx.lineWidth=28;ctx.beginPath();ctx.arc(n*330+71,220,57,Math.PI,0);ctx.stroke();line(ctx,n*330+6,230,n*330+7,430,'#78927b',3);}ctx.restore();}
+function background(){
+ // Palette-locked sky and layered tile trees, without smooth gradients.
+ const sky=['#142f3a','#1d3f47','#315851','#456c60','#38594f','#25463c'];
+ for(let i=0;i<sky.length;i++){ctx.fillStyle=sky[i];ctx.fillRect(0,i*90,W,90);}
+ const sx=Math.round((630-cam*.025)/4)*4;
+ ctx.fillStyle='#96b892';ctx.fillRect(sx,100,64,64);
+ ctx.fillStyle='#bed29d';ctx.fillRect(sx+12,112,40,40);
+ for(let i=0;i<3;i++){
+  const par=[.12,.32,.58][i],offset=((cam*par)%1600+1600)%1600;
+  ctx.globalAlpha=[.65,.8,1][i];
+  ctx.imageSmoothingEnabled=false;
+  const shift=Math.round(offset/4)*4;
+  ctx.drawImage(planes[i],-shift,0);
+  ctx.drawImage(planes[i],1600-shift,0);
+  ctx.globalAlpha=1;
+  if(i<2){ctx.fillStyle=i===0?'#8aad8612':'#a5bd9314';ctx.fillRect(0,288+i*35,W,52);}
+ }
+ if(quality==='full')for(let i=0;i<5;i++){
+  const x=340+i*145-Math.round(cam*.05/4)*4;
+  poly(ctx,[[x,0],[x+24,0],[x-130,H],[x-192,H]],'#d0d6a012');
+ }
+ // Moosruinen: stacked block pillars and stair-step arches.
+ if(stage===2){
+  ctx.save();ctx.translate(Math.round((730-cam*.65)/4)*4,0);
+  for(let n=0;n<4;n++){
+   const x=n*330;
+   ctx.fillStyle='#314f4b';ctx.fillRect(x,230,28,240);ctx.fillRect(x+116,230,28,240);
+   ctx.fillRect(x+24,198,96,24);ctx.fillRect(x+40,181,64,17);
+   ctx.fillStyle='#4e7263';ctx.fillRect(x+8,250,4,170);ctx.fillRect(x+124,250,4,170);
+   ctx.fillStyle='#698e70';ctx.fillRect(x+35,196,68,5);
+  }
+  ctx.restore();
+ }
 }
 function burst(x,y,color,count=12,speed=2){if(reducedMotion)count=Math.ceil(count/3);if(quality==='low')count=Math.ceil(count/2);for(let i=0;i<count&&particles.length<180;i++){let a=Math.random()*Math.PI*2,v=(.3+Math.random())*speed;particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1,color,life:26+Math.random()*20,max:46,size:1+Math.random()*3});}}
 function updateParticles(dt){for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=.045*dt;p.life-=dt;}particles=particles.filter(p=>p.life>0);}
@@ -77,11 +166,33 @@ function drawHero(){const h=hero;if(!h)return;ellipse(ctx,h.x+15,h.y+h.h+2,18,4,
  if(h.dash>0){ctx.strokeStyle='#d5f6e5aa';ctx.lineWidth=2;for(let i=0;i<3;i++)line(ctx,h.x+15-h.face*40,h.y+12+i*10,h.x+15,h.y+12+i*10,'#cceff0aa',2);}
 }
 function drawEnemy(e,i){if(!e.alive)return;const squash=Math.sin(t*.13+i)*1.6;ellipse(ctx,e.x+14,G+1,17,4,'#061e2670');ctx.save();ctx.translate(e.x+14,e.y+16);ctx.scale(e.dir,1);
- let g=ctx.createLinearGradient(0,-20,0,13);g.addColorStop(0,'#bbdba0');g.addColorStop(.35,'#689d78');g.addColorStop(1,'#2d5b56');ellipse(ctx,0,0,15+squash,13-squash,g);ellipse(ctx,-4,-7,7,3,'#d3ebbc55');
+ ellipse(ctx,0,0,15+squash,13-squash,'#3b7061');
+ellipse(ctx,0,-5,12,8,'#73a47d');ellipse(ctx,-5,-8,6,3,'#c1dc9c');
  poly(ctx,[[-9,-10],[-10,-23],[-1,-13]],'#739b6a');poly(ctx,[[0,-12],[8,-23],[9,-9]],'#95b275');ellipse(ctx,3,-1,2,3,'#102f35');ellipse(ctx,11,-1,2,3,'#102f35');ellipse(ctx,4,-2,.7,.8,'#eef7d2');line(ctx,5,5,9,5,'#335b4e');ctx.restore();}
 function finishFlag(cp){const x=cp.x,y=G;ellipse(ctx,x+8,y,25,5,'#071b2666');poly(ctx,[[x-10,y],[x-6,y-12],[x+22,y-12],[x+27,y]],'#75887b');ctx.fillStyle='#a9baa0';ctx.fillRect(x+5,y-83,4,72);let flap=Math.sin(visualTime*3+x)*4;
  poly(ctx,[[x+9,y-82],[x+52,y-77+flap],[x+45,y-54+flap],[x+9,y-58]],'#e1c686');line(ctx,x+14,y-76,x+14,y-63,'#edf0c8',2);glow(x+8,y-84,25,'#c7edaa44');ellipse(ctx,x+7,y-87,4,4,'#d6e7b5');}
-function draw(){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#071b22';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore();ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();background();motes(false);
+// Single 480 x 270 pixel art buffer. The DOM HUD remains crisp and touch-friendly.
+const pixelCanvas=document.createElement('canvas');
+pixelCanvas.width=W/2;pixelCanvas.height=H/2;
+const pixelCtx=pixelCanvas.getContext('2d');
+function draw(){
+ const screen=ctx;
+ screen.save();screen.setTransform(1,0,0,1,0,0);
+ screen.fillStyle='#091b20';screen.fillRect(0,0,canvas.width,canvas.height);
+ screen.restore();
+ ctx=pixelCtx;
+ try{
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,pixelCanvas.width,pixelCanvas.height);
+  ctx.setTransform(.5,0,0,.5,0,0);
+  ctx.imageSmoothingEnabled=false;
+  drawPixelScene();
+ }finally{ctx=screen;}
+ screen.save();screen.imageSmoothingEnabled=false;
+ screen.drawImage(pixelCanvas,0,0,W,H);
+ screen.restore();
+}
+function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();background();motes(false);
  ctx.save();ctx.translate(-cam,0);
  for(const [i,p] of solids().entries()){if(p.x+p.w<cam-20||p.x>cam+W+20)continue;ctx.drawImage(terrain(p,i),p.x-16,p.y-20);}
  // Ferns, luminous mushrooms and stones are fixed to safe ground, not gaps.
@@ -90,10 +201,10 @@ function draw(){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#071b22'
  for(const a of things){if(a.taken||a.x<cam-25||a.x>cam+W+25)continue;const y=a.y+(reducedMotion?0:Math.sin(visualTime*3+a.x)*3);if(a.type==='star'){glow(a.x,y,26,'#f3df8b35');let pts=[];for(let j=0;j<10;j++){const an=j*Math.PI/5-Math.PI/2,r=j%2?7:16;pts.push([a.x+Math.cos(an)*r,y+Math.sin(an)*r]);}poly(ctx,pts,'#f4dd93');line(ctx,a.x,y-10,a.x-3,y-1,'#fff4d0',2);}else{const rx=reducedMotion?6:3+Math.abs(Math.cos(visualTime*2+a.x))*4;ellipse(ctx,a.x,y,rx,9,'#99774b');ellipse(ctx,a.x,y-1,rx-1,7,'#e5be6c');line(ctx,a.x,y-5,a.x,y+3,'#fff0b0',1);}}
  bad.forEach(drawEnemy);finishFlag({x:WIDTH-77});drawHero();drawCombatEffects();
  for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}ctx.globalAlpha=1;ctx.restore();
- if(quality==='full'){motes(true);let vignette=ctx.createRadialGradient(W/2,H/2,180,W/2,H/2,600);vignette.addColorStop(0,'#02191d00');vignette.addColorStop(1,'#0211198a');ctx.fillStyle=vignette;ctx.fillRect(0,0,W,H);}
+ if(quality==='full'){motes(true);ctx.fillStyle='#07191c46';ctx.fillRect(0,0,32,H);ctx.fillRect(W-32,0,32,H);ctx.fillRect(32,0,W-64,24);ctx.fillRect(32,H-24,W-64,24);}
  // Minimal in-world labels leave the playfield visible on a phone.
- if(scene==='game'&&t<240){ctx.globalAlpha=Math.min(1,(240-t)/60);ctx.textAlign='center';ctx.font='11px system-ui';ctx.fillStyle='#e0ebce';ctx.fillText('SMARAGDWALD  /  '+stages[stage].name.toUpperCase(),W/2,84);ctx.globalAlpha=1;}
- if(scene==='game'&&hero){const x=W-150,y=H-21;ctx.fillStyle='#152e32bb';ctx.fillRect(x,y,120,3);ctx.fillStyle='#b8d9ae';ctx.fillRect(x,y,120*(1-dashCooldown/70),3);ctx.font='9px system-ui';ctx.textAlign='right';ctx.fillStyle='#c1d9bd';ctx.fillText(dashCooldown>0?'FÄHIGKEIT LÄDT':'FÄHIGKEIT BEREIT',W-30,y-6);}
+ if(scene==='game'&&t<240){ctx.globalAlpha=Math.min(1,(240-t)/60);ctx.textAlign='center';ctx.font='bold 12px monospace';ctx.fillStyle='#e0ebce';ctx.fillText('SMARAGDWALD  /  '+stages[stage].name.toUpperCase(),W/2,84);ctx.globalAlpha=1;}
+ if(scene==='game'&&hero){const x=W-150,y=H-21;ctx.fillStyle='#152e32bb';ctx.fillRect(x,y,120,3);ctx.fillStyle='#b8d9ae';ctx.fillRect(x,y,120*(1-dashCooldown/70),3);ctx.font='bold 10px monospace';ctx.textAlign='right';ctx.fillStyle='#c1d9bd';ctx.fillText(dashCooldown>0?'FÄHIGKEIT LÄDT':'FÄHIGKEIT BEREIT',W-30,y-6);}
  ctx.restore();}
 // Fixed 60 Hz simulation: refresh rate does not alter jumps or movement on 120 Hz phones.
 let accumulator=0;
