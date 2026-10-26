@@ -17,6 +17,12 @@ const fs=require('node:fs');
  assert.equal(await page.evaluate(()=>input.right&&input.jump),true);
  await page.evaluate(()=>document.querySelector('[data-control="jump"]').dispatchEvent(new PointerEvent('pointercancel',{pointerId:2})));
  assert.equal(await page.evaluate(()=>input.right&&!input.jump),true);
+ // Attack is independently held by another pointer.
+ await page.evaluate(()=>{const b=document.querySelector('[data-control="attack"]');b.setPointerCapture=()=>{};b.dispatchEvent(new PointerEvent('pointerdown',{pointerId:3,bubbles:true}));});
+ assert.equal(await page.evaluate(()=>input.right&&input.attack),true);
+ await page.evaluate(()=>document.querySelector('[data-control="attack"]').dispatchEvent(new PointerEvent('pointercancel',{pointerId:3})));
+ assert.equal(await page.evaluate(()=>input.right&&!input.attack),true);
+
 
  // Exercise the iOS Touch Event route independently from mouse/pen pointers.
  await page.evaluate(()=>{clearInput();window.testTouch=(type,contacts)=>{
