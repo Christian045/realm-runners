@@ -1,8 +1,17 @@
-# Realm Runners — v0.5.1 Pixel Edition · Smaragdwald
+# Realm Runners — v0.5.2 Pixel-Welten · Smaragdwald
 
 Ein Jump-'n'-Run mit RPG-Fortschritt für **Windows-Browser und iPhone Safari**.
 
 **Spielen: https://christian045.github.io/realm-runners/**
+
+## Sichtbares Pixel-Welten-Update v0.5.2
+
+- **Waldanfang:** klar hellgrüner, sonniger Pixel-Wald mit goldenen Blumen, breiten Hügeln und hellen Moos-Tiles.
+- **Baumkronen:** tiefblauer Himmel, türkise Baumkronen, schwebende Bauminseln und pixelige Wasserfälle, mit neuen türkis-blauen Plattform-Tiles.
+- **Moosruinen:** violetter Abendhimmel, gebrochene Säulen, beleuchtete Ruinenfenster und steinerne Pixel-Plattformen.
+- Individuelle Parallax-Paletten und dekorative Pixel-Details. Plattform-Kollisionen, Gegner, Skilltree und Speicherstände bleiben gleich.
+- Beim Laden muss im Hauptmenü **„PIXEL-WELTEN · VERSION 0.5.2“** stehen. Andernfalls einmal die Seite aktualisieren und `?v=0.5.2` an die Spieladresse anhängen. Die Version der JS-Dateien ist ebenfalls aktualisiert.
+- **Sprungphysik unverändert zu v0.5.1.** Die letzte Nachricht zum Sprung war unvollständig; hierfür werden keine neuen Werte angenommen.
 
 ## Pixel Edition v0.5.1
 
@@ -57,7 +66,7 @@ Der Fortschritt bleibt lokal in demselben Browser und derselben Website-Adresse.
 
 ## Testanleitung
 
-1. Die Spieladresse im bisherigen Browser öffnen und neu laden. Im Menü muss **v0.5.1** stehen. Bei altem Cache einmal `?v=0.5.1` anhängen (gleicher Ursprung, gleicher Spielstand).
+1. Die Spieladresse im bisherigen Browser öffnen und neu laden. Im Menü muss **v0.5.2** stehen. Bei altem Cache einmal `?v=0.5.2` anhängen (gleicher Ursprung, gleicher Spielstand).
 2. Vor dem Start bisherige Klasse, XP, Level, Sterne und Freischaltungen vergleichen.
 3. iPhone quer halten: kurzen Sprung antippen, dann den Sprungknopf lange halten und einen deutlich höheren Sprung erreichen. Gleichzeitig rechts halten und bei Bedarf Dash oder Angriff benutzen; losgelassene Finger dürfen andere Eingaben nicht abbrechen.
 4. App wechseln und zurückkehren: Pause. „Fortsetzen“ drücken. Hoch-/Querformat drehen und alle fünf Tasten prüfen.
