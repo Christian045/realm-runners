@@ -223,7 +223,7 @@ function background(){
     ctx.fillStyle='#d4e7f8aa';ctx.fillRect(x+88,y+22,4,170);
    }
   }
- }else{ // Purple twilight ruins, massive silhouette towers and warm windows.
+ }else if(stage===2){ // Purple twilight ruins, massive silhouette towers and warm windows.
   for(let i=0;i<9;i++){
    const x=i*145-Math.round(cam*.14/8)*8,y=286+(i%4)*22;
    ctx.fillStyle='#50445e';ctx.fillRect(x,y,104,540-y);
@@ -233,25 +233,42 @@ function background(){
    ctx.fillRect(x+65,y+40,12,22);
    ctx.fillStyle='#a9816e';ctx.fillRect(x+26,y+45,4,9);
   }
+ }else if(stage===3){ // Fireflies and giant, clearly distant mushroom caps.
+  for(let i=0;i<9;i++){
+   const x=i*173-Math.round(cam*.14/8)*8,y=290+(i%3)*35;
+   ctx.fillStyle='#2e4959';ctx.fillRect(x+22,y,32,540-y);
+   ctx.fillStyle='#465f71';ctx.fillRect(x-20,y-10,116,26);
+   ctx.fillStyle='#718391';ctx.fillRect(x-5,y-30,86,20);
+   ctx.fillStyle='#a18eab';ctx.fillRect(x+10,y-40,55,11);
+   ctx.fillStyle='#bb9ad1';ctx.fillRect(x+45,y-30,10,10);
+  }
+ }else{ // Royal red-violet throne hall with strong structural silhouettes.
+  for(let i=0;i<9;i++){
+   const x=i*160-Math.round(cam*.13/8)*8,y=260+(i%2)*30;
+   ctx.fillStyle='#252136';ctx.fillRect(x,y,85,H-y);
+   ctx.fillStyle='#49384b';ctx.fillRect(x-12,y,109,18);
+   ctx.fillStyle='#785264';ctx.fillRect(x+6,y+50,12,32);ctx.fillRect(x+61,y+50,12,32);
+   ctx.fillStyle='#ce9468';ctx.fillRect(x+9,y+54,5,23);ctx.fillRect(x+64,y+54,5,23);
+  }
  }
  // Cached three-depth tree silhouettes with palette varying by biome.
  for(let i=0;i<3;i++){
   const par=[.12,.32,.58][i],offset=((cam*par)%1600+1600)%1600;
-  ctx.globalAlpha=[.65,.82,1][i];
+  ctx.globalAlpha=[.42,.58,.74][i];
   ctx.imageSmoothingEnabled=false;
   const shift=Math.round(offset/4)*4;
   ctx.drawImage(planeSets[stage][i],-shift,0);
   ctx.drawImage(planeSets[stage][i],1600-shift,0);
   ctx.globalAlpha=1;
   if(i<2){
-   ctx.fillStyle=stage===0?'#ffe7bd18':stage===1?'#69accb1c':'#caa8a31d';
+   ctx.fillStyle=stage===0?'#ffe7bd18':stage===1?'#69accb1c':stage===3?'#92c6ae0f':stage===4?'#a985a50d':'#caa8a31d';
    ctx.fillRect(0,282+i*36,W,42);
   }
  }
  if(quality==='full')for(let i=0;i<4;i++){
   const x=150+i*250-Math.round(cam*.05/4)*4;
   poly(ctx,[[x,0],[x+16,0],[x-104,H],[x-148,H]],
-    stage===0?'#f9eeac13':stage===1?'#a4d9ff10':'#f9be9112');
+    stage===0?'#f9eeac13':stage===1?'#a4d9ff10':stage===3?'#e2afff0d':stage===4?'#f0ae9a0d':'#f9be9112');
  }
  // Distinctive pixel-masonry archways in Moosruinen.
  if(stage===2){
