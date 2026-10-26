@@ -121,7 +121,7 @@ const fs=require('node:fs');
  await page.evaluate(()=>{for(let i=0;i<42;i++)step(1)});
  assert.equal(await page.evaluate(()=>scene),'end','Slime King must end level automatically');
  assert.match(await page.locator('#heading').innerText(),/LEVEL GESCHAFFT/);
- assert.ok(await page.evaluate(()=>save.bestTimesBossV062['1-5'].hunter>0));
+ assert.ok(await page.evaluate(()=>save.bestTimesBossV062['1-5'].mage>0));
  await page.evaluate(()=>start(0));
  
  await page.keyboard.down('KeyD');try{await page.waitForFunction(()=>hero.x>70,{},{timeout:20000});}catch(e){console.error(name,await page.evaluate(()=>({scene,x:hero.x,t,input,hidden:document.hidden})));throw e;}await page.keyboard.up('KeyD');
