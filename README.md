@@ -1,10 +1,18 @@
-# Realm Runners — v0.3 · Smaragdwald
+# Realm Runners — v0.4 · Smaragdwald
 
 Ein Jump-'n'-Run mit RPG-Fortschritt für **Windows-Browser und iPhone Safari**.
 
 **Spielen: https://christian045.github.io/realm-runners/**
 
-## Neu in v0.3
+## Neu in v0.4
+
+- Zeitmessung pro Level, lokale Bestzeiten pro Klasse und Bronze-/Silber-/Goldmedaillen. Die Zeit wird nur während des aktiven Spielens gezählt.
+- Angriffe: Krieger-Schwerthieb, Jäger-Pfeilschuss, Magier-Feuerball; Taste K/F unter Windows, eigener Touch-Button am iPhone.
+- Skilltree pro Klasse mit drei aufeinander aufbauenden Verbesserungen; Skillpunkte aus Levelaufstiegen.
+- Loot durch besiegte Gegner, Inventar und klassenbezogene Ausrüstung inklusive Waffen- und Bewegungsvorteilen.
+- Speicherung ergänzt den bestehenden v2-Schlüssel um Skills, Ausrüstung, Inventar und Bestzeiten. Eine globale Online-Bestenliste ist noch nicht enthalten.
+
+## Bestand aus v0.3
 
 - Originale, prozedural gezeichnete Waldgrafik im HD-2D-Stil: drei separat bewegte Wald-Ebenen, atmosphärischer Nebel, Lichtstrahlen, Blattwerk, Farne, Pilze und strukturierte Moosplattformen. Moosruinen erhalten Steinbögen.
 - Pixel-Figuren mit Lauf-, Sprung- und Ruheanimationen, bewegten Umhängen und eigener Klassen-Ausrüstung (Schwert, Bogen, Stab).
@@ -18,19 +26,19 @@ Die Grafik ist originale Canvas-/Pixel-Art mit simulierter Tiefe, keine 3D-Engin
 
 ## Steuerung
 
-- **Windows:** A/D oder ←/→ bewegen; Leertaste, W oder ↑ springen; Shift oder J Dash; Escape Pause/Fortsetzen.
-- **iPhone:** Links/Rechts gedrückt halten, gleichzeitig Sprung oder ✦ drücken. Querformat empfohlen. Oben rechts: Pause.
+- **Windows:** A/D oder ←/→ bewegen; Leertaste, W oder ↑ springen; Shift oder J Dash; K/F Angriff; Escape Pause/Fortsetzen.
+- **iPhone:** Links/Rechts gedrückt halten, gleichzeitig Sprung, Dash oder ⚔ drücken. Querformat empfohlen. Oben rechts: Pause.
 - Gegner von oben oder mit einem Dash besiegen. Drei Herzen; Checkpoint heilt ein Herz. Zielflagge beendet den Abschnitt.
 
 ## Bestehende Spielstände
 
-Der Schlüssel **`realm-runners-save-v2`** und das Datenformat bleiben gleich: Klasse, Level, XP, freigeschaltete Abschnitte und beste Sterne werden übernommen. Zusätzliche Felder werden nicht gelöscht. Grafikpräferenz wird separat gespeichert.
+Der Schlüssel **`realm-runners-save-v2`** bleibt erhalten und das Datenformat wird erweitert: Klasse, Level, XP, freigeschaltete Abschnitte und beste Sterne werden übernommen. Zusätzliche Felder werden nicht gelöscht. Grafikpräferenz wird separat gespeichert.
 
 Der Fortschritt bleibt lokal in demselben Browser und derselben Website-Adresse. Browserdaten nicht löschen. Ein Wechsel von Browser, Gerät oder URL-Ursprung überträgt keinen Spielstand. Gespeichert wird der RPG-Fortschritt; die aktuelle Position innerhalb eines Levels wird wie zuvor nicht dauerhaft gespeichert.
 
 ## Testanleitung
 
-1. Die Spieladresse im bisherigen Browser öffnen und neu laden. Im Menü muss **v0.3** stehen. Bei altem Cache einmal `?v=0.3` anhängen (gleicher Ursprung, gleicher Spielstand).
+1. Die Spieladresse im bisherigen Browser öffnen und neu laden. Im Menü muss **v0.4** stehen. Bei altem Cache einmal `?v=0.4` anhängen (gleicher Ursprung, gleicher Spielstand).
 2. Vor dem Start bisherige Klasse, XP, Level, Sterne und Freischaltungen vergleichen.
 3. iPhone quer halten. Rechts halten und mit zweitem Finger springen, danach Dash. Finger außerhalb des Buttons loslassen: Bewegung muss stoppen.
 4. App wechseln und zurückkehren: Pause. „Fortsetzen“ drücken. Hoch-/Querformat drehen und die vier Tasten prüfen.

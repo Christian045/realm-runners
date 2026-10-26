@@ -8,7 +8,20 @@ const fs=require('node:fs');
  await page.goto('http://127.0.0.1:8000');
  await page.evaluate(()=>localStorage.setItem('realm-runners-save-v2',JSON.stringify({class:'hunter',unlocked:3,stars:[3,2,1],xp:87,level:4})));
  await page.reload();await page.locator('#play').click();
- await page.waitForFunction(()=>scene==='game'&&hero.on,{},{timeout:20000});
+ try {
+  await page.waitForFunction(()=>scene==='game'&&hero?.on,{},{timeout:10000});
+ } catch (error) {
+  const diagnostic=await page.evaluate(()=>({
+   scene:typeof scene==='undefined'?'missing':scene,
+   hero:typeof hero==='undefined'?null:hero,
+   fps:typeof t==='undefined'?null:t,
+   scripts:[...document.scripts].map(s=>s.src),
+   gameVisible:!document.querySelector('#layer')?.classList.contains('hide')
+  }));
+  console.error(name,'startup diagnostics:',JSON.stringify(diagnostic),'page errors:',errors);
+  await page.screenshot({path:'test-output/'+name+'-startup-failure.png'});
+  throw error;
+ }
  await page.keyboard.down('KeyD');try{await page.waitForFunction(()=>hero.x>70,{},{timeout:20000});}catch(e){console.error(name,await page.evaluate(()=>({scene,x:hero.x,t,input,hidden:document.hidden})));throw e;}await page.keyboard.up('KeyD');
  await page.keyboard.down('Space');await page.waitForFunction(()=>hero.vy<0,{},{timeout:20000});await page.keyboard.up('Space');
  await page.evaluate(()=>{start(0);for(let i=0;i<60;i++)step(1);});
@@ -17,6 +30,12 @@ const fs=require('node:fs');
  assert.equal(await page.evaluate(()=>input.right&&input.jump),true);
  await page.evaluate(()=>document.querySelector('[data-control="jump"]').dispatchEvent(new PointerEvent('pointercancel',{pointerId:2})));
  assert.equal(await page.evaluate(()=>input.right&&!input.jump),true);
+ // Attack is independently held by another pointer.
+ await page.evaluate(()=>{const b=document.querySelector('[data-control="attack"]');b.setPointerCapture=()=>{};b.dispatchEvent(new PointerEvent('pointerdown',{pointerId:3,bubbles:true}));});
+ assert.equal(await page.evaluate(()=>input.right&&input.attack),true);
+ await page.evaluate(()=>document.querySelector('[data-control="attack"]').dispatchEvent(new PointerEvent('pointercancel',{pointerId:3})));
+ assert.equal(await page.evaluate(()=>input.right&&!input.attack),true);
+
 
  // Exercise the iOS Touch Event route independently from mouse/pen pointers.
  await page.evaluate(()=>{clearInput();window.testTouch=(type,contacts)=>{
