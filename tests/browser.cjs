@@ -44,6 +44,19 @@ const fs=require('node:fs');
  });
  assert.ok(heights.short>25&&heights.high>heights.short+65,name+' variable jump: '+JSON.stringify(heights));
  assert.equal(heights.hasCheckpoints,false);
+ assert.ok(heights.high>165&&heights.high<185,name+' maximum hunter jump: '+heights.high);
+ const pixelArt=await page.evaluate(()=>({
+  buffer:[pixelCanvas.width,pixelCanvas.height],
+  nearest:!pixelCtx.imageSmoothingEnabled,
+  pixelCss:getComputedStyle(document.querySelector('#view')).imageRendering,
+  buttonRadius:getComputedStyle(document.querySelector('[data-control="jump"]')).borderRadius,
+  hasRecordBoard:!!save.bestTimesPixelV051
+ }));
+ assert.deepEqual(pixelArt.buffer,[480,270]);
+ assert.equal(pixelArt.nearest,true);
+ assert.ok(pixelArt.pixelCss==='pixelated'||pixelArt.pixelCss==='crisp-edges');
+ assert.equal(pixelArt.buttonRadius,'4px');
+ assert.ok(pixelArt.hasRecordBoard);
  await page.evaluate(()=>start(0));
  
  await page.keyboard.down('KeyD');try{await page.waitForFunction(()=>hero.x>70,{},{timeout:20000});}catch(e){console.error(name,await page.evaluate(()=>({scene,x:hero.x,t,input,hidden:document.hidden})));throw e;}await page.keyboard.up('KeyD');
