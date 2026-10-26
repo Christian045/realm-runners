@@ -50,20 +50,39 @@ const fs=require('node:fs');
   nearest:!pixelCtx.imageSmoothingEnabled,
   pixelCss:getComputedStyle(document.querySelector('#view')).imageRendering,
   buttonRadius:getComputedStyle(document.querySelector('[data-control="jump"]')).borderRadius,
-  hasRecordBoard:!!save.bestTimesPixelV051
+  hasRecordBoard:!!save.bestTimesPixelV051,
+  nativeBackdrop:[hdCanvas.width,hdCanvas.height],
+  separateContexts:hdCtx!==pixelCtx,
+  hdSmooth:hdCtx.imageSmoothingEnabled,
+  clearSkyAlpha:pixelCtx.getImageData(70,12,1,1).data[3],
+  backdropSkyAlpha:hdCtx.getImageData(70,12,1,1).data[3]
  }));
  assert.deepEqual(pixelArt.buffer,[720,405]);
  assert.equal(pixelArt.nearest,true);
  assert.ok(pixelArt.pixelCss==='pixelated'||pixelArt.pixelCss==='crisp-edges');
  assert.equal(pixelArt.buttonRadius,'4px');
  assert.ok(pixelArt.hasRecordBoard);
+ assert.deepEqual(pixelArt.nativeBackdrop,[960,540]);
+ assert.ok(pixelArt.separateContexts);
+ assert.ok(pixelArt.hdSmooth);
+ assert.equal(pixelArt.clearSkyAlpha,0,'sky should not be pixelated with gameplay');
+ assert.equal(pixelArt.backdropSkyAlpha,255,'HD sky should be visible under gameplay');
  await page.evaluate(()=>menu());
  assert.ok(await page.locator('#pixelEditionBadge').isVisible());
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.6\.2/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.7\.0/);
  // Store each biome in the CI artifacts so pixel-style changes are reviewable.
  for(const [level,label] of [[0,'forest'],[1,'canopy'],[2,'ruins'],[3,'swamp'],[4,'slime-king']]){
   await page.evaluate(index=>{start(index);if(index===4){hero.x=2220;step(1);cam=1840;}draw();},level);
   await page.screenshot({path:`test-output/${name}-pixel-${label}.png`});
+  if(level===0||level===4){
+   const layers=await page.evaluate(()=>({
+    backdrop:Array.from(hdCtx.getImageData(110,100,1,1).data),
+    foreground:Array.from(pixelCtx.getImageData(82,75,1,1).data)
+   }));
+   assert.equal(layers.backdrop[3],255);
+   assert.equal(layers.foreground[3],0);
+   await page.screenshot({path:`test-output/${name}-HD-${label}.png`});
+  }
  }
  // Original castle transition and throne room screenshots at the action areas.
  await page.evaluate(()=>{start(3);hero.x=2420;hero.y=G-43;cam=WIDTH-W;draw()});
