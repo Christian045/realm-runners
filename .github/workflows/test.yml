@@ -23,7 +23,7 @@ jobs:
           node-version: '22'
       - run: npm install --ignore-scripts
       - name: Check JavaScript syntax
-        run: node --check game.js && node --check rpg.js && node --check forest.js
+        run: node --check game.js && node --check rpg.js && node --check boss.js && node --check forest.js
       - run: npm test
 
   browsers:
