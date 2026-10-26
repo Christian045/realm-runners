@@ -59,13 +59,37 @@ const fs=require('node:fs');
  assert.ok(pixelArt.hasRecordBoard);
  await page.evaluate(()=>menu());
  assert.ok(await page.locator('#pixelEditionBadge').isVisible());
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.6\.0/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.6\.1/);
  // Store each biome in the CI artifacts so pixel-style changes are reviewable.
  for(const [level,label] of [[0,'forest'],[1,'canopy'],[2,'ruins'],[3,'swamp'],[4,'slime-king']]){
   await page.evaluate(index=>{start(index);if(index===4){hero.x=2220;step(1);cam=1840;}draw();},level);
   await page.screenshot({path:`test-output/${name}-pixel-${label}.png`});
  }
- // Real in-browser encounter: red bar appears, three classes and stamp attacks run.
+ // Original castle transition and throne room screenshots at the action areas.
+ await page.evaluate(()=>{start(3);hero.x=2420;hero.y=G-43;cam=WIDTH-W;draw()});
+ await page.screenshot({path:`test-output/${name}-castle-gate.png`});
+ await page.evaluate(()=>{start(3);hero.x=1090;hero.y=G-43;cam=760;draw()});
+ await page.screenshot({path:`test-output/${name}-moving-bridge.png`});
+ await page.evaluate(()=>{start(4);hero.x=2210;cam=1840;draw()});
+ await page.screenshot({path:`test-output/${name}-castle-throne.png`});
+ assert.deepEqual(await page.evaluate(()=>({enemies:bad.length,spikes:spikes.length,gaps:stages[4].gaps.length})),{enemies:0,spikes:0,gaps:0});
+ await page.evaluate(()=>{
+  start(3);
+  hero.x=movingPlatforms[1].x+35;
+  hero.y=movingPlatforms[1].y-hero.h;
+  hero.on=true;hero.riding=movingPlatforms[1].id;hero.vy=0;
+  const previous=hero.x;
+  step(1);
+  if(hero.riding!=='m1'||hero.x<=previous)throw Error('Moving platform did not carry the player');
+  start(3);
+  const p=movingPlatforms.find(item=>item.id==='c0');
+  hero.x=p.x+20;hero.y=p.y-hero.h-8;hero.vy=10;hero.on=false;
+  step(1);
+  if(p.state!=='shaking')throw Error('Crumbling platform did not warn');
+  for(let i=0;i<35;i++)platformTick(1);
+  if(p.state!=='falling')throw Error('Crumbling platform did not fall');
+ });
+  // Real in-browser encounter: red bar appears, three classes and stamp attacks run.
  await page.evaluate(()=>{
   save.class='mage';start(4);hero.x=boss.x-175;hero.y=G-43;
   boss.engaged=true;performAttack();
