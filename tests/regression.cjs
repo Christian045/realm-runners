@@ -332,9 +332,9 @@ test('v0.6.2 old boss best times are preserved and new ones use their own board'
  assert.ok(h.run("save.bestTimesBossV062['1-5'].mage")>0);
 });
 test('v0.6.2 foreground pixels are individually textured and separated from the backdrop',()=>{
- const sample=h.run("(()=>{start(0);draw();const tile=terrain(land()[0],0),q=tile.getContext('2d');return [[...q.getImageData(21,17,1,1).data].slice(0,3),[...q.getImageData(21,33,1,1).data].slice(0,3),[...q.getImageData(32,55,1,1).data].slice(0,3)]})()");
- assert.notDeepEqual(sample[0],sample[1],'platform cap should contrast with block face');
- assert.notDeepEqual(sample[1],sample[2],'soil should have individual detailed brick tiles');
+ const sample=h.run("(()=>{start(0);draw();const tile=terrain(land()[0],0),q=tile.getContext('2d');const cap=[...q.getImageData(21,17,1,1).data].slice(0,3);const colors=[];for(let y=26;y<88;y+=4)for(let x=18;x<125;x+=4)colors.push([...q.getImageData(x,y,1,1).data].slice(0,3).join(','));return {cap,face:[...q.getImageData(21,33,1,1).data].slice(0,3),unique:new Set(colors).size}})()");
+ assert.notDeepEqual(sample.cap,sample.face,'platform cap should contrast with block face');
+ assert.ok(sample.unique>=4,'organic dirt must have several distinct pixel colors');
  assert.equal(h.run('pixelCanvas.width'),720);
  assert.equal(h.run('pixelCanvas.height'),405);
 });
