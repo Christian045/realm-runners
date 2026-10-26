@@ -166,35 +166,78 @@ function terrain(p,index){
  terrainCache.set(key,c);return c;
 }
 function background(){
- // Palette-locked sky and layered tile trees, without smooth gradients.
- const sky=['#142f3a','#1d3f47','#315851','#456c60','#38594f','#25463c'];
- for(let i=0;i<sky.length;i++){ctx.fillStyle=sky[i];ctx.fillRect(0,i*90,W,90);}
- const sx=Math.round((630-cam*.025)/4)*4;
- ctx.fillStyle='#96b892';ctx.fillRect(sx,100,64,64);
- ctx.fillStyle='#bed29d';ctx.fillRect(sx+12,112,40,40);
+ const theme=stageThemes[stage];
+ const sky=theme.sky;
+ // Big flat color bands deliberately distinguish the three fantasy regions.
+ for(let i=0;i<sky.length;i++){
+  ctx.fillStyle=sky[i];ctx.fillRect(0,i*90,W,90);
+ }
+ const moonX=Math.round((666-cam*.025)/8)*8;
+ ctx.fillStyle=theme.sun;ctx.fillRect(moonX,96,72,72);
+ ctx.fillStyle=theme.sunCore;ctx.fillRect(moonX+12,108,48,48);
+ if(stage===0){ // Warm woodland: clouds, sunlit hills and clumps of wildflowers.
+  for(let i=0;i<8;i++){
+   const x=(i*176-Math.round(cam*.08/8)*8+W*4)%(W+176)-80;
+   ctx.fillStyle='#e3eac48f';ctx.fillRect(x,124+(i%3)*24,80,16);
+   ctx.fillRect(x+16,116+(i%3)*24,48,8);
+  }
+  for(let i=0;i<11;i++){
+   const x=i*110-Math.round(cam*.15/8)*8;
+   ctx.fillStyle=i%2?'#679776':'#538468';
+   ctx.fillRect(x,350-(i%3)*15,120,160);
+   ctx.fillRect(x+24,328-(i%3)*15,72,32);
+  }
+ }else if(stage===1){ // Blue high canopy: distant floating islands and waterfalls.
+  for(let i=0;i<10;i++){
+   const x=i*142-Math.round(cam*.17/8)*8;
+   const y=245+(i%3)*34;
+   ctx.fillStyle='#314e80';ctx.fillRect(x,y,112,22);
+   ctx.fillStyle='#507ea3';ctx.fillRect(x+12,y-10,92,12);
+   ctx.fillStyle='#25456c';ctx.fillRect(x+26,y+22,60,20);
+   if(i%2===0){
+    ctx.fillStyle='#7ac6e0b0';ctx.fillRect(x+84,y+22,12,195);
+    ctx.fillStyle='#d4e7f8aa';ctx.fillRect(x+88,y+22,4,170);
+   }
+  }
+ }else{ // Purple twilight ruins, massive silhouette towers and warm windows.
+  for(let i=0;i<9;i++){
+   const x=i*145-Math.round(cam*.14/8)*8,y=286+(i%4)*22;
+   ctx.fillStyle='#50445e';ctx.fillRect(x,y,104,540-y);
+   ctx.fillStyle='#6c5a70';ctx.fillRect(x-8,y,120,18);
+   ctx.fillRect(x+16,y-35,72,35);
+   ctx.fillStyle='#f2c77f';ctx.fillRect(x+21,y+40,12,22);
+   ctx.fillRect(x+65,y+40,12,22);
+   ctx.fillStyle='#a9816e';ctx.fillRect(x+26,y+45,4,9);
+  }
+ }
+ // Cached three-depth tree silhouettes with palette varying by biome.
  for(let i=0;i<3;i++){
   const par=[.12,.32,.58][i],offset=((cam*par)%1600+1600)%1600;
-  ctx.globalAlpha=[.65,.8,1][i];
+  ctx.globalAlpha=[.65,.82,1][i];
   ctx.imageSmoothingEnabled=false;
   const shift=Math.round(offset/4)*4;
-  ctx.drawImage(planes[i],-shift,0);
-  ctx.drawImage(planes[i],1600-shift,0);
+  ctx.drawImage(planeSets[stage][i],-shift,0);
+  ctx.drawImage(planeSets[stage][i],1600-shift,0);
   ctx.globalAlpha=1;
-  if(i<2){ctx.fillStyle=i===0?'#8aad8612':'#a5bd9314';ctx.fillRect(0,288+i*35,W,52);}
+  if(i<2){
+   ctx.fillStyle=stage===0?'#ffe7bd18':stage===1?'#69accb1c':'#caa8a31d';
+   ctx.fillRect(0,282+i*36,W,42);
+  }
  }
- if(quality==='full')for(let i=0;i<5;i++){
-  const x=340+i*145-Math.round(cam*.05/4)*4;
-  poly(ctx,[[x,0],[x+24,0],[x-130,H],[x-192,H]],'#d0d6a012');
+ if(quality==='full')for(let i=0;i<4;i++){
+  const x=150+i*250-Math.round(cam*.05/4)*4;
+  poly(ctx,[[x,0],[x+16,0],[x-104,H],[x-148,H]],
+    stage===0?'#f9eeac13':stage===1?'#a4d9ff10':'#f9be9112');
  }
- // Moosruinen: stacked block pillars and stair-step arches.
+ // Distinctive pixel-masonry archways in Moosruinen.
  if(stage===2){
   ctx.save();ctx.translate(Math.round((730-cam*.65)/4)*4,0);
-  for(let n=0;n<4;n++){
-   const x=n*330;
-   ctx.fillStyle='#314f4b';ctx.fillRect(x,230,28,240);ctx.fillRect(x+116,230,28,240);
-   ctx.fillRect(x+24,198,96,24);ctx.fillRect(x+40,181,64,17);
-   ctx.fillStyle='#4e7263';ctx.fillRect(x+8,250,4,170);ctx.fillRect(x+124,250,4,170);
-   ctx.fillStyle='#698e70';ctx.fillRect(x+35,196,68,5);
+  for(let n=0;n<5;n++){
+   const x=n*290;
+   ctx.fillStyle='#554f62';ctx.fillRect(x,230,32,240);ctx.fillRect(x+112,230,32,240);
+   ctx.fillRect(x+24,190,96,26);ctx.fillRect(x+40,173,64,18);
+   ctx.fillStyle='#a28c77';ctx.fillRect(x+8,246,4,170);ctx.fillRect(x+124,246,4,170);
+   ctx.fillStyle='#83a277';ctx.fillRect(x+35,188,68,5);
   }
   ctx.restore();
  }
