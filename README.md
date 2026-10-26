@@ -1,8 +1,17 @@
-# Realm Runners — v0.5 Gameplay · Smaragdwald
+# Realm Runners — v0.5.1 Pixel Edition · Smaragdwald
 
 Ein Jump-'n'-Run mit RPG-Fortschritt für **Windows-Browser und iPhone Safari**.
 
 **Spielen: https://christian045.github.io/realm-runners/**
+
+## Pixel Edition v0.5.1
+
+- **Einheitlicher Pixelstil:** Die gesamte Spiellandschaft rendert in 480 × 270 Pixeln und wird ohne Unschärfe auf die Spielgröße hochskaliert. Wald, Parallax-Ebenen, Plattform-Tiles, Ruinen, Gegner, Partikel und Angriffe folgen diesem Look.
+- **Pixel-Menüs und Touch-Steuerung:** klare rechteckige Buttons, monospaced Typografie, kontrastreiche Rahmen – ohne Webfont oder zusätzliche Downloads.
+- **Maximale Sprunghöhe ca. 12–13 % niedriger:** längeres Halten bleibt nützlich, kurze Tipp-Sprünge, Coyote Time und Jump Buffer bleiben unverändert.
+- **Erreichbarkeit:** die längste Lücke in Moosruinen wurde für die neue Höhe verkürzt.
+- **Faire Rekorde:** v0.5.1-Zeiten werden unter `bestTimesPixelV051` geführt; `bestTimesV05` und `bestTimes` bleiben erhalten. XP, Klassen, Skills, Inventar und Ausrüstung sind weiterhin kompatibel.
+- Grafiken werden weiterhin ohne externe Grafik-Assets mit HTML Canvas erzeugt. Grafikqualität „Voll / Sparsam“ bleibt vorhanden.
 
 ## Neu in v0.5 (Gameplay-Phase)
 
@@ -12,7 +21,7 @@ Ein Jump-'n'-Run mit RPG-Fortschritt für **Windows-Browser und iPhone Safari**.
 - **Checkpoints entfernt:** bei einem Treffer oder Sturz beginnt der ganze Versuch wieder bei Levelanfang. Timer, Gegner, Münzen und Sterne werden zurückgesetzt; die verbleibenden Herzen werden übernommen. Nach drei Fehlern erscheint „Erneut spielen“.
 - **Schneller Neustart:** Taste R oder nach Game Over „Erneut spielen“.
 - Neue Bestzeiten stehen unter `bestTimesV05`. Die vorherigen `bestTimes` (v0.4) und alle RPG-Daten bleiben unverändert erhalten.
-- Bestehende HD-2D-Grafik zunächst beibehalten. Die geplante Umstellung auf einen einheitlichen Pixelstil folgt als separater Schritt.
+- Diese v0.5-Gameplayphase wurde anschließend mit der Pixel Edition v0.5.1 visuell vereinheitlicht.
 
 ## Funktionen aus v0.4
 
@@ -22,9 +31,9 @@ Ein Jump-'n'-Run mit RPG-Fortschritt für **Windows-Browser und iPhone Safari**.
 - Loot durch besiegte Gegner, Inventar und klassenbezogene Ausrüstung inklusive Waffen- und Bewegungsvorteilen.
 - Speicherung ergänzt den bestehenden v2-Schlüssel um Skills, Ausrüstung, Inventar und Bestzeiten. Eine globale Online-Bestenliste ist noch nicht enthalten.
 
-## Bestand aus v0.3
+## Aus früheren Versionen übernommen
 
-- Originale, prozedural gezeichnete Waldgrafik im HD-2D-Stil: drei separat bewegte Wald-Ebenen, atmosphärischer Nebel, Lichtstrahlen, Blattwerk, Farne, Pilze und strukturierte Moosplattformen. Moosruinen erhalten Steinbögen.
+- Prozedurale Waldkulisse mit drei bewegten Parallax-Ebenen, jetzt in klar gezeichneten Pixel-Tiles und mit gestuften Farbpaletten.
 - Pixel-Figuren mit Lauf-, Sprung- und Ruheanimationen, bewegten Umhängen und eigener Klassen-Ausrüstung (Schwert, Bogen, Stab).
 - Animierte Waldgeister, schwebende Sterne und rotierende Münzen.
 - Partikel beim Springen, Landen, Dash, Sammeln, Schaden, Gegnerbesiegen sowie zusätzlichen Treffereffekten; Glühwürmchen und Blätter.
@@ -48,7 +57,7 @@ Der Fortschritt bleibt lokal in demselben Browser und derselben Website-Adresse.
 
 ## Testanleitung
 
-1. Die Spieladresse im bisherigen Browser öffnen und neu laden. Im Menü muss **v0.5** stehen. Bei altem Cache einmal `?v=0.5` anhängen (gleicher Ursprung, gleicher Spielstand).
+1. Die Spieladresse im bisherigen Browser öffnen und neu laden. Im Menü muss **v0.5.1** stehen. Bei altem Cache einmal `?v=0.5.1` anhängen (gleicher Ursprung, gleicher Spielstand).
 2. Vor dem Start bisherige Klasse, XP, Level, Sterne und Freischaltungen vergleichen.
 3. iPhone quer halten: kurzen Sprung antippen, dann den Sprungknopf lange halten und einen deutlich höheren Sprung erreichen. Gleichzeitig rechts halten und bei Bedarf Dash oder Angriff benutzen; losgelassene Finger dürfen andere Eingaben nicht abbrechen.
 4. App wechseln und zurückkehren: Pause. „Fortsetzen“ drücken. Hoch-/Querformat drehen und alle fünf Tasten prüfen.
@@ -85,6 +94,6 @@ GitHub Pages: Branch `main`, Ordner `/(root)`. Neue Commits werden automatisch b
 
 ## Nächste Ausbaustufen
 
-Pixelstil für Plattformen, Hintergründe, Gegner, Effekte und Benutzeroberfläche (separate Grafik-Phase v0.5); danach
+Mehr Biome, Bosskämpfe und zusätzliche animierte Pixel-Frames; danach
 
 Sound und Musik, zusätzliche Animationsframes, mehr Levelgeheimnisse, Klassenfähigkeiten/Skilltrees und Bosse. Frostgipfel, Glutberge und Himmelsruinen sind weiterhin Vorschauen.
