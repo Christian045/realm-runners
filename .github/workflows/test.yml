@@ -30,24 +30,15 @@ jobs:
     name: Browser smoke (Chromium + WebKit)
     needs: regression
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - run: npm install --ignore-scripts
-      - name: Cache Playwright browser binaries
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-ubuntu-24.04-${{ hashFiles('package.json') }}
-      - name: Install browser system dependencies
-        run: npx playwright install-deps chromium webkit
-      - name: Install Playwright browser binaries on cache miss
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install chromium webkit
       - name: Run browser smoke tests
         timeout-minutes: 4
         run: |
