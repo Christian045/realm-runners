@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: 22
       - run: npm install --ignore-scripts
-      - run: node --check game.js && node --check forest.js
+      - run: node --check game.js && node --check rpg.js && node --check forest.js
       - run: npm test
       - run: npx playwright install --with-deps chromium webkit
       - run: |
