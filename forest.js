@@ -218,7 +218,7 @@ function terrain(p,index){
  terrainCache.set(key,c);return c;
 }
 function background(){
- if(stage===4){drawCastleInterior();return;}
+ if(stage===4){drawCastleInterior();ctx.fillStyle='#10132177';ctx.fillRect(0,0,W,H);return;}
  const theme=stageThemes[stage];
  const sky=theme.sky;
  // Big flat color bands deliberately distinguish the three fantasy regions.
@@ -283,7 +283,7 @@ function background(){
  // Cached three-depth tree silhouettes with palette varying by biome.
  for(let i=0;i<3;i++){
   const par=[.12,.32,.58][i],offset=((cam*par)%1600+1600)%1600;
-  ctx.globalAlpha=[.42,.58,.74][i];
+  ctx.globalAlpha=[.26,.36,.52][i];
   ctx.imageSmoothingEnabled=false;
   const shift=Math.round(offset/4)*4;
   ctx.drawImage(planeSets[stage][i],-shift,0);
@@ -311,10 +311,14 @@ function background(){
   }
   ctx.restore();
  }
+ // The entire parallax field is atmospheric and darker than interactive tiles.
+ // This tint never covers the player, hazards, ground or moving platforms.
+ const veil=['#152d357a','#14233772','#2a243679','#182d357e','#12172668'][stage];
+ ctx.fillStyle=veil;ctx.fillRect(0,0,W,H);
 }
 function burst(x,y,color,count=12,speed=2){if(reducedMotion)count=Math.ceil(count/3);if(quality==='low')count=Math.ceil(count/2);for(let i=0;i<count&&particles.length<180;i++){let a=Math.random()*Math.PI*2,v=(.3+Math.random())*speed;particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1,color,life:26+Math.random()*20,max:46,size:1+Math.random()*3});}}
 function updateParticles(dt){for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=.045*dt;p.life-=dt;}particles=particles.filter(p=>p.life>0);}
-function motes(front=false){if(reducedMotion)return;let n=quality==='full'?32:10;for(let i=0;i<n;i++){let x=((i*137.8+Math.sin(visualTime*.38+i)*32-cam*(front?.9:.23))%1000+1000)%1000-20,y=80+(i*61%380)+Math.sin(visualTime*.6+i*3)*18;let a=.3+.3*Math.sin(visualTime*1.5+i);ctx.globalAlpha=a;if(front&&i%3===0){ctx.save();ctx.translate(x,y);ctx.rotate(visualTime*.5+i);ellipse(ctx,0,0,4,1.5,'#c5d88c');ctx.restore();}else {if(quality==='full')glow(x,y,10,'#d5f9a333');ellipse(ctx,x,y,1.4,1.4,'#ecffd0');}}ctx.globalAlpha=1;}
+function motes(front=false){if(reducedMotion||stage===4)return;let n=quality==='full'?(front?12:9):(front?5:4);for(let i=0;i<n;i++){let x=((i*137.8+Math.sin(visualTime*.38+i)*32-cam*(front?.9:.23))%1000+1000)%1000-20,y=80+(i*61%380)+Math.sin(visualTime*.6+i*3)*18;let a=(front?.24:.09)+.12*Math.max(0,Math.sin(visualTime*1.5+i));ctx.globalAlpha=a;if(front&&i%3===0){ctx.save();ctx.translate(x,y);ctx.rotate(visualTime*.5+i);ellipse(ctx,0,0,4,1.5,'#c5d88c');ctx.restore();}else {if(quality==='full')glow(x,y,10,'#d5f9a333');ellipse(ctx,x,y,1.4,1.4,'#ecffd0');}}ctx.globalAlpha=1;}
 // Hand-authored pixel sprite: 16 × 24, rendered at 2×. Palette varies per class.
 const sprite=[
 '.....hhhhhh.....','....hhhhhhhh....','...hhhhhhhhhh...','...hhHHHHHHhh...',
@@ -363,7 +367,9 @@ function finishFlag(cp){const x=cp.x,y=G;ellipse(ctx,x+8,y,25,5,'#071b2666');pol
  poly(ctx,[[x+9,y-82],[x+52,y-77+flap],[x+45,y-54+flap],[x+9,y-58]],'#e1c686');line(ctx,x+14,y-76,x+14,y-63,'#edf0c8',2);glow(x+8,y-84,25,'#c7edaa44');ellipse(ctx,x+7,y-87,4,4,'#d6e7b5');}
 // Single 480 x 270 pixel art buffer. The DOM HUD remains crisp and touch-friendly.
 const pixelCanvas=document.createElement('canvas');
-pixelCanvas.width=W/2;pixelCanvas.height=H/2;
+// HD-pixel buffer: finer original pixels than the old 480×270 scene.
+const PIXEL_SCALE=.75;
+pixelCanvas.width=Math.round(W*PIXEL_SCALE);pixelCanvas.height=Math.round(H*PIXEL_SCALE);
 const pixelCtx=pixelCanvas.getContext('2d');
 function draw(){
  const screen=ctx;
@@ -374,7 +380,7 @@ function draw(){
  try{
   ctx.setTransform(1,0,0,1,0,0);
   ctx.clearRect(0,0,pixelCanvas.width,pixelCanvas.height);
-  ctx.setTransform(.5,0,0,.5,0,0);
+  ctx.setTransform(PIXEL_SCALE,0,0,PIXEL_SCALE,0,0);
   ctx.imageSmoothingEnabled=false;
   drawPixelScene();
  }finally{ctx=screen;}
@@ -384,8 +390,8 @@ function draw(){
 }
 function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();background();if(stage!==4)motes(false);
  ctx.save();ctx.translate(-cam,0);
- if(stage===3)drawCastleApproach();
- if(stage===4)drawCastleThrone();
+ if(stage===3){ctx.save();ctx.globalAlpha=.81;drawCastleApproach();ctx.restore();}
+ if(stage===4){ctx.save();ctx.globalAlpha=.75;drawCastleThrone();ctx.restore();}
  for(const [i,p] of solids().filter(p=>!p.kind).entries()){
   if(p.x+p.w<cam-20||p.x>cam+W+20)continue;
   ctx.imageSmoothingEnabled=false;
