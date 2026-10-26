@@ -1,8 +1,20 @@
-# Realm Runners — v0.6 · Der Schleimkönig
+# Realm Runners v0.6.1 – Schloss-Update
 
 Ein Jump-'n'-Run mit RPG-Fortschritt für **Windows-Browser und iPhone Safari**.
 
 **Spielen: https://christian045.github.io/realm-runners/**
+
+## Neu in Version 0.6.1
+
+- Level 1-4 „Zum Schlosstor“ führt vom leuchtenden Wald über fahrende und bröckelnde Plattformen zum großen Burgtor.
+- Zwei bewegliche Plattformen: eine schwebende Querbrücke und ein vertikaler Aufzug.
+- Zwei einstürzende Steinplatten: Bei Berührung wackeln sie, fallen nach kurzer Zeit und werden später wieder aufgebaut.
+- Level 1-5 ist ein reiner Bosskampf im Schloss. Keine normalen Gegner, Dornen oder Lücken; der Schleimkönig wartet direkt in der Thronsaal-Arena.
+- Ein neuer, detaillierter Pixel-Hintergrund zeigt die Burgmauern, Fenster, Säulen, Banner und den Thron. Vordergrund und Charakter heben sich klarer ab.
+- Alle bestehenden Spielstände, Waffen, Skills und Bestzeiten bleiben erhalten. Sprungphysik, Bossattacken und mobile Touch-Steuerung sind unverändert.
+
+Auf dem iPhone sollte im Menü „SCHLOSS-UPDATE 0.6.1“ stehen. Mit dem Versionsparameter `?v=0.6.1` lässt sich eine alte zwischengespeicherte HTML-Seite umgehen. Bitte keine Website-Daten löschen.
+
 
 ## Neu in v0.6: Zwei Level + Schleimkönig
 

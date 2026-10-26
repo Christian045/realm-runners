@@ -7,7 +7,7 @@ function harness(initial){const elements=new Map(),listeners={},storage=new Map(
  class El {constructor(){this.dataset={};this.listeners={};this.style={};this.attrs={};this.classList={add(){},remove(){},toggle(){}};}setAttribute(k,v){this.attrs[k]=String(v);}addEventListener(k,f){(this.listeners[k]??=[]).push(f)}setPointerCapture(){}querySelectorAll(){return [];}dispatch(type,data){for(const f of this.listeners[type]||[])f({preventDefault(){},...data});}}
  const canvas=createCanvas(960,540);elements.set('#view',canvas);const buttons=['left','right','jump','dash','attack'].map(k=>{let el=new El();el.dataset.control=k;return el});
  const sandbox={console,Math,JSON,Number,Map,Set,Object,Array,devicePixelRatio:1,innerWidth:960,innerHeight:540,performance:{now:()=>1000},matchMedia:()=>({matches:false}),localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},addEventListener:(k,f)=>(listeners[k]??=[]).push(f),requestAnimationFrame:f=>raf=f,document:{hidden:false,querySelector:s=>{if(!elements.has(s))elements.set(s,new El());return elements.get(s)},querySelectorAll:()=>buttons,addEventListener:(k,f)=>(listeners[k]??=[]).push(f),createElement:tag=>tag==='canvas'?createCanvas(1,1):new El()}};
- vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'boss.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);
+ vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'boss.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'platforms.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'castle_art.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);
  return {run:s=>vm.runInContext(s,sandbox),canvas,buttons,storage,emit:(k,e)=>{for(const f of listeners[k]||[])f({preventDefault(){},...e})}};
 }
 let checks=0;function test(name,fn){fn();checks++;console.log('PASS',name);}
@@ -20,7 +20,7 @@ test('stomping enemy',()=>{h.run('start(0);hero.x=420;hero.y=394;hero.vy=5;step(
 test('dash defeats enemy and starts cooldown',()=>{h.run('start(0);hero.x=406;hero.y=422;input.dash=true;step(1)');assert.equal(h.run('bad[0].alive'),false);assert.ok(h.run('dashCooldown')>0);});
 test('damage restarts entire run with one fewer heart',()=>{h.run("start(0);things[0].taken=true;for(let i=0;i<30;i++)step(1);hero.x=1700;die()");assert.equal(h.run('hero.x'),50);assert.equal(h.run('hero.hearts'),2);assert.equal(h.run('currentTime()'),0);assert.equal(h.run('things[0].taken'),false);});
 test('fall restarts the level without a checkpoint',()=>{h.run('start(0);hero.y=700;step(1)');assert.equal(h.run('hero.hearts'),2);assert.equal(h.run('hero.x'),50);});
-test('completion unlocks level, saves XP and best stars',()=>{h.run('save.unlocked=1;save.level=1;save.xp=90;save.stars=[2,0,0];start(0);hero.stars=1;hero.earned=25;hero.x=2750;step(1)');assert.equal(h.run('scene'),'end');const s=JSON.parse(h.storage.get('realm-runners-save-v2'));assert.equal(s.level,2);assert.equal(s.xp,85);assert.equal(s.unlocked,2);assert.equal(s.stars[0],2);});
+test('completion unlocks level, saves XP and best stars',()=>{h.run('save.unlocked=1;save.level=1;save.xp=90;save.stars=[2,0,0,0,0];start(0);hero.stars=1;hero.earned=25;hero.x=2750;step(1)');assert.equal(h.run('scene'),'end');const s=JSON.parse(h.storage.get('realm-runners-save-v2'));assert.equal(s.level,2);assert.equal(s.xp,85);assert.equal(s.unlocked,2);assert.equal(s.stars[0],2);});
 test('progress persists across a new runtime',()=>{const fresh=harness(JSON.parse(h.storage.get('realm-runners-save-v2')));assert.equal(fresh.run('save.level'),2);assert.equal(fresh.run('save.unlocked'),2);});
 test('multitouch plus keyboard independent release and cancel',()=>{h.run('start(0)');const right=h.buttons[1],jump=h.buttons[2];right.dispatch('pointerdown',{pointerId:1});jump.dispatch('pointerdown',{pointerId:2});assert.equal(h.run('input.right&&input.jump'),true);h.emit('keydown',{code:'KeyD'});right.dispatch('pointerup',{pointerId:1});assert.equal(h.run('input.right'),true);jump.dispatch('pointercancel',{pointerId:2});assert.equal(h.run('input.jump'),false);h.emit('keyup',{code:'KeyD'});assert.equal(h.run('input.right'),false);});
 test('blur pauses game and clears held inputs',()=>{h.run('start(0);input.right=true');h.emit('blur',{});assert.equal(h.run('scene'),'pause');assert.equal(h.run('input.right'),false);const x=h.run('hero.x');h.run('step(1)');assert.equal(h.run('hero.x'),x);h.run('resume()');assert.equal(h.run('scene'),'game');});
@@ -40,14 +40,16 @@ test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';
 // Guard against missing or stale runtime scripts in the published HTML.
 test('v0.4 HTML loads RPG systems before forest startup',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- const game=html.indexOf('src="game.js?v=0.6.0"');
- const rpg=html.indexOf('src="rpg.js?v=0.6.0"');
- const boss=html.indexOf('src="boss.js?v=0.6.0"');
- const forest=html.indexOf('src="forest.js?v=0.6.0"');
- assert.ok(game>=0 && rpg>game && boss>rpg && forest>boss,'game.js -> rpg.js -> boss.js -> forest.js must load in order');
+ const game=html.indexOf('src="game.js?v=0.6.1"');
+ const rpg=html.indexOf('src="rpg.js?v=0.6.1"');
+ const boss=html.indexOf('src="boss.js?v=0.6.1"');
+ const platforms=html.indexOf('src="platforms.js?v=0.6.1"');
+ const castleArt=html.indexOf('src="castle_art.js?v=0.6.1"');
+ const forest=html.indexOf('src="forest.js?v=0.6.1"');
+ assert.ok(game>=0 && rpg>game && boss>rpg && platforms>boss && castleArt>platforms && forest>castleArt,'runtime scripts must load in order');
  assert.ok(html.includes('id="rpgPanels"'));
  assert.ok(html.includes('data-control="attack"'));
- assert.ok(html.includes('BOSS-UPDATE 0.6.0'));
+ assert.ok(html.includes('SCHLOSS-UPDATE 0.6.1'));
  assert.ok(html.includes('id="bossHealthFill"'));
  assert.ok(html.includes('boss-health-fill'));
 });
@@ -81,10 +83,11 @@ test('v0.5 buffered jump fires upon landing even after releasing input',()=>{
  assert.ok(h.run('hero.vy')<0,'buffered jump should trigger on the frame after landing');
 });
 test('v0.5 stages have safe gaps, distinct paths, stars and no checkpoint state',()=>{
- const geometry=h.run('stages.map(s=>({gaps:s.gaps,ledges:s.ledges,stars:s.stars,enemies:s.enemies,spikes:s.spikes}))');
+ const geometry=h.run('stages.map(s=>({gaps:s.gaps,ledges:s.ledges,stars:s.stars,enemies:s.enemies,spikes:s.spikes,boss:s.boss}))');
  const signatures=new Set(geometry.map(s=>JSON.stringify(s.gaps)));
  assert.equal(signatures.size,5);
- assert.ok(geometry.every(s=>s.ledges.length>=5&&s.stars.length===3));
+ assert.ok(geometry.filter(s=>!s.boss).every(s=>s.ledges.length>=5&&s.stars.length===3));
+ assert.ok(geometry.find(s=>s.boss).enemies.length===0);
  for(const s of geometry){
   for(const [a,b] of s.gaps)assert.ok(a>150&&b-a<=210&&b<2700);
   for(const x of s.spikes)assert.ok(s.gaps.every(([a,b])=>x+44<a||x>b));
@@ -174,7 +177,7 @@ test('v0.6 adds two fully playable levels and preserves old save data',()=>{
  assert.equal(old.run('save.stars.length'),5);
  assert.equal(old.run('save.stars[2]'),1);
  assert.equal(old.run('save.custom'),'old-progress');
- assert.equal(old.run("stages[3].name.includes('Leuchtpilz')"),true);
+ assert.equal(old.run("stages[3].name.includes('Schlosstor')"),true);
  assert.equal(old.run("stages[4].boss"),true);
  old.run('save.unlocked=5;persist()');
  const again=harness(JSON.parse(old.storage.get('realm-runners-save-v2')));
@@ -223,7 +226,7 @@ test('v0.6 ground shockwave harms nonjumping hero while jump avoids it',()=>{
  h.run("start(4);boss.engaged=true;hero.x=2170;hero.y=422;bossWaves=[{x:hero.x+hero.w/2-6,dir:1,ttl:30}]");
  h.run('bossTick(1,hero.y)');
  assert.equal(h.run('hero.hearts'),2);
- assert.equal(h.run('hero.x'),50);
+ assert.equal(h.run('hero.x'),2030);
  h.run("start(4);boss.engaged=true;hero.x=2170;hero.y=315;hero.on=false;bossWaves=[{x:hero.x+hero.w/2-6,dir:1,ttl:30}]");
  h.run('bossTick(1,hero.y)');
  assert.equal(h.run('hero.hearts'),3);
@@ -234,4 +237,65 @@ test('v0.6 boss death grants rewards without changing historic records',()=>{
  assert.ok(h.run('hero.earned')>=120);
  assert.equal(h.run("save.bestTimes['1-1'].hunter"),72000);
  assert.equal(h.run("save.bestTimesV05['1-1'].hunter"),76000);
+});
+
+test('v0.6.1 boss stage is a boss-only castle arena with immediate spawn',()=>{
+ h.run('start(4)');
+ assert.equal(h.run('hero.x'),2030);
+ assert.equal(h.run('stages[4].gaps.length'),0);
+ assert.equal(h.run('bad.length'),0);
+ assert.equal(h.run('spikes.length'),0);
+ assert.equal(h.run('things.length'),0);
+ assert.equal(h.run('movingPlatforms.length'),0);
+ assert.ok(h.run('cam')>1500);
+ h.run('for(let k=0;k<30;k++)step(1);draw()');
+ assert.equal(h.run('scene'),'game');
+ assert.equal(h.run('boss.engaged'),true);
+});
+test('v0.6.1 moving platforms carry their rider horizontally and vertically',()=>{
+ h.run("start(3);hero.x=movingPlatforms[1].x+35;hero.y=movingPlatforms[1].y-hero.h;hero.on=true;hero.riding=movingPlatforms[1].id;hero.vy=0");
+ const before=h.run('hero.x'),platformBefore=h.run('movingPlatforms[1].x');
+ h.run('step(1)');
+ const distance=h.run('movingPlatforms[1].x')-platformBefore;
+ assert.ok(distance>0);
+ assert.ok(Math.abs(h.run('hero.x')-before-distance)<.01);
+ assert.equal(h.run('hero.riding'),'m1');
+ h.run("start(3);hero.x=movingPlatforms[0].x+35;hero.y=movingPlatforms[0].y-hero.h;hero.on=true;hero.riding=movingPlatforms[0].id;hero.vy=0");
+ const beforeY=h.run('hero.y'),platformY=h.run('movingPlatforms[0].y');
+ h.run('step(1)');
+ const diffY=h.run('movingPlatforms[0].y')-platformY;
+ assert.ok(diffY>0);
+ assert.ok(Math.abs(h.run('hero.y')-beforeY-diffY)<1.5);
+});
+test('v0.6.1 crumble platforms warn, fall, respawn and restart at initial location',()=>{
+ h.run('start(3);hero.x=movingPlatforms[2].x+24;hero.y=movingPlatforms[2].y-hero.h-8;hero.vy=10;hero.on=false;step(1)');
+ assert.equal(h.run("movingPlatforms[2].state"),'shaking');
+ h.run('for(let i=0;i<35;i++)platformTick(1)');
+ assert.equal(h.run("movingPlatforms[2].state"),'falling');
+ assert.equal(h.run('activePlatforms().some(p=>p.id===\'c0\')'),false);
+ h.run('for(let i=0;i<100;i++)platformTick(1)');
+ assert.equal(h.run("movingPlatforms[2].state"),'gone');
+ h.run('for(let i=0;i<220;i++)platformTick(1)');
+ assert.equal(h.run("movingPlatforms[2].state"),'ready');
+ assert.equal(h.run('movingPlatforms[2].y'),386);
+ h.run('movingPlatforms[2].state=\'falling\';die()');
+ assert.equal(h.run("movingPlatforms[2].state"),'ready');
+});
+test('v0.6.1 static early stages and physics are preserved',()=>{
+ h.run('start(0)');
+ assert.equal(h.run('movingPlatforms.length'),0);
+ assert.equal(h.run('JUMP.holdFrames'),14);
+ assert.equal(h.run('JUMP.holdGravity'),.5);
+ const y=h.run('hero.y');h.run('input.jump=true;step(1)');
+ assert.ok(h.run('hero.y')<y);
+});
+test('v0.6.1 original HD-pixel castle exterior and throne interior render',()=>{
+ for(const stageIndex of [3,4]){
+  h.run(`start(${stageIndex});cam=1840;draw()`);
+  const pixel=h.canvas.getContext('2d').getImageData(300,155,1,1).data;
+  assert.equal(pixel[3],255);
+ }
+ assert.equal(h.run("typeof drawCastleApproach"),'function');
+ assert.equal(h.run("typeof drawCastleInterior"),'function');
+ assert.equal(h.run("typeof drawCastleThrone"),'function');
 });
