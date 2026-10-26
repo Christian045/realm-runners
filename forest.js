@@ -181,6 +181,17 @@ function terrain(p,index){
   for(let y=30;y<20+soil;y+=18)for(let x=17+((y/18|0)%2)*15;x<16+p.w;x+=38){
    q.fillStyle=dark;q.fillRect(x,y,30,2);q.fillRect(x+29,y,2,14);
   }
+ }else if(stage===3){ // Glowing mushroom mycelium grows under the platforms.
+  for(let x=28;x<p.w;x+=44){
+   q.fillStyle='#6fbcb0';q.fillRect(x,28,4,12);
+   q.fillStyle='#dbb3ee';q.fillRect(x-7,24,18,5);
+   q.fillStyle='#9ce8cc';q.fillRect(x-2,19,8,5);
+  }
+ }else if(stage===4){ // Thick red/golden paving stones of the royal arena.
+  for(let x=16;x<16+p.w;x+=35){
+   q.fillStyle='#211d30';q.fillRect(x,32,3,Math.min(35,soil));
+   q.fillStyle='#ebba7b';q.fillRect(x+7,26,15,4);
+  }
  }else{ // Woodland: grassy foliage and tiny yellow blossoms.
   for(let x=28;x<p.w;x+=52){q.fillStyle=stageThemes[stage].flower;q.fillRect(x,10,4,4);}
  }
@@ -340,7 +351,14 @@ function draw(){
 }
 function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();background();motes(false);
  ctx.save();ctx.translate(-cam,0);
- for(const [i,p] of solids().entries()){if(p.x+p.w<cam-20||p.x>cam+W+20)continue;ctx.drawImage(terrain(p,i),p.x-16,p.y-20);}
+ for(const [i,p] of solids().entries()){
+  if(p.x+p.w<cam-20||p.x>cam+W+20)continue;
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(terrain(p,i),p.x-16,p.y-20);
+  // Strong bright traversable edge + a dark layer immediately below it.
+  ctx.fillStyle=stageThemes[stage].soil[4];ctx.fillRect(p.x,p.y-3,p.w,4);
+  ctx.fillStyle=stageThemes[stage].soil[0];ctx.fillRect(p.x,p.y+2,p.w,3);
+ }
  // Each biome has its own clearly recognizable foreground decorations.
  for(const p of land())for(let x=p.x+66;x<p.x+p.w-20;x+=136){
   if(x<cam-60||x>cam+W+60)continue;
@@ -361,6 +379,21 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
    ctx.fillStyle='#ce9bdf';ctx.fillRect(tx+24,G-24,28,7);
    ctx.fillRect(tx+32,G-34,12,10);
    ctx.fillStyle='#6599b5';ctx.fillRect(tx+32,G-18,8,18);
+  }else if(stage===3){
+   // Neon fungi and contrasting cyan glow below active platforms.
+   ctx.fillStyle='#273d4f';ctx.fillRect(tx-16,G-30,36,30);
+   ctx.fillStyle='#81d6c4';ctx.fillRect(tx-12,G-38,30,10);
+   ctx.fillStyle='#d8b0ed';ctx.fillRect(tx-4,G-45,15,9);
+   ctx.fillStyle='#b3efd0';ctx.fillRect(tx+30,G-17,8,17);
+   ctx.fillStyle='#edc5fd';ctx.fillRect(tx+20,G-27,28,10);
+  }else if(stage===4){
+   // Royal banners and torch pixels; kept away from collision silhouettes.
+   ctx.fillStyle='#3b2e45';ctx.fillRect(tx-17,G-42,36,42);
+   ctx.fillStyle='#7b4c58';ctx.fillRect(tx-20,G-46,42,10);
+   ctx.fillStyle='#ebbf7e';ctx.fillRect(tx-4,G-36,10,14);
+   ctx.fillStyle='#fbe09d';ctx.fillRect(tx-2,G-38,6,9);
+   ctx.fillStyle='#8d444f';ctx.fillRect(tx+28,G-45,10,26);
+   ctx.fillStyle='#e9a05b';ctx.fillRect(tx+30,G-43,6,12);
   }else{
    // Broken masonry, moss drapes and glowing amber relics.
    ctx.fillStyle='#655c66';ctx.fillRect(tx-16,G-36,36,36);
@@ -386,9 +419,15 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
    }
   }
  }
- for(const s of spikes){for(let k=0;k<3;k++)poly(ctx,[[s.x+k*15,s.y+18],[s.x+8+k*15,s.y],[s.x+15+k*15,s.y+18]],'#bdc6b4');for(let k=0;k<3;k++)line(ctx,s.x+8+k*15,s.y+2,s.x+12+k*15,s.y+17,'#637c78',2);}
+ for(const s of spikes){
+  ctx.fillStyle='#351e2b';ctx.fillRect(s.x,s.y+14,s.w,6);
+  for(let k=0;k<3;k++){
+   poly(ctx,[[s.x+k*15,s.y+18],[s.x+8+k*15,s.y],[s.x+15+k*15,s.y+18]],'#ff837a');
+   ctx.fillStyle='#ffe5a4';ctx.fillRect(s.x+6+k*15,s.y+7,4,7);
+  }
+ }
  for(const a of things){if(a.taken||a.x<cam-25||a.x>cam+W+25)continue;const y=a.y+(reducedMotion?0:Math.sin(visualTime*3+a.x)*3);if(a.type==='star'){glow(a.x,y,26,'#f3df8b35');let pts=[];for(let j=0;j<10;j++){const an=j*Math.PI/5-Math.PI/2,r=j%2?7:16;pts.push([a.x+Math.cos(an)*r,y+Math.sin(an)*r]);}poly(ctx,pts,'#f4dd93');line(ctx,a.x,y-10,a.x-3,y-1,'#fff4d0',2);}else{const rx=reducedMotion?6:3+Math.abs(Math.cos(visualTime*2+a.x))*4;ellipse(ctx,a.x,y,rx,9,'#99774b');ellipse(ctx,a.x,y-1,rx-1,7,'#e5be6c');line(ctx,a.x,y-5,a.x,y+3,'#fff0b0',1);}}
- bad.forEach(drawEnemy);finishFlag({x:WIDTH-77});drawHero();drawCombatEffects();
+ bad.forEach(drawEnemy);drawBoss();if(!stages[stage].boss||bossDefeated())finishFlag({x:WIDTH-77});drawHero();drawCombatEffects();
  for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}ctx.globalAlpha=1;ctx.restore();
  if(quality==='full'){motes(true);ctx.fillStyle='#07191c46';ctx.fillRect(0,0,32,H);ctx.fillRect(W-32,0,32,H);ctx.fillRect(32,0,W-64,24);ctx.fillRect(32,H-24,W-64,24);}
  // Minimal in-world labels leave the playfield visible on a phone.
