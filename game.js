@@ -65,7 +65,7 @@ function menu(){clearInput();$('#play').classList.remove('hide');$('#resume').cl
 function land(){let gaps=stages[stage].gaps,ends=[0,...gaps.map(g=>g[1])],begins=[...gaps.map(g=>g[0]),WIDTH];return ends.map((x,i)=>({x,w:begins[i]-x,y:G}))}
 function solids(){return [...land(),...stages[stage].ledges.map(a=>({x:a[0],y:a[1],w:a[2]})),...activePlatforms()]}
 function floorY(x){let p=solids().filter(s=>x>=s.x+10&&x<=s.x+s.w-10).sort((a,b)=>b.y-a.y);return p.length?p[0].y:G}
-function start(i,hearts=3){if(!Number.isInteger(i)||i<0||i>=stages.length)return;clearInput();resetRpgRun();particles=[];$('#play').classList.remove('hide');$('#resume').classList.add('hide');stage=i;scene='game';cam=0;dashCooldown=0;jumpWas=false;invincible=0;t=0;hero={x:stages[i].spawnX??50,y:G-43,w:30,h:43,vx:0,vy:0,on:true,face:1,hearts,stars:0,earned:0,dash:0,usedDash:false,coyote:JUMP.coyote,jumpBuffer:0,jumpHeld:0,jumpActive:false,riding:null};cam=Math.max(0,Math.min(WIDTH-W,hero.x-350));resetPlatforms();things=[];bad=[];spikes=stages[i].spikes.map(x=>({x,y:G-18,w:44,h:18}));if(!stages[i].boss)for(let n=0;n<30;n++){let x=125+n*82,y=floorY(x)-42-(n%3)*9;if(solids().some(p=>x>p.x+8&&x<p.x+p.w-8))things.push({x,y,type:'coin',taken:false})}for(const [x,y] of stages[i].stars)things.push({x,y,type:'star',taken:false});for(let x of stages[i].enemies)bad.push({x,y:G-27,home:x,dir:1,alive:true});resetBossRun();layer.classList.add('hide');controls.classList.remove('hide');hud.classList.remove('hide')}
+function start(i,hearts=3){if(!Number.isInteger(i)||i<0||i>=stages.length)return;clearInput();resetRpgRun();particles=[];$('#play').classList.remove('hide');$('#resume').classList.add('hide');stage=i;scene='game';cam=0;dashCooldown=0;jumpWas=false;invincible=0;t=0;hero={x:stages[i].spawnX??50,y:G-43,w:30,h:43,vx:0,vy:0,on:true,face:1,hearts,stars:0,earned:0,dash:0,usedDash:false,coyote:JUMP.coyote,jumpBuffer:0,jumpHeld:0,jumpActive:false,riding:null};cam=Math.max(0,Math.min(WIDTH-W,hero.x-350));resetPlatforms();things=[];bad=[];spikes=stages[i].spikes.map(x=>({x,y:G-18,w:44,h:18}));if(!stages[i].boss)for(let n=0;n<30;n++){let x=125+n*82,y=floorY(x)-42-(n%3)*9;if(solids().some(p=>x>p.x+8&&x<p.x+p.w-8))things.push({x,y,type:'coin',taken:false})}for(const [x,y] of stages[i].stars)things.push({x,y,type:'star',taken:false});bad=spawnEnemies(i);resetBossRun();layer.classList.add('hide');controls.classList.remove('hide');hud.classList.remove('hide')}
 function xp(n){save.xp+=n;while(save.xp>=save.level*100){save.xp-=save.level*100;save.level++;ensureRpgSave()}persist()}
 // Each mistake restarts the whole level, timer and collectibles; three hearts remain.
 function die(){
@@ -119,18 +119,12 @@ function step(dt){
   a.taken=true;burst(a.x,a.y,a.type==='star'?'#fff0a0':'#efc56d',a.type==='star'?22:9,2.7);
   if(a.type==='star'){h.stars++;h.earned+=25;}else h.earned+=5;
  }
- for(const e of bad)if(e.alive){
-  e.x+=e.dir*.8*dt;if(Math.abs(e.x-e.home)>42)e.dir*=-1;
-  if(h.x<e.x+27&&h.x+h.w>e.x&&h.y<e.y+27&&h.y+h.h>e.y){
-   if(h.vy>1&&prevY+h.h<e.y+14){
-    e.alive=false;dropLoot(e);burst(e.x+13,e.y+14,'#a8e2bd',18,2.8);
-    h.vy=-9;h.jumpActive=false;h.earned+=15;
-   }else if(h.dash>0){
-    e.alive=false;dropLoot(e);burst(e.x+13,e.y+14,'#a8e2bd',18,2.8);h.earned+=10;
-   }else{die();return;}
-  }
- }
+ // Enemy motion, class attacks and contact damage share a fixed 60Hz order.
+ // Attack first means a precisely-timed slash can defeat an approaching enemy.
+ enemyTick(dt);
  combatTick(dt);
+ if(scene!=='game')return;
+ if(enemyHazardsHitHero(prevY))return;
  if(scene!=='game')return;
  if(bossTick(dt,prevY))return;
  if(scene!=='game')return;
