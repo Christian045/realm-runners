@@ -62,6 +62,18 @@ function ensureRpgSave(){
    if(!classes[kind]||!Number.isFinite(ms)||ms<=0)delete save.bestTimesPixelV051[level][kind];
   }
  }
+ // New enemy patrol/attack patterns change level timing. Keep v0.7 results
+ // untouched and track fair v0.8 records for stages 1-1 through 1-4.
+ if(!save.bestTimesV08||typeof save.bestTimesV08!=='object'||Array.isArray(save.bestTimesV08))save.bestTimesV08={};
+ for(const level of Object.keys(save.bestTimesV08)){
+  if(!/^1-[1-4]$/.test(level)||!save.bestTimesV08[level]||typeof save.bestTimesV08[level]!=='object'){
+   delete save.bestTimesV08[level];continue;
+  }
+  for(const kind of Object.keys(save.bestTimesV08[level])){
+   const ms=save.bestTimesV08[level][kind];
+   if(!classes[kind]||!Number.isFinite(ms)||ms<=0)delete save.bestTimesV08[level][kind];
+  }
+ }
  // Faster automatic boss victory has its own board; earlier boss times survive.
  if(!save.bestTimesBossV062||typeof save.bestTimesBossV062!=='object'||Array.isArray(save.bestTimesBossV062))save.bestTimesBossV062={};
  for(const level of Object.keys(save.bestTimesBossV062)){
@@ -87,7 +99,7 @@ function currentTime(){return Math.round(runFrames*1000/60);}
 function medal(ms){return ms<=70000?'GOLD':ms<=105000?'SILBER':ms<=150000?'BRONZE':'ZIEL';}
 function recordTime(){
  const level='1-'+(stage+1),kind=save.class,ms=currentTime();
- const board=stage===BOSS_LEVEL?save.bestTimesBossV062:save.bestTimesPixelV051;
+ const board=stage===BOSS_LEVEL?save.bestTimesBossV062:save.bestTimesV08;
  if(!board[level])board[level]={};
  if(!board[level][kind]||ms<board[level][kind])board[level][kind]=ms;
  persist();
@@ -218,13 +230,13 @@ function equipItem(id){
 }
 function renderRpgMenu(){
  const root=$('#rpgPanels');if(!root)return;
- const kind=save.class,levelTimes=(selected===BOSS_LEVEL?save.bestTimesBossV062:save.bestTimesPixelV051)['1-'+(selected+1)]||{};
+ const kind=save.class,levelTimes=(selected===BOSS_LEVEL?save.bestTimesBossV062:save.bestTimesV08)['1-'+(selected+1)]||{};
  const timeRows=Object.entries(classes).map(([id,c])=>'<div>'+c.label+': '+(levelTimes[id]?formatRunTime(levelTimes[id])+' '+medal(levelTimes[id]):'—')+'</div>').join('');
  const skills=skillCatalog[kind].map(([id,name,desc],i)=>'<button data-skill="'+id+'" '+(save.skills[kind].includes(id)||!save.skillPoints||(i>0&&!save.skills[kind].includes(skillCatalog[kind][i-1][0]))?'disabled':'')+'>'+(save.skills[kind].includes(id)?'✓ ':'✦ ')+name+' – '+desc+'</button>').join('');
  const items=save.inventory.filter(id=>{const o=itemCatalog[id];return o&&(!o.class||o.class===kind)}).map(id=>{
   const o=itemCatalog[id];return '<button data-equip="'+id+'" '+(save.equipment[kind][o.slot]===id?'disabled':'')+'>'+(save.equipment[kind][o.slot]===id?'✓ ':'')+o.name+'</button>';
  }).join('');
- root.innerHTML='<details><summary>[TIME] Pixel-Bestzeiten · '+stages[selected].name+'</summary>'+timeRows+'</details>'+
+ root.innerHTML='<details><summary>[TIME] v0.8-Bestzeiten · '+stages[selected].name+'</summary>'+timeRows+'</details>'+
  '<details><summary>✦ Skilltree · '+save.skillPoints+' Punkte</summary><div class="rpg-options">'+skills+'</div></details>'+
  '<details><summary>[BAG] Ausrüstung · '+save.inventory.length+' Gegenstände</summary><div class="rpg-options">'+items+'</div></details>';
  root.querySelectorAll('[data-skill]').forEach(b=>b.onclick=()=>unlockSkill(b.dataset.skill));
