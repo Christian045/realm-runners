@@ -153,7 +153,7 @@ function enemyHazardsHitHero(prevY=hero?.y??0){
 }
 function drawEnemyMob(e){
  if(!e.alive||e.x+e.w<cam-40||e.x>cam+W+40)return;
- if(e.type==='slime'||!e.type){drawEnemy(e);return;}
+ if(e.type==='slime'||!e.type){drawEnemy(e,0);if((e.hurt||0)>0){ctx.fillStyle='#fff5b575';ctx.fillRect(Math.round(e.x),Math.round(e.y),e.w||27,e.h||27);}return;}
  const x=Math.round(e.x/3)*3,y=Math.round(e.y/3)*3,blink=e.hurt>0&&Math.floor(e.hurt/3)%2===0;
  const warning=e.phase==='windup';
  ctx.save();
