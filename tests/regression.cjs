@@ -32,7 +32,7 @@ h.run("save.class='hunter';start(0);for(let i=0;i<60;i++)step(1);hero.x=300;cam=
 console.log(`${checks} checks passed. Canvas preview: test-output/forest-v03.png`);
 
 test('v0.4 timer only advances during active simulation',()=>{h.run("start(0);for(let i=0;i<60;i++)step(1)");assert.equal(h.run('currentTime()'),1000);h.run("pause();step(1)");assert.equal(h.run('currentTime()'),1000);h.run('resume()');});
-test('v0.4 local leaderboard records best time per class',()=>{h.run("save.class='mage';start(0);for(let i=0;i<80;i++)step(1);recordTime()");const first=h.run("save.bestTimesPixelV051['1-1'].mage");h.run('start(0);for(let i=0;i<100;i++)step(1);recordTime()');assert.equal(h.run("save.bestTimesPixelV051['1-1'].mage"),first);});
+test('v0.8 local leaderboard records best time per class',()=>{h.run("save.class='mage';start(0);for(let i=0;i<80;i++)step(1);recordTime()");const first=h.run("save.bestTimesV08['1-1'].mage");h.run('start(0);for(let i=0;i<100;i++)step(1);recordTime()');assert.equal(h.run("save.bestTimesV08['1-1'].mage"),first);});
 test('v0.4 skills unlock in order and survive persistence',()=>{h.run("save.class='mage';save.level=5;ensureRpgSave()");assert.equal(h.run("unlockSkill('double_fireball')"),false);assert.equal(h.run("unlockSkill('fireball_damage')"),true);assert.ok(JSON.parse(h.storage.get('realm-runners-save-v2')).skills.mage.includes('fireball_damage'));});
 test('v0.4 mage projectile damages an enemy',()=>{h.run("save.class='mage';start(0);hero.x=370;hero.y=420;hero.face=1;performAttack();for(let i=0;i<12;i++)combatTick(1)");assert.ok(h.run('bad[0].hp<2||!bad[0].alive'));});
 test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';save.inventory.push('ember_staff');equipItem('ember_staff')");assert.equal(h.run("save.equipment.mage.weapon"),'ember_staff');assert.equal(h.run("equipItem('swift_bow')"),false);});
@@ -150,7 +150,7 @@ test('Pixel Edition: previous time trials remain untouched after recording new r
  h.run("save.class='mage';save.bestTimes={'1-1':{mage:69000}};save.bestTimesV05={'1-1':{mage:72000}};start(0);for(let i=0;i<90;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimes['1-1'].mage"),69000);
  assert.equal(h.run("save.bestTimesV05['1-1'].mage"),72000);
- assert.ok(h.run("save.bestTimesPixelV051['1-1'].mage")>0);
+ assert.ok(h.run("save.bestTimesV08['1-1'].mage")>0);
 });
 test('Pixel Edition: maximum terrain gap remains passable without forced long dash',()=>{
  const gapLengths=h.run('stages.flatMap(s=>s.gaps.map(([a,b])=>b-a))');
@@ -378,4 +378,96 @@ test('v0.7 backdrop cache holds only the current biome, including graphic qualit
  h.run("start(4);draw()");
  assert.equal(h.run('hdCachedPlanes.length'),0);
  h.run("start(0);quality='full';draw()");
+});
+
+test('v0.8 all four non-boss levels have 4 enemy species; castle boss remains alone',()=>{
+ for(let level=0;level<4;level++){
+  h.run(`start(${level})`);
+  const rosters=h.run('bad.map(e=>e.type)');
+  assert.equal(rosters.length,4);
+  assert.deepEqual([...rosters].sort(),['bat','goblin','mushroom','slime']);
+  assert.equal(h.run('bad.every(e=>e.hp===e.maxHp&&e.w>0&&e.h>0&&e.alive)'),true);
+ }
+ h.run('start(4)');
+ assert.equal(h.run('bad.length'),0);
+ assert.equal(h.run('enemyShots.length'),0);
+ assert.equal(h.run('boss.alive'),true);
+});
+test('v0.8 bat telegraphs a dive and recovers without teleporting or spawning shots',()=>{
+ h.run("start(0);hero.x=bad[1].x-75;hero.y=G-43;bad[1].attackCooldown=0;enemyTick(1)");
+ assert.equal(h.run("bad[1].phase"),'windup');
+ assert.equal(h.run("bad[1].type"),'bat');
+ h.run('for(let i=0;i<29;i++)enemyTick(1)');
+ assert.equal(h.run("bad[1].phase"),'dive');
+ assert.ok(h.run("Math.abs(bad[1].vx)")>3);
+ h.run('for(let i=0;i<35;i++)enemyTick(1)');
+ assert.ok(['recover','patrol'].includes(h.run('bad[1].phase')));
+ assert.equal(h.run('enemyShots.length'),0);
+});
+test('v0.8 mushroom warning generates limited, slow, directional spores',()=>{
+ h.run("start(0);hero.x=bad[2].x-85;hero.y=G-43;bad[2].attackCooldown=0;enemyTick(1)");
+ assert.equal(h.run("bad[2].phase"),'windup');
+ assert.equal(h.run('enemyShots.length'),0);
+ h.run('for(let i=0;i<33;i++)enemyTick(1)');
+ assert.equal(h.run('enemyShots.length'),1);
+ assert.ok(h.run('enemyShots[0].vx')<0);
+ assert.ok(h.run('Math.hypot(enemyShots[0].vx,enemyShots[0].vy)')<3.5);
+ h.run('for(let i=0;i<200;i++)enemyTick(1)');
+ assert.ok(h.run('enemyShots.length')<=12,'projectile count bounded for iPhone');
+});
+test('v0.8 goblin warns before fast charge and enters recover',()=>{
+ h.run("start(0);hero.x=bad[3].x-85;hero.y=G-43;bad[3].attackCooldown=0;enemyTick(1)");
+ assert.equal(h.run("bad[3].phase"),'windup');
+ h.run('for(let i=0;i<26;i++)enemyTick(1)');
+ assert.equal(h.run("bad[3].phase"),'charge');
+ const initial=h.run('bad[3].x');
+ h.run('for(let i=0;i<7;i++)enemyTick(1)');
+ assert.ok(initial-h.run('bad[3].x')>20,'charging goblin moves faster than a patrol');
+ h.run('for(let i=0;i<35;i++)enemyTick(1)');
+ assert.equal(h.run("bad[3].phase"),'recover');
+});
+test('v0.8 spores harm on contact and dash cancels them',()=>{
+ h.run("start(0);hero.x=150;hero.y=G-43;hero.dash=0;enemyShots=[{x:165,y:G-20,vx:0,vy:0,radius:9,life:20}]");
+ assert.equal(h.run('enemyHazardsHitHero(hero.y)'),true);
+ assert.equal(h.run('hero.hearts'),2);
+ assert.equal(h.run('enemyShots.length'),0,'restart clears spores');
+ h.run("start(0);hero.x=150;hero.y=G-43;hero.dash=5;enemyShots=[{x:165,y:G-20,vx:0,vy:0,radius:9,life:20}]");
+ assert.equal(h.run('enemyHazardsHitHero(hero.y)'),false);
+ assert.equal(h.run('enemyShots.length'),0);
+ assert.equal(h.run('hero.hearts'),3);
+});
+test('v0.8 airborne stomps and dash safely defeat new enemy species',()=>{
+ h.run("start(0);hero.x=bad[1].x+1;hero.y=bad[1].y-hero.h-4;hero.vy=7;hero.dash=0");
+ const previous=h.run('hero.y');h.run('hero.y+=7;enemyHazardsHitHero('+previous+')');
+ assert.equal(h.run('bad[1].alive'),false,'flying bat can be stomped');
+ assert.ok(h.run('hero.vy')<0,'stomp bounces hero');
+ h.run("start(0);hero.x=bad[2].x+2;hero.y=bad[2].y;hero.dash=4;enemyHazardsHitHero(hero.y)");
+ assert.equal(h.run('bad[2].hp'),1,'mushroom has 4 HP and dash deals 3');
+ assert.equal(h.run('hero.hearts'),3);
+});
+test('v0.8 each class can damage enemies with correct vertical hitboxes',()=>{
+ // Krieger sword hits the goblin at walking height.
+ h.run("save.class='warrior';start(0);hero.x=bad[3].x-48;hero.y=G-43;hero.face=1;performAttack()");
+ assert.ok(h.run('bad[3].hp')<5);
+ assert.ok(h.run('combatTexts.length')>0,'floating damage numbers appear');
+ // Jäger and Magier can strike a flying bat while jumping.
+ for(const kind of ['hunter','mage']){
+  h.run(`save.class='${kind}';start(0);hero.x=bad[1].x-95;hero.y=bad[1].y-9;hero.face=1;performAttack();for(let i=0;i<15;i++)combatTick(1)`);
+  assert.ok(h.run('bad[1].hp')<2,`${kind} projectile strikes bat`);
+ }
+});
+test('v0.8 holding attack repeats after class cooldown; release stops it',()=>{
+ h.run("save.class='hunter';start(0);hero.x=50;input.attack=true;for(let i=0;i<50;i++)combatTick(1)");
+ assert.ok(h.run('projectiles.length')>=3,'held attack repeats on iPhone');
+ h.run('input.attack=false');
+ const before=h.run('projectiles.length');
+ h.run('for(let i=0;i<8;i++)combatTick(1)');
+ assert.ok(h.run('projectiles.length')<=before,'release cannot generate new projectiles');
+});
+test('v0.8 old best times and skills survive; new enemy records do not overwrite them',()=>{
+ h.run("save.class='mage';save.bestTimesPixelV051['1-1']={mage:76000};save.bestTimesV08={};save.level=6;start(0);for(let i=0;i<25;i++)step(1);recordTime()");
+ assert.equal(h.run("save.bestTimesPixelV051['1-1'].mage"),76000);
+ assert.ok(h.run("save.bestTimesV08['1-1'].mage")>0);
+ assert.equal(h.run('save.level'),6);
+ assert.equal(h.run('save.skills.mage.includes(\'fireball_damage\')'),true);
 });
