@@ -457,7 +457,7 @@ test('v0.8 each class can damage enemies with correct vertical hitboxes',()=>{
  }
 });
 test('v0.8 holding attack repeats after class cooldown; release stops it',()=>{
- h.run("save.class='hunter';start(0);hero.x=50;input.attack=true;for(let i=0;i<50;i++)combatTick(1)");
+ h.run("save.class='hunter';start(0);bad=[];hero.x=50;input.attack=true;for(let i=0;i<50;i++)combatTick(1)");
  assert.ok(h.run('projectiles.length')>=3,'held attack repeats on iPhone');
  h.run('input.attack=false');
  const before=h.run('projectiles.length');
