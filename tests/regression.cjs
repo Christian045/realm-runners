@@ -7,7 +7,7 @@ function harness(initial){const elements=new Map(),listeners={},storage=new Map(
  class El {constructor(){this.dataset={};this.listeners={};this.style={};this.attrs={};this.classList={add(){},remove(){},toggle(){}};}setAttribute(k,v){this.attrs[k]=String(v);}addEventListener(k,f){(this.listeners[k]??=[]).push(f)}setPointerCapture(){}querySelectorAll(){return [];}dispatch(type,data){for(const f of this.listeners[type]||[])f({preventDefault(){},...data});}}
  const canvas=createCanvas(960,540);elements.set('#view',canvas);const buttons=['left','right','jump','dash','attack'].map(k=>{let el=new El();el.dataset.control=k;return el});
  const sandbox={console,Math,JSON,Number,Map,Set,Object,Array,devicePixelRatio:1,innerWidth:960,innerHeight:540,performance:{now:()=>1000},matchMedia:()=>({matches:false}),localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},addEventListener:(k,f)=>(listeners[k]??=[]).push(f),requestAnimationFrame:f=>raf=f,document:{hidden:false,querySelector:s=>{if(!elements.has(s))elements.set(s,new El());return elements.get(s)},querySelectorAll:()=>buttons,addEventListener:(k,f)=>(listeners[k]??=[]).push(f),createElement:tag=>tag==='canvas'?createCanvas(1,1):new El()}};
- vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'boss.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'platforms.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'castle_art.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'hd_background.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);
+ vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'boss.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'platforms.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'enemies.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'castle_art.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'hd_background.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);
  return {run:s=>vm.runInContext(s,sandbox),canvas,buttons,storage,emit:(k,e)=>{for(const f of listeners[k]||[])f({preventDefault(){},...e})}};
 }
 let checks=0;function test(name,fn){fn();checks++;console.log('PASS',name);}
@@ -40,17 +40,18 @@ test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';
 // Guard against missing or stale runtime scripts in the published HTML.
 test('v0.4 HTML loads RPG systems before forest startup',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- const game=html.indexOf('src="game.js?v=0.7.0"');
- const rpg=html.indexOf('src="rpg.js?v=0.7.0"');
- const boss=html.indexOf('src="boss.js?v=0.7.0"');
- const platforms=html.indexOf('src="platforms.js?v=0.7.0"');
- const castleArt=html.indexOf('src="castle_art.js?v=0.7.0"');
- const hd=html.indexOf('src="hd_background.js?v=0.7.0"');
- const forest=html.indexOf('src="forest.js?v=0.7.0"');
- assert.ok(game>=0 && rpg>game && boss>rpg && platforms>boss && castleArt>platforms && hd>castleArt && forest>hd,'runtime scripts must load in order');
+ const game=html.indexOf('src="game.js?v=0.8.0"');
+ const rpg=html.indexOf('src="rpg.js?v=0.8.0"');
+ const boss=html.indexOf('src="boss.js?v=0.8.0"');
+ const platforms=html.indexOf('src="platforms.js?v=0.8.0"');
+ const enemies=html.indexOf('src="enemies.js?v=0.8.0"');
+ const castleArt=html.indexOf('src="castle_art.js?v=0.8.0"');
+ const hd=html.indexOf('src="hd_background.js?v=0.8.0"');
+ const forest=html.indexOf('src="forest.js?v=0.8.0"');
+ assert.ok(game>=0 && rpg>game && boss>rpg && platforms>boss && enemies>platforms && castleArt>enemies && hd>castleArt && forest>hd,'runtime scripts must load in order');
  assert.ok(html.includes('id="rpgPanels"'));
  assert.ok(html.includes('data-control="attack"'));
- assert.ok(html.includes('HD-HINTERGRÜNDE 0.7.0'));
+ assert.ok(html.includes('GEGNER-UPDATE 0.8.0'));
  assert.ok(html.includes('id="bossHealthFill"'));
  assert.ok(html.includes('boss-health-fill'));
 });
