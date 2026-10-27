@@ -122,7 +122,7 @@ function enemyTick(dt){
  }
  enemyShots=enemyShots.filter(s=>s.life>0&&s.x>0&&s.x<WIDTH&&s.y>0&&s.y<H);
 }
-function enemyHazardsHitHero(){
+function enemyHazardsHitHero(prevY=hero?.y??0){
  if(scene!=='game'||!hero)return false;
  for(const shot of enemyShots){
   const x=hero.x+hero.w/2,y=hero.y+hero.h/2;
@@ -140,8 +140,8 @@ function enemyHazardsHitHero(){
    continue;
   }
   // A downward landing is always a legitimate stomp, including on flying bats.
-  const prevBottom=hero.y-hero.vy+hero.h;
-  if(hero.vy>1.2&&prevBottom<=e.y+Math.min(15,(e.h||27)*.6)){
+  const prevBottom=prevY+hero.h;
+  if((hero.y>prevY||hero.vy>1.2)&&prevBottom<=e.y+Math.min(15,(e.h||27)*.6)){
    damageEnemy(e,e.hp||2);
    hero.vy=-9;hero.jumpActive=false;
    hero.y=Math.min(hero.y,e.y-hero.h+1);
