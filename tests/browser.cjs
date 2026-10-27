@@ -62,6 +62,7 @@ const fs=require('node:fs');
  assert.ok(pixelArt.pixelCss==='pixelated'||pixelArt.pixelCss==='crisp-edges');
  assert.equal(pixelArt.buttonRadius,'4px');
  assert.ok(pixelArt.hasRecordBoard);
+ assert.ok(await page.evaluate(()=>!!save.bestTimesV08));
  assert.deepEqual(pixelArt.nativeBackdrop,[960,540]);
  assert.ok(pixelArt.separateContexts);
  assert.ok(pixelArt.hdSmooth);
@@ -69,7 +70,7 @@ const fs=require('node:fs');
  assert.equal(pixelArt.backdropSkyAlpha,255,'HD sky should be visible under gameplay');
  await page.evaluate(()=>menu());
  assert.ok(await page.locator('#pixelEditionBadge').isVisible());
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.7\.0/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.8\.0/);
  // Store each biome in the CI artifacts so pixel-style changes are reviewable.
  for(const [level,label] of [[0,'forest'],[1,'canopy'],[2,'ruins'],[3,'swamp'],[4,'slime-king']]){
   await page.evaluate(index=>{start(index);if(index===4){hero.x=2220;step(1);cam=1840;}draw();},level);
@@ -84,7 +85,61 @@ const fs=require('node:fs');
    await page.screenshot({path:`test-output/${name}-HD-${label}.png`});
   }
  }
- // Original castle transition and throne room screenshots at the action areas.
+ // New v0.8 species all render visibly and use independent attack warnings.
+ await page.evaluate(()=>{
+  start(0);
+  if(JSON.stringify(bad.map(e=>e.type))!==JSON.stringify(['slime','bat','mushroom','goblin']))
+   throw Error('Missing v0.8 enemy roster');
+  hero.x=bad[1].x-75;hero.y=G-43;bad[1].attackCooldown=0;
+  enemyTick(1);
+  if(bad[1].phase!=='windup')throw Error('Bat warning not active');
+  cam=590;draw();
+ });
+ await page.screenshot({path:`test-output/${name}-bat-warning.png`});
+ await page.evaluate(()=>{
+  start(0);hero.x=bad[2].x-85;hero.y=G-43;
+  bad[2].attackCooldown=0;enemyTick(1);
+  if(bad[2].phase!=='windup')throw Error('Mushroom warning not active');
+  for(let i=0;i<34;i++)enemyTick(1);
+  if(enemyShots.length!==1)throw Error('Mushroom did not shoot spore');
+  cam=1250;draw();
+ });
+ await page.screenshot({path:`test-output/${name}-mushroom-spore.png`});
+ await page.evaluate(()=>{
+  start(0);hero.x=bad[3].x-85;hero.y=G-43;
+  bad[3].attackCooldown=0;enemyTick(1);
+  for(let i=0;i<30;i++)enemyTick(1);
+  if(bad[3].phase!=='charge')throw Error('Goblin did not charge after warning');
+  cam=1970;draw();
+ });
+ await page.screenshot({path:`test-output/${name}-goblin-charge.png`});
+ // Warrior melee, Hunter arrows and Mage magic keep working on the iPhone viewport.
+ await page.evaluate(()=>{
+  save.class='warrior';start(0);
+  hero.x=bad[3].x-50;hero.y=G-43;hero.face=1;performAttack();
+  if(!(bad[3].hp<bad[3].maxHp))throw Error('Warrior melee missed');
+  if(!combatTexts.length)throw Error('Damage numbers missing');
+  cam=1980;draw();
+ });
+ await page.screenshot({path:`test-output/${name}-combat-hit-feedback.png`});
+ const ranged=await page.evaluate(()=>{
+  const hp=[];
+  for(const kind of ['hunter','mage']){
+   save.class=kind;start(0);
+   hero.x=bad[1].x-95;hero.y=bad[1].y-9;hero.face=1;
+   performAttack();for(let i=0;i<15;i++)combatTick(1);
+   hp.push(bad[1].hp);
+  }
+  return hp;
+ });
+ assert.ok(ranged.every(hp=>hp<2),name+' airborne enemy target: '+ranged);
+ await page.evaluate(()=>{
+  save.class='hunter';start(0);bad=[];input.attack=true;
+  for(let i=0;i<50;i++)combatTick(1);
+  if(projectiles.length<3)throw Error('Held touch attack must auto-repeat');
+  input.attack=false;
+ });
+  // Original castle transition and throne room screenshots at the action areas.
  await page.evaluate(()=>{start(3);hero.x=2420;hero.y=G-43;cam=WIDTH-W;draw()});
  await page.screenshot({path:`test-output/${name}-castle-gate.png`});
  await page.evaluate(()=>{start(3);hero.x=1090;hero.y=G-43;cam=760;draw()});

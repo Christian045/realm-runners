@@ -1,6 +1,22 @@
-# Realm Runners v0.7 – HD-Hintergründe und Pixel-Vordergrund
+# Realm Runners v0.8 – Neue Gegner und Kampf-Update
 
 **Spielen: https://christian045.github.io/realm-runners/**
+
+## Neu in v0.8 – mehr Abwechslung im Kampf
+
+- **Fledermaus:** schwebt über dem Boden, kündigt einen Sturzflug mit orangem Warnsymbol an und erholt sich anschließend. Kann mit Sprüngen, Dash, Schwert, Pfeilen oder Magie besiegt werden.
+- **Pilzmonster:** besitzt vier Lebenspunkte, gibt eine gut sichtbare Warnung und verschießt langsam fliegende orange Sporen. Über die Geschosse springen oder sie per Dash neutralisieren.
+- **Goblin:** fünf Lebenspunkte, patrouilliert und stürmt nach einer Warnung schnell auf die Spielfigur zu. Nach dem Sprint braucht er eine Erholungsphase.
+- Alle vier normalen Level enthalten weiterhin den bekannten Schleim und je einen neuen Gegnertyp. Der Schleimkönig bleibt im **reinen Bosslevel 1-5 ohne normale Gegner**.
+- **Besseres Trefferfeedback:** pixelige Warnungen, HP-Leisten für verletzte Gegner, Trefferblinken, Zahlen für Schaden und XP sowie dynamischere Schwertanimationen.
+- **Angriff gedrückt halten:** Schwerthiebe, Pfeile und Feuerbälle werden entsprechend der jeweiligen Abklingzeit wiederholt, auch auf dem iPhone per Touch. Bestehende Skill-Upgrades und Waffen wirken weiterhin.
+- **Waffen- und Trefferkorrekturen:** echte Gegnerhitboxen auch für fliegende Gegner; naher Schwertangriff kann einen auf die Figur zustürmenden Gegner im selben Frame stoppen. Sprungangriffe von oben und Dash bleiben gültig.
+- **Eigene v0.8-Bestzeiten:** neue Gegnermuster ändern die Schwierigkeitskurve; neue Rekorde werden in `bestTimesV08` gespeichert, frühere Bestzeiten bleiben unberührt. XP, Loot, Ausrüstung, Skills und Freischaltungen bleiben kompatibel.
+- HD-Hintergründe, fünf Level, bewegliche/einstürzende Plattformen, Sprungphysik und automatische Boss-Sieg-Animation sind unverändert.
+
+**iPhone-Hinweis:** Im Menü muss **„GEGNER-UPDATE 0.8.0“** stehen. Nachladen mit `?v=0.8.0` ist möglich, ohne Website-Daten zu löschen. Bei gefährlichen Attacken auf das **orange Warnsymbol** achten; den Angriffsknopf kannst du nun gedrückt halten.
+
+
 
 ## Neu in v0.7.0 – HD-2D-Kulisse, klarer Pixel-Vordergrund
 
