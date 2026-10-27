@@ -70,7 +70,7 @@ const fs=require('node:fs');
  assert.equal(pixelArt.backdropSkyAlpha,255,'HD sky should be visible under gameplay');
  await page.evaluate(()=>menu());
  assert.ok(await page.locator('#pixelEditionBadge').isVisible());
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.7\.0/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.8\.0/);
  // Store each biome in the CI artifacts so pixel-style changes are reviewable.
  for(const [level,label] of [[0,'forest'],[1,'canopy'],[2,'ruins'],[3,'swamp'],[4,'slime-king']]){
   await page.evaluate(index=>{start(index);if(index===4){hero.x=2220;step(1);cam=1840;}draw();},level);
