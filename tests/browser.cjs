@@ -134,7 +134,7 @@ const fs=require('node:fs');
  });
  assert.ok(ranged.every(hp=>hp<2),name+' airborne enemy target: '+ranged);
  await page.evaluate(()=>{
-  save.class='hunter';start(0);input.attack=true;
+  save.class='hunter';start(0);bad=[];input.attack=true;
   for(let i=0;i<50;i++)combatTick(1);
   if(projectiles.length<3)throw Error('Held touch attack must auto-repeat');
   input.attack=false;
