@@ -121,7 +121,7 @@ function start(i,hearts=3){
    const supported=ground.some(p=>x-22>=p.x&&x+22<=p.x+p.w);
    const hazardous=spikes.some(p=>x>=p.x-58&&x<=p.x+p.w+58);
    if(!supported||hazardous)continue;
-   things.push({x,y:G-54-(n%3===1?12:0),type:'coin',taken:false});
+   things.push({x,y:G-43-(n%3===1?22:0),type:'coin',taken:false});
   }
  }
  for(const [x,y] of stages[i].stars)things.push({x,y,type:'star',taken:false});
