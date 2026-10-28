@@ -11,7 +11,7 @@ const WORLD_UPCOMING=[
 ];
 function worldBestTime(index,kind=save.class){
  const level='1-'+(index+1);
- const board=index===BOSS_LEVEL?save.bestTimesBossV09:save.bestTimesV10;
+ const board=index===BOSS_LEVEL?save.bestTimesBossV11:save.bestTimesV11;
  return board?.[level]?.[kind]||0;
 }
 function worldTotalStars(){return save.stars.reduce((total,n)=>total+n,0);}
