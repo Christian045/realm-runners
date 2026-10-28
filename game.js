@@ -39,7 +39,7 @@ let save;try{save=JSON.parse(localStorage.getItem('realm-runners-save-v2')||'nul
 const input={left:false,right:false,jump:false,dash:false,attack:false},heldKeys=new Set(),heldPointers=new Map(),heldTouches=new Map();
 const keymap={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'jump',KeyW:'jump',Space:'jump',ShiftLeft:'dash',ShiftRight:'dash',KeyJ:'dash',KeyK:'attack',KeyF:'attack'};
 function syncInput(){for(const k of Object.keys(input))input[k]=[...heldKeys].some(code=>keymap[code]===k)||[...heldPointers.values(),...heldTouches.values()].includes(k);document.querySelectorAll('[data-control]').forEach(b=>b.classList.toggle('pressed',input[b.dataset.control]));}
-function clearInput(){heldKeys.clear();heldPointers.clear();heldTouches.clear();clearSelection();syncInput();jumpWas=false;}
+function clearInput(){if(hero)hero.jumpBuffer=0;heldKeys.clear();heldPointers.clear();heldTouches.clear();clearSelection();syncInput();jumpWas=false;}
 addEventListener('keydown',e=>{if(e.code==='Escape'){e.preventDefault();if(scene==='game')pause();else if(scene==='pause')resume();}if(e.code==='KeyR'&&(scene==='game'||scene==='end')){e.preventDefault();start(stage);return;}if(keymap[e.code]){e.preventDefault();if(scene==='game'){heldKeys.add(e.code);syncInput();}}});
 addEventListener('keyup',e=>{heldKeys.delete(e.code);syncInput();});
 addEventListener('blur',()=>{clearInput();if(scene==='game')pause();});

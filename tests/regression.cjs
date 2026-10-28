@@ -818,6 +818,10 @@ test('v0.13 walking up and down hill seams keeps exact ground contact',()=>{
   assert.ok(h.run('Math.abs(hero.y+hero.h-courseGroundY(hero.x+15))')<.01);
  }
 });
+test('v0.13 pause cancels a buffered touch jump instead of replaying it on resume',()=>{
+ h.run('start(0);hero.jumpBuffer=7;pause();resume();step(1)');
+ assert.equal(h.run('hero.jumpBuffer'),0);assert.equal(h.run('hero.on'),true);
+});
 // Export representative v0.13 scenes for visual review with the actual rasterizer.
 for(const [level,x,label] of [[0,530,'hills'],[0,1350,'roots'],[1,1110,'branches'],[2,1050,'stairs'],[3,1460,'causeway']]){
  h.run(`start(${level});hero.x=${x};hero.y=courseGroundY(hero.x+15)-43;cam=Math.max(0,hero.x-250);quality='full';draw()`);

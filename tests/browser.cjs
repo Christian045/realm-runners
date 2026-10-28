@@ -393,7 +393,7 @@ const fs=require('node:fs');
   clearInput();hero.x=stages[stage].exitX-30;hero.y=G-43;
   hero.on=true;hero.vy=0;hero.vx=0;hero.stars=2;hero.earned=25;
   step(1);
-  if(!exitActive)throw Error('Grounded level exit did not activate');
+  if(!exitActive)throw Error('Grounded level exit did not activate: '+JSON.stringify({scene,hero,input,jumpWas,stage,goal:stages[stage].exitX}));
   for(let i=0;i<74;i++)step(1);
  });
  assert.equal(await page.evaluate(()=>scene),'end','entering a gate must complete the level even after touch/pause/resume');
