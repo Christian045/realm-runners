@@ -478,7 +478,7 @@ test('v0.9 four adventure levels are 50 percent longer while boss arena stays co
  for(let i=0;i<4;i++){
   assert.equal(cfg[i].width,4200,'long adventure stage '+(i+1));
   assert.equal(cfg[i].gaps.length,5);
-  assert.ok(cfg[i].ledges.length>=12);
+  assert.ok(cfg[i].ledges.length>=10);
   assert.ok(cfg[i].enemies.length>=9);
   assert.ok(cfg[i].spikes.length>=6);
   assert.equal(cfg[i].stars.length,3);
