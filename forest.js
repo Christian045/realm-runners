@@ -279,6 +279,7 @@ function drawWorldCoin(cx,cy){
 }
 function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();
  ctx.save();ctx.translate(-cam,0);
+ drawBiomeLandmarks();
  for(const [i,p] of solids().filter(p=>!p.kind).entries()){
   if(p.x+p.w<cam-20||p.x>cam+W+20)continue;
   ctx.imageSmoothingEnabled=false;
@@ -371,8 +372,8 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
    ctx.fillStyle='#ffe5a4';ctx.fillRect(s.x+6+k*15,s.y+7,4,7);
   }
  }
- for(const a of things){if(a.taken||a.x<cam-25||a.x>cam+W+25)continue;const y=a.y+(reducedMotion?0:Math.sin(visualTime*3+a.x)*3);if(a.type==='star'){glow(a.x,y,26,'#f3df8b35');let pts=[];for(let j=0;j<10;j++){const an=j*Math.PI/5-Math.PI/2,r=j%2?7:16;pts.push([a.x+Math.cos(an)*r,y+Math.sin(an)*r]);}poly(ctx,pts,'#f4dd93');line(ctx,a.x,y-10,a.x-3,y-1,'#fff4d0',2);}else{drawWorldCoin(a.x,y);}}
- bad.forEach(drawEnemyMob);drawEnemyShots();drawBoss();if(stage!==3&&!stages[stage].boss)finishFlag({x:WIDTH-77});drawHero();drawCombatEffects();
+ for(const a of things){if(a.taken||a.x<cam-25||a.x>cam+W+25)continue;const y=a.y+(reducedMotion?0:Math.sin(visualTime*3+a.x)*3);if(a.type==='star'){drawWorldStar(a.x,y);}else{drawWorldCoin(a.x,y);}}
+ bad.forEach(drawEnemyMob);drawEnemyShots();drawBoss();drawLevelExit();drawHero();drawCombatEffects();
  for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}ctx.globalAlpha=1;ctx.restore();
  // Brief red damage feedback is confined to the border of the viewport.
  if(hero?.hitFlash>0&&scene==='game'){
@@ -380,6 +381,7 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
   ctx.fillStyle='#ed536b';ctx.fillRect(0,0,W,8);ctx.fillRect(0,H-8,W,8);
   ctx.fillRect(0,8,8,H-16);ctx.fillRect(W-8,8,8,H-16);ctx.restore();
  }
+ drawExitTransition();
  // No foreground haze or vignette: the player and interactive tiles retain full contrast.
  // Minimal in-world labels leave the playfield visible on a phone.
  if(scene==='game'&&t<240){ctx.globalAlpha=Math.min(1,(240-t)/60);ctx.textAlign='center';ctx.font='bold 12px monospace';ctx.fillStyle='#e0ebce';ctx.fillText('SMARAGDWALD  /  '+stages[stage].name.toUpperCase(),W/2,84);ctx.globalAlpha=1;}
