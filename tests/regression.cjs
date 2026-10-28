@@ -226,7 +226,7 @@ test('v0.6 fifth level cannot finish until the Slime King is defeated',()=>{
  assert.equal(h.run('scene'),'end','boss death alone must finish without reaching any flag');
  const saved=JSON.parse(h.storage.get('realm-runners-save-v2'));
  assert.equal(saved.slimeKingWins>=1,true);
- assert.ok(saved.bestTimesBossV09['1-5'].mage>0);
+ assert.ok(saved.bestTimesBossV11['1-5'].mage>0);
 });
 test('v0.6 Slime King red health bar tracks damage and boss resets on death',()=>{
  h.run("start(4);hero.x=265;step(1)");
@@ -665,6 +665,59 @@ test('v0.10.1 authored coins are scarce, safe and never hover above a gap',()=>{
   }
  }
  h.run('start(4)');assert.equal(h.run("things.filter(x=>x.type==='coin').length"),0);
+});
+test('v0.11 stages extend ~80 percent with ground-first Mario/Sonic-style routing',()=>{
+ const cfg=h.run('stages.slice(0,4).map(s=>({width:s.width,exitX:s.exitX,gaps:s.gaps,ledges:s.ledges,spikes:s.spikes,enemies:s.enemies,stars:s.stars,coins:s.coinSpots}))');
+ assert.deepEqual([...cfg.map(s=>s.width)],[7380,7740,7920,8100]);
+ assert.deepEqual([...cfg.map(s=>s.ledges.length)],[4,5,6,4]);
+ const older=[4100,4300,4400,4500];
+ for(let i=0;i<4;i++){
+  const c=cfg[i];
+  assert.ok(Math.abs(c.width/older[i]-1.8)<.005,'level grows approximately 80 percent');
+  const totalGap=c.gaps.reduce((n,[a,b])=>n+b-a,0);
+  assert.ok(totalGap<c.width*.17,'walking ground dominates the level');
+  assert.ok(c.gaps.length>=5&&c.gaps.length<=7);
+  assert.ok(c.gaps.every(([a,b])=>b-a<=185&&b<c.exitX-500),'no huge/late pits');
+  assert.ok(c.ledges.every(([x,y,w])=>
+   y<=335&&y>=300&&x+w<c.exitX-650&&
+   h.run('hasSceneryFoundation('+(x+16)+',12,'+i+')')&&
+   h.run('hasSceneryFoundation('+(x+w-30)+',14,'+i+')')),
+   'all elevated routes are meaningful, rooted and far from exits');
+  assert.ok(c.spikes.every(x=>x<c.exitX-500));
+  assert.ok(c.enemies.every(x=>x<c.exitX-475));
+  assert.ok(c.stars.length===3,'3 stars remain in each adventure');
+  assert.equal(c.coinSpots.length,[15,16,15,16][i],'coins remain relatively sparse');
+ }
+});
+test('v0.11 the boss occupies the entire visible viewport, not a hidden sub-arena',()=>{
+ h.run('start(4)');
+ assert.equal(h.run('WIDTH'),h.run('W'));
+ assert.equal(h.run('cam'),0);
+ assert.equal(h.run('hero.x'),245);
+ assert.equal(h.run('boss.x'),650);
+ assert.equal(h.run('boss.engaged'),true,'boss fight active on room entry');
+ assert.equal(h.run('stages[4].gaps.length'),0);
+ assert.ok(h.run('BOSS_ARENA_LEFT')<24&&h.run('BOSS_ARENA_RIGHT')>930);
+ assert.ok(h.run('Math.abs((hero.x+hero.w/2+boss.x+boss.w/2)/2-W/2)')<80);
+ h.run("boss.phase='phaseShift';boss.timer=600;hero.x=BOSS_ARENA_RIGHT-hero.w-20;input.right=true;for(let i=0;i<15;i++)step(1);input.right=false");
+ assert.equal(h.run('hero.x'),h.run('BOSS_ARENA_RIGHT-hero.w-4'),'right boundary at visible wall');
+ assert.equal(h.run('cam'),0);
+ h.run('hero.x=BOSS_ARENA_LEFT+20;input.left=true;for(let i=0;i<15;i++)step(1);input.left=false');
+ assert.equal(h.run('hero.x'),h.run('BOSS_ARENA_LEFT+3'),'left boundary at visible wall');
+ assert.equal(h.run('cam'),0);
+ h.run('draw()');
+ const pixels=h.run("(()=>{const c=pixelCanvas.getContext('2d');return [c.getImageData(6,225,1,1).data[3],c.getImageData(713,225,1,1).data[3]]})()");
+ assert.ok(pixels.every(a=>a>0),'both visible room boundaries are drawn');
+});
+test('v0.11 fresh longer-course and arena records preserve all old personal bests',()=>{
+ h.run("save.class='hunter';save.bestTimesV10={'1-1':{hunter:90000}};save.bestTimesBossV09={'1-5':{hunter:52000}};start(0);for(let i=0;i<35;i++)step(1);recordTime()");
+ assert.equal(h.run("save.bestTimesV10['1-1'].hunter"),90000);
+ assert.ok(h.run("save.bestTimesV11['1-1'].hunter")>0);
+ h.run("start(4);for(let i=0;i<8;i++)step(1);boss.hurt=0;boss.hp=1;damageBoss(1);for(let i=0;i<BOSS_VICTORY_FRAMES;i++)step(1)");
+ assert.equal(h.run('scene'),'end');
+ assert.equal(h.run("save.bestTimesBossV09['1-5'].hunter"),52000);
+ assert.ok(h.run("save.bestTimesBossV11['1-5'].hunter")>0);
+ assert.equal(h.run('save.saveVersion'),8);
 });
 test('v0.10.1 release notes are restricted to the real main world menu',()=>{
  const all=h.run('RELEASE_NOTES.map(note=>note.v)');
