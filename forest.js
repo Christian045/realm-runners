@@ -103,7 +103,7 @@ function terrain(p,index){
  const c=document.createElement('canvas');
  c.width=p.w+32;c.height=(p.y===G?H-p.y:42)+35;
  const q=c.getContext('2d'),r=rng((p.x+997)*(stage+11)),height=c.height;
- const fortress=stage===4||(stage===3&&p.x>=3200);
+ const fortress=stage===4||(stage===3&&p.x>=6680);
  const stone=fortress||stage===2;
  const material=fortress?
   {outline:'#141722',base:'#494556',side:'#655a6d',light:'#94869a',shadow:'#292635',chip:'#d6c49e',cap:'#d9c39a',top:'#ffe6a5'}:
@@ -280,6 +280,7 @@ function drawWorldCoin(cx,cy){
 function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();
  ctx.save();ctx.translate(-cam,0);
  drawBiomeLandmarks();
+ drawCoursePlatformSupports();
  for(const [i,p] of solids().filter(p=>!p.kind).entries()){
   if(p.x+p.w<cam-20||p.x>cam+W+20)continue;
   ctx.imageSmoothingEnabled=false;
@@ -290,16 +291,25 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
  }
  // Moving and collapsing platforms are deliberately disabled in this edition.
  if(stage===BOSS_LEVEL){
-  for(const x of [BOSS_ARENA_LEFT-14,BOSS_ARENA_RIGHT+6]){
-   ctx.fillStyle='#192031';ctx.fillRect(x,G-82,14,82);
-   ctx.fillStyle='#806978';ctx.fillRect(x+3,G-81,5,79);
-   ctx.fillStyle='#d5ac79';ctx.fillRect(x+1,G-90,12,13);
-   ctx.fillStyle='#f4da9b';ctx.fillRect(x+4,G-96,6,9);
+  // Actual solid arena boundaries coincide with the visible 960px viewport.
+  // There are no arbitrary invisible stops halfway through the throne room.
+  for(const x of [0,W-22]){
+   ctx.fillStyle='#121a29';ctx.fillRect(x,78,22,G-78);
+   ctx.fillStyle='#6e6175';ctx.fillRect(x+3,88,6,G-94);
+   ctx.fillStyle='#897681';ctx.fillRect(x,80,22,12);
+   for(let y=116;y<G-20;y+=34){
+    ctx.fillStyle='#4d455c';ctx.fillRect(x+4,y,18,4);
+    ctx.fillStyle='#a28c86';ctx.fillRect(x+6,y+6,4,10);
+   }
+   ctx.fillStyle='#d5ac79';ctx.fillRect(x+5,G-128,13,15);
+   ctx.fillStyle='#ffd78e';ctx.fillRect(x+8,G-143,7,19);
+   ctx.fillStyle='#fff0b6';ctx.fillRect(x+10,G-139,3,12);
   }
  }
  // Each biome has its own clearly recognizable foreground decorations.
  for(const p of land())for(let x=p.x+66;x<p.x+p.w-20;x+=136){
   if(x<cam-60||x>cam+W+60)continue;
+  if(stage!==BOSS_LEVEL&&x>stages[stage].exitX-520)continue;
   const tx=Math.floor(x/4)*4;
   // Decorations reach up to 54px to the right of their anchor. Never
   // allow flowers, torch pedestals or masonry to overhang a real pit.
@@ -354,20 +364,8 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
    ctx.fillStyle='#7a5861';ctx.fillRect(tx+28,G-17,18,17);
   }
  }
- for(const ledge of stages[stage].ledges)if(ledge[0]+ledge[2]>cam-60&&ledge[0]<cam+W+60){
-  const [x,y,w]=ledge;
-  if(stage===1){ // Hanging blue ropes visually anchor canopy platforms.
-   for(let k=16;k<w;k+=64){
-    ctx.fillStyle='#65b5b3';ctx.fillRect(x+k,y+6,5,52);
-    ctx.fillStyle='#b1ddd1';ctx.fillRect(x+k-3,y+45,12,7);
-   }
-  }else if(stage===2){
-   for(let k=24;k<w;k+=75){
-    ctx.fillStyle='#7f9972';ctx.fillRect(x+k,y+6,8,20);
-    ctx.fillRect(x+k+4,y+24,6,11);
-   }
-  }
- }
+ // No decorative dangling ropes under an unsupported floating platform.
+ // Each optional high route is rooted to the terrain by drawCoursePlatformSupports().
  for(const s of spikes){
   ctx.fillStyle='#351e2b';ctx.fillRect(s.x,s.y+14,s.w,6);
   for(let k=0;k<3;k++){
