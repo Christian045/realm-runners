@@ -103,6 +103,9 @@ function hdMakePlane(biome,depth){
 function hdPlanes(biome){
  if(hdCacheStage!==biome){
   // Only the active level's backdrop is cached: bounded memory on iPhone Safari.
+  // Release backing stores immediately: mobile WebKit need not wait for GC
+  // after switching repeatedly between large HD biome canvases.
+  for(const old of hdCachedPlanes){old.width=1;old.height=1;}
   hdCachedPlanes=biome===4?[]:[hdMakePlane(biome,0),hdMakePlane(biome,1)];
   hdCacheStage=biome;
  }

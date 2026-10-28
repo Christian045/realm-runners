@@ -822,6 +822,11 @@ test('v0.13 pause cancels a buffered touch jump instead of replaying it on resum
  h.run('start(0);hero.jumpBuffer=7;pause();resume();step(1)');
  assert.equal(h.run('hero.jumpBuffer'),0);assert.equal(h.run('hero.on'),true);
 });
+test('v0.13 changing biomes immediately releases old terrain and HD canvas memory',()=>{
+ h.run('start(0);draw();globalThis.oldGround=[...courseGroundCache.values()][0].c;globalThis.oldHD=hdCachedPlanes[0];start(1);draw()');
+ assert.equal(h.run('oldGround.width'),1);assert.equal(h.run('oldHD.width'),1);
+ assert.ok(h.run('courseGroundCache.size')<20);assert.equal(h.run('hdCachedPlanes.length'),2);
+});
 // Export representative v0.13 scenes for visual review with the actual rasterizer.
 for(const [level,x,label] of [[0,530,'hills'],[0,1350,'roots'],[1,1110,'branches'],[2,1050,'stairs'],[3,1460,'causeway']]){
  h.run(`start(${level});hero.x=${x};hero.y=courseGroundY(hero.x+15)-43;cam=Math.max(0,hero.x-250);quality='full';draw()`);

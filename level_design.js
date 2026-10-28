@@ -99,6 +99,14 @@ function courseLedges(){return stages[stage].ledges.map(([x,y,w])=>({x,y,w,
  volume:stage!==1&&!stages[stage].boss,
  bottom:Math.max(courseGroundY(x),courseGroundY(x+w),G)+12}));}
 const courseGroundCache=new Map();
+let courseArtStage=-1;
+function resetCourseArt(){
+ if(courseArtStage===stage)return;
+ for(const image of courseGroundCache.values()){image.c.width=1;image.c.height=1;}
+ courseGroundCache.clear();
+ for(const image of terrainCache.values()){image.width=1;image.height=1;}
+ terrainCache.clear();courseArtStage=stage;
+}
 function drawCourseGround(p){
  const key=[stage,p.x,p.w,p.y,p.yEnd].join(':');let image=courseGroundCache.get(key);
  if(!image){
