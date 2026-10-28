@@ -8,7 +8,7 @@ const fs=require('node:fs');
  await page.goto('http://127.0.0.1:8000');
  await page.evaluate(()=>localStorage.setItem('realm-runners-save-v2',JSON.stringify({class:'hunter',unlocked:3,stars:[3,2,1],xp:87,level:4})));
  await page.reload();
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.10\.1/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.11\.0/);
  assert.ok(await page.locator('[data-world="0"]').isVisible(),'World 1 is visible');
  assert.equal(await page.locator('.world-card').count(),3);
  assert.ok(await page.locator('#changelogBtn').isVisible(),'Updates visible on main world overview');
@@ -88,10 +88,10 @@ const fs=require('node:fs');
  assert.equal(pixelArt.backdropSkyAlpha,255,'HD sky should be visible under gameplay');
  await page.evaluate(()=>menu());
  assert.ok(await page.locator('#pixelEditionBadge').isVisible());
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.10\.1/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.11\.0/);
  // Visual-support and scarcity checks for all four new adventure routes.
  await page.evaluate(()=>{
-  const expected=[12,11,12,13];
+  const expected=[15,16,15,16];
   for(let i=0;i<4;i++){
    start(i);
    const coins=things.filter(t=>t.type==='coin');
@@ -108,7 +108,7 @@ const fs=require('node:fs');
  });
  // Store each biome in the CI artifacts so pixel-style changes are reviewable.
  for(const [level,label] of [[0,'forest'],[1,'canopy'],[2,'ruins'],[3,'swamp'],[4,'slime-king']]){
-  await page.evaluate(index=>{start(index);if(index===4){hero.x=2220;step(1);cam=1840;}draw();},level);
+  await page.evaluate(index=>{start(index);if(index===4){hero.x=245;step(1);cam=0;}draw();},level);
   await page.screenshot({path:`test-output/${name}-pixel-${label}.png`});
   if(level===0||level===4){
    const layers=await page.evaluate(()=>({
@@ -120,6 +120,43 @@ const fs=require('node:fs');
    await page.screenshot({path:`test-output/${name}-HD-${label}.png`});
   }
  }
+ // Terrain footprint: grounded ledges, no low/suspended platform chains,
+ // and a completely clear final runway in all four longer levels.
+ await page.evaluate(()=>{
+  const target=[7380,7740,7920,8100],ledges=[4,5,6,4];
+  for(let i=0;i<4;i++){
+   start(i);
+   const cfg=stages[i];
+   if(cfg.width!==target[i]||cfg.ledges.length!==ledges[i])
+    throw Error('Unexpected ground-first level shape: '+i);
+   if(cfg.ledges.some(([x,y,w])=>y>335||x+w>cfg.exitX-650))
+    throw Error('A low or final-runway platform remains: '+i);
+   if(cfg.ledges.some(([x,y,w])=>!hasSceneryFoundation(x+16,12,i)||!hasSceneryFoundation(x+w-30,14,i)))
+    throw Error('Floating platform support: '+i);
+   if(cfg.gaps.some(([a,b])=>b-a>185||b>cfg.exitX-500))
+    throw Error('Unfair gap or a gap right before the exit: '+i);
+  }
+ });
+ // Boss now fills exactly one viewport, with visibly grounded walls at x=0/960.
+ await page.evaluate(()=>{
+  start(4);
+  if(WIDTH!==W||cam!==0||!boss.engaged||BOSS_ARENA_RIGHT>=WIDTH)
+   throw Error('Boss arena not entirely on screen');
+  if(Math.abs((hero.x+hero.w/2+boss.x+boss.w/2)/2-W/2)>80)
+   throw Error('Hero and boss are not centrally composed');
+  hero.x=BOSS_ARENA_RIGHT-hero.w-20;input.right=true;
+  for(let i=0;i<15;i++)step(1);
+  input.right=false;
+  if(hero.x!==BOSS_ARENA_RIGHT-hero.w-4||cam!==0)
+   throw Error('Arena right edge is not the visible screen wall');
+  hero.x=BOSS_ARENA_LEFT+20;input.left=true;
+  for(let i=0;i<15;i++)step(1);
+  input.left=false;
+  if(hero.x!==BOSS_ARENA_LEFT+3||cam!==0)
+   throw Error('Arena left wall mismatches viewport');
+  draw();
+ });
+ await page.screenshot({path:`test-output/${name}-centered-boss-full-arena.png`});
  // Only slimes and mushrooms can now spawn; reroll their encounter slots
  // and check that either projectile/weapon class still works on both engines.
  await page.evaluate(()=>{
@@ -166,12 +203,12 @@ const fs=require('node:fs');
  // Longer worlds: verify old end is not the exit and late scenery is visible.
  await page.evaluate(()=>{
   start(0);hero.x=2760;hero.y=G-43;step(1);
-  if(scene!=='game'||WIDTH!==4100)throw Error('Sonnenpfad ends too soon');
-  cam=WIDTH-W;hero.x=3850;bad=[];draw();
+  if(scene!=='game'||WIDTH!==7380)throw Error('Sonnenpfad must be 80 percent longer');
+  cam=WIDTH-W;hero.x=7020;bad=[];draw();
  });
  await page.screenshot({path:`test-output/${name}-long-level-ending.png`});
  await page.evaluate(()=>{
-  start(3);hero.x=4220;hero.y=G-43;cam=WIDTH-W;draw();
+  start(3);hero.x=7750;hero.y=G-43;cam=WIDTH-W;draw();
  });
  await page.screenshot({path:`test-output/${name}-new-castle-gate.png`});
  // Show the physical exit and visible non-instant transition.
@@ -188,34 +225,34 @@ const fs=require('node:fs');
  assert.equal(await page.evaluate(()=>scene),'end','gate animation finishes then wins');
  await page.evaluate(()=>{
   start(4);
-  if(WIDTH!==2800||stages[4].ledges.length!==0||bad.length!==0)
+  if(WIDTH!==W||stages[4].ledges.length!==0||bad.length!==0)
    throw Error('Boss chamber must stay compact, uncluttered and solo');
-  boss.engaged=true;hero.x=2100;hero.y=145;hero.on=false;
+  boss.engaged=true;hero.x=285;hero.y=145;hero.on=false;
   boss.attackIndex=1;boss.phase='patrol';boss.timer=1;bossTick(1,hero.y);
   if(boss.phase!=='volleyWarn')throw Error('Boss should telegraph spore volley');
-  cam=1840;draw();
+  cam=0;draw();
  });
  await page.screenshot({path:`test-output/${name}-boss-volley-warning.png`});
  await page.evaluate(()=>{
-  start(4);hero.x=2100;hero.y=140;hero.on=false;boss.engaged=true;boss.phase='patrol';boss.timer=1;boss.attackIndex=2;bossTick(1,hero.y);
+  start(4);hero.x=285;hero.y=140;hero.on=false;boss.engaged=true;boss.phase='patrol';boss.timer=1;boss.attackIndex=2;bossTick(1,hero.y);
   if(boss.phase!=='chargeWarn')throw Error('Boss charge warning missing');
-  cam=1840;draw();
+  cam=0;draw();
  });
  await page.screenshot({path:`test-output/${name}-boss-charge-warning.png`});
  await page.evaluate(()=>{
-  start(4);boss.engaged=true;hero.x=2110;hero.y=130;boss.hp=29;boss.hurt=0;
+  start(4);boss.engaged=true;hero.x=275;hero.y=130;boss.hp=29;boss.hurt=0;
   damageBoss(2);
   if(!boss.enraged||boss.phase!=='phaseShift')throw Error('Phase II not started');
-  cam=1840;draw();
+  cam=0;draw();
  });
  assert.match(await page.locator('#bossState').innerText(),/PHASE II/);
  await page.screenshot({path:`test-output/${name}-boss-phase-two.png`});
   // Original castle transition and throne room screenshots at the action areas.
- await page.evaluate(()=>{start(3);hero.x=2420;hero.y=G-43;cam=WIDTH-W;draw()});
+ await page.evaluate(()=>{start(3);hero.x=7720;hero.y=G-43;cam=WIDTH-W;draw()});
  await page.screenshot({path:`test-output/${name}-castle-gate.png`});
- await page.evaluate(()=>{start(3);hero.x=1090;hero.y=G-43;cam=760;draw()});
+ await page.evaluate(()=>{start(3);hero.x=2910;hero.y=G-43;cam=2600;draw()});
  await page.screenshot({path:`test-output/${name}-static-castle-path.png`});
- await page.evaluate(()=>{start(4);hero.x=2210;cam=1840;draw()});
+ await page.evaluate(()=>{start(4);hero.x=245;cam=0;draw()});
  await page.screenshot({path:`test-output/${name}-castle-throne.png`});
  assert.deepEqual(await page.evaluate(()=>({enemies:bad.length,spikes:spikes.length,gaps:stages[4].gaps.length})),{enemies:0,spikes:0,gaps:0});
  await page.evaluate(()=>{
@@ -266,7 +303,7 @@ const fs=require('node:fs');
  assert.equal(await page.locator('#bossHealthTrack').getAttribute('aria-valuenow'),String(hp));
  assert.ok((await page.locator('#bossHealthFill').evaluate(el=>getComputedStyle(el).backgroundColor)).includes('237, 52, 62'));
  await page.evaluate(()=>{
-  start(4);hero.x=2080;hero.y=130;hero.on=false;
+  start(4);hero.x=275;hero.y=130;hero.on=false;
   boss.engaged=true;boss.phase='warn';boss.timer=1;
   for(let i=0;i<47;i++)bossTick(1,hero.y);
  });
@@ -274,7 +311,7 @@ const fs=require('node:fs');
  assert.ok(await page.evaluate(()=>bossWaves.length)>0);
  // The victory is driven by defeating the boss, not by crossing the finish line.
  await page.evaluate(()=>{
-  start(4);hero.x=2220;
+  start(4);hero.x=350;
   for(let i=0;i<30;i++)step(1); // A real boss run takes time; zero-frame wins have no record duration.
   boss.engaged=true;boss.hp=1;boss.hurt=0;
   damageBoss(1);
@@ -286,7 +323,7 @@ const fs=require('node:fs');
  await page.evaluate(()=>{for(let i=0;i<42;i++)step(1)});
  assert.equal(await page.evaluate(()=>scene),'end','Slime King must end level automatically');
  assert.match(await page.locator('#heading').innerText(),/LEVEL GESCHAFFT/);
- assert.ok(await page.evaluate(()=>save.bestTimesBossV09['1-5'].mage>0));
+ assert.ok(await page.evaluate(()=>save.bestTimesBossV11['1-5'].mage>0));
  await page.evaluate(()=>start(0));
  
  await page.keyboard.down('KeyD');try{await page.waitForFunction(()=>hero.x>70,{},{timeout:20000});}catch(e){console.error(name,await page.evaluate(()=>({scene,x:hero.x,t,input,hidden:document.hidden})));throw e;}await page.keyboard.up('KeyD');
