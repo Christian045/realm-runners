@@ -8,7 +8,43 @@ const fs=require('node:fs');
  await page.goto('http://127.0.0.1:8000');
  await page.evaluate(()=>localStorage.setItem('realm-runners-save-v2',JSON.stringify({class:'hunter',unlocked:3,stars:[3,2,1],xp:87,level:4})));
  await page.reload();
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.13\.0/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.14\.0/);
+ // Main menu: compact controls; both desktop and touchscreen double activation.
+ assert.ok((await page.locator('#help').innerText()).length<350);
+ assert.equal(await page.locator('.control-help').getAttribute('open'),null);
+ await page.locator('[data-world="0"]').dblclick();
+ await page.waitForFunction(()=>scene==='game',{},{timeout:5000});
+ assert.equal(await page.evaluate(()=>stage),0);
+ await page.evaluate(()=>{menuView='worlds';menu()});
+ await page.locator('[data-world="0"]').tap();await page.locator('[data-world="0"]').tap();
+ await page.waitForFunction(()=>scene==='game',{},{timeout:5000});
+ await page.evaluate(()=>{menuView='worlds';menu()});
+ await page.locator('[data-world="0"]').click();
+ await page.locator('#levels').waitFor({state:'visible'});
+ await page.locator('[data-level="1"]').click();
+ assert.equal(await page.evaluate(()=>scene),'menu');
+ assert.equal(await page.locator('[data-level="1"]').getAttribute('aria-pressed'),'true');
+ assert.equal(await page.evaluate(()=>document.activeElement.dataset.level),'1');
+ await page.keyboard.press('Enter');assert.equal(await page.evaluate(()=>stage),1);
+ await page.evaluate(()=>{menuView='levels';menu()});
+ await page.locator('[data-level="0"]').tap();await page.locator('[data-level="1"]').tap();
+ assert.equal(await page.evaluate(()=>scene),'menu','different cards must never form a double tap');
+ await page.locator('[data-level="1"]').tap();
+ await page.waitForFunction(()=>scene==='game',{},{timeout:5000});
+ await page.evaluate(()=>{menuView='levels';menu()});
+ await page.locator('[data-level="0"]').dblclick();
+ assert.equal(await page.evaluate(()=>scene),'game');assert.equal(await page.evaluate(()=>stage),0);
+ await page.evaluate(()=>{menuView='levels';menu()});await page.keyboard.press('Escape');
+ assert.equal(await page.evaluate(()=>menuView),'worlds');
+ // A cancelled world click must not navigate after choosing a class instead.
+ await page.locator('[data-world="0"]').click();await page.locator('[data-class="mage"]').click();
+ await page.waitForTimeout(400);assert.equal(await page.evaluate(()=>menuView),'worlds');
+ await page.locator('[data-class="hunter"]').click();
+ await page.locator('[data-world="0"]').click();await page.locator('#changelogBtn').click();
+ await page.waitForTimeout(400);assert.equal(await page.evaluate(()=>menuView),'worlds');
+ assert.ok(await page.locator('#changelogOverlay').isVisible());await page.locator('#changelogClose').click();
+ await page.evaluate(()=>{selected=0;menuView='worlds';menu()});
+
  assert.ok(await page.locator('[data-world="0"]').isVisible(),'World 1 is visible');
  assert.equal(await page.locator('.world-card').count(),3);
  assert.ok(await page.locator('#changelogBtn').isVisible(),'Updates visible on main world overview');
@@ -20,6 +56,7 @@ const fs=require('node:fs');
  assert.ok(!await page.locator('#changelogOverlay').isVisible());
  await page.screenshot({path:`test-output/${name}-worlds-overview.png`});
  await page.locator('[data-world="0"]').click();
+ await page.locator('#levels').waitFor({state:'visible'});
  assert.ok(!await page.locator('#changelogBtn').isVisible(),'Updates hidden on level selection');
  assert.equal(await page.locator('.level-card').count(),5,'five stage cards');
  assert.equal(await page.locator('.level-card:disabled').count(),2,'locked stages remain locked');
@@ -88,7 +125,7 @@ const fs=require('node:fs');
  assert.equal(pixelArt.backdropSkyAlpha,255,'HD sky should be visible under gameplay');
  await page.evaluate(()=>menu());
  assert.ok(await page.locator('#pixelEditionBadge').isVisible());
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.13\.0/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.14\.0/);
  // Visual-support and scarcity checks for all four new adventure routes.
  await page.evaluate(()=>{
   const expected=[15,16,15,16];
@@ -129,7 +166,7 @@ const fs=require('node:fs');
    const cfg=stages[i];
    if(cfg.width!==target[i]||cfg.ledges.length!==ledges[i])
     throw Error('Unexpected ground-first level shape: '+i);
-   if(cfg.ledges.some(([x,y,w])=>y>425||x+w>cfg.exitX-650))
+   if(cfg.ledges.some(([x,y,w])=>y>445||x+w>cfg.exitX-650))
     throw Error('A low or final-runway platform remains: '+i);
    if(cfg.ledges.some(([x,y,w])=>!hasSceneryFoundation(x+16,12,i)||!hasSceneryFoundation(x+w-30,14,i)))
     throw Error('Floating platform support: '+i);

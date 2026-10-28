@@ -56,24 +56,27 @@ function stairRoute(x,y,width=140,step=24){
  return [[x,y,70],[x+70,y-step,70],[x+140,y-step*2,width],[x+140+width,y-step,70],[x+210+width,y,70]];
 }
 const COURSE_PATHS=[
- [[1390,421,170],[2940,377,180],[4600,385,155],[5920,381,176]],
- [[1130,330,330],[2210,330,340],[3300,300,360],[4500,318,340],[5590,306,330]],
+ [[1390,441,104],[2998,385,104],[4600,393,104],[6064,389,104]],
+ [[1130,330,220],[2210,330,230],[3300,300,220],[4500,318,220],[5590,306,220]],
  [...stairRoute(1070,409),...stairRoute(3040,393,160),...stairRoute(5340,393)],
  [[1450,409,80],[1530,385,240],[1770,409,80],
   [2610,393,80],[2690,369,240],[2930,393,80],
   [3830,393,80],[3910,369,240],[4150,393,80],
   [5040,393,80],[5120,369,240],[5360,393,80]]
 ];
-const COURSE_STARS=[[[1470,376],[4670,340],[5995,336]],
+const COURSE_STARS=[[[1442,396],[4652,348],[6116,344]],
  [[1290,285],[3470,255],[5750,261]],
  [[1280,316],[3250,300],[5550,300]],
  [[1650,340],[4030,324],[5240,324]]];
 for(let i=0;i<WORLD_ONE_LAYOUTS.length;i++){
- const c=WORLD_ONE_LAYOUTS[i];c.ledges=COURSE_PATHS[i];c.stars=COURSE_STARS[i];c.spikes=[];
+ const c=WORLD_ONE_LAYOUTS[i];c.ledges=COURSE_PATHS[i];c.stars=COURSE_STARS[i].map(([x,y])=>{
+  const branch=i===1?c.ledges.find(([a,top,w])=>x>=a&&x<=a+w):null;
+  return [x,branch?y-12*(x-branch[0])/branch[2]:y];
+ });c.spikes=[];
  c.profile=[[0,G],...COURSE_FORMS[i].flatMap(([a,b,c,d,dy])=>[[a,G],[b,G+dy],[c,G+dy],[d,G]]),[c.width,G]];
  c.hint=[
   'Sanfte Erdhügel, breite Senken und niedrige, verwurzelte Baumstämme.',
-  'Feste Äste und verbundene Holzwege über ansteigenden Waldböden.',
+  'Breite, feste Äste wachsen aus Bäumen über dem Waldpfad.',
   'Zerbrochene Steintreppen, niedrige Mauern und moosige Brückenreste.',
   'Breite Steinstufen und ein zunehmend befestigter Weg bis zur Burg.'
  ][i];
@@ -89,15 +92,21 @@ function courseGroundY(x,index=stage){
  }
  return G;
 }
-function surfaceY(p,x){return p.y+(p.yEnd===undefined?0:(p.yEnd-p.y)*Math.max(0,Math.min(1,(x-p.x)/p.w)));}
+function surfaceY(p,x){
+ if(p.roundLog){
+  const radius=12,local=Math.max(0,Math.min(p.w,x-p.x));
+  const d=local<radius?radius-local:local>p.w-radius?local-(p.w-radius):0;
+  return p.y+radius-Math.sqrt(Math.max(0,radius*radius-d*d));
+ }
+ return p.y+(p.yEnd===undefined?0:(p.yEnd-p.y)*Math.max(0,Math.min(1,(x-p.x)/p.w)));}
 function courseTopY(x,index=stage){
  let y=courseGroundY(x,index);
- for(const [a,top,w] of stages[index].ledges)if(x>=a&&x<=a+w)y=Math.min(y,top);
+ for(const [a,top,w] of stages[index].ledges)if(x>=a&&x<=a+w)y=Math.min(y,surfaceY({x:a,y:top,w,roundLog:index===0,yEnd:index===1?top-12:undefined},x));
  return y;
 }
 function courseLedges(){return stages[stage].ledges.map(([x,y,w])=>({x,y,w,
- volume:stage!==1&&!stages[stage].boss,
- bottom:Math.max(courseGroundY(x),courseGroundY(x+w),G)+12}));}
+ volume:stage!==1&&!stages[stage].boss,roundLog:stage===0,yEnd:stage===1?y-12:undefined,
+ bottom:stage===0?y+24:Math.max(courseGroundY(x),courseGroundY(x+w),G)+12}));}
 const courseGroundCache=new Map();
 let courseArtStage=-1;
 function resetCourseArt(){
@@ -161,14 +170,10 @@ function drawBiomeLandmarks(){
    ctx.fillStyle='#a2ba69';ctx.fillRect(x+24,G-200,57,9);
    ctx.fillStyle='#213d32';ctx.fillRect(x+48,G-113,12,15);ctx.restore();
   }
-  for(const x of anchors.logs){
-   if(!visible(x,78)||!hasSceneryFoundation(x,78))continue;
-   ctx.save();ctx.translate(0,Math.max(courseGroundY(x),courseGroundY(x+78))-G);ctx.fillStyle='#604d3f';ctx.fillRect(x,G-25,78,26);
-   ctx.fillStyle='#977857';ctx.fillRect(x+3,G-23,66,7);ctx.restore();
-  }
+  // Decorative rectangles removed: the four collidable fallen logs carry this motif.
  }else if(motif==='canopy'){
   for(const x of anchors.trees){
-   if(!visible(x,110)||!hasSceneryFoundation(x+24,44))continue;
+   if(!visible(x,110)||!hasSceneryFoundation(x+24,44)||courseLedges().some(p=>Math.abs(x+46-p.x-32)<155))continue;
    // All branches grow out of a trunk that visibly reaches the terrain.
    ctx.save();ctx.translate(0,Math.max(courseGroundY(x+24),courseGroundY(x+68))-G);ctx.fillStyle='#264e43';ctx.fillRect(x+24,G-290,44,290);
    ctx.fillStyle='#418569';ctx.fillRect(x+36,G-290,12,280);
@@ -211,6 +216,7 @@ function drawCoursePlatformSupports(){
  const biome=stages[stage].motif;
  for(const p of courseLedges()){
   const {x,y,w}=p;if(x+w<cam-50||x>cam+W+50)continue;
+  if(biome==='grove')continue;
   if(p.volume){
    ctx.fillStyle=biome==='grove'?'#3e4731':biome==='ruins'?'#424650':'#454051';
    ctx.fillRect(x,y,w,p.bottom-y);
@@ -222,34 +228,57 @@ function drawCoursePlatformSupports(){
     ctx.fillStyle='#6e8050';for(let xx=x+9;xx<x+w;xx+=31)ctx.fillRect(xx,y+8,4,p.bottom-y-8);
    }
   }else{
-   // Fixed timber decks grow out of visibly rooted trunks. No moving platforms.
-   for(const foot of [x+20,x+w-35]){
-    const ground=courseGroundY(foot+7);
-    ctx.fillStyle='#243e37';ctx.fillRect(foot-3,y+5,20,ground-y-5);
-    ctx.fillStyle='#5c8760';ctx.fillRect(foot+2,y+11,8,ground-y-11);
-    ctx.fillStyle='#355b43';ctx.fillRect(foot-10,ground-10,34,13);
-   }
-   ctx.fillStyle='#4b5c42';ctx.fillRect(x,y+7,w,11);
-   for(let xx=x+5;xx<x+w;xx+=24){ctx.fillStyle='#a3b98c';ctx.fillRect(xx,y+2,19,4);}
+   drawLivingTree(p);
+
   }
  }
 }
-// Timber must read as wood, rather than a thick blue masonry slab.
-function drawCourseTimber(p){
- const {x,y,w}=p,log=stage===0,bottom=log?p.bottom:y+21;
- ctx.fillStyle='#172a2c';ctx.fillRect(x-2,y-3,w+4,bottom-y+3);
- ctx.fillStyle=log?'#68513b':'#725b43';ctx.fillRect(x,y,w,bottom-y-2);
- ctx.fillStyle='#a38b59';ctx.fillRect(x+2,y,w-4,5);
- ctx.fillStyle=log?'#a5bb70':'#92c3a1';ctx.fillRect(x,y-2,w,3);
- for(let xx=x+6;xx<x+w-3;xx+=log?27:24){
-  ctx.fillStyle='#493d31';ctx.fillRect(xx,y+6,log?17:2,log?3:12);
-  ctx.fillStyle='#bb9b65';ctx.fillRect(xx+4,y+11,log?13:12,2);
-  if(!log){ctx.fillStyle='#263c37';ctx.fillRect(xx+3,y+6,3,3);}
+// A living tree supports each optional branch. No planks, posts or deck railings.
+function drawLivingTree(p){
+ const root=p.x+30,y=p.y,ground=Math.max(courseGroundY(root-20),courseGroundY(root+30));
+ ctx.fillStyle='#1c3435';ctx.beginPath();
+ ctx.moveTo(root-26,ground+5);ctx.quadraticCurveTo(root-3,ground-27,root-10,y+38);
+ ctx.bezierCurveTo(root-16,y-32,root-1,y-82,root+9,y-120);
+ ctx.lineTo(root+32,y-119);ctx.bezierCurveTo(root+13,y-45,root+25,y+45,root+22,ground-24);
+ ctx.lineTo(root+47,ground+5);ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#6c7050';ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(root+6,ground-7);
+ ctx.bezierCurveTo(root+1,y+45,root-1,y-32,root+20,y-118);ctx.stroke();
+ ctx.strokeStyle='#ac9b68';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(root+9,ground-20);
+ ctx.quadraticCurveTo(root+8,y+30,root+15,y-82);ctx.stroke();
+ // Leaf clusters join the top of the same trunk; they do not cover walkable edges.
+ for(const [dx,dy,rx,ry,c] of [[-18,-121,46,22,'#244f50'],[22,-137,48,26,'#386c62'],[60,-122,42,23,'#285951'],[21,-113,56,17,'#437d67']]){
+  ellipse(ctx,root+dx,y+dy,rx,ry,c);
  }
- if(log){
-  ctx.fillStyle='#b19762';ctx.fillRect(x+w-16,y+6,12,bottom-y-12);
-  ctx.fillStyle='#71573e';ctx.fillRect(x+w-13,y+11,6,Math.max(3,bottom-y-22));
-  ctx.fillStyle='#6e8050';ctx.fillRect(x+8,y+3,28,4);
+ for(let j=0;j<7;j++)ellipse(ctx,root-20+j*14,y-139+(j%3)*7,10,3,'#6a9777');
+ // A secondary fork visibly ties the branch underside into the trunk.
+ ctx.strokeStyle='#385040';ctx.lineWidth=14;ctx.beginPath();ctx.moveTo(root+9,y+63);
+ ctx.quadraticCurveTo(root+44,y+29,root+83,y+12);ctx.stroke();
+}
+function drawCourseTimber(p){
+ const {x,y,w}=p,tip=p.yEnd??y;
+ if(stage===0){
+  // Low fallen trunk with a genuinely round cross-section, not a soil block.
+  const h=24,radius=12,cy=y+radius;
+  ctx.fillStyle='#223028';ctx.beginPath();ctx.roundRect(x-1,y-1,w+2,h+2,13);ctx.fill();
+  const bark=ctx.createLinearGradient(0,y,0,y+h);bark.addColorStop(0,'#a38251');bark.addColorStop(.3,'#80613d');bark.addColorStop(1,'#483a2c');
+  ctx.fillStyle=bark;ctx.beginPath();ctx.roundRect(x,y,w,h,12);ctx.fill();
+  for(let j=0;j<4;j++){
+   line(ctx,x+16+j*4,y+5+j*4,x+w-19-j*3,y+4+j*4,j%2?'#4c3929':'#bd975e',j===0?2:1);
+  }
+  ellipse(ctx,x+w-10,cy,8,10,'#d3b47b');ellipse(ctx,x+w-10,cy,5.5,7,'#88613c');
+  ellipse(ctx,x+w-10,cy,3.7,5,'#cfa66b');ellipse(ctx,x+w-10,cy,1.5,2.3,'#795334');
+  ctx.fillStyle='#809657';ctx.fillRect(x+22,y+1,22,3);ctx.fillStyle='#a5b873';ctx.fillRect(x+27,y,10,2);
+ }else{
+  // Flat readable top; irregular, tapering underside makes this a thick branch.
+  ctx.fillStyle='#1d3430';ctx.beginPath();ctx.moveTo(x,y-1);ctx.lineTo(x+w-9,tip-1);
+  ctx.quadraticCurveTo(x+w+1,tip+1,x+w-2,tip+5);
+  ctx.quadraticCurveTo(x+w*.65,y+7,x+w*.27,y+19);
+  ctx.quadraticCurveTo(x+7,y+27,x-3,y+10);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#786441';ctx.beginPath();ctx.moveTo(x+6,y+3);ctx.lineTo(x+w-11,tip+2);
+  ctx.quadraticCurveTo(x+w*.66,y+10,x+w*.3,y+15);ctx.lineTo(x+7,y+16);ctx.closePath();ctx.fill();
+  for(let j=0;j<4;j++)line(ctx,x+20+j*31,y+8-j*2,x+40+j*32,y+6-j*2,'#aa8c59',2);
+  line(ctx,x+5,y,x+w-8,tip,'#9cb97b',3);
+  for(let j=0;j<4;j++)ellipse(ctx,x+w-22+j*4,tip+14+j*5,7,2,'#54836a');
  }
 }
 function drawWorldStar(cx,cy){

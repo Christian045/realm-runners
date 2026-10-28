@@ -39,7 +39,7 @@ let save;try{save=JSON.parse(localStorage.getItem('realm-runners-save-v2')||'nul
 const input={left:false,right:false,jump:false,dash:false,attack:false},heldKeys=new Set(),heldPointers=new Map(),heldTouches=new Map();
 const keymap={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'jump',KeyW:'jump',Space:'jump',ShiftLeft:'dash',ShiftRight:'dash',KeyJ:'dash',KeyK:'attack',KeyF:'attack'};
 function syncInput(){for(const k of Object.keys(input))input[k]=[...heldKeys].some(code=>keymap[code]===k)||[...heldPointers.values(),...heldTouches.values()].includes(k);document.querySelectorAll('[data-control]').forEach(b=>b.classList.toggle('pressed',input[b.dataset.control]));}
-function clearInput(){if(hero)hero.jumpBuffer=0;heldKeys.clear();heldPointers.clear();heldTouches.clear();clearSelection();syncInput();jumpWas=false;}
+function clearInput(){if(typeof cancelMenuTap==='function')cancelMenuTap();if(hero)hero.jumpBuffer=0;heldKeys.clear();heldPointers.clear();heldTouches.clear();clearSelection();syncInput();jumpWas=false;}
 addEventListener('keydown',e=>{if(e.code==='Escape'){e.preventDefault();if(scene==='game')pause();else if(scene==='pause')resume();}if(e.code==='KeyR'&&(scene==='game'||scene==='end')){e.preventDefault();start(stage);return;}if(keymap[e.code]){e.preventDefault();if(scene==='game'){heldKeys.add(e.code);syncInput();}}});
 addEventListener('keyup',e=>{heldKeys.delete(e.code);syncInput();});
 addEventListener('blur',()=>{clearInput();if(scene==='game')pause();});
@@ -255,7 +255,7 @@ function step(dt){
  const geometry=solids();
  // Raised landforms and masonry have real side walls. Timber branches retain
  // one-way landing, so jumping onto a fixed upper route remains responsive.
- for(const p of geometry)if(p.volume&&h.y+h.h>p.y+1&&h.y<p.bottom){
+ for(const p of geometry)if(p.volume&&h.y+h.h>(p.roundLog?p.y+12:p.y)+1&&h.y<p.bottom){
   if(prevX+h.w<=p.x+.01&&h.x+h.w>p.x){h.x=p.x-h.w;h.vx=0;}
   else if(prevX>=p.x+p.w-.01&&h.x<p.x+p.w){h.x=p.x+p.w;h.vx=0;}
   else if(prevY>=p.bottom&&h.y<p.bottom&&h.x+h.w>p.x&&h.x<p.x+p.w){h.y=p.bottom;h.vy=Math.max(0,h.vy);h.jumpActive=false;}
@@ -263,7 +263,7 @@ function step(dt){
  const center=h.x+h.w/2,centerOnGround=geometry.some(p=>p.ground&&center>=p.x&&center<=p.x+p.w);
  for(const p of geometry)if(h.x+h.w>p.x&&h.x<p.x+p.w){
   if(p.ground&&centerOnGround&&(center<p.x||center>p.x+p.w))continue;
-  const top=surfaceY(p,h.x+h.w/2),followingSlope=p.ground&&wasOn&&h.vy>=0&&Math.abs(prevY+h.h-top)<=12;
+  const top=surfaceY(p,h.x+h.w/2),followingSlope=(p.ground||p.roundLog)&&wasOn&&h.vy>=0&&Math.abs(prevY+h.h-top)<=12;
   if(h.vy>=0&&(followingSlope||(prevY+h.h<=top+1&&h.y+h.h>=top))){
    h.y=top-h.h;h.vy=0;h.on=true;h.usedDash=false;h.jumpActive=false;h.coyote=JUMP.coyote;
   }

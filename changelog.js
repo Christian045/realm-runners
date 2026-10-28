@@ -1,6 +1,14 @@
 'use strict';
 // In-game, locally bundled release notes. No network requests or user data.
 const RELEASE_NOTES=[
+ {v:'0.14.0',title:'Aufgeräumtes Menü und natürliche Baumformen',items:[
+  'Update-Texte stehen ausschließlich im Updates-Fenster. Die Steuerungshilfe ist einklappbar.',
+  'Welt und Level können per Doppelklick oder Doppeltippen direkt gestartet werden. Einzelklick öffnet die Welt beziehungsweise wählt ein Level aus.',
+  'Enter startet den ausgewählten Abschnitt, Escape führt zur Weltübersicht zurück. Auswählen erhält Kartenfokus und Scrollposition.',
+  'Die dicken eckigen Baumstammkästen wurden durch niedrige, runde Stämme mit sichtbaren Jahresringen ersetzt.',
+  'Holzdecks auf Pfosten sind durch kürzere, organische Äste ersetzt. Verzweigte Baumstämme tragen die Äste sichtbar bis zum Boden.',
+  'Klassen, Sprungphysik, Level-Längen, Bossraum und RPG-Fortschritt bleiben erhalten. Neue Zeiten unter bestTimesV14; frühere Rekorde bleiben bestehen.'
+ ]},
  {v:'0.13.0',title:'Zusammenhängende Landschaften und natürliche Laufwege',items:[
   'Sonnenpfad: echte sanfte Erdhügel, breite Senken und niedrige verwurzelte Baumstämme.',
   'Baumkronen: feste, breite Holzwege und Äste mit sichtbar geerdeten Stämmen.',
@@ -115,7 +123,7 @@ const RELEASE_NOTES=[
  // Only available from the world overview; never blocks game controls.
  function openChangelog(){
   if(scene!=='menu'||menuView!=='worlds')return;
-  modal.classList.remove('hide');btn.setAttribute('aria-expanded','true');
+  cancelMenuTap();modal.classList.remove('hide');btn.setAttribute('aria-expanded','true');
   closeBtn.focus();
  }
  function closeChangelog(){

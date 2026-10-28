@@ -1,6 +1,28 @@
-# Realm Runners v0.13 – natürliche Landschaften und flüssige Laufwege
+# Realm Runners v0.14 – aufgeräumtes Menü und natürliche Baumformen
 
-**Spielen: https://christian045.github.io/realm-runners/?v=0.13.0**
+**Spielen: https://christian045.github.io/realm-runners/?v=0.14.0**
+
+## Neu in v0.14
+
+- Hauptmenü ohne Update-Beschreibung oder langen Versionsbanner. Historie nur über **Updates**; die Steuerungshilfe bleibt eingeklappt, bis sie gebraucht wird.
+- **Doppelklick / Doppeltippen auf die Welt** startet den ausgewählten freigeschalteten Abschnitt direkt. Einmal anklicken öffnet weiterhin die Levelauswahl.
+- **Levelkarte einmal auswählen, doppelt starten.** Der Spielen-Knopf bleibt vorhanden. Enter startet den ausgewählten Abschnitt; Escape führt von der Levelauswahl zurück zur Weltübersicht. Gesperrte Level können nicht gestartet werden.
+- Levelauswahl erhält DOM, Tastaturfokus und Scrollposition. Doppeltippen zweier unterschiedlicher Karten löst keinen Start aus.
+- Vier niedrige, kleinere, **runde Baumstämme** mit Rinde, Schnittflächen und Jahresringen ersetzen die großen rechteckigen Kästen. Die Kollisionsoberfläche folgt der Rundung.
+- Die geraden Holzbrückendecks auf Pfosten sind ersetzt durch **kürzere feste Äste**, die aus verzweigten, bis zum Boden reichenden Bäumen wachsen. Keine Planken, Geländer oder frei stehenden Brückenpfosten.
+- Münzen und Sterne passen zu den neuen Abmessungen. Bewährte Landschaftsverläufe, Level-Längen, Klassen, Sprungparameter und Bossraum bleiben erhalten.
+- Neue Abenteuerzeiten unter `bestTimesV14`; v0.13 und alle älteren Zeiten, Gold, XP, Skills, Ausrüstung und Freischaltungen werden übernommen. Der Boss bleibt auf `bestTimesBossV11`.
+
+### Schnelltest auf iPhone und Windows
+
+1. Die URL oben öffnen; im Menü steht **v0.14.0**. Keine Website-Daten löschen.
+2. **Updates** öffnen/schließen. Im Hauptmenü soll die lange Update-Beschreibung fehlen; „Steuerung“ bei Bedarf ausklappen.
+3. Welt einmal antippen: Levelauswahl. Ein Level einmal auswählen, dann über Spielen oder Enter starten. Welt beziehungsweise Level doppelt antippen: direkter Start.
+4. Zwei unterschiedliche Level schnell nacheinander auswählen: nur die Auswahl ändert sich. Gesperrte Level bleiben gesperrt. Escape führt zur Weltübersicht zurück.
+5. Sonnenpfad: die flacheren runden Stämme von beiden Seiten überspringen und darauf landen. Baumkronen: die festen Äste anspringen, ihre Verbindung zum Stamm und den Boden prüfen.
+6. Auf dem iPhone Bewegung halten und mit dem zweiten Finger springen/angreifen. Nach einem Levelabschluss neu laden und Fortschritt kontrollieren.
+
+## Frühere Updates
 
 ## Neu in v0.13
 

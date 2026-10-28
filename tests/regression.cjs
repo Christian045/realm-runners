@@ -12,7 +12,7 @@ function harness(initial){const elements=new Map(),listeners={},storage=new Map(
 }
 let checks=0;function test(name,fn){fn();checks++;console.log('PASS',name);}
 const h=harness({class:'mage',unlocked:3,stars:[3,2,1],xp:87,level:4,custom:'preserved'});
-test('v0.2 progress and unknown fields survive loading and saving',()=>{h.run('persist()');const data=JSON.parse(h.storage.get('realm-runners-save-v2'));for(const [k,v] of Object.entries({class:'mage',unlocked:3,xp:87,level:4,custom:'preserved'}))assert.deepEqual(data[k],v);assert.deepEqual(data.stars,[3,2,1,0,0]);assert.equal(data.saveVersion,10);});
+test('v0.2 progress and unknown fields survive loading and saving',()=>{h.run('persist()');const data=JSON.parse(h.storage.get('realm-runners-save-v2'));for(const [k,v] of Object.entries({class:'mage',unlocked:3,xp:87,level:4,custom:'preserved'}))assert.deepEqual(data[k],v);assert.deepEqual(data.stars,[3,2,1,0,0]);assert.equal(data.saveVersion,11);});
 test('all levels and classes render; terrain cache bounded',()=>{for(let s=0;s<5;s++)for(const c of ['warrior','hunter','mage']){h.run(`save.class='${c}';start(${s});for(let i=0;i<40;i++)step(1);draw()`);}assert.ok(h.run('terrainCache.size')<=64);});
 test('ground collision and jump',()=>{h.run('start(0);for(let i=0;i<60;i++)step(1)');assert.equal(h.run('hero.on'),true);const y=h.run('hero.y');h.run('input.jump=true;step(1)');assert.ok(h.run('hero.y')<y);});
 test('coin and star rewards emit particles',()=>{h.run("start(0);things=[{x:hero.x+15,y:hero.y+20,type:'star',taken:false}];step(1)");assert.equal(h.run('hero.stars'),1);assert.equal(h.run('hero.earned'),25);assert.ok(h.run('particles.length')>0);});
@@ -46,7 +46,7 @@ h.run("save.class='hunter';start(0);for(let i=0;i<60;i++)step(1);hero.x=300;cam=
 console.log(`${checks} checks passed. Canvas preview: test-output/forest-v03.png`);
 
 test('v0.4 timer only advances during active simulation',()=>{h.run("start(0);for(let i=0;i<60;i++)step(1)");assert.equal(h.run('currentTime()'),1000);h.run("pause();step(1)");assert.equal(h.run('currentTime()'),1000);h.run('resume()');});
-test('v0.8 local leaderboard records best time per class',()=>{h.run("save.class='mage';start(0);for(let i=0;i<80;i++)step(1);recordTime()");const first=h.run("save.bestTimesV13['1-1'].mage");h.run('start(0);for(let i=0;i<100;i++)step(1);recordTime()');assert.equal(h.run("save.bestTimesV13['1-1'].mage"),first);});
+test('v0.8 local leaderboard records best time per class',()=>{h.run("save.class='mage';start(0);for(let i=0;i<80;i++)step(1);recordTime()");const first=h.run("save.bestTimesV14['1-1'].mage");h.run('start(0);for(let i=0;i<100;i++)step(1);recordTime()');assert.equal(h.run("save.bestTimesV14['1-1'].mage"),first);});
 test('v0.4 skills unlock in order and survive persistence',()=>{h.run("save.class='mage';save.level=5;ensureRpgSave()");assert.equal(h.run("unlockSkill('double_fireball')"),false);assert.equal(h.run("unlockSkill('fireball_damage')"),true);assert.ok(JSON.parse(h.storage.get('realm-runners-save-v2')).skills.mage.includes('fireball_damage'));});
 test('v0.4 mage projectile damages an enemy',()=>{h.run("save.class='mage';start(0);hero.x=370;hero.y=420;hero.face=1;performAttack();for(let i=0;i<12;i++)combatTick(1)");assert.ok(h.run('bad[0].hp<bad[0].maxHp||!bad[0].alive'));});
 test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';save.inventory.push('ember_staff');equipItem('ember_staff')");assert.equal(h.run("save.equipment.mage.weapon"),'ember_staff');assert.equal(h.run("equipItem('swift_bow')"),false);});
@@ -54,20 +54,20 @@ test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';
 // Guard against missing or stale runtime scripts in the published HTML.
 test('v0.4 HTML loads RPG systems before forest startup',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- const game=html.indexOf('src="game.js?v=0.13.0"');
- const rpg=html.indexOf('src="rpg.js?v=0.13.0"');
- const boss=html.indexOf('src="boss.js?v=0.13.0"');
- const enemies=html.indexOf('src="enemies.js?v=0.13.0"');
- const castleArt=html.indexOf('src="castle_art.js?v=0.13.0"');
- const hd=html.indexOf('src="hd_background.js?v=0.13.0"');
- const layout=html.indexOf('src="level_design.js?v=0.13.0"');
- const worldMap=html.indexOf('src="world_map.js?v=0.13.0"');
- const forest=html.indexOf('src="forest.js?v=0.13.0"');
- const changelog=html.indexOf('src="changelog.js?v=0.13.0"');
+ const game=html.indexOf('src="game.js?v=0.14.0"');
+ const rpg=html.indexOf('src="rpg.js?v=0.14.0"');
+ const boss=html.indexOf('src="boss.js?v=0.14.0"');
+ const enemies=html.indexOf('src="enemies.js?v=0.14.0"');
+ const castleArt=html.indexOf('src="castle_art.js?v=0.14.0"');
+ const hd=html.indexOf('src="hd_background.js?v=0.14.0"');
+ const layout=html.indexOf('src="level_design.js?v=0.14.0"');
+ const worldMap=html.indexOf('src="world_map.js?v=0.14.0"');
+ const forest=html.indexOf('src="forest.js?v=0.14.0"');
+ const changelog=html.indexOf('src="changelog.js?v=0.14.0"');
  assert.ok(game>=0 && rpg>game && boss>rpg && enemies>boss && castleArt>enemies && hd>castleArt && layout>hd && worldMap>layout && forest>worldMap && changelog>forest,'runtime scripts must load in order');
  assert.ok(html.includes('id="rpgPanels"'));
  assert.ok(html.includes('data-control="attack"'));
- assert.ok(html.includes('LEBENDIGE LAUFWEGE · 0.13.0'));assert.ok(html.includes('id="changelogBtn"'));assert.ok(html.includes('id="changelogOverlay"'));assert.ok(!html.includes('src="platforms.js'));
+ assert.ok(html.includes('>v0.14.0<'));assert.ok(html.includes('id="changelogBtn"'));assert.ok(html.includes('id="changelogOverlay"'));assert.ok(!html.includes('src="platforms.js'));
  assert.ok(html.includes('aria-valuemax="56"'));
  assert.ok(html.includes('id="bossHealthFill"'));
  assert.ok(html.includes('boss-health-fill'));
@@ -167,7 +167,7 @@ test('Pixel Edition: previous time trials remain untouched after recording new r
  h.run("save.class='mage';save.bestTimes={'1-1':{mage:69000}};save.bestTimesV05={'1-1':{mage:72000}};start(0);for(let i=0;i<90;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimes['1-1'].mage"),69000);
  assert.equal(h.run("save.bestTimesV05['1-1'].mage"),72000);
- assert.ok(h.run("save.bestTimesV13['1-1'].mage")>0);
+ assert.ok(h.run("save.bestTimesV14['1-1'].mage")>0);
 });
 test('Pixel Edition: maximum terrain gap remains passable without forced long dash',()=>{
  const gapLengths=h.run('stages.flatMap(s=>s.gaps.map(([a,b])=>b-a))');
@@ -435,7 +435,7 @@ test('v0.8 holding attack repeats after class cooldown; release stops it',()=>{
 test('v0.8 old best times and skills survive; new enemy records do not overwrite them',()=>{
  h.run("save.class='mage';save.bestTimesPixelV051['1-1']={mage:76000};save.bestTimesV08={};save.level=6;start(0);for(let i=0;i<25;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimesPixelV051['1-1'].mage"),76000);
- assert.ok(h.run("save.bestTimesV13['1-1'].mage")>0);
+ assert.ok(h.run("save.bestTimesV14['1-1'].mage")>0);
  assert.equal(h.run('save.level'),6);
  assert.equal(h.run('save.skills.mage.includes(\'fireball_damage\')'),true);
 });
@@ -523,16 +523,16 @@ test('v0.9 old records and player progression remain intact',()=>{
  h.run("save.class='hunter';save.bestTimesV08={'1-1':{hunter:35000}};save.bestTimesBossV062={'1-5':{hunter:48000}};save.bestTimesV09={};save.bestTimesBossV09={};start(0);for(let i=0;i<50;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimesV08['1-1'].hunter"),35000);
  assert.equal(h.run("save.bestTimesBossV062['1-5'].hunter"),48000);
- assert.ok(h.run("save.bestTimesV13['1-1'].hunter")>0);
+ assert.ok(h.run("save.bestTimesV14['1-1'].hunter")>0);
  h.run("start(4);for(let i=0;i<10;i++)step(1);boss.engaged=true;boss.hurt=0;boss.hp=1;damageBoss(1);for(let i=0;i<42;i++)step(1)");
  assert.equal(h.run('scene'),'end');
  assert.ok(h.run("save.bestTimesBossV11['1-5'].hunter")>0);
  assert.equal(h.run("save.bestTimesBossV062['1-5'].hunter"),48000);
- assert.equal(h.run('save.saveVersion'),10);
+ assert.equal(h.run('save.saveVersion'),11);
 });
 
 test('v0.10 world overview and level selection show records for active class',()=>{
- h.run("menuView='worlds';menu();save.unlocked=3;save.class='mage';save.bestTimesV13['1-1']={mage:92000,hunter:87000};menu()");
+ h.run("menuView='worlds';menu();save.unlocked=3;save.class='mage';save.bestTimesV14['1-1']={mage:92000,hunter:87000};menu()");
  assert.equal(h.run('scene'),'menu');
  assert.ok(h.run("document.querySelector('#worlds').innerHTML").includes('Smaragdwald'));
  assert.ok(h.run("document.querySelector('#worlds').innerHTML").includes('Frostgipfel'));
@@ -679,7 +679,7 @@ test('v0.11 stages extend ~80 percent with ground-first Mario/Sonic-style routin
   assert.ok(c.gaps.length>=5&&c.gaps.length<=7);
   assert.ok(c.gaps.every(([a,b])=>b-a<=185&&b<c.exitX-500),'no huge/late pits');
   assert.ok(c.ledges.every(([x,y,w])=>
-   y<=425&&y>=300&&x+w<c.exitX-650&&
+   y<=445&&y>=300&&x+w<c.exitX-650&&
    h.run('hasSceneryFoundation('+(x+16)+',12,'+i+')')&&
    h.run('hasSceneryFoundation('+(x+w-30)+',14,'+i+')')),
    'all elevated routes are meaningful, rooted and far from exits');
@@ -730,16 +730,16 @@ test('v0.11 the boss occupies the entire visible viewport, not a hidden sub-aren
 test('v0.11 fresh longer-course and arena records preserve all old personal bests',()=>{
  h.run("save.class='hunter';save.bestTimesV10={'1-1':{hunter:90000}};save.bestTimesBossV09={'1-5':{hunter:52000}};start(0);for(let i=0;i<35;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimesV10['1-1'].hunter"),90000);
- assert.ok(h.run("save.bestTimesV13['1-1'].hunter")>0);
+ assert.ok(h.run("save.bestTimesV14['1-1'].hunter")>0);
  h.run("start(4);for(let i=0;i<8;i++)step(1);boss.hurt=0;boss.hp=1;damageBoss(1);for(let i=0;i<BOSS_VICTORY_FRAMES;i++)step(1)");
  assert.equal(h.run('scene'),'end');
  assert.equal(h.run("save.bestTimesBossV09['1-5'].hunter"),52000);
  assert.ok(h.run("save.bestTimesBossV11['1-5'].hunter")>0);
- assert.equal(h.run('save.saveVersion'),10);
+ assert.equal(h.run('save.saveVersion'),11);
 });
 test('v0.10.1 release notes are restricted to the real main world menu',()=>{
  const all=h.run('RELEASE_NOTES.map(note=>note.v)');
- assert.deepEqual([...all],['0.13.0','0.12.0','0.11.0','0.10.1','0.10.0','0.9.1','0.9.0','0.8.0','0.7.0','0.6.2','0.6.1','0.6.0','0.5.0','0.4.0','0.1–0.3']);
+ assert.deepEqual([...all],['0.14.0','0.13.0','0.12.0','0.11.0','0.10.1','0.10.0','0.9.1','0.9.0','0.8.0','0.7.0','0.6.2','0.6.1','0.6.0','0.5.0','0.4.0','0.1–0.3']);
  assert.ok(h.run("document.querySelector('#changelogEntries').innerHTML").includes('Phase II'));
  h.run("menuView='worlds';menu()");
  assert.equal(h.run("document.querySelector('#changelogBtn').classes.has('hide')"),false);
@@ -808,7 +808,7 @@ test('v0.13 enemies and coins track relief, historic v11 and boss records surviv
  h.run("save.class='mage';save.bestTimesV11={'1-1':{mage:123456}};save.bestTimesV12={'1-1':{mage:112233}};save.bestTimesBossV11={'1-5':{mage:65432}};start(0);runFrames=900;recordTime()");
  assert.equal(h.run("save.bestTimesV11['1-1'].mage"),123456);assert.equal(h.run("save.bestTimesV12['1-1'].mage"),112233);
  assert.equal(h.run("save.bestTimesBossV11['1-5'].mage"),65432);
- assert.ok(h.run("save.bestTimesV13['1-1'].mage")>0);
+ assert.ok(h.run("save.bestTimesV14['1-1'].mage")>0);
 });
 test('v0.13 walking up and down hill seams keeps exact ground contact',()=>{
  h.run("save.class='hunter';save.equipment.hunter={};start(0);bad=[];things=[];hero.x=530;hero.y=courseGroundY(545)-hero.h;input.right=true");
@@ -826,6 +826,36 @@ test('v0.13 changing biomes immediately releases old terrain and HD canvas memor
  h.run('start(0);draw();globalThis.oldGround=[...courseGroundCache.values()][0].c;globalThis.oldHD=hdCachedPlanes[0];start(1);draw()');
  assert.equal(h.run('oldGround.width'),1);assert.equal(h.run('oldHD.width'),1);
  assert.ok(h.run('courseGroundCache.size')<20);assert.equal(h.run('hdCachedPlanes.length'),2);
+});
+test('v0.14 selection starts via Enter, returns via Escape and never opens locked stages',()=>{
+ h.run("save.unlocked=2;selected=0;menuView='levels';menu()");
+ assert.equal(h.run('selectMenuLevel(1)'),true);assert.equal(h.run('scene'),'menu');
+ h.emit('keydown',{code:'Enter'});assert.equal(h.run('scene'),'game');assert.equal(h.run('stage'),1);
+ h.run("menuView='levels';menu()");h.emit('keydown',{code:'Escape'});assert.equal(h.run('menuView'),'worlds');
+ assert.equal(h.run('selectMenuLevel(4)'),false);assert.equal(h.run('startMenuLevel(4)'),false);
+ assert.equal(h.run('startMenuLevel(-1)'),false);assert.equal(h.run('scene'),'menu');
+});
+test('v0.14 main menu contains compact controls, with release details only in Updates',()=>{
+ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ const help=html.match(/id="help">([^<]*)/)[1];
+ assert.ok(help.length<350);assert.ok(!help.includes('v0.'));
+ assert.ok(html.includes('class="control-help"'));assert.ok(!html.includes('THEMEN-LEVEL & FALLEN'));
+});
+test('v0.14 rounded logs have short 24px profiles and physical curved ends',()=>{
+ h.run('start(0)');
+ assert.ok(h.run('courseLedges().every(p=>p.w<=110&&p.bottom-p.y===24&&surfaceY(p,p.x)===p.y+12&&surfaceY(p,p.x+p.w/2)===p.y)'));
+ for(const kind of ['warrior','hunter','mage'])for(const dir of [-1,1]){
+  const result=h.run(`(()=>{save.class='${kind}';save.equipment[save.class]={};start(0);bad=[];things=[];
+   const p=courseLedges()[0];hero.x=${dir}===1?p.x-hero.w-12:p.x+p.w+12;
+   hero.y=G-hero.h;input.right=${dir}===1;input.left=${dir}===-1;input.jump=true;
+   for(let f=0;f<50;f++)step(1);
+   return {hearts:hero.hearts,x:hero.x,left:p.x,right:p.x+p.w};})()`);
+  assert.equal(result.hearts,3);assert.ok(dir===1?result.x>result.right:result.x<result.left-30);
+ }
+});
+test('v0.14 historic landscape records survive the revised log geometry',()=>{
+ h.run("save.class='mage';save.bestTimesV13={'1-1':{mage:101010}};start(0);runFrames=600;recordTime()");
+ assert.equal(h.run("save.bestTimesV13['1-1'].mage"),101010);assert.ok(h.run("save.bestTimesV14['1-1'].mage")>0);
 });
 // Export representative v0.13 scenes for visual review with the actual rasterizer.
 for(const [level,x,label] of [[0,530,'hills'],[0,1350,'roots'],[1,1110,'branches'],[2,1050,'stairs'],[3,1460,'causeway']]){

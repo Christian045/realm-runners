@@ -86,7 +86,7 @@ function ensureRpgSave(){
   }
  }
  // Fresh timing boards: preserve historic records across longer maps and harder boss.
- for(const [key,pattern] of [['bestTimesV09',/^1-[1-4]$/],['bestTimesBossV09',/^1-5$/],['bestTimesV10',/^1-[1-4]$/],['bestTimesV11',/^1-[1-4]$/],['bestTimesV12',/^1-[1-4]$/],['bestTimesV13',/^1-[1-4]$/],['bestTimesBossV11',/^1-5$/]]){
+ for(const [key,pattern] of [['bestTimesV09',/^1-[1-4]$/],['bestTimesBossV09',/^1-5$/],['bestTimesV10',/^1-[1-4]$/],['bestTimesV11',/^1-[1-4]$/],['bestTimesV12',/^1-[1-4]$/],['bestTimesV13',/^1-[1-4]$/],['bestTimesV14',/^1-[1-4]$/],['bestTimesBossV11',/^1-5$/]]){
   if(!save[key]||typeof save[key]!=='object'||Array.isArray(save[key]))save[key]={};
   for(const level of Object.keys(save[key])){
    if(!pattern.test(level)||!save[key][level]||typeof save[key][level]!=='object'||Array.isArray(save[key][level])){
@@ -101,7 +101,7 @@ function ensureRpgSave(){
  const spent=Object.values(save.skills).reduce((sum,ids)=>sum+ids.length,0);
  save.skillPoints=Math.max(0,save.level-1-spent);
  save.slimeKingWins=Number.isFinite(Number(save.slimeKingWins))?Math.max(0,Math.floor(Number(save.slimeKingWins))):0;
- save.saveVersion=10;
+ save.saveVersion=11;
 }
 ensureRpgSave();
 let runFrames=0,attackWas=false,attackCooldown=0,projectiles=[],attackFlash=0,groundLoot=[];
@@ -112,7 +112,7 @@ function currentTime(){return Math.round(runFrames*1000/60);}
 function medal(ms,levelIndex=stage){const factor=levelIndex===BOSS_LEVEL?1:2.7;return ms<=70000*factor?'GOLD':ms<=105000*factor?'SILBER':ms<=150000*factor?'BRONZE':'ZIEL';}
 function recordTime(){
  const level='1-'+(stage+1),kind=save.class,ms=currentTime();
- const board=stage===BOSS_LEVEL?save.bestTimesBossV11:save.bestTimesV13;
+ const board=stage===BOSS_LEVEL?save.bestTimesBossV11:save.bestTimesV14;
  if(!board[level])board[level]={};
  if(!board[level][kind]||ms<board[level][kind])board[level][kind]=ms;
  persist();
@@ -243,7 +243,7 @@ function equipItem(id){
 }
 function renderRpgMenu(){
  const root=$('#rpgPanels');if(!root)return;
- const kind=save.class,levelTimes=(selected===BOSS_LEVEL?save.bestTimesBossV11:save.bestTimesV13)['1-'+(selected+1)]||{};
+ const kind=save.class,levelTimes=(selected===BOSS_LEVEL?save.bestTimesBossV11:save.bestTimesV14)['1-'+(selected+1)]||{};
  const timeRows=Object.entries(classes).map(([id,c])=>'<div>'+c.label+': '+(levelTimes[id]?formatRunTime(levelTimes[id])+' '+medal(levelTimes[id],selected):'—')+'</div>').join('');
  const skills=skillCatalog[kind].map(([id,name,desc],i)=>'<button data-skill="'+id+'" '+(save.skills[kind].includes(id)||!save.skillPoints||(i>0&&!save.skills[kind].includes(skillCatalog[kind][i-1][0]))?'disabled':'')+'>'+(save.skills[kind].includes(id)?'✓ ':'✦ ')+name+' – '+desc+'</button>').join('');
  const items=save.inventory.filter(id=>{const o=itemCatalog[id];return o&&(!o.class||o.class===kind)}).map(id=>{

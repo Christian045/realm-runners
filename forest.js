@@ -316,7 +316,8 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
   // Decorations reach up to 54px to the right of their anchor. Never
   // allow flowers, torch pedestals or masonry to overhang a real pit.
   if(!hasSceneryFoundation(tx-22,80))continue;
-  ctx.save();ctx.translate(0,Math.max(courseTopY(tx-22),courseTopY(tx+58))-G);
+  if(stage===0&&stages[stage].ledges.some(([a,y,w])=>tx+58>a&&tx-22<a+w))continue;
+  ctx.save();ctx.translate(0,(stage===1?Math.max(courseGroundY(tx-22),courseGroundY(tx+58)):Math.max(courseTopY(tx-22),courseTopY(tx+58)))-G);
   if(stage===0){
    // Giant woodland mushrooms, golden flower heads, bright leafy shrubs.
    ctx.fillStyle='#2c6241';ctx.fillRect(tx-20,G-20,40,20);
