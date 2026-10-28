@@ -111,16 +111,14 @@ function start(i,hearts=3){
   jumpBuffer:0,jumpHeld:0,jumpActive:false,safeX:spawnX,safeY:spawnY,hitFlash:0};
  cam=Math.max(0,Math.min(WIDTH-W,hero.x-350));
  things=[];bad=[];spikes=stages[i].spikes.map(x=>({x,y:G-18,w:44,h:18}));
- // Sparse, intentional coin pickups instead of a uniform 70-unit trail.
- // Only place them over an actual continuous ground segment, clear of spikes,
- // and stop before each thematic exit. Stars remain fixed collectibles.
- const COIN_SPACING=240;
+ // Every level authors a small number of meaningful pickups. None can
+ // hang over a pit, overlap spikes or obscure a level exit.
  if(!stages[i].boss){
   const ground=land();
-  for(let n=0,x=185;x<stages[i].exitX-110;x+=COIN_SPACING,n++){
+  for(const [n,x] of stages[i].coinSpots.entries()){
    const supported=ground.some(p=>x-22>=p.x&&x+22<=p.x+p.w);
    const hazardous=spikes.some(p=>x>=p.x-58&&x<=p.x+p.w+58);
-   if(!supported||hazardous)continue;
+   if(!supported||hazardous||x>=stages[i].exitX-110)continue;
    things.push({x,y:G-43-(n%3===1?22:0),type:'coin',taken:false});
   }
  }
