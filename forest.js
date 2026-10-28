@@ -316,6 +316,7 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
   // Decorations reach up to 54px to the right of their anchor. Never
   // allow flowers, torch pedestals or masonry to overhang a real pit.
   if(!hasSceneryFoundation(tx-22,80))continue;
+  if((stage===2||stage===3)&&Math.floor(tx/136)%3!==0)continue;
   if(stage===0&&stages[stage].ledges.some(([a,y,w])=>tx+58>a&&tx-22<a+w))continue;
   ctx.save();ctx.translate(0,(stage===1?Math.max(courseGroundY(tx-22),courseGroundY(tx+58)):Math.max(courseTopY(tx-22),courseTopY(tx+58)))-G);
   if(stage===0){
@@ -335,21 +336,10 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
     line(ctx,tx+29,G,tx+12+j*10,G-11-(j%2)*9,'#82aa8d',2);
     ellipse(ctx,tx+13+j*10,G-11-(j%2)*9,5,2,'#96b79a');
    }
-  }else if(stage===3&&tx>3550){
-   // Approaching the gate: broken battlements and warm torchlights.
-   ctx.fillStyle='#3a3449';ctx.fillRect(tx-16,G-34,40,34);
-   ctx.fillStyle='#8b7581';ctx.fillRect(tx-21,G-39,51,8);
-   ctx.fillStyle='#a98f7b';ctx.fillRect(tx-11,G-30,11,5);
-   ctx.fillStyle='#b97d55';ctx.fillRect(tx+31,G-33,13,29);
-   ctx.fillStyle='#ffcd79';ctx.fillRect(tx+34,G-48,7,20);
-   ctx.fillStyle='#fff0b6';ctx.fillRect(tx+36,G-43,3,10);
   }else if(stage===3){
-   // Neon fungi and contrasting cyan glow below active platforms.
-   ctx.fillStyle='#273d4f';ctx.fillRect(tx-16,G-30,36,30);
-   ctx.fillStyle='#81d6c4';ctx.fillRect(tx-12,G-38,30,10);
-   ctx.fillStyle='#d8b0ed';ctx.fillRect(tx-4,G-45,15,9);
-   ctx.fillStyle='#b3efd0';ctx.fillRect(tx+30,G-17,8,17);
-   ctx.fillStyle='#edc5fd';ctx.fillRect(tx+20,G-27,28,10);
+   ctx.fillStyle='#393a45';ctx.fillRect(tx-12,G-10,24,10);
+   ctx.fillStyle='#8a827c';ctx.fillRect(tx-10,G-12,19,3);
+   ctx.fillStyle='#6b8065';ctx.fillRect(tx-9,G-5,9,3);
   }else if(stage===4){
    // Royal banners and torch pixels; kept away from collision silhouettes.
    ctx.fillStyle='#3b2e45';ctx.fillRect(tx-17,G-42,36,42);
@@ -359,14 +349,10 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
    ctx.fillStyle='#8d444f';ctx.fillRect(tx+28,G-45,10,26);
    ctx.fillStyle='#e9a05b';ctx.fillRect(tx+30,G-43,6,12);
   }else{
-   // Broken masonry, moss drapes and glowing amber relics.
-   ctx.fillStyle='#655c66';ctx.fillRect(tx-16,G-36,36,36);
-   ctx.fillStyle='#a28d83';ctx.fillRect(tx-20,G-40,44,9);
-   ctx.fillStyle='#3c424b';ctx.fillRect(tx-5,G-24,10,12);
-   ctx.fillStyle='#89a371';ctx.fillRect(tx-20,G-40,24,4);
-   ctx.fillStyle='#e4b471';ctx.fillRect(tx+31,G-37,13,20);
-   ctx.fillStyle='#ffdf97';ctx.fillRect(tx+34,G-34,7,13);
-   ctx.fillStyle='#7a5861';ctx.fillRect(tx+28,G-17,18,17);
+   ctx.fillStyle='#48494d';ctx.fillRect(tx-12,G-13,24,13);
+   ctx.fillStyle='#8e9587';ctx.fillRect(tx-9,G-15,17,4);
+   ctx.fillStyle='#6d906b';ctx.fillRect(tx-13,G-7,15,3);
+
   }
   ctx.restore();
  }

@@ -1,6 +1,24 @@
-# Realm Runners v0.15 – Baumkronen ohne Brücken
+# Realm Runners v0.16 – Ruinen und Königstraße aufgeräumt, schlanke Bäume zurück
 
-**Spielen: https://christian045.github.io/realm-runners/?v=0.15.0**
+**Spielen: https://christian045.github.io/realm-runners/?v=0.16.0**
+
+## Neu in v0.16
+
+- **1-3 Versunkene Ruinen und 1-4 Königstraße:** Die großen aufgesetzten Stufen-/Steinblöcke entfallen. Die begehbaren Wege verwenden die zusammenhängenden Geländeformen, mit kleinen verwitterten Steinresten statt massiver Klötze.
+- **Kulisse:** Die großen schwarzen Ruinentore und blockigen Straßentürme sind durch kleine Steinreste ersetzt. Boden-Dekoration wurde verkleinert und ausgedünnt. Der vollständige Schlosseingang am Ende der Königstraße bleibt erhalten.
+- **1-2 Baumkronen:** Wieder fünf Bäume mit festen begehbaren Ästen. Stämme etwa halb so breit, Äste nur noch 2–9 Pixel dick, kleinere Blattkronen, keine Brückenpfosten oder Planken.
+- **Spielstände:** Neue Zeiten für Level 1-2 bis 1-4 unter `bestTimesV16`. Alle älteren Rekorde bleiben erhalten. Sonnenpfad verwendet weiter `bestTimesV14`, der Boss weiter `bestTimesBossV11`.
+- Sonnenpfad, Level-Längen, Sprungparameter, Mehrfinger-Steuerung, Gold, XP, Skills, Ausrüstung und Freischaltungen bleiben erhalten.
+
+### Kurz prüfen
+
+1. Die URL oben öffnen; das Menü zeigt **v0.16.0**. Keine Website-Daten löschen.
+2. Baumkronen: die schlanken Bäume und ihre dünnen Äste anspringen. Die drei Sterne müssen mit jeder Klasse erreichbar sein.
+3. Versunkene Ruinen und Königstraße: keine großen Stufenhaufen und massiven aufgesetzten Objekte mehr; die Wege bergauf und bergab durchlaufen, die Sterne anspringen.
+4. Königstraße bis zum Schlosseingang spielen; Bossraum und Kampf danach wie gewohnt prüfen.
+5. Auf dem iPhone Laufen, langes/kurzes Springen und Angriff gleichzeitig testen. Menü-Doppeltippen und gespeicherte Fortschritte nach Neuladen prüfen.
+
+## Frühere Updates
 
 ## Neu in v0.15
 

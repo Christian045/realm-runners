@@ -12,7 +12,7 @@ function harness(initial){const elements=new Map(),listeners={},storage=new Map(
 }
 let checks=0;function test(name,fn){fn();checks++;console.log('PASS',name);}
 const h=harness({class:'mage',unlocked:3,stars:[3,2,1],xp:87,level:4,custom:'preserved'});
-test('v0.2 progress and unknown fields survive loading and saving',()=>{h.run('persist()');const data=JSON.parse(h.storage.get('realm-runners-save-v2'));for(const [k,v] of Object.entries({class:'mage',unlocked:3,xp:87,level:4,custom:'preserved'}))assert.deepEqual(data[k],v);assert.deepEqual(data.stars,[3,2,1,0,0]);assert.equal(data.saveVersion,12);});
+test('v0.2 progress and unknown fields survive loading and saving',()=>{h.run('persist()');const data=JSON.parse(h.storage.get('realm-runners-save-v2'));for(const [k,v] of Object.entries({class:'mage',unlocked:3,xp:87,level:4,custom:'preserved'}))assert.deepEqual(data[k],v);assert.deepEqual(data.stars,[3,2,1,0,0]);assert.equal(data.saveVersion,13);});
 test('all levels and classes render; terrain cache bounded',()=>{for(let s=0;s<5;s++)for(const c of ['warrior','hunter','mage']){h.run(`save.class='${c}';start(${s});for(let i=0;i<40;i++)step(1);draw()`);}assert.ok(h.run('terrainCache.size')<=64);});
 test('ground collision and jump',()=>{h.run('start(0);for(let i=0;i<60;i++)step(1)');assert.equal(h.run('hero.on'),true);const y=h.run('hero.y');h.run('input.jump=true;step(1)');assert.ok(h.run('hero.y')<y);});
 test('coin and star rewards emit particles',()=>{h.run("start(0);things=[{x:hero.x+15,y:hero.y+20,type:'star',taken:false}];step(1)");assert.equal(h.run('hero.stars'),1);assert.equal(h.run('hero.earned'),25);assert.ok(h.run('particles.length')>0);});
@@ -54,20 +54,20 @@ test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';
 // Guard against missing or stale runtime scripts in the published HTML.
 test('v0.4 HTML loads RPG systems before forest startup',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- const game=html.indexOf('src="game.js?v=0.15.0"');
- const rpg=html.indexOf('src="rpg.js?v=0.15.0"');
- const boss=html.indexOf('src="boss.js?v=0.15.0"');
- const enemies=html.indexOf('src="enemies.js?v=0.15.0"');
- const castleArt=html.indexOf('src="castle_art.js?v=0.15.0"');
- const hd=html.indexOf('src="hd_background.js?v=0.15.0"');
- const layout=html.indexOf('src="level_design.js?v=0.15.0"');
- const worldMap=html.indexOf('src="world_map.js?v=0.15.0"');
- const forest=html.indexOf('src="forest.js?v=0.15.0"');
- const changelog=html.indexOf('src="changelog.js?v=0.15.0"');
+ const game=html.indexOf('src="game.js?v=0.16.0"');
+ const rpg=html.indexOf('src="rpg.js?v=0.16.0"');
+ const boss=html.indexOf('src="boss.js?v=0.16.0"');
+ const enemies=html.indexOf('src="enemies.js?v=0.16.0"');
+ const castleArt=html.indexOf('src="castle_art.js?v=0.16.0"');
+ const hd=html.indexOf('src="hd_background.js?v=0.16.0"');
+ const layout=html.indexOf('src="level_design.js?v=0.16.0"');
+ const worldMap=html.indexOf('src="world_map.js?v=0.16.0"');
+ const forest=html.indexOf('src="forest.js?v=0.16.0"');
+ const changelog=html.indexOf('src="changelog.js?v=0.16.0"');
  assert.ok(game>=0 && rpg>game && boss>rpg && enemies>boss && castleArt>enemies && hd>castleArt && layout>hd && worldMap>layout && forest>worldMap && changelog>forest,'runtime scripts must load in order');
  assert.ok(html.includes('id="rpgPanels"'));
  assert.ok(html.includes('data-control="attack"'));
- assert.ok(html.includes('>v0.15.0<'));assert.ok(html.includes('id="changelogBtn"'));assert.ok(html.includes('id="changelogOverlay"'));assert.ok(!html.includes('src="platforms.js'));
+ assert.ok(html.includes('>v0.16.0<'));assert.ok(html.includes('id="changelogBtn"'));assert.ok(html.includes('id="changelogOverlay"'));assert.ok(!html.includes('src="platforms.js'));
  assert.ok(html.includes('aria-valuemax="56"'));
  assert.ok(html.includes('id="bossHealthFill"'));
  assert.ok(html.includes('boss-health-fill'));
@@ -105,7 +105,7 @@ test('v0.5 stages have safe gaps, distinct paths, stars and no checkpoint state'
  const geometry=h.run('stages.map(s=>({gaps:s.gaps,ledges:s.ledges,stars:s.stars,enemies:s.enemies,spikes:s.spikes,boss:s.boss}))');
  const signatures=new Set(geometry.map(s=>JSON.stringify(s.gaps)));
  assert.equal(signatures.size,5);
- assert.ok(geometry.filter(s=>!s.boss).every((s,i)=>(i===1?s.ledges.length===0:s.ledges.length>=4)&&s.stars.length===3));
+ assert.ok(geometry.filter(s=>!s.boss).every((s,i)=>(i>=2?s.ledges.length===0:s.ledges.length>=4)&&s.stars.length===3));
  assert.ok(geometry.find(s=>s.boss).enemies.length===0);
  for(const s of geometry){
   for(const [a,b] of s.gaps)assert.ok(a>150&&b-a<=210&&b<8000);
@@ -441,11 +441,11 @@ test('v0.8 old best times and skills survive; new enemy records do not overwrite
 });
 
 test('v0.10 distinct curated level geometry and themed exit animation',()=>{
- const cfg=h.run('stages.map(s=>({width:s.width,gaps:s.gaps,ledges:s.ledges,enemies:s.enemies,spikes:s.spikes,stars:s.stars,exitX:s.exitX,motif:s.motif}))');
+ const cfg=h.run('stages.map(s=>({width:s.width,gaps:s.gaps,ledges:s.ledges,enemies:s.enemies,spikes:s.spikes,stars:s.stars,exitX:s.exitX,motif:s.motif,profile:s.profile}))');
  assert.deepEqual([...cfg.slice(0,4).map(s=>s.width)],[7380,7740,7920,8100]);
  assert.deepEqual([...cfg.slice(0,4).map(s=>s.gaps.length)],[5,7,7,6]);
  assert.equal(new Set(cfg.slice(0,4).map(s=>s.motif)).size,4);
- assert.equal(new Set(cfg.slice(0,4).map(s=>JSON.stringify(s.ledges))).size,4);
+ assert.equal(new Set(cfg.slice(0,4).map(s=>JSON.stringify([s.ledges,s.profile]))).size,4);
  for(let i=0;i<4;i++){
   assert.ok(cfg[i].stars.length===3&&cfg[i].enemies.length>=9);
   assert.ok(cfg[i].gaps.every(([a,b])=>b-a<=200&&b<cfg[i].width-250));
@@ -528,7 +528,7 @@ test('v0.9 old records and player progression remain intact',()=>{
  assert.equal(h.run('scene'),'end');
  assert.ok(h.run("save.bestTimesBossV11['1-5'].hunter")>0);
  assert.equal(h.run("save.bestTimesBossV062['1-5'].hunter"),48000);
- assert.equal(h.run('save.saveVersion'),12);
+ assert.equal(h.run('save.saveVersion'),13);
 });
 
 test('v0.10 world overview and level selection show records for active class',()=>{
@@ -669,7 +669,7 @@ test('v0.10.1 authored coins are scarce, safe and never hover above a gap',()=>{
 test('v0.11 stages extend ~80 percent with ground-first Mario/Sonic-style routing',()=>{
  const cfg=h.run('stages.slice(0,4).map(s=>({width:s.width,exitX:s.exitX,gaps:s.gaps,ledges:s.ledges,spikes:s.spikes,enemies:s.enemies,stars:s.stars,coins:s.coinSpots}))');
  assert.deepEqual([...cfg.map(s=>s.width)],[7380,7740,7920,8100]);
- assert.deepEqual([...cfg.map(s=>s.ledges.length)],[4,0,15,12]);
+ assert.deepEqual([...cfg.map(s=>s.ledges.length)],[4,5,0,0]);
  const older=[4100,4300,4400,4500];
  for(let i=0;i<4;i++){
   const c=cfg[i];
@@ -735,11 +735,11 @@ test('v0.11 fresh longer-course and arena records preserve all old personal best
  assert.equal(h.run('scene'),'end');
  assert.equal(h.run("save.bestTimesBossV09['1-5'].hunter"),52000);
  assert.ok(h.run("save.bestTimesBossV11['1-5'].hunter")>0);
- assert.equal(h.run('save.saveVersion'),12);
+ assert.equal(h.run('save.saveVersion'),13);
 });
 test('v0.10.1 release notes are restricted to the real main world menu',()=>{
  const all=h.run('RELEASE_NOTES.map(note=>note.v)');
- assert.deepEqual([...all],['0.15.0','0.14.0','0.13.0','0.12.0','0.11.0','0.10.1','0.10.0','0.9.1','0.9.0','0.8.0','0.7.0','0.6.2','0.6.1','0.6.0','0.5.0','0.4.0','0.1–0.3']);
+ assert.deepEqual([...all],['0.16.0','0.15.0','0.14.0','0.13.0','0.12.0','0.11.0','0.10.1','0.10.0','0.9.1','0.9.0','0.8.0','0.7.0','0.6.2','0.6.1','0.6.0','0.5.0','0.4.0','0.1–0.3']);
  assert.ok(h.run("document.querySelector('#changelogEntries').innerHTML").includes('Phase II'));
  h.run("menuView='worlds';menu()");
  assert.equal(h.run("document.querySelector('#changelogBtn').classes.has('hide')"),false);
@@ -857,11 +857,14 @@ test('v0.14 historic landscape records survive the revised log geometry',()=>{
  h.run("save.class='mage';save.bestTimesV13={'1-1':{mage:101010}};start(0);runFrames=600;recordTime()");
  assert.equal(h.run("save.bestTimesV13['1-1'].mage"),101010);assert.ok(h.run("save.bestTimesV14['1-1'].mage")>0);
 });
-test('v0.15 canopy contains only connected ground and no branch or deck renderer calls',()=>{
- h.run('start(1)');assert.equal(h.run('stages[1].ledges.length'),0);
- assert.ok(h.run('solids().every(p=>p.ground)'));
- h.run('globalThis.branchCalls=0;globalThis.oldBranch=drawLivingTree;drawLivingTree=()=>branchCalls++;draw();drawLivingTree=oldBranch');
- assert.equal(h.run('branchCalls'),0);assert.equal(h.run('WIDTH'),7740);
+test('v0.16 corrected stone courses have no piled platforms; slim trees return only in canopy',()=>{
+ for(const index of [2,3]){
+  h.run(`start(${index})`);assert.equal(h.run('stages[stage].ledges.length'),0);
+  assert.ok(h.run('solids().every(p=>p.ground)'));
+ }
+ h.run('start(1);cam=1000;globalThis.branchCalls=0;globalThis.oldBranch=drawLivingTree;drawLivingTree=p=>{branchCalls++;oldBranch(p)};draw();drawLivingTree=oldBranch');
+ assert.equal(h.run('stages[1].ledges.length'),5);assert.ok(h.run('branchCalls')>0);
+ assert.ok(h.run('stages[1].ledges.every(([x,y,w])=>w<=180)'));
 });
 test('v0.15 every canopy star is reachable with a normal held jump for all classes',()=>{
  for(const kind of ['warrior','hunter','mage'])for(let i=0;i<3;i++){
@@ -872,14 +875,25 @@ test('v0.15 every canopy star is reachable with a normal held jump for all class
   assert.equal(h.run(`things[${i}].taken`),true,kind+' star '+i);assert.equal(h.run('hero.hearts'),3);
  }
 });
-test('v0.15 only the revised canopy course gets a new current record board',()=>{
- h.run("save.class='mage';save.bestTimesV14['1-2']={mage:123456};start(1);runFrames=700;recordTime()");
- assert.equal(h.run("save.bestTimesV14['1-2'].mage"),123456);
- assert.ok(h.run("save.bestTimesCanopyV15['1-2'].mage")>0);
- assert.equal(h.run("worldBestTime(1,'mage')"),h.run("save.bestTimesCanopyV15['1-2'].mage"));
+test('v0.16 revised-course boards preserve previous canopy, road and boss times',()=>{
+ h.run("save.class='mage';save.bestTimesV14['1-3']={mage:123456};save.bestTimesCanopyV15['1-2']={mage:112233};start(1);runFrames=700;recordTime()");
+ assert.equal(h.run("save.bestTimesCanopyV15['1-2'].mage"),112233);
+ assert.ok(h.run("save.bestTimesV16['1-2'].mage")>0);
+ h.run('start(2);runFrames=800;recordTime()');assert.equal(h.run("save.bestTimesV14['1-3'].mage"),123456);
+ assert.ok(h.run("save.bestTimesV16['1-3'].mage")>0);
  assert.equal(h.run('timeBoard(0)===save.bestTimesV14'),true);
- assert.equal(h.run('timeBoard(2)===save.bestTimesV14'),true);
+ assert.equal(h.run('timeBoard(3)===save.bestTimesV16'),true);
  assert.equal(h.run('timeBoard(4)===save.bestTimesBossV11'),true);
+});
+test('v0.16 stars in all three corrected courses remain reachable for every class',()=>{
+ for(let stageIndex=1;stageIndex<=3;stageIndex++)for(const kind of ['warrior','hunter','mage'])for(let index=0;index<3;index++){
+  h.run(`(()=>{save.class='${kind}';save.equipment[save.class]={};start(${stageIndex});bad=[];
+   things=things.filter(a=>a.type==='star');const target=things[${index}];hero.x=target.x-15;
+   hero.y=courseGroundY(target.x)-hero.h;hero.on=true;input.jump=true;
+   for(let f=0;f<65;f++)step(1);})()`);
+  assert.equal(h.run(`things[${index}].taken`),true,stageIndex+' '+kind+' star '+index);
+  assert.equal(h.run('hero.hearts'),3);
+ }
 });
 // Export representative v0.13 scenes for visual review with the actual rasterizer.
 for(const [level,x,label] of [[0,530,'hills'],[0,1350,'roots'],[1,1110,'branches'],[2,1050,'stairs'],[3,1460,'causeway']]){

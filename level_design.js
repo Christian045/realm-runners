@@ -57,29 +57,26 @@ function stairRoute(x,y,width=140,step=24){
 }
 const COURSE_PATHS=[
  [[1390,441,104],[2998,385,104],[4600,393,104],[6064,389,104]],
- [], // Baumkronen: the traversable ground itself supplies all elevation.
-
- [...stairRoute(1070,409),...stairRoute(3040,393,160),...stairRoute(5340,393)],
- [[1450,409,80],[1530,385,240],[1770,409,80],
-  [2610,393,80],[2690,369,240],[2930,393,80],
-  [3830,393,80],[3910,369,240],[4150,393,80],
-  [5040,393,80],[5120,369,240],[5360,393,80]]
+ [[1160,330,180],[2260,326,170],[3330,315,180],[4520,326,165],[5620,320,180]],
+ [], // Ruins: masonry belongs to the continuous ground, not piled platforms.
+ []  // King road: an integrated paved route, without block towers on the path.
 ];
+const CANOPY_RISE=8;
 const COURSE_STARS=[[[1442,396],[4652,348],[6116,344]],
- [[1350,291],[3450,287],[5750,295]],
+ [[1260,285],[3430,270],[5720,275]],
  [[1280,316],[3250,300],[5550,300]],
  [[1650,340],[4030,324],[5240,324]]];
 for(let i=0;i<WORLD_ONE_LAYOUTS.length;i++){
  const c=WORLD_ONE_LAYOUTS[i];c.ledges=COURSE_PATHS[i];c.stars=COURSE_STARS[i].map(([x,y])=>{
   const branch=i===1?c.ledges.find(([a,top,w])=>x>=a&&x<=a+w):null;
-  return [x,branch?y-12*(x-branch[0])/branch[2]:y];
+  return [x,branch?y-CANOPY_RISE*(x-branch[0])/branch[2]:y];
  });c.spikes=[];
  c.profile=[[0,G],...COURSE_FORMS[i].flatMap(([a,b,c,d,dy])=>[[a,G],[b,G+dy],[c,G+dy],[d,G]]),[c.width,G]];
  c.hint=[
   'Sanfte Erdhügel, breite Senken und niedrige, verwurzelte Baumstämme.',
-  'Bewachsene Felsrücken, breite Kuppen und Sprungziele über dem Waldpfad.',
-  'Zerbrochene Steintreppen, niedrige Mauern und moosige Brückenreste.',
-  'Breite Steinstufen und ein zunehmend befestigter Weg bis zur Burg.'
+  'Schlanke Bäume mit dünnen Ästen und breiten Waldwegen.',
+  'Moosige Steinwege und kleine verwitterte Ruinenreste.',
+  'Ein ruhiger gepflasterter Weg bis zum Burgtor.'
  ][i];
 }
 // Same height function for physics, enemies, scenery and the terrain painter.
@@ -102,11 +99,11 @@ function surfaceY(p,x){
  return p.y+(p.yEnd===undefined?0:(p.yEnd-p.y)*Math.max(0,Math.min(1,(x-p.x)/p.w)));}
 function courseTopY(x,index=stage){
  let y=courseGroundY(x,index);
- for(const [a,top,w] of stages[index].ledges)if(x>=a&&x<=a+w)y=Math.min(y,surfaceY({x:a,y:top,w,roundLog:index===0,yEnd:index===1?top-12:undefined},x));
+ for(const [a,top,w] of stages[index].ledges)if(x>=a&&x<=a+w)y=Math.min(y,surfaceY({x:a,y:top,w,roundLog:index===0,yEnd:index===1?top-CANOPY_RISE:undefined},x));
  return y;
 }
 function courseLedges(){return stages[stage].ledges.map(([x,y,w])=>({x,y,w,
- volume:stage!==1&&!stages[stage].boss,roundLog:stage===0,yEnd:stage===1?y-12:undefined,
+ volume:stage!==1&&!stages[stage].boss,roundLog:stage===0,yEnd:stage===1?y-CANOPY_RISE:undefined,
  bottom:stage===0?y+24:Math.max(courseGroundY(x),courseGroundY(x+w),G)+12}));}
 const courseGroundCache=new Map();
 let courseArtStage=-1;
@@ -177,27 +174,27 @@ function drawBiomeLandmarks(){
   // The HD tree backdrop and the grounded ridge carry this biome instead.
   return;
  }else if(motif==='ruins'){
+  // Small weathered remnants, not full-height black doorways or block piles.
   for(const x of anchors.arches){
-   // Require BOTH columns to be grounded before drawing the lintel or doorway.
-   if(!visible(x,175)||!hasSceneryFoundation(x,24)||!hasSceneryFoundation(x+141,25))continue;
-   ctx.save();ctx.translate(0,Math.max(courseGroundY(x),courseGroundY(x+166))-G);ctx.fillStyle='#313c43';ctx.fillRect(x,G-225,24,225);ctx.fillRect(x+141,G-225,25,225);
-   ctx.fillRect(x,G-240,167,28);ctx.fillRect(x+18,G-259,129,22);
-   ctx.fillStyle='#7e897b';ctx.fillRect(x+4,G-238,154,6);
-   ctx.fillRect(x+5,G-222,6,159);ctx.fillRect(x+145,G-222,7,159);
-   ctx.fillStyle='#52775e';ctx.fillRect(x+10,G-257,80,8);
-   ctx.fillStyle='#b4ae8a';ctx.fillRect(x+43,G-242,28,5);
-   ctx.fillStyle='#1f353b';ctx.fillRect(x+24,G-199,117,199);ctx.restore();
+   if(!visible(x,70)||!hasSceneryFoundation(x,60))continue;
+   const base=Math.max(courseGroundY(x),courseGroundY(x+60));
+   ctx.fillStyle='#303942';ctx.fillRect(x+4,base-27,13,27);ctx.fillRect(x+38,base-17,16,17);
+   ctx.fillStyle='#7d827e';ctx.fillRect(x+6,base-28,9,4);ctx.fillRect(x+40,base-18,12,3);
+   ctx.fillStyle='#56795f';ctx.fillRect(x+2,base-9,19,3);
+   line(ctx,x+11,base-22,x+8,base-12,'#48535b',1);
   }
  }else if(motif==='castle'){
+  // The complete castle gateway remains at the exit. Roadside stones stay low.
   for(const x of anchors.towers){
-   if(!visible(x,140)||!hasSceneryFoundation(x,125))continue;
-   ctx.save();ctx.translate(0,Math.max(courseGroundY(x),courseGroundY(x+125))-G);ctx.fillStyle='#3b3d50';ctx.fillRect(x,G-208,125,208);
-   ctx.fillStyle='#777181';ctx.fillRect(x-10,G-215,146,13);
-   for(let b=0;b<125;b+=27){ctx.fillStyle='#4b4556';ctx.fillRect(x+b,G-236,17,22);}
-   ctx.fillStyle='#a18f85';ctx.fillRect(x+25,G-175,9,76);
-   ctx.fillStyle='#b48c6b';ctx.fillRect(x+92,G-163,11,65);ctx.restore();
+   if(!visible(x,65)||!hasSceneryFoundation(x,62))continue;
+   const base=Math.max(courseGroundY(x),courseGroundY(x+62));
+   ctx.fillStyle='#393743';ctx.fillRect(x+4,base-18,25,18);
+   ctx.fillStyle='#80767e';ctx.fillRect(x+6,base-20,21,4);
+   ctx.fillStyle='#a69b89';ctx.fillRect(x+10,base-16,3,10);
+   ctx.fillStyle='#292c36';ctx.fillRect(x+40,base-7,18,7);
   }
  }
+
 }
 // Raised surfaces are deliberate side routes, not airborne stepping-stones.
 // Draw their foundations all the way into the actual ground before platform
@@ -226,24 +223,22 @@ function drawCoursePlatformSupports(){
 }
 // A living tree supports each optional branch. No planks, posts or deck railings.
 function drawLivingTree(p){
- const root=p.x+30,y=p.y,ground=Math.max(courseGroundY(root-20),courseGroundY(root+30));
- ctx.fillStyle='#1c3435';ctx.beginPath();
- ctx.moveTo(root-26,ground+5);ctx.quadraticCurveTo(root-3,ground-27,root-10,y+38);
- ctx.bezierCurveTo(root-16,y-32,root-1,y-82,root+9,y-120);
- ctx.lineTo(root+32,y-119);ctx.bezierCurveTo(root+13,y-45,root+25,y+45,root+22,ground-24);
- ctx.lineTo(root+47,ground+5);ctx.closePath();ctx.fill();
- ctx.strokeStyle='#6c7050';ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(root+6,ground-7);
- ctx.bezierCurveTo(root+1,y+45,root-1,y-32,root+20,y-118);ctx.stroke();
- ctx.strokeStyle='#ac9b68';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(root+9,ground-20);
- ctx.quadraticCurveTo(root+8,y+30,root+15,y-82);ctx.stroke();
- // Leaf clusters join the top of the same trunk; they do not cover walkable edges.
- for(const [dx,dy,rx,ry,c] of [[-18,-121,46,22,'#244f50'],[22,-137,48,26,'#386c62'],[60,-122,42,23,'#285951'],[21,-113,56,17,'#437d67']]){
+ const root=p.x+17,y=p.y,ground=Math.max(courseGroundY(root-10),courseGroundY(root+18));
+ ctx.fillStyle='#233931';ctx.beginPath();ctx.moveTo(root-12,ground+3);
+ ctx.quadraticCurveTo(root-1,ground-17,root-4,y+25);
+ ctx.bezierCurveTo(root-7,y-12,root+1,y-52,root+4,y-80);
+ ctx.lineTo(root+12,y-82);ctx.bezierCurveTo(root+8,y-39,root+7,y+15,root+9,ground-10);
+ ctx.lineTo(root+21,ground+3);ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#827854';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(root+3,ground-7);
+ ctx.bezierCurveTo(root+2,y+29,root+2,y-34,root+8,y-78);ctx.stroke();
+ ctx.strokeStyle='#b09c6c';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(root+5,ground-14);
+ ctx.quadraticCurveTo(root+4,y+8,root+7,y-44);ctx.stroke();
+ // Small, layered leaf clusters; trunk remains slender and clearly visible.
+ for(const [dx,dy,rx,ry,c] of [[-13,-81,24,11,'#244e49'],[13,-93,29,15,'#376a59'],[37,-80,23,12,'#28584d'],[8,-73,28,10,'#477e65']])
   ellipse(ctx,root+dx,y+dy,rx,ry,c);
- }
- for(let j=0;j<7;j++)ellipse(ctx,root-20+j*14,y-139+(j%3)*7,10,3,'#6a9777');
- // A secondary fork visibly ties the branch underside into the trunk.
- ctx.strokeStyle='#385040';ctx.lineWidth=14;ctx.beginPath();ctx.moveTo(root+9,y+63);
- ctx.quadraticCurveTo(root+44,y+29,root+83,y+12);ctx.stroke();
+ for(let j=0;j<5;j++)ellipse(ctx,root-13+j*12,y-94+(j%2)*6,6,2,'#739d79');
+ ctx.strokeStyle='#4a6048';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(root+6,y+30);
+ ctx.quadraticCurveTo(root+28,y+10,root+56,y+3);ctx.stroke();
 }
 function drawCourseTimber(p){
  const {x,y,w}=p,tip=p.yEnd??y;
@@ -260,16 +255,16 @@ function drawCourseTimber(p){
   ellipse(ctx,x+w-10,cy,3.7,5,'#cfa66b');ellipse(ctx,x+w-10,cy,1.5,2.3,'#795334');
   ctx.fillStyle='#809657';ctx.fillRect(x+22,y+1,22,3);ctx.fillStyle='#a5b873';ctx.fillRect(x+27,y,10,2);
  }else{
-  // Flat readable top; irregular, tapering underside makes this a thick branch.
-  ctx.fillStyle='#1d3430';ctx.beginPath();ctx.moveTo(x,y-1);ctx.lineTo(x+w-9,tip-1);
-  ctx.quadraticCurveTo(x+w+1,tip+1,x+w-2,tip+5);
-  ctx.quadraticCurveTo(x+w*.65,y+7,x+w*.27,y+19);
-  ctx.quadraticCurveTo(x+7,y+27,x-3,y+10);ctx.closePath();ctx.fill();
-  ctx.fillStyle='#786441';ctx.beginPath();ctx.moveTo(x+6,y+3);ctx.lineTo(x+w-11,tip+2);
-  ctx.quadraticCurveTo(x+w*.66,y+10,x+w*.3,y+15);ctx.lineTo(x+7,y+16);ctx.closePath();ctx.fill();
-  for(let j=0;j<4;j++)line(ctx,x+20+j*31,y+8-j*2,x+40+j*32,y+6-j*2,'#aa8c59',2);
-  line(ctx,x+5,y,x+w-8,tip,'#9cb97b',3);
-  for(let j=0;j<4;j++)ellipse(ctx,x+w-22+j*4,tip+14+j*5,7,2,'#54836a');
+  // A thin tapering limb, not a thick triangular bridge deck.
+  ctx.fillStyle='#263c30';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+w-5,tip);
+  ctx.lineTo(x+w,tip+2);ctx.quadraticCurveTo(x+w*.65,y+2,x+10,y+9);
+  ctx.quadraticCurveTo(x-2,y+10,x,y);ctx.fill();
+  ctx.fillStyle='#8b7750';ctx.beginPath();ctx.moveTo(x+4,y+2);ctx.lineTo(x+w-7,tip+1);
+  ctx.quadraticCurveTo(x+w*.57,y+2,x+5,y+6);ctx.closePath();ctx.fill();
+  line(ctx,x+3,y,x+w-5,tip,'#a4ba83',1.5);
+  for(let j=0;j<3;j++)line(ctx,x+23+j*35,y+4-j,x+43+j*35,y+3-j,'#b29a65',1);
+  ellipse(ctx,x+w-13,tip+7,5,1.5,'#578568');
+
  }
 }
 function drawWorldStar(cx,cy){

@@ -8,7 +8,7 @@ const fs=require('node:fs');
  await page.goto('http://127.0.0.1:8000');
  await page.evaluate(()=>localStorage.setItem('realm-runners-save-v2',JSON.stringify({class:'hunter',unlocked:3,stars:[3,2,1],xp:87,level:4})));
  await page.reload();
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.15\.0/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.16\.0/);
  // Main menu: compact controls; both desktop and touchscreen double activation.
  assert.ok((await page.locator('#help').innerText()).length<350);
  assert.equal(await page.locator('.control-help').getAttribute('open'),null);
@@ -125,7 +125,7 @@ const fs=require('node:fs');
  assert.equal(pixelArt.backdropSkyAlpha,255,'HD sky should be visible under gameplay');
  await page.evaluate(()=>menu());
  assert.ok(await page.locator('#pixelEditionBadge').isVisible());
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.15\.0/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.16\.0/);
  // Visual-support and scarcity checks for all four new adventure routes.
  await page.evaluate(()=>{
   const expected=[15,16,15,16];
@@ -160,7 +160,7 @@ const fs=require('node:fs');
  // Terrain footprint: grounded ledges, no low/suspended platform chains,
  // and a completely clear final runway in all four longer levels.
  await page.evaluate(()=>{
-  const target=[7380,7740,7920,8100],ledges=[4,0,15,12];
+  const target=[7380,7740,7920,8100],ledges=[4,5,0,0];
   for(let i=0;i<4;i++){
    start(i);
    const cfg=stages[i];
@@ -194,18 +194,25 @@ const fs=require('node:fs');
   await page.evaluate(([index,x])=>{start(index);hero.x=x;hero.y=courseTopY(x+15)-hero.h;cam=Math.max(0,x-300);draw();},[index,x]);
   await page.screenshot({path:`test-output/${name}-v013-${label}.png`});
  }
- // Baumkronen has a continuous ridge, not an alternative deck/branch skin.
+ // Corrected scope: remove the objects in ruins / road and restore slim canopy trees.
  await page.evaluate(()=>{
-  start(1);
-  if(stages[1].ledges.length||!solids().every(p=>p.ground))throw Error('Canopy still contains a separate platform');
-  bad=[];hero.x=1080;hero.y=courseGroundY(1095)-hero.h;input.right=true;
-  for(let f=0;f<90;f++){
-   step(1);if(!hero.on||Math.abs(hero.y+hero.h-courseGroundY(hero.x+15))>.01)
-    throw Error('Canopy ridge lost ground contact');
+  for(const index of [2,3]){
+   start(index);bad=[];
+   if(stages[index].ledges.length||!solids().every(p=>p.ground))throw Error('Block piles remain in '+index);
+   hero.x=index===2?960:1300;hero.y=courseGroundY(hero.x+15)-hero.h;input.right=true;
+   for(let f=0;f<90;f++){
+    step(1);if(!hero.on||Math.abs(hero.y+hero.h-courseGroundY(hero.x+15))>.01)throw Error('Ground contact lost');
+   }
+   clearInput();
   }
-  clearInput();hero.x=1350;hero.y=courseGroundY(1365)-hero.h;cam=1050;draw();
+  start(1);if(stages[1].ledges.length!==5)throw Error('Canopy trees missing');
+  hero.x=1260;hero.y=courseTopY(1275)-hero.h;cam=1000;draw();
  });
- await page.screenshot({path:`test-output/${name}-v015-canopy-ridge.png`});
+ await page.screenshot({path:`test-output/${name}-v016-slim-canopy-trees.png`});
+ for(const [index,x,label] of [[2,1200,'ruins'],[3,1600,'road']]){
+  await page.evaluate(([index,x])=>{start(index);hero.x=x;hero.y=courseGroundY(x+15)-hero.h;cam=x-300;draw();},[index,x]);
+  await page.screenshot({path:`test-output/${name}-v016-clean-${label}.png`});
+ }
  // Boss now fills exactly one viewport, with visibly grounded walls at x=0/960.
  await page.evaluate(()=>{
   start(4);

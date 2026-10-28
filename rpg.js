@@ -86,7 +86,7 @@ function ensureRpgSave(){
   }
  }
  // Fresh timing boards: preserve historic records across longer maps and harder boss.
- for(const [key,pattern] of [['bestTimesV09',/^1-[1-4]$/],['bestTimesBossV09',/^1-5$/],['bestTimesV10',/^1-[1-4]$/],['bestTimesV11',/^1-[1-4]$/],['bestTimesV12',/^1-[1-4]$/],['bestTimesV13',/^1-[1-4]$/],['bestTimesV14',/^1-[1-4]$/],['bestTimesCanopyV15',/^1-2$/],['bestTimesBossV11',/^1-5$/]]){
+ for(const [key,pattern] of [['bestTimesV09',/^1-[1-4]$/],['bestTimesBossV09',/^1-5$/],['bestTimesV10',/^1-[1-4]$/],['bestTimesV11',/^1-[1-4]$/],['bestTimesV12',/^1-[1-4]$/],['bestTimesV13',/^1-[1-4]$/],['bestTimesV14',/^1-[1-4]$/],['bestTimesCanopyV15',/^1-2$/],['bestTimesV16',/^1-[2-4]$/],['bestTimesBossV11',/^1-5$/]]){
   if(!save[key]||typeof save[key]!=='object'||Array.isArray(save[key]))save[key]={};
   for(const level of Object.keys(save[key])){
    if(!pattern.test(level)||!save[key][level]||typeof save[key][level]!=='object'||Array.isArray(save[key][level])){
@@ -101,7 +101,7 @@ function ensureRpgSave(){
  const spent=Object.values(save.skills).reduce((sum,ids)=>sum+ids.length,0);
  save.skillPoints=Math.max(0,save.level-1-spent);
  save.slimeKingWins=Number.isFinite(Number(save.slimeKingWins))?Math.max(0,Math.floor(Number(save.slimeKingWins))):0;
- save.saveVersion=12;
+ save.saveVersion=13;
 }
 ensureRpgSave();
 let runFrames=0,attackWas=false,attackCooldown=0,projectiles=[],attackFlash=0,groundLoot=[];
@@ -111,7 +111,7 @@ function formatRunTime(ms){const seconds=Math.floor(ms/1000);return String(Math.
 function currentTime(){return Math.round(runFrames*1000/60);}
 function medal(ms,levelIndex=stage){const factor=levelIndex===BOSS_LEVEL?1:2.7;return ms<=70000*factor?'GOLD':ms<=105000*factor?'SILBER':ms<=150000*factor?'BRONZE':'ZIEL';}
 function timeBoard(index=stage){
- return index===BOSS_LEVEL?save.bestTimesBossV11:index===1?save.bestTimesCanopyV15:save.bestTimesV14;
+ return index===BOSS_LEVEL?save.bestTimesBossV11:index===0?save.bestTimesV14:save.bestTimesV16;
 }
 function recordTime(){
  const level='1-'+(stage+1),kind=save.class,ms=currentTime();

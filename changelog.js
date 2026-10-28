@@ -1,6 +1,13 @@
 'use strict';
 // In-game, locally bundled release notes. No network requests or user data.
 const RELEASE_NOTES=[
+ {v:'0.16.0',title:'Richtige Abschnitte bereinigt und schlanke Bäume',items:[
+  'Versunkene Ruinen und Königstraße: die großen aufgesetzten Stein-/Stufenblöcke sind entfernt. Der Weg folgt dem zusammenhängenden Gelände.',
+  'Große schwarze Ruinentore und rechteckige Straßentürme weichen kleinen verwitterten Steinresten; Dekoration bleibt sparsam.',
+  'Baumkronen bekommt die Bäume mit begehbaren Ästen zurück: deutlich schlankere Stämme, dünne auslaufende Äste und kleinere Kronen.',
+  'Sonnenpfad, Level-Längen, Sprungphysik, Touch-Steuerung und der Schleimkönig bleiben erhalten.',
+  'Neue Rekorde nur für die drei überarbeiteten Abschnitte; alte Zeiten und RPG-Fortschritt bleiben gespeichert.'
+ ]},
  {v:'0.15.0',title:'Baumkronen ohne Brücken',items:[
   'Alle fünf Brücken-/Astplattformen in Baumkronen sind vollständig aus der Spielgeometrie entfernt.',
   'Zusammenhängende bewachsene Felsrücken und breitere Hügel ersetzen die frei stehenden Konstruktionen.',
