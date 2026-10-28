@@ -145,13 +145,16 @@ function drawCourseTraps(){
   ctx.fillStyle='#a48975';ctx.fillRect(x-4,y+20,5,13);
   if(trap.phase==='warn'){
    const flash=Math.floor(trap.timer/5)%2===0;
-   ctx.fillStyle=flash?'#ffe6a3':'#fb886e';
-   ctx.fillRect(x-21,y+7,12,13);
-   ctx.fillStyle='#ffd082';
-   for(let j=0;j<5;j++)ctx.fillRect(x-48-j*43,y+10,15,3);
-   // A bold (!) remains visible against HD ruins at iPhone scale.
-   ctx.font='bold 22px monospace';ctx.textAlign='center';
-   ctx.fillText('!',x-16,y-11);
+   // Large outlined pixel warning, not a tiny antialiased glyph. The entire
+   // 27px sign can be read even after scaling to iPhone landscape.
+   ctx.fillStyle='#121c2a';ctx.fillRect(x-33,y-48,31,35);
+   ctx.fillStyle=flash?'#ffbf78':'#ef8b6b';ctx.fillRect(x-30,y-45,25,29);
+   ctx.fillStyle='#fff1c1';ctx.fillRect(x-20,y-39,7,15);
+   ctx.fillRect(x-20,y-21,7,5);
+   ctx.fillStyle='#422a39';ctx.fillRect(x-30,y-16,25,3);
+   // Amber dotted shot direction always stays below the warning marker.
+   ctx.fillStyle='#f8a570';
+   for(let j=0;j<5;j++)ctx.fillRect(x-49-j*43,y+10,18,4);
   }
  }
  for(const dart of courseDarts){
