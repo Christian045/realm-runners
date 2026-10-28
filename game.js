@@ -94,7 +94,7 @@ function floorY(x){let p=solids().filter(s=>x>=s.x+10&&x<=s.x+s.w-10).sort((a,b)
 function start(i,hearts=3){
  if(!Number.isInteger(i)||i<0||i>=stages.length)return;
  clearInput();resetRpgRun();particles=[];
- $('#play').classList.remove('hide');$('#resume').classList.add('hide');
+ $('#play').classList.remove('hide');$('#resume').classList.add('hide');$('#levelResult').classList.add('hide');
  stage=i;WIDTH=stages[i].width;scene='game';cam=0;dashCooldown=0;jumpWas=false;invincible=0;t=0;exitActive=false;exitFrames=0;exitVisual=0;
  const spawnX=stages[i].spawnX??50,spawnY=G-43;
  hero={x:spawnX,y:spawnY,w:30,h:43,vx:0,vy:0,on:true,face:1,
