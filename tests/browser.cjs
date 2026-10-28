@@ -277,10 +277,16 @@ const fs=require('node:fs');
  // Leave a touch held: pause must clear it as well.
  await page.evaluate(()=>testTouch('touchstart',[[43,'right']]));
  await page.locator('#pause').click();assert.equal(await page.evaluate(()=>scene),'pause');assert.equal(await page.evaluate(()=>input.right),false);await page.locator('#resume').click();
- const xpBeforeLevel1=await page.evaluate(()=>save.xp);
+ const beforeLevel1=await page.evaluate(()=>({xp:save.xp,level:save.level}));
  await page.evaluate(()=>{hero.x=WIDTH-34;hero.stars=2;hero.earned=25;step(1)});assert.equal(await page.evaluate(()=>scene),'end');
- await page.reload();assert.equal(await page.evaluate(()=>save.level),4);
- assert.equal(await page.evaluate(()=>save.xp),xpBeforeLevel1+95,'boss rewards must survive reload alongside regular level XP');
+ await page.reload();
+ const expectedProgress={...beforeLevel1};
+ expectedProgress.xp+=95;
+ while(expectedProgress.xp>=expectedProgress.level*100){
+  expectedProgress.xp-=expectedProgress.level*100;expectedProgress.level++;
+ }
+ assert.deepEqual(await page.evaluate(()=>({xp:save.xp,level:save.level})),expectedProgress,
+  'boss and regular level XP must survive reload, including level ups');
  assert.equal(await page.evaluate(()=>save.stars[0]),3);
  await page.locator('#play').click();await page.screenshot({path:`test-output/${name}-landscape.png`});
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:`test-output/${name}-portrait.png`});
