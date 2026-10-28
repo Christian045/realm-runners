@@ -413,7 +413,7 @@ test('v0.10 original stomp and dash defeat randomized enemies fairly',()=>{
 });
 test('v0.10 all class weapons hit only active enemy types',()=>{
  for(const kind of ['warrior','hunter','mage']){
-  h.run(`save.class='${kind}';start(0);hero.face=1;const e=bad[0];hero.x=e.x-${kind==='warrior'?48:90};hero.y=G-43;performAttack();for(let i=0;i<20;i++)combatTick(1)`);
+  h.run(`save.class='${kind}';start(0);hero.face=1;hero.x=bad[0].x-${kind==='warrior'?48:90};hero.y=G-43;performAttack();for(let i=0;i<20;i++)combatTick(1)`);
   assert.ok(h.run('bad[0].hp<bad[0].maxHp||!bad[0].alive'),kind+' hits either species');
  }
 });
