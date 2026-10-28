@@ -1,6 +1,15 @@
 'use strict';
 // In-game, locally bundled release notes. No network requests or user data.
 const RELEASE_NOTES=[
+ {v:'0.13.0',title:'Zusammenhängende Landschaften und natürliche Laufwege',items:[
+  'Sonnenpfad: echte sanfte Erdhügel, breite Senken und niedrige verwurzelte Baumstämme.',
+  'Baumkronen: feste, breite Holzwege und Äste mit sichtbar geerdeten Stämmen.',
+  'Ruinen: begehbare, zerbrochene Treppen und niedrige Mauerreste. Königstraße: breite Steinstufen bis zur Burg.',
+  'Die verstreuten Boden-Spikes sind entfernt. Höhen, Sprünge und gezielte Gegner bilden die Herausforderungen.',
+  'Gegner, Münzen und Dekoration folgen dem neuen Boden; echte Kollisionskanten an den festen Stufen.',
+  'Längen, Sprungphysik und Bossraum bleiben erhalten. Eigene v0.13-Levelrekorde, historische Zeiten und RPG-Fortschritt bleiben bestehen.'
+ ]},
+
  {v:'0.12.0',title:'Leveldesign mit sinnvollen Hindernissen',items:[
   'Jeder Abschnitt hat passende echte Hindernisse: Waldbaumstämme, Wurzelhürden, eingestürzte Ruinensteine und Burgbarrikaden.',
   'Hindernisse stehen auf tragendem Boden, lassen sich überspringen und sind nicht mit Gegnern und Dornen überladen.',

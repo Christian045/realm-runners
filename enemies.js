@@ -18,7 +18,16 @@ function spawnEnemies(stageIndex){
  if(stages[stageIndex].boss)return[];
  const cfg=stages[stageIndex];
  // Keep a calm approach to the themed exit. Do not spawn directly in doorways.
- const positions=cfg.enemies.filter(x=>x<(cfg.exitX??WIDTH)-175);
+ const positions=cfg.enemies.filter(x=>x<(cfg.exitX??WIDTH)-175).map(x=>{
+  if(stageIndex===1)return x;
+  for(let shift=0;shift<200;shift+=12){
+   for(const candidate of [x-shift,x+shift]){
+    if(candidate<150||!hasSceneryFoundation(candidate-45,130,stageIndex))continue;
+    if(cfg.ledges.every(([a,y,w])=>candidate+85<a||candidate-45>a+w))return candidate;
+   }
+  }
+  return x;
+ });
  const types=positions.map(()=>Math.random()<.43?'mushroom':'slime');
  // Guaranteed diversity within each stage, but still a different combination
  // on replay. Never force 9 identical mushrooms against a weak starter.
@@ -33,7 +42,7 @@ function spawnEnemies(stageIndex){
  }
  previousEnemyRoster[stageIndex]=types.join(',');
  return positions.map((x,i)=>{
-  const type=types[i],spec=ENEMY_TYPES[type],y=G-spec.h;
+  const type=types[i],spec=ENEMY_TYPES[type],y=courseGroundY(x+spec.w/2)-spec.h;
   return {type,x,y,home:x,baseY:y,w:spec.w,h:spec.h,maxHp:spec.hp,hp:spec.hp,dir:i%2?-1:1,
    alive:true,phase:'patrol',timer:0,attackCooldown:48+i*19,
    hurt:0,kb:0,vx:0,vy:0,targetX:x,targetY:y,seed:i*2+stageIndex,anim:0};
@@ -59,7 +68,7 @@ function enemyTick(dt){
  if(scene!=='game'||!hero)return;
  for(const e of bad){
   if(!e.alive)continue;
-  const spec=ENEMY_TYPES[e.type]||ENEMY_TYPES.slime;
+  const spec=ENEMY_TYPES[e.type]||ENEMY_TYPES.slime,oldX=e.x;
   e.anim=(e.anim||0)+dt;
   e.hurt=Math.max(0,(e.hurt||0)-dt);
   e.attackCooldown=Math.max(0,(e.attackCooldown||0)-dt);
@@ -128,6 +137,12 @@ function enemyTick(dt){
    if(Math.abs(e.x-e.home)>42)e.dir*=-1;
   }
   e.x=Math.max(0,Math.min(WIDTH-spec.w,e.x));
+  if(e.type!=='bat'){
+   const unsupported=!hasSceneryFoundation(e.x,spec.w);
+   const bank=courseLedges().some(p=>p.volume&&e.x+spec.w>p.x&&e.x<p.x+p.w&&p.y<courseGroundY(e.x+spec.w/2)-3);
+   if(unsupported||bank){e.x=oldX;e.dir*=-1;e.kb=0;}
+   e.y=courseGroundY(e.x+spec.w/2)-spec.h;e.baseY=e.y;
+  }
  }
  for(const shot of enemyShots){
   shot.x+=shot.vx*dt;shot.y+=shot.vy*dt;shot.life-=dt;

@@ -7,12 +7,12 @@ function harness(initial){const elements=new Map(),listeners={},storage=new Map(
  class El {constructor(){this.dataset={};this.listeners={};this.style={};this.attrs={};this.classes=new Set();this.classList={add:k=>this.classes.add(k),remove:k=>this.classes.delete(k),toggle:(k,flag)=>flag===undefined?(this.classes.has(k)?this.classes.delete(k):this.classes.add(k)):(flag?this.classes.add(k):this.classes.delete(k)),contains:k=>this.classes.has(k)};}setAttribute(k,v){this.attrs[k]=String(v);}addEventListener(k,f){(this.listeners[k]??=[]).push(f)}setPointerCapture(){}focus(){}querySelectorAll(){return [];}dispatch(type,data){for(const f of this.listeners[type]||[])f({preventDefault(){},...data});}}
  const canvas=createCanvas(960,540);elements.set('#view',canvas);const buttons=['left','right','jump','dash','attack'].map(k=>{let el=new El();el.dataset.control=k;return el});
  const sandbox={console,Math,JSON,Number,Map,Set,Object,Array,devicePixelRatio:1,innerWidth:960,innerHeight:540,performance:{now:()=>1000},matchMedia:()=>({matches:false}),localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},addEventListener:(k,f)=>(listeners[k]??=[]).push(f),requestAnimationFrame:f=>raf=f,document:{hidden:false,querySelector:s=>{if(!elements.has(s))elements.set(s,new El());return elements.get(s)},querySelectorAll:()=>buttons,addEventListener:(k,f)=>(listeners[k]??=[]).push(f),createElement:tag=>tag==='canvas'?createCanvas(1,1):new El()}};
- vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'boss.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'enemies.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'castle_art.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'hd_background.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'level_design.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'course_features.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'world_map.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'changelog.js'),'utf8'),sandbox);
+ vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'boss.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'enemies.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'castle_art.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'hd_background.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'level_design.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'world_map.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'changelog.js'),'utf8'),sandbox);
  return {run:s=>vm.runInContext(s,sandbox),canvas,buttons,storage,emit:(k,e)=>{for(const f of listeners[k]||[])f({preventDefault(){},...e})}};
 }
 let checks=0;function test(name,fn){fn();checks++;console.log('PASS',name);}
 const h=harness({class:'mage',unlocked:3,stars:[3,2,1],xp:87,level:4,custom:'preserved'});
-test('v0.2 progress and unknown fields survive loading and saving',()=>{h.run('persist()');const data=JSON.parse(h.storage.get('realm-runners-save-v2'));for(const [k,v] of Object.entries({class:'mage',unlocked:3,xp:87,level:4,custom:'preserved'}))assert.deepEqual(data[k],v);assert.deepEqual(data.stars,[3,2,1,0,0]);assert.equal(data.saveVersion,9);});
+test('v0.2 progress and unknown fields survive loading and saving',()=>{h.run('persist()');const data=JSON.parse(h.storage.get('realm-runners-save-v2'));for(const [k,v] of Object.entries({class:'mage',unlocked:3,xp:87,level:4,custom:'preserved'}))assert.deepEqual(data[k],v);assert.deepEqual(data.stars,[3,2,1,0,0]);assert.equal(data.saveVersion,10);});
 test('all levels and classes render; terrain cache bounded',()=>{for(let s=0;s<5;s++)for(const c of ['warrior','hunter','mage']){h.run(`save.class='${c}';start(${s});for(let i=0;i<40;i++)step(1);draw()`);}assert.ok(h.run('terrainCache.size')<=64);});
 test('ground collision and jump',()=>{h.run('start(0);for(let i=0;i<60;i++)step(1)');assert.equal(h.run('hero.on'),true);const y=h.run('hero.y');h.run('input.jump=true;step(1)');assert.ok(h.run('hero.y')<y);});
 test('coin and star rewards emit particles',()=>{h.run("start(0);things=[{x:hero.x+15,y:hero.y+20,type:'star',taken:false}];step(1)");assert.equal(h.run('hero.stars'),1);assert.equal(h.run('hero.earned'),25);assert.ok(h.run('particles.length')>0);});
@@ -46,7 +46,7 @@ h.run("save.class='hunter';start(0);for(let i=0;i<60;i++)step(1);hero.x=300;cam=
 console.log(`${checks} checks passed. Canvas preview: test-output/forest-v03.png`);
 
 test('v0.4 timer only advances during active simulation',()=>{h.run("start(0);for(let i=0;i<60;i++)step(1)");assert.equal(h.run('currentTime()'),1000);h.run("pause();step(1)");assert.equal(h.run('currentTime()'),1000);h.run('resume()');});
-test('v0.8 local leaderboard records best time per class',()=>{h.run("save.class='mage';start(0);for(let i=0;i<80;i++)step(1);recordTime()");const first=h.run("save.bestTimesV12['1-1'].mage");h.run('start(0);for(let i=0;i<100;i++)step(1);recordTime()');assert.equal(h.run("save.bestTimesV12['1-1'].mage"),first);});
+test('v0.8 local leaderboard records best time per class',()=>{h.run("save.class='mage';start(0);for(let i=0;i<80;i++)step(1);recordTime()");const first=h.run("save.bestTimesV13['1-1'].mage");h.run('start(0);for(let i=0;i<100;i++)step(1);recordTime()');assert.equal(h.run("save.bestTimesV13['1-1'].mage"),first);});
 test('v0.4 skills unlock in order and survive persistence',()=>{h.run("save.class='mage';save.level=5;ensureRpgSave()");assert.equal(h.run("unlockSkill('double_fireball')"),false);assert.equal(h.run("unlockSkill('fireball_damage')"),true);assert.ok(JSON.parse(h.storage.get('realm-runners-save-v2')).skills.mage.includes('fireball_damage'));});
 test('v0.4 mage projectile damages an enemy',()=>{h.run("save.class='mage';start(0);hero.x=370;hero.y=420;hero.face=1;performAttack();for(let i=0;i<12;i++)combatTick(1)");assert.ok(h.run('bad[0].hp<bad[0].maxHp||!bad[0].alive'));});
 test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';save.inventory.push('ember_staff');equipItem('ember_staff')");assert.equal(h.run("save.equipment.mage.weapon"),'ember_staff');assert.equal(h.run("equipItem('swift_bow')"),false);});
@@ -54,21 +54,20 @@ test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';
 // Guard against missing or stale runtime scripts in the published HTML.
 test('v0.4 HTML loads RPG systems before forest startup',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- const game=html.indexOf('src="game.js?v=0.12.0"');
- const rpg=html.indexOf('src="rpg.js?v=0.12.0"');
- const boss=html.indexOf('src="boss.js?v=0.12.0"');
- const enemies=html.indexOf('src="enemies.js?v=0.12.0"');
- const castleArt=html.indexOf('src="castle_art.js?v=0.12.0"');
- const hd=html.indexOf('src="hd_background.js?v=0.12.0"');
- const layout=html.indexOf('src="level_design.js?v=0.12.0"');
- const course=html.indexOf('src="course_features.js?v=0.12.0"');
- const worldMap=html.indexOf('src="world_map.js?v=0.12.0"');
- const forest=html.indexOf('src="forest.js?v=0.12.0"');
- const changelog=html.indexOf('src="changelog.js?v=0.12.0"');
- assert.ok(game>=0 && rpg>game && boss>rpg && enemies>boss && castleArt>enemies && hd>castleArt && layout>hd && course>layout && worldMap>course && forest>worldMap && changelog>forest,'runtime scripts must load in order');
+ const game=html.indexOf('src="game.js?v=0.13.0"');
+ const rpg=html.indexOf('src="rpg.js?v=0.13.0"');
+ const boss=html.indexOf('src="boss.js?v=0.13.0"');
+ const enemies=html.indexOf('src="enemies.js?v=0.13.0"');
+ const castleArt=html.indexOf('src="castle_art.js?v=0.13.0"');
+ const hd=html.indexOf('src="hd_background.js?v=0.13.0"');
+ const layout=html.indexOf('src="level_design.js?v=0.13.0"');
+ const worldMap=html.indexOf('src="world_map.js?v=0.13.0"');
+ const forest=html.indexOf('src="forest.js?v=0.13.0"');
+ const changelog=html.indexOf('src="changelog.js?v=0.13.0"');
+ assert.ok(game>=0 && rpg>game && boss>rpg && enemies>boss && castleArt>enemies && hd>castleArt && layout>hd && worldMap>layout && forest>worldMap && changelog>forest,'runtime scripts must load in order');
  assert.ok(html.includes('id="rpgPanels"'));
  assert.ok(html.includes('data-control="attack"'));
- assert.ok(html.includes('THEMEN-LEVEL & FALLEN · 0.12.0'));assert.ok(html.includes('id="changelogBtn"'));assert.ok(html.includes('id="changelogOverlay"'));assert.ok(!html.includes('src="platforms.js'));
+ assert.ok(html.includes('LEBENDIGE LAUFWEGE · 0.13.0'));assert.ok(html.includes('id="changelogBtn"'));assert.ok(html.includes('id="changelogOverlay"'));assert.ok(!html.includes('src="platforms.js'));
  assert.ok(html.includes('aria-valuemax="56"'));
  assert.ok(html.includes('id="bossHealthFill"'));
  assert.ok(html.includes('boss-health-fill'));
@@ -168,7 +167,7 @@ test('Pixel Edition: previous time trials remain untouched after recording new r
  h.run("save.class='mage';save.bestTimes={'1-1':{mage:69000}};save.bestTimesV05={'1-1':{mage:72000}};start(0);for(let i=0;i<90;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimes['1-1'].mage"),69000);
  assert.equal(h.run("save.bestTimesV05['1-1'].mage"),72000);
- assert.ok(h.run("save.bestTimesV12['1-1'].mage")>0);
+ assert.ok(h.run("save.bestTimesV13['1-1'].mage")>0);
 });
 test('Pixel Edition: maximum terrain gap remains passable without forced long dash',()=>{
  const gapLengths=h.run('stages.flatMap(s=>s.gaps.map(([a,b])=>b-a))');
@@ -436,7 +435,7 @@ test('v0.8 holding attack repeats after class cooldown; release stops it',()=>{
 test('v0.8 old best times and skills survive; new enemy records do not overwrite them',()=>{
  h.run("save.class='mage';save.bestTimesPixelV051['1-1']={mage:76000};save.bestTimesV08={};save.level=6;start(0);for(let i=0;i<25;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimesPixelV051['1-1'].mage"),76000);
- assert.ok(h.run("save.bestTimesV12['1-1'].mage")>0);
+ assert.ok(h.run("save.bestTimesV13['1-1'].mage")>0);
  assert.equal(h.run('save.level'),6);
  assert.equal(h.run('save.skills.mage.includes(\'fireball_damage\')'),true);
 });
@@ -524,16 +523,16 @@ test('v0.9 old records and player progression remain intact',()=>{
  h.run("save.class='hunter';save.bestTimesV08={'1-1':{hunter:35000}};save.bestTimesBossV062={'1-5':{hunter:48000}};save.bestTimesV09={};save.bestTimesBossV09={};start(0);for(let i=0;i<50;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimesV08['1-1'].hunter"),35000);
  assert.equal(h.run("save.bestTimesBossV062['1-5'].hunter"),48000);
- assert.ok(h.run("save.bestTimesV12['1-1'].hunter")>0);
+ assert.ok(h.run("save.bestTimesV13['1-1'].hunter")>0);
  h.run("start(4);for(let i=0;i<10;i++)step(1);boss.engaged=true;boss.hurt=0;boss.hp=1;damageBoss(1);for(let i=0;i<42;i++)step(1)");
  assert.equal(h.run('scene'),'end');
  assert.ok(h.run("save.bestTimesBossV11['1-5'].hunter")>0);
  assert.equal(h.run("save.bestTimesBossV062['1-5'].hunter"),48000);
- assert.equal(h.run('save.saveVersion'),9);
+ assert.equal(h.run('save.saveVersion'),10);
 });
 
 test('v0.10 world overview and level selection show records for active class',()=>{
- h.run("menuView='worlds';menu();save.unlocked=3;save.class='mage';save.bestTimesV12['1-1']={mage:92000,hunter:87000};menu()");
+ h.run("menuView='worlds';menu();save.unlocked=3;save.class='mage';save.bestTimesV13['1-1']={mage:92000,hunter:87000};menu()");
  assert.equal(h.run('scene'),'menu');
  assert.ok(h.run("document.querySelector('#worlds').innerHTML").includes('Smaragdwald'));
  assert.ok(h.run("document.querySelector('#worlds').innerHTML").includes('Frostgipfel'));
@@ -622,10 +621,10 @@ test('v0.9.1 coin collection adds true gold, uses one-time pickups and survives 
  const loaded=harness(JSON.parse(h.storage.get('realm-runners-save-v2')));
  assert.equal(loaded.run('save.gold'),gold+1);
 });
-test('v0.9.1 slight extra hazards remain outside every ground gap',()=>{
+test('v0.13 ground hazards replaced by natural landforms; moving platforms stay disabled',()=>{
  const geom=h.run('stages.map(s=>({width:s.width,gaps:s.gaps,spikes:s.spikes,moving:s.moving,crumbling:s.crumbling}))');
  for(let i=0;i<4;i++){
-  assert.ok(geom[i].spikes.length>=4,'hazard count is curated by biome');
+  assert.equal(geom[i].spikes.length,0);
   assert.ok(geom[i].spikes.every(x=>geom[i].gaps.every(([a,b])=>x+44<a||x>b)));
   assert.equal(geom[i].moving,undefined);
   assert.equal(geom[i].crumbling,undefined);
@@ -670,7 +669,7 @@ test('v0.10.1 authored coins are scarce, safe and never hover above a gap',()=>{
 test('v0.11 stages extend ~80 percent with ground-first Mario/Sonic-style routing',()=>{
  const cfg=h.run('stages.slice(0,4).map(s=>({width:s.width,exitX:s.exitX,gaps:s.gaps,ledges:s.ledges,spikes:s.spikes,enemies:s.enemies,stars:s.stars,coins:s.coinSpots}))');
  assert.deepEqual([...cfg.map(s=>s.width)],[7380,7740,7920,8100]);
- assert.deepEqual([...cfg.map(s=>s.ledges.length)],[4,5,6,4]);
+ assert.deepEqual([...cfg.map(s=>s.ledges.length)],[4,5,15,12]);
  const older=[4100,4300,4400,4500];
  for(let i=0;i<4;i++){
   const c=cfg[i];
@@ -680,7 +679,7 @@ test('v0.11 stages extend ~80 percent with ground-first Mario/Sonic-style routin
   assert.ok(c.gaps.length>=5&&c.gaps.length<=7);
   assert.ok(c.gaps.every(([a,b])=>b-a<=185&&b<c.exitX-500),'no huge/late pits');
   assert.ok(c.ledges.every(([x,y,w])=>
-   y<=335&&y>=300&&x+w<c.exitX-650&&
+   y<=425&&y>=300&&x+w<c.exitX-650&&
    h.run('hasSceneryFoundation('+(x+16)+',12,'+i+')')&&
    h.run('hasSceneryFoundation('+(x+w-30)+',14,'+i+')')),
    'all elevated routes are meaningful, rooted and far from exits');
@@ -694,7 +693,7 @@ test('v0.11 every mandatory ground gap is jumpable without Dash in all three cla
  const gaps=h.run('stages.slice(0,4).map(s=>s.gaps)');
  for(const kind of ['warrior','hunter','mage'])for(let level=0;level<4;level++){
   for(const [from,to] of gaps[level]){
-   h.run(`save.class='${kind}';start(${level});bad=[];spikes=[];things=[];courseTraps=[];courseDarts=[];
+   h.run(`save.class='${kind}';start(${level});bad=[];spikes=[];things=[];
     hero.x=${from-23};hero.y=G-hero.h;hero.vy=0;hero.on=true;
     input.right=true;input.jump=true;
     for(let frame=0;frame<90;frame++){if(frame===31)input.jump=false;step(1);}
@@ -703,91 +702,9 @@ test('v0.11 every mandatory ground gap is jumpable without Dash in all three cla
    assert.equal(state.scene,'game',kind+' stage '+level+' gap '+from+'..'+to);
    assert.equal(state.hearts,3,kind+' fell into the gap at '+from+'..'+to);
    assert.ok(state.x>to+28,kind+' did not cross gap '+from+'..'+to);
-   assert.ok(state.on&&Math.abs(state.y-(465-43))<3,
+   assert.ok(state.on&&h.run('solids().some(p=>hero.x+hero.w>p.x&&hero.x<p.x+p.w&&Math.abs(hero.y+hero.h-surfaceY(p,hero.x+hero.w/2))<3)'),
     kind+' did not safely land beyond '+from+'..'+to+' at '+JSON.stringify(state));
   }
- }
-});
-test('v0.12 every obstacle is grounded, uniquely placed and clear of hazards/landings',()=>{
- const scenes=h.run('stages.slice(0,4).map(s=>({width:s.width,exitX:s.exitX,gaps:s.gaps,spikes:s.spikes,enemies:s.enemies,obstacles:s.obstacles,traps:s.traps,stars:s.stars}))');
- assert.deepEqual([...scenes.map(s=>s.obstacles.length)],[5,5,5,5]);
- assert.deepEqual([...scenes.map(s=>s.traps.length)],[0,0,2,2]);
- assert.deepEqual([...scenes.map(s=>s.spikes.length)],[5,5,6,4]);
- for(let i=0;i<4;i++){
-  const cfg=scenes[i];const obs=cfg.obstacles;
-  assert.ok(obs.every(o=>o.x>220&&o.x+o.w<cfg.exitX-600&&o.h>=29&&o.h<=39));
-  assert.ok(obs.every(o=>['log','roots','rubble','barricade'][i]===o.type));
-  for(const o of obs){
-   assert.ok(cfg.gaps.every(([a,b])=>o.x+o.w<a-40||o.x>b+40),'grounded block has gap-safe approaches');
-   assert.equal(h.run('hasSceneryFoundation('+o.x+','+o.w+','+i+')'),true);
-   assert.ok(cfg.enemies.every(x=>o.x+o.w<x-70||o.x>x+35+70),'enemy patrol not merged with block');
-   assert.ok(cfg.spikes.every(x=>o.x+o.w<x-50||o.x>x+44+50),'hazards not stacked immediately behind blocks');
-  }
-  for(const trap of cfg.traps){
-   assert.equal(trap.dir,-1,'traps face approaching heroes');
-   assert.ok(cfg.gaps.every(([a,b])=>trap.x+20<a||trap.x-20>b),'trap is supported');
-   assert.ok(cfg.enemies.every(x=>Math.abs(x-trap.x)>=100),'no enemy camps the firing slot');
-   assert.ok(cfg.spikes.every(x=>x<trap.x-110||x>trap.x+50),'no hidden overlapping spikes');
-   assert.ok(cfg.obstacles.every(o=>Math.abs(o.x-trap.x)>=140),'no unreachable combined trap + wall');
-   assert.ok(cfg.exitX-trap.x>600,'no surprise trap at the exit');
-  }
-  h.run('start('+i+')');
-  assert.equal(h.run('courseTraps.length'),cfg.traps.length);
-  assert.equal(h.run('courseSolids().length'),cfg.obstacles.length);
- }
- h.run('start(4)');
- assert.equal(h.run('courseTraps.length'),0);
- assert.equal(h.run('courseSolids().length'),0);
-});
-test('v0.12 all three classes cannot walk through a block but can jump over it without Dash',()=>{
- for(const cls of ['warrior','hunter','mage'])for(let i=0;i<4;i++){
-  const ob=h.run('stages['+i+'].obstacles[0]');
-  h.run("save.class='"+cls+"';start("+i+");bad=[];spikes=[];courseTraps=[];hero.x="+(ob.x-57)+";hero.y=G-hero.h;hero.vy=0;hero.on=true;input.right=true;");
-  h.run('for(let f=0;f<12;f++)step(1)');
-  assert.equal(h.run('hero.x'),ob.x-30,cls+' must be blocked at face of '+ob.type);
-  assert.equal(h.run('hero.hearts'),3);
-  h.run('input.jump=true;for(let f=0;f<41;f++)step(1);input.jump=false;input.right=false');
-  assert.ok(h.run('hero.x')>ob.x+ob.w+8,
-   cls+' should jump fully over '+ob.type+' at stage '+(i+1)+'; x='+h.run('hero.x'));
-  assert.equal(h.run('hero.hearts'),3);
-  assert.equal(h.run('scene'),'game');
- }
-});
-test('v0.12 raised block tops can be safely landed on without float-through',()=>{
- h.run("save.class='warrior';start(0);bad=[];spikes=[];courseTraps=[]");
- const o=h.run('stages[0].obstacles[0]');
- h.run("hero.x="+(o.x+o.w/2-15)+";hero.y=G-"+o.h+"-hero.h-55;hero.vy=7;hero.on=false");
- h.run('for(let f=0;f<20;f++)step(1)');
- assert.equal(h.run('hero.on'),true);
- assert.equal(h.run('hero.y'),465-o.h-43);
- assert.equal(h.run('hero.hearts'),3);
-});
-test('v0.12 visible turret windup is dodgeable and deals at most one heart',()=>{
- h.run("save.class='mage';start(2);bad=[];spikes=[];hero.x=courseTraps[0].x-260;hero.y=G-hero.h;hero.on=true");
- h.run('tickCourseFeatures(1)');
- assert.equal(h.run("courseTraps[0].phase"),'warn');
- assert.equal(h.run('courseDarts.length'),0);
- h.run('for(let i=0;i<41;i++)tickCourseFeatures(1)');
- assert.equal(h.run('courseDarts.length'),0,'windup stays safe for full 42-frame tell');
- h.run('tickCourseFeatures(1)');
- assert.equal(h.run("courseTraps[0].phase"),'idle');
- assert.equal(h.run('courseDarts.length'),1);
- assert.ok(h.run('courseTraps[0].cooldown')>=190);
- h.run("courseDarts=[{x:hero.x+15,y:G-31,vx:-7.6,ttl:50,source:courseTraps[0].x}]");
- assert.equal(h.run('tickCourseFeatures(1)'),true);
- assert.equal(h.run('hero.hearts'),2);
- assert.equal(h.run('scene'),'game');
- assert.equal(h.run('invincible'),86);
- h.run("courseDarts=[{x:hero.x+15,y:G-31,vx:-7.6,ttl:50,source:courseTraps[0].x}];tickCourseFeatures(1)");
- assert.equal(h.run('hero.hearts'),2,'brief immunity cannot chain one-shot multiple hearts');
-});
-test('v0.12 a jump or dash cleanly avoids an indicated architectural arrow',()=>{
- for(const avoid of ['jump','dash']){
-  h.run("start(3);bad=[];spikes=[];hero.x=courseTraps[0].x-190;hero.y="+(avoid==='jump'?250:'G-hero.h')+";hero.on="+(avoid==='jump'?'false':'true')+";hero.dash="+(avoid==='dash'?5:0));
-  h.run('courseDarts=[{x:hero.x+15,y:G-31,vx:-7.6,ttl:40,source:courseTraps[0].x}]');
-  assert.equal(h.run('tickCourseFeatures(1)'),false);
-  assert.equal(h.run('hero.hearts'),3,avoid+' must avoid projectile');
-  assert.equal(h.run('courseDarts.length'),avoid==='dash'?0:1,'airborne dodge lets a dart safely pass underneath; dash clears contact');
  }
 });
 test('v0.11 the boss occupies the entire visible viewport, not a hidden sub-arena',()=>{
@@ -811,19 +728,18 @@ test('v0.11 the boss occupies the entire visible viewport, not a hidden sub-aren
  assert.ok(pixels.every(a=>a>0),'both visible room boundaries are drawn');
 });
 test('v0.11 fresh longer-course and arena records preserve all old personal bests',()=>{
- h.run("save.class='hunter';save.bestTimesV10={'1-1':{hunter:90000}};save.bestTimesV11={'1-1':{hunter:125000}};save.bestTimesBossV09={'1-5':{hunter:52000}};start(0);for(let i=0;i<35;i++)step(1);recordTime()");
+ h.run("save.class='hunter';save.bestTimesV10={'1-1':{hunter:90000}};save.bestTimesBossV09={'1-5':{hunter:52000}};start(0);for(let i=0;i<35;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimesV10['1-1'].hunter"),90000);
- assert.equal(h.run("save.bestTimesV11['1-1'].hunter"),125000);
- assert.ok(h.run("save.bestTimesV12['1-1'].hunter")>0);
+ assert.ok(h.run("save.bestTimesV13['1-1'].hunter")>0);
  h.run("start(4);for(let i=0;i<8;i++)step(1);boss.hurt=0;boss.hp=1;damageBoss(1);for(let i=0;i<BOSS_VICTORY_FRAMES;i++)step(1)");
  assert.equal(h.run('scene'),'end');
  assert.equal(h.run("save.bestTimesBossV09['1-5'].hunter"),52000);
  assert.ok(h.run("save.bestTimesBossV11['1-5'].hunter")>0);
- assert.equal(h.run('save.saveVersion'),9);
+ assert.equal(h.run('save.saveVersion'),10);
 });
 test('v0.10.1 release notes are restricted to the real main world menu',()=>{
  const all=h.run('RELEASE_NOTES.map(note=>note.v)');
- assert.deepEqual([...all],['0.12.0','0.11.0','0.10.1','0.10.0','0.9.1','0.9.0','0.8.0','0.7.0','0.6.2','0.6.1','0.6.0','0.5.0','0.4.0','0.1–0.3']);
+ assert.deepEqual([...all],['0.13.0','0.12.0','0.11.0','0.10.1','0.10.0','0.9.1','0.9.0','0.8.0','0.7.0','0.6.2','0.6.1','0.6.0','0.5.0','0.4.0','0.1–0.3']);
  assert.ok(h.run("document.querySelector('#changelogEntries').innerHTML").includes('Phase II'));
  h.run("menuView='worlds';menu()");
  assert.equal(h.run("document.querySelector('#changelogBtn').classes.has('hide')"),false);
@@ -846,3 +762,65 @@ test('v0.10.1 release notes are restricted to the real main world menu',()=>{
  h.run("menuView='worlds';menu()");
  assert.equal(h.run("document.querySelector('#changelogBtn').classes.has('hide')"),false);
 });
+
+test('v0.13 land contours are continuous, shallow and level at every gap and exit',()=>{
+ for(let i=0;i<4;i++){
+  h.run(`start(${i})`);
+  const profile=h.run('stages[stage].profile');
+  assert.ok(new Set(profile.map(k=>k[1])).size>=3);
+  for(let j=1;j<profile.length;j++)assert.ok(Math.abs((profile[j][1]-profile[j-1][1])/(profile[j][0]-profile[j-1][0]))<=.4);
+  assert.ok(h.run('stages[stage].gaps.every(([a,b])=>courseGroundY(a)===G&&courseGroundY(b)===G)'));
+  assert.equal(h.run('courseGroundY(stages[stage].exitX)'),465);
+ }
+});
+test('v0.13 every adventure can be traversed with the original jumps and all classes',()=>{
+ const route=harness();
+ for(let i=0;i<4;i++)for(const kind of ['warrior','hunter','mage']){
+  const result=route.run(`(()=>{
+   save.class='${kind}';save.equipment[save.class]={};start(${i});bad=[];things=[];
+   let held=0,maxX=hero.x;
+   for(let f=0;f<3000&&scene==='game';f++){
+    const foot=hero.y+hero.h;
+    const gap=stages[stage].gaps.some(([a,b])=>hero.x+hero.w<=a+8&&a-hero.x-hero.w<12);
+    const wall=courseLedges().some(p=>p.volume&&p.y<foot-5&&p.x>=hero.x+hero.w-1&&p.x-hero.x-hero.w<38);
+    if(hero.on&&(gap||wall)&&!input.jump)held=27;
+    input.right=true;input.jump=held>0;if(held>0)held--;
+    step(1);maxX=Math.max(maxX,hero.x);
+   }
+   return {scene,hearts:hero.hearts,x:hero.x,maxX,exit:stages[stage].exitX};
+  })()`);
+  assert.equal(result.hearts,3,kind+' fell in '+i+': '+JSON.stringify(result));
+  assert.equal(result.scene,'end',kind+' cannot finish '+i+': '+JSON.stringify(result));
+ }
+});
+test('v0.13 grounded banks block sideways movement; no invisible pass-through',()=>{
+ h.run("save.class='warrior';start(0);bad=[];things=[];hero.x=1340;hero.y=G-43;input.right=true;for(let i=0;i<35;i++)step(1)");
+ assert.equal(h.run('hero.x'),1360);
+ h.run('input.jump=true;for(let i=0;i<35;i++)step(1)');
+ assert.ok(h.run('hero.x')>1460);assert.equal(h.run('hero.hearts'),3);
+});
+test('v0.13 enemies and coins track relief, historic v11 and boss records survive',()=>{
+ for(let i=0;i<4;i++){
+  h.run(`start(${i});for(let f=0;f<240;f++)enemyTick(1)`);
+  assert.ok(h.run('bad.every(e=>hasSceneryFoundation(e.x,e.w)&&Math.abs(e.y+e.h-courseGroundY(e.x+e.w/2))<.001)'));
+  assert.ok(h.run("things.filter(a=>a.type==='coin').every(a=>courseTopY(a.x)-a.y>=40&&courseTopY(a.x)-a.y<=66)"));
+ }
+ h.run("save.class='mage';save.bestTimesV11={'1-1':{mage:123456}};save.bestTimesV12={'1-1':{mage:112233}};save.bestTimesBossV11={'1-5':{mage:65432}};start(0);runFrames=900;recordTime()");
+ assert.equal(h.run("save.bestTimesV11['1-1'].mage"),123456);assert.equal(h.run("save.bestTimesV12['1-1'].mage"),112233);
+ assert.equal(h.run("save.bestTimesBossV11['1-5'].mage"),65432);
+ assert.ok(h.run("save.bestTimesV13['1-1'].mage")>0);
+});
+test('v0.13 walking up and down hill seams keeps exact ground contact',()=>{
+ h.run("save.class='hunter';save.equipment.hunter={};start(0);bad=[];things=[];hero.x=530;hero.y=courseGroundY(545)-hero.h;input.right=true");
+ for(let i=0;i<90;i++){
+  h.run('step(1)');
+  assert.equal(h.run('hero.on'),true);
+  assert.ok(h.run('Math.abs(hero.y+hero.h-courseGroundY(hero.x+15))')<.01);
+ }
+});
+// Export representative v0.13 scenes for visual review with the actual rasterizer.
+for(const [level,x,label] of [[0,530,'hills'],[0,1350,'roots'],[1,1110,'branches'],[2,1050,'stairs'],[3,1460,'causeway']]){
+ h.run(`start(${level});hero.x=${x};hero.y=courseGroundY(hero.x+15)-43;cam=Math.max(0,hero.x-250);quality='full';draw()`);
+ fs.writeFileSync(path.join(root,'test-output',`v013-${label}.png`),h.canvas.toBuffer('image/png'));
+}
+console.log(`${checks} total regression checks passed.`);

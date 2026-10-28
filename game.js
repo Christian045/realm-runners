@@ -97,9 +97,18 @@ function menu(){
  $('#play').classList.remove('hide');$('#resume').classList.add('hide');
  renderWorldMenu();syncChangelogButton();
 }
-function land(){let gaps=stages[stage].gaps,ends=[0,...gaps.map(g=>g[1])],begins=[...gaps.map(g=>g[0]),WIDTH];return ends.map((x,i)=>({x,w:begins[i]-x,y:G}))}
-function solids(){return [...land(),...stages[stage].ledges.map(a=>({x:a[0],y:a[1],w:a[2]})),...courseSolids()]}
-function floorY(x){let p=solids().filter(s=>x>=s.x+10&&x<=s.x+s.w-10).sort((a,b)=>b.y-a.y);return p.length?p[0].y:G}
+function land(){
+ const cfg=stages[stage],gaps=cfg.gaps,starts=[0,...gaps.map(g=>g[1])],ends=[...gaps.map(g=>g[0]),WIDTH];
+ const result=[];
+ for(let i=0;i<starts.length;i++){
+  const a=starts[i],b=ends[i];
+  const cuts=[a,...(cfg.profile||[]).map(k=>k[0]).filter(x=>x>a&&x<b),b];
+  for(let j=1;j<cuts.length;j++){const x=cuts[j-1],end=cuts[j];result.push({x,w:end-x,y:courseGroundY(x),yEnd:courseGroundY(end),ground:true});}
+ }
+ return result;
+}
+function solids(){return [...land(),...courseLedges()];}
+function floorY(x){return courseGroundY(x);}
 function start(i,hearts=3){
  if(!Number.isInteger(i)||i<0||i>=stages.length)return;
  clearInput();resetRpgRun();particles=[];
@@ -114,16 +123,16 @@ function start(i,hearts=3){
  // Every level authors a small number of meaningful pickups. None can
  // hang over a pit, overlap spikes or obscure a level exit.
  if(!stages[i].boss){
-  const ground=land();
+  
   for(const [n,x] of stages[i].coinSpots.entries()){
-   const supported=ground.some(p=>x-22>=p.x&&x+22<=p.x+p.w);
+   const supported=hasSceneryFoundation(x-22,44);
    const hazardous=spikes.some(p=>x>=p.x-58&&x<=p.x+p.w+58);
    if(!supported||hazardous||x>=stages[i].exitX-110)continue;
-   things.push({x,y:G-43-(n%3===1?22:0),type:'coin',taken:false});
+   things.push({x,y:courseTopY(x)-43-(n%3===1?22:0),type:'coin',taken:false});
   }
  }
  for(const [x,y] of stages[i].stars)things.push({x,y,type:'star',taken:false});
- bad=spawnEnemies(i);resetCourseFeatures();resetBossRun();
+ bad=spawnEnemies(i);resetBossRun();
  hudSignature='';renderGameHud();
  layer.classList.add('hide');controls.classList.remove('hide');hud.classList.remove('hide');
 }
@@ -242,11 +251,22 @@ function step(dt){
  const wasOn=h.on;
  const prevY=h.y,prevX=h.x;
  h.x=Math.max(stages[stage].boss?BOSS_ARENA_LEFT+3:0,Math.min(stages[stage].boss?BOSS_ARENA_RIGHT-h.w-4:WIDTH-h.w,h.x+h.vx*dt));
- resolveCourseObstacles(h,prevX);
  h.y+=h.vy*dt;h.on=false;
- for(const p of solids())if(h.x+h.w>p.x&&h.x<p.x+p.w&&prevY+h.h<=p.y+9&&h.y+h.h>=p.y&&h.vy>=0){
-  h.y=p.y-h.h;h.vy=0;h.on=true;h.usedDash=false;h.jumpActive=false;h.coyote=JUMP.coyote;
-
+ const geometry=solids();
+ // Raised landforms and masonry have real side walls. Timber branches retain
+ // one-way landing, so jumping onto a fixed upper route remains responsive.
+ for(const p of geometry)if(p.volume&&h.y+h.h>p.y+1&&h.y<p.bottom){
+  if(prevX+h.w<=p.x+.01&&h.x+h.w>p.x){h.x=p.x-h.w;h.vx=0;}
+  else if(prevX>=p.x+p.w-.01&&h.x<p.x+p.w){h.x=p.x+p.w;h.vx=0;}
+  else if(prevY>=p.bottom&&h.y<p.bottom&&h.x+h.w>p.x&&h.x<p.x+p.w){h.y=p.bottom;h.vy=Math.max(0,h.vy);h.jumpActive=false;}
+ }
+ const center=h.x+h.w/2,centerOnGround=geometry.some(p=>p.ground&&center>=p.x&&center<=p.x+p.w);
+ for(const p of geometry)if(h.x+h.w>p.x&&h.x<p.x+p.w){
+  if(p.ground&&centerOnGround&&(center<p.x||center>p.x+p.w))continue;
+  const top=surfaceY(p,h.x+h.w/2),followingSlope=p.ground&&wasOn&&h.vy>=0&&Math.abs(prevY+h.h-top)<=12;
+  if(h.vy>=0&&(followingSlope||(prevY+h.h<=top+1&&h.y+h.h>=top))){
+   h.y=top-h.h;h.vy=0;h.on=true;h.usedDash=false;h.jumpActive=false;h.coyote=JUMP.coyote;
+  }
  }
  if(h.on&&!wasOn)burst(h.x+15,h.y+h.h,'#a1c59a',8,1.7);
  if(h.on&&invincible<=0&&!spikes.some(p=>h.x+h.w+12>p.x&&h.x-12<p.x+p.w)){
@@ -262,8 +282,6 @@ function step(dt){
  combatTick(dt);
  if(scene!=='game')return;
  if(enemyHazardsHitHero(prevY))return;
- if(scene!=='game')return;
- if(tickCourseFeatures(dt))return;
  if(scene!=='game')return;
  if(bossTick(dt,prevY))return;
  if(scene!=='game')return;

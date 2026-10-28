@@ -103,7 +103,7 @@ function terrain(p,index){
  const c=document.createElement('canvas');
  c.width=p.w+32;c.height=(p.y===G?H-p.y:42)+35;
  const q=c.getContext('2d'),r=rng((p.x+997)*(stage+11)),height=c.height;
- const fortress=stage===4||(stage===3&&p.x>=6680);
+ const fortress=stage===4||stage===3;
  const stone=fortress||stage===2;
  const material=fortress?
   {outline:'#141722',base:'#494556',side:'#655a6d',light:'#94869a',shadow:'#292635',chip:'#d6c49e',cap:'#d9c39a',top:'#ffe6a5'}:
@@ -215,7 +215,7 @@ function drawHero(){const h=hero;if(!h)return;ellipse(ctx,h.x+15,h.y+h.h+2,18,4,
  ctx.restore();ctx.imageSmoothingEnabled=false;
  if(h.dash>0){ctx.strokeStyle='#d5f6e5aa';ctx.lineWidth=2;for(let i=0;i<3;i++)line(ctx,h.x+15-h.face*40,h.y+12+i*10,h.x+15,h.y+12+i*10,'#cceff0aa',2);}
 }
-function drawEnemy(e,i){if(!e.alive)return;const squash=Math.sin(t*.13+i)*1.6;ellipse(ctx,e.x+14,G+1,17,4,'#061e2670');ctx.save();ctx.translate(e.x+14,e.y+16);ctx.scale(e.dir,1);
+function drawEnemy(e,i){if(!e.alive)return;const squash=Math.sin(t*.13+i)*1.6;ellipse(ctx,e.x+14,e.y+(e.h||27)+1,17,4,'#061e2670');ctx.save();ctx.translate(e.x+14,e.y+16);ctx.scale(e.dir,1);
  ellipse(ctx,0,1,18+squash,16-squash,'#122632');
  ellipse(ctx,0,0,14+squash,12-squash,'#3e8058');
  ellipse(ctx,0,-5,11,8,'#97d074');ellipse(ctx,-5,-8,6,3,'#daf5a5');
@@ -281,8 +281,10 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
  ctx.save();ctx.translate(-cam,0);
  drawBiomeLandmarks();
  drawCoursePlatformSupports();
- for(const [i,p] of solids().filter(p=>!p.kind&&!p.blockType).entries()){
+ for(const [i,p] of solids().filter(p=>!p.kind).entries()){
   if(p.x+p.w<cam-20||p.x>cam+W+20)continue;
+  if(p.ground&&stage!==BOSS_LEVEL){drawCourseGround(p);continue;}
+  if(!p.ground&&(stage===0||stage===1)){drawCourseTimber(p);continue;}
   ctx.imageSmoothingEnabled=false;
   ctx.drawImage(terrain(p,i),p.x-16,p.y-20);
   // Strong bright traversable edge + a dark layer immediately below it.
@@ -314,6 +316,7 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
   // Decorations reach up to 54px to the right of their anchor. Never
   // allow flowers, torch pedestals or masonry to overhang a real pit.
   if(!hasSceneryFoundation(tx-22,80))continue;
+  ctx.save();ctx.translate(0,Math.max(courseTopY(tx-22),courseTopY(tx+58))-G);
   if(stage===0){
    // Giant woodland mushrooms, golden flower heads, bright leafy shrubs.
    ctx.fillStyle='#2c6241';ctx.fillRect(tx-20,G-20,40,20);
@@ -363,12 +366,17 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
    ctx.fillStyle='#ffdf97';ctx.fillRect(tx+34,G-34,7,13);
    ctx.fillStyle='#7a5861';ctx.fillRect(tx+28,G-17,18,17);
   }
+  ctx.restore();
  }
- // Course-specific silhouettes replace generic floating/metal spikes.
- drawCourseWarningPosts();
- drawCourseObstacles();
- drawStageGroundHazards();
- drawCourseTraps();
+ // No decorative dangling ropes under an unsupported floating platform.
+ // Each optional high route is rooted to the terrain by drawCoursePlatformSupports().
+ for(const s of spikes){
+  ctx.fillStyle='#351e2b';ctx.fillRect(s.x,s.y+14,s.w,6);
+  for(let k=0;k<3;k++){
+   poly(ctx,[[s.x+k*15,s.y+18],[s.x+8+k*15,s.y],[s.x+15+k*15,s.y+18]],'#ff837a');
+   ctx.fillStyle='#ffe5a4';ctx.fillRect(s.x+6+k*15,s.y+7,4,7);
+  }
+ }
  for(const a of things){if(a.taken||a.x<cam-25||a.x>cam+W+25)continue;const y=a.y+(reducedMotion?0:Math.sin(visualTime*3+a.x)*3);if(a.type==='star'){drawWorldStar(a.x,y);}else{drawWorldCoin(a.x,y);}}
  bad.forEach(drawEnemyMob);drawEnemyShots();drawBoss();drawLevelExit();drawHero();drawCombatEffects();
  for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}ctx.globalAlpha=1;ctx.restore();

@@ -1,6 +1,33 @@
-# Realm Runners v0.12 – Handgebaute Begegnungen und logische Levelhindernisse
+# Realm Runners v0.13 – natürliche Landschaften und flüssige Laufwege
 
-**Spielen: https://christian045.github.io/realm-runners/**
+**Spielen: https://christian045.github.io/realm-runners/?v=0.13.0**
+
+## Neu in v0.13
+
+- **Echte Landschaftsformen:** Kontinuierliche Erdhügel, breite Senken und ebene Erholungspassagen. Gezeichnete Oberkante und Kollision verwenden dieselbe Höhenfunktion; die Figur folgt Steigungen und Gefällen ohne kleine Hüpfer.
+- **Sonnenpfad:** sanfte Hügel, Senken und niedrige verwurzelte Baumstämme. **Baumkronen:** breite, feste Holzwege mit sichtbar geerdeten Stämmen und Ästen auf verschiedenen Höhen.
+- **Versunkene Ruinen:** drei zusammenhängende Gruppen aus zerbrochenen Steintreppen und Mauerresten. **Königstraße:** breite, abgestufte Steinpodeste und der ruhige befestigte Anlauf zum Burgtor.
+- **Keine verstreuten Boden-Spikes mehr:** Die Abwechslung entsteht durch Wegform, Sprünge und gezielte Gegner. Keine neuen Pfeilfallen, Schockwellen oder beweglichen/einstürzenden Plattformen.
+- **Alles steht auf dem Boden:** Gegner patrouillieren auf dem Höhenprofil und kehren vor Abgründen oder Mauern um. Münzen und Vordergrund-Dekoration folgen den neuen Höhen. Sterne belohnen die festen oberen Wege.
+- **Echte Wände an festen Stufen:** Baumstamm- und Mauerblöcke lassen sich überspringen, aber nicht seitlich durchlaufen. Baumäste bleiben von unten durchspringbar.
+- **Erhalten:** die vier Level-Längen 7.380 / 7.740 / 7.920 / 8.100, Klassen, Sprungparameter, Touch-Steuerung und der gesamte Schleimkönig-Kampf.
+- **Speicherkompatibilität:** neue Abenteuerrekorde unter `bestTimesV13`. `bestTimesV12`, `bestTimesV11` und alle älteren Zeiten bleiben erhalten; der unveränderte Boss verwendet weiterhin `bestTimesBossV11`. Gold, XP, Ausrüstung, Skills und Freischaltungen bleiben bestehen.
+
+### v0.13 auf Windows und iPhone prüfen
+
+1. Die obige URL im bisherigen Browser öffnen. Im Menü muss **„LEBENDIGE LAUFWEGE · 0.13.0“** stehen. Keine Website-Daten löschen.
+2. Sonnenpfad: über die erste Hügelkuppe laufen; auch bergab muss die Figur am Boden bleiben. Den niedrigen Stamm überspringen und auf seinem festen Rand landen.
+3. Baumkronen: die festen Äste von unten anspringen; ihre oberen Wege ausprobieren. Ruinen: die drei Treppengruppen vorwärts und rückwärts durchspringen. Königstraße: die breiten Stufen und das Burgtor erreichen.
+4. Auf jedem Level Münzen und Sterne sammeln; Gegner auf erhöhtem/abgesenktem Grund prüfen. Keine schwebenden Pickups oder im Boden steckenden Gegner.
+5. Auf dem iPhone Bewegung halten und mit einem zweiten Finger kurz/lange springen, Dash und Angriff nutzen. App-Wechsel, Pause und Fortsetzen prüfen.
+6. Einen Abschnitt abschließen und neu laden: XP, Gold, Sterne und Freischaltungen bleiben erhalten. Alte v0.11-Zeiten werden erhalten, neue Abenteuerrekorde getrennt geführt.
+7. Level 1-5: Bossraum, sichtbare Seitenwände, Angriffe und Phase II wie vorher testen.
+
+Die automatisierten Tests prüfen auch komplette Streckendurchläufe mit allen drei Klassen, ohne Dash oder Bewegungsausrüstung. Browser-Tests in Chromium/WebKit ersetzen keinen echten iPhone-Test.
+
+---
+
+## Frühere Updates
 
 ## Neu in v0.12 – Levelideen statt zufälliger Dornen
 
@@ -20,6 +47,11 @@ Die großen, bodenorientierten Level und die zentrale Bossarena aus v0.11 bleibe
 **iPhone-Check:** Die URL mit `?v=0.12.0` aufrufen. Die Startmarkierung ist „THEMEN-LEVEL & FALLEN · 0.12.0“. In den Ruinen und auf der Königstraße besonders die gut sichtbaren Warnzeichen und das Ausweichen testen. Keine Safari-Websitedaten löschen.
 
 
+
+
+### v0.11 – lange Bodenstrecken und eine zentral sichtbare Bossarena
+
+**Spielen: https://christian045.github.io/realm-runners/**
 
 ## Neu in v0.11 – Laufstrecken statt Plattform-Ketten
 
@@ -226,16 +258,9 @@ Der Schlüssel **`realm-runners-save-v2`** bleibt erhalten und das Datenformat w
 
 Der Fortschritt bleibt lokal in demselben Browser und derselben Website-Adresse. Browserdaten nicht löschen. Ein Wechsel von Browser, Gerät oder URL-Ursprung überträgt keinen Spielstand. Gespeichert wird der RPG-Fortschritt; die aktuelle Position innerhalb eines Levels wird wie zuvor nicht dauerhaft gespeichert.
 
-## Testanleitung
+## Weitere Gameplay-Prüfungen
 
-1. Die Spieladresse im bisherigen Browser öffnen und neu laden. Im Menü muss **v0.5.2** stehen. Bei altem Cache einmal `?v=0.5.2` anhängen (gleicher Ursprung, gleicher Spielstand).
-2. Vor dem Start bisherige Klasse, XP, Level, Sterne und Freischaltungen vergleichen.
-3. iPhone quer halten: kurzen Sprung antippen, dann den Sprungknopf lange halten und einen deutlich höheren Sprung erreichen. Gleichzeitig rechts halten und bei Bedarf Dash oder Angriff benutzen; losgelassene Finger dürfen andere Eingaben nicht abbrechen.
-4. App wechseln und zurückkehren: Pause. „Fortsetzen“ drücken. Hoch-/Querformat drehen und alle fünf Tasten prüfen.
-5. Münze/Stern sammeln, Gegner von oben und per Dash besiegen. Partikel und Animationen beobachten. Hintergrund-Ebenen bewegen sich unterschiedlich schnell.
-6. Checkpoint erreichen, Schaden/Abgrund ausprobieren, Zielflagge erreichen. Nach Neuladen müssen XP, Sterne und Freischaltungen erhalten sein.
-7. Alle Klassen und drei Level ausprobieren. Bei Ruckeln im Menü oder Pausenmenü Grafik auf „Sparsam“ stellen.
-8. Windows: dieselben Gameplay-Prüfungen mit Tastatur durchführen; Escape und Fokuswechsel testen.
+Die aktuelle Anleitung steht oben unter „v0.13 auf Windows und iPhone prüfen“. Für Tastatur: A/D oder Pfeile, Leertaste springen, Shift Dash, K/F Angriff, R Neustart, Escape Pause. Drei Herzen und kurze Treffer-Immunität; Stürze bringen dich zur letzten sicheren Fläche, ohne Münzen, Sterne oder Gegner zurückzusetzen. Keine Checkpoints und kein Level-Neustart bei einem einzelnen Treffer. Die vier Abenteuer enden am jeweiligen Tor; der Bossabschluss erfolgt automatisch nach seinem Tod.
 
 ## Entwicklung und automatisierte Tests
 
