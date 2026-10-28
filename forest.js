@@ -103,7 +103,7 @@ function terrain(p,index){
  const c=document.createElement('canvas');
  c.width=p.w+32;c.height=(p.y===G?H-p.y:42)+35;
  const q=c.getContext('2d'),r=rng((p.x+997)*(stage+11)),height=c.height;
- const fortress=stage===4||(stage===3&&p.x>=2020);
+ const fortress=stage===4||(stage===3&&p.x>=3200);
  const stone=fortress||stage===2;
  const material=fortress?
   {outline:'#141722',base:'#494556',side:'#655a6d',light:'#94869a',shadow:'#292635',chip:'#d6c49e',cap:'#d9c39a',top:'#ffe6a5'}:
@@ -271,6 +271,14 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
   ctx.fillStyle=stageThemes[stage].soil[0];ctx.fillRect(p.x,p.y+2,p.w,3);
  }
  drawDynamicPlatforms();
+ if(stage===BOSS_LEVEL){
+  for(const x of [BOSS_ARENA_LEFT-14,BOSS_ARENA_RIGHT+6]){
+   ctx.fillStyle='#192031';ctx.fillRect(x,G-82,14,82);
+   ctx.fillStyle='#806978';ctx.fillRect(x+3,G-81,5,79);
+   ctx.fillStyle='#d5ac79';ctx.fillRect(x+1,G-90,12,13);
+   ctx.fillStyle='#f4da9b';ctx.fillRect(x+4,G-96,6,9);
+  }
+ }
  // Each biome has its own clearly recognizable foreground decorations.
  for(const p of land())for(let x=p.x+66;x<p.x+p.w-20;x+=136){
   if(x<cam-60||x>cam+W+60)continue;
@@ -291,7 +299,7 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
    ctx.fillStyle='#ce9bdf';ctx.fillRect(tx+24,G-24,28,7);
    ctx.fillRect(tx+32,G-34,12,10);
    ctx.fillStyle='#6599b5';ctx.fillRect(tx+32,G-18,8,18);
-  }else if(stage===3&&tx>2080){
+  }else if(stage===3&&tx>3250){
    // Approaching the gate: broken battlements and warm torchlights.
    ctx.fillStyle='#3a3449';ctx.fillRect(tx-16,G-34,40,34);
    ctx.fillStyle='#8b7581';ctx.fillRect(tx-21,G-39,51,8);

@@ -186,24 +186,47 @@ function hdWindow(c,x,y,w,h){
  c.restore();
 }
 function hdDrawCastle(c){
- hdPlanes(stage); // Release forest layers when entering the interior; iPhone memory stays bounded.
- // Existing castle structure gets physically separate full-resolution glass and light.
- drawCastleInterior();
- c.fillStyle='#17182970';c.fillRect(0,0,W,H);
- const offset=((cam*.2)%220+220)%220;
- for(let i=-1;i<7;i++){
-  hdWindow(c,i*220+43-offset,116,116,245);
+ hdPlanes(stage); // Free outdoor tree caches on entering the boss room.
+ // Calm, high-definition chamber: one mural wall, three tall windows,
+ // restrained lighting. Foreground floor and boss remain sharply pixelated.
+ const stone=c.createLinearGradient(0,0,0,H);
+ stone.addColorStop(0,'#181d2e');stone.addColorStop(.55,'#403444');
+ stone.addColorStop(1,'#292433');
+ c.fillStyle=stone;c.fillRect(0,0,W,H);
+ c.fillStyle='#312c40';c.fillRect(0,44,W,22);
+ c.fillStyle='#645467';c.fillRect(0,62,W,6);
+ c.fillStyle='#292735';c.fillRect(0,402,W,63);
+ // Large, subtly staggered stone blocks read as walls, not walkable platforms.
+ for(let y=82;y<403;y+=42)for(let x=-90+((Math.floor(y/42)%2)*45);x<W+100;x+=90){
+  c.fillStyle='#4b405148';c.fillRect(x+3,y+3,83,34);
+  c.fillStyle='#7d6a7440';c.fillRect(x+7,y+5,52,3);
  }
- const haze=c.createLinearGradient(0,0,0,H);
- haze.addColorStop(0,'#221d38a6');haze.addColorStop(.6,'#4b405236');
- haze.addColorStop(1,'#201d34aa');
- c.fillStyle=haze;c.fillRect(0,0,W,H);
- c.save();c.translate(-cam,0);c.globalAlpha=.78;drawCastleThrone();c.restore();
- // Distant fire glow never overlays the foreground player or platform tiles.
- for(let i=0;i<4;i++){
-  const x=i*265+110-(cam*.15%265);
-  hdSoftCircle(c,x,335,84,'#e6a57524','#e6a57500');
+ const windows=[104,416,746];
+ for(const x of windows){
+  hdWindow(c,x,120,116,242);
+  hdSoftCircle(c,x+57,272,112,'#bfa0aa25','#bfa0aa00');
  }
+ // Two recessive pillars and banners frame the throne, leaving the playfield quiet.
+ for(const x of [24,332,645,923]){
+  c.fillStyle='#272536';c.fillRect(x,77,25,357);
+  c.fillStyle='#67576b';c.fillRect(x+5,88,6,332);
+  c.fillStyle='#a38b85';c.fillRect(x-7,78,39,11);
+  c.fillStyle='#322b3c';c.fillRect(x-10,425,45,11);
+ }
+ for(const x of [246,683]){
+  c.fillStyle='#b08d6b';c.fillRect(x-6,88,42,6);
+  c.fillStyle='#713d54';c.fillRect(x,94,29,98);
+  c.fillStyle='#cf9d6c';c.fillRect(x+9,106,11,53);
+  c.fillStyle='#3a3044';c.fillRect(x,190,9,13);c.fillRect(x+20,190,9,13);
+ }
+ c.save();c.translate(-cam,0);c.globalAlpha=.72;drawCastleThrone();c.restore();
+ // Focused wall-torch glow, confined to the background layer.
+ for(const x of [190,827]){
+  hdSoftCircle(c,x,302,104,'#ffb36b2f','#ffb36b00');
+ }
+ const quiet=c.createLinearGradient(0,75,0,H);
+ quiet.addColorStop(0,'#1418271a');quiet.addColorStop(1,'#17172660');
+ c.fillStyle=quiet;c.fillRect(0,75,W,H-75);
 }
 function drawHdBackdrop(){
  const c=ctx;

@@ -65,7 +65,8 @@ function drawCastleInterior(){
  }
 }
 function drawCastleApproach(){
- if(stage!==3||cam+W<1860)return;
+ if(stage!==3||cam+W<3070)return;
+ ctx.save();ctx.translate(1250,0);
  // First distant towers, then the massive wall with an actual entrance.
  ctx.fillStyle='#222638';
  for(const [x,width,top] of [[1920,135,220],[2150,145,120],[2520,130,68],[2720,135,140]]){
@@ -125,6 +126,7 @@ function drawCastleApproach(){
  ctx.fillStyle='#eec884';ctx.fillRect(gateX+41,190,44,16);
  ctx.fillStyle='#774752';ctx.fillRect(gateX+51,211,24,22);
  ctx.fillStyle='#ecb36e';ctx.fillRect(gateX+59,216,8,11);
+ ctx.restore();
 }
 function drawCastleThrone(){
  if(stage!==4)return;
