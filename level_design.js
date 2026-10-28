@@ -116,6 +116,40 @@ function drawBiomeLandmarks(){
   }
  }
 }
+// Raised surfaces are deliberate side routes, not airborne stepping-stones.
+// Draw their foundations all the way into the actual ground before platform
+// tiles, so every optional elevated walkway is visibly supported.
+function drawCoursePlatformSupports(){
+ if(stage===BOSS_LEVEL)return;
+ const biome=stages[stage].motif;
+ for(const [x,y,w] of stages[stage].ledges){
+  if(x+w<cam-60||x>cam+W+60)continue;
+  const feet=[x+16,x+w-30];
+  for(const foot of feet){
+   if(!hasSceneryFoundation(foot,14))continue;
+   if(biome==='grove'||biome==='canopy'){
+    ctx.fillStyle='#243e37';ctx.fillRect(foot-3,y+5,20,G-y-5);
+    ctx.fillStyle='#5c8760';ctx.fillRect(foot+2,y+11,9,G-y-18);
+    ctx.fillStyle='#80ab78';ctx.fillRect(foot+5,y+20,3,G-y-33);
+    // Tree roots visually meet the ground beneath the supported deck.
+    ctx.fillStyle='#355b43';ctx.fillRect(foot-9,G-15,31,15);
+   }else{
+    ctx.fillStyle=biome==='ruins'?'#333943':'#302d40';
+    ctx.fillRect(foot-5,y+5,24,G-y-5);
+    ctx.fillStyle=biome==='ruins'?'#899184':'#95818a';
+    ctx.fillRect(foot-1,y+11,8,G-y-19);
+    for(let yy=y+25;yy<G-7;yy+=30){
+     ctx.fillStyle=biome==='ruins'?'#59666a':'#645468';
+     ctx.fillRect(foot-4,yy,21,4);
+    }
+    ctx.fillStyle='#1d2930';ctx.fillRect(foot-9,G-11,32,11);
+   }
+  }
+  // A continuous crossbeam joins both structural supports.
+  ctx.fillStyle=biome==='grove'||biome==='canopy'?'#2b4c40':'#3a3748';
+  ctx.fillRect(x+10,y+9,w-20,10);
+ }
+}
 function drawWorldStar(cx,cy){
  const x=Math.round(cx/2)*2,y=Math.round(cy/2)*2;
  ctx.save();ctx.translate(x,y);
@@ -161,11 +195,12 @@ function drawLevelExit(){
  if(x+85<cam||x>cam+W+70)return;
  ctx.save();
  if(motif==='castle'){
-  // Match existing rendered castle doorway, now the actual interactive exit.
-  ctx.fillStyle='#171a27';ctx.fillRect(x-24,y-121,84,121);
-  ctx.fillStyle='#7f5261';ctx.fillRect(x-19,y-117,17,117);
-  ctx.fillStyle='#b18f73';ctx.fillRect(x+45,y-117,11,117);
-  ctx.fillStyle='#d4b57c';ctx.fillRect(x-12,y-124,63,10);
+  // The full medieval gate already exists in the HD castle approach exactly
+  // behind this coordinate. Show its entrance, not a second floating door.
+  ctx.fillStyle='#161625';ctx.fillRect(x-26,y-115,52,110);
+  ctx.fillStyle='#d5af74';ctx.fillRect(x-30,y-122,60,7);
+  ctx.fillStyle='#8f7180';ctx.fillRect(x-30,y-115,7,115);
+  ctx.fillRect(x+23,y-115,7,115);
  }else{
   const color=motif==='grove'?'#91bb79':motif==='canopy'?'#80d0b2':'#b3a3b9';
   ctx.fillStyle='#152a32';ctx.fillRect(x-31,y-127,93,127);
