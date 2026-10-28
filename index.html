@@ -11,7 +11,7 @@
 <body>
  <canvas id="gameCanvas" aria-label="Realm Runners Spielfeld"></canvas>
  <div class="game-top">
-  <div class="identity"><span class="sigil">✦</span><span>REALM <b>RUNNERS</b><small>DUNGEON REBORN · ALPHA 0.1</small></span></div>
+  <div class="identity"><span class="sigil">✦</span><span>REALM <b>RUNNERS</b><small>DUNGEON REBORN · ALPHA 0.2</small></span></div>
   <div id="hud" class="hud hidden" aria-live="off">
    <div class="hud-stat hp-stat"><span class="stat-label">LEBEN</span><span id="hpText">100 / 100</span><div class="hp-track"><div id="hpFill"></div></div></div>
    <div class="hud-stat"><span class="stat-label">DUNGEON</span><strong id="roomText">0 / 9</strong></div>
@@ -19,6 +19,7 @@
   </div>
   <button id="pauseBtn" class="mini-button hidden" type="button" aria-label="Spiel pausieren">Ⅱ</button>
  </div>
+ <div id="bossHud" class="boss-hud hidden" role="status" aria-live="off"><div class="boss-header"><span id="bossName">DER SCHLEIMKÖNIG</span><span id="bossPhase">PHASE I</span></div><div class="boss-track"><div id="bossFill"></div></div><div id="bossHint" class="boss-hint">WEICHE DEN MARKIERTEN ANGRIFFEN AUS</div></div>
  <div id="abilityHud" class="ability-hud hidden"><span id="classTag">KRIEGER</span><span id="dashLabel">DASH BEREIT</span><span id="abilityLabel">Q: WIRBELSTURM</span></div>
  <div id="mobileControls" class="mobile-controls">
   <div id="joystick" class="joystick" role="group" aria-label="Virtueller Bewegungsstick"><div class="joystick-inner"></div></div>

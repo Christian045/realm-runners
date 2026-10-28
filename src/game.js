@@ -1,13 +1,14 @@
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js';
 import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js';
+import {createBossState, updateBoss, startPhaseTwo, isBossInvulnerable, PHASE_TWO_AT} from './boss.js';
 
 export class Game {
  constructor(progress,input,onChange=()=>{}){
   this.progress=progress;this.input=input;this.onChange=onChange;this.mode='menu';
   this.dungeon=null;this.player=null;this.enemies=[];this.projectiles=[];this.effects=[];
   this.loot=[];this.runCoins=0;this.clearCount=0;this.time=0;this.camera={x:0,y:0,scale:1,w:960,h:540};
-  this.attackSequence=0;this.upgradeChoices=[];this.bossDefeated=false;
+  this.attackSequence=0;this.upgradeChoices=[];this.bossDefeated=false;this.bossMessage='';
  }
  notify(){this.onChange(this)}
  chooseClass(kind){if(CLASSES[kind]){this.progress.selectedClass=kind;saveProgress(this.progress);this.notify()}}
@@ -24,7 +25,7 @@ export class Game {
    dashVector:{x:1,y:0},invulnerable:0,abilityCooldown:0,attackCooldown:0,
    direction:{x:1,y:0},upgradeIds:[],hitCount:0};
   this.mode='playing';this.enemies=[];this.projectiles=[];this.effects=[];this.loot=[];
-  this.runCoins=0;this.clearCount=0;this.time=0;this.bossDefeated=false;this.upgradeChoices=[];
+  this.runCoins=0;this.clearCount=0;this.time=0;this.bossDefeated=false;this.upgradeChoices=[];this.bossMessage='';
   this.camera.x=this.player.x-this.camera.w/2;this.camera.y=this.player.y-this.camera.h/2;
   this.notify();
  }
@@ -64,7 +65,8 @@ export class Game {
    this.enemies.push({x,y,homeRoom:room.id,type,radius:spec.radius,
     hp:Math.round(spec.hp*scale),maxHp:Math.round(spec.hp*scale),
     speed:spec.speed*(boss?1:1+this.clearCount*.025),damage:spec.damage,
-    cooldown: .45+i*.2,windup:0,phase:0,flash:0,elapsed:0,knock:{x:0,y:0}});
+    cooldown: .45+i*.2,windup:0,phase:0,flash:0,elapsed:0,knock:{x:0,y:0},
+    ...(boss?{boss:createBossState()}: {})});
   }
   this.createEffect('text',room.cx,room.cy-110,boss?'DER SCHLEIMKÖNIG':'KAMMER VERSIEGELT','#f8c78f',1.3);
  }
@@ -145,24 +147,34 @@ export class Game {
    for(const e of this.enemies)if(e.hp>0&&distance(e,center)<133+e.radius)this.hitEnemy(e,p.damage*2.8,aim);
   }
  }
- spawnProjectile(x,y,dir,damage,magic=false,hostile=false){
-  const speed=hostile?250:magic?490:690;
+ spawnProjectile(x,y,dir,damage,magic=false,hostile=false,speedOverride=null){
+  const speed=speedOverride??(hostile?250:magic?490:690);
   this.projectiles.push({x,y,vx:dir.x*speed,vy:dir.y*speed,damage,magic,hostile,
    life:hostile?3.1:1.2,radius:magic?9:hostile?9:5});
  }
  hitEnemy(e,damage,dir){
-  if(e.hp<=0)return;
+  if(e.hp<=0||isBossInvulnerable(e))return;
   const p=this.player;
   let d=damage*(this.random()<p.crit?1.7:1);
   p.hitCount++;
   if(p.hitCount%4===0&&p.upgradeIds.includes('bolt'))d+=p.damage*.7;
-  d=Math.round(d);e.hp-=d;e.flash=.16;
+  d=Math.round(d);
+  if(e.type==='boss'&&e.boss.phase===1&&e.hp-d<=Math.ceil(e.maxHp*PHASE_TWO_AT)){
+   e.hp=Math.ceil(e.maxHp*PHASE_TWO_AT);startPhaseTwo(this,e);
+  }else e.hp=Math.max(0,e.hp-d);
+  e.flash=.16;
   e.knock={x:dir.x*100,y:dir.y*100};
   if(p.leech>0)p.hp=Math.min(p.maxHp,p.hp+d*p.leech);
   this.createEffect('text',e.x,e.y-27,''+d,'#fff1bf',.52);
   this.createEffect('burst',e.x,e.y,e.type==='boss'?'#ffb2c0':'#ffdd9e',.28,16);
   if(e.hp<=0){
-   e.hp=0;const reward=ENEMY_DATA[e.type].reward;
+   e.hp=0;
+   if(e.type==='boss'){
+    // Killing the boss ends the fight; surviving summons must not block victory.
+    for(const add of this.enemies)if(add!==e&&add.homeRoom===e.homeRoom)add.hp=0;
+    this.projectiles=this.projectiles.filter(p=>!p.hostile);
+   }
+   const reward=ENEMY_DATA[e.type].reward;
    this.loot.push({x:e.x,y:e.y,type:'coin',value:reward,picked:false});
    if(this.random()<.19)this.loot.push({x:e.x+14,y:e.y+8,type:'heal',value:18,picked:false});
    this.createEffect('burst',e.x,e.y,'#b6f2bf',.55,40);
@@ -181,6 +193,7 @@ export class Game {
   const p=this.player;
   for(const e of this.enemies){
    if(e.hp<=0)continue;
+   if(e.type==='boss'&&e.boss){updateBoss(this,e,dt);if(this.mode!=='playing')return;continue}
    e.elapsed+=dt;e.flash=Math.max(0,e.flash-dt);e.cooldown-=dt;
    const dx=p.x-e.x,dy=p.y-e.y,dist=Math.hypot(dx,dy)||1;
    const dir={x:dx/dist,y:dy/dist};
@@ -266,10 +279,13 @@ export class Game {
   this.earnedGold=earned;
   saveProgress(this.progress);this.notify();
  }
+ getActiveBoss(){return this.enemies.find(e=>e.type==='boss'&&e.hp>0)||null}
  getHud(){
   if(!this.player)return null;
   return {className:CLASSES[this.player.kind].name,hp:Math.ceil(this.player.hp),maxHp:this.player.maxHp,
    rooms:this.clearCount,remaining:9-this.clearCount,coins:this.runCoins,ability:this.player.abilityCooldown,
-   dash:this.player.dashCooldown,time:this.time,seed:this.dungeon.seed};
+   dash:this.player.dashCooldown,time:this.time,seed:this.dungeon.seed,
+   boss:(()=>{const e=this.getActiveBoss();return e?{hp:Math.ceil(e.hp),maxHp:e.maxHp,phase:e.boss.phase,
+    transitioning:e.boss.transition>0,attack:e.boss.telegraph?.type|| (e.boss.charge?'charge':null)}:null})()};
  }
 }

@@ -68,6 +68,11 @@ export function generateDungeon(seed=1){
  rooms[0].type='start';rooms[0].cleared=true;
  rooms[bossId].type='boss';
  if(treasureId!==undefined)rooms[treasureId].type='treasure';
+ // Visual identities are seeded and never alter walkability or encounter order.
+ const themes=['crypt','fungal','flooded','reliquary'];
+ for(const room of rooms){
+  room.theme=room.type==='start'?'sanctuary':room.type==='boss'?'throne':room.type==='treasure'?'reliquary':themes[Math.floor(random()*themes.length)];
+ }
  return {
   seed,width,height,tiles,doors,rooms,bossId,random,
   start:{x:rooms[0].cx,y:rooms[0].cy},

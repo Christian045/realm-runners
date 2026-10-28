@@ -19,6 +19,7 @@ function refreshPanel(){
  $('hud').classList.toggle('hidden',!game.player);
  $('pauseBtn').classList.toggle('hidden',!playing);
  $('abilityHud').classList.toggle('hidden',!game.player);
+ $('bossHud').classList.toggle('hidden',!playing||!game.getActiveBoss());
  $('mobileControls').style.display=playing?'':'none';
  if(playing)return;
  const title=$('overlay').querySelector('h1'),chapter=$('overlay').querySelector('.chapter');
@@ -73,6 +74,15 @@ function updateHud(){
  $('classTag').textContent=hud.className.toUpperCase();
  $('dashLabel').textContent=hud.dash>0?'DASH '+hud.dash.toFixed(1)+'s':'DASH BEREIT';
  $('abilityLabel').textContent=hud.ability>0?'Q: '+hud.ability.toFixed(1)+'s':'Q: '+CLASSES[game.player.kind].ability;
+ const boss=hud.boss;
+ $('bossHud').classList.toggle('hidden',!boss||game.mode!=='playing');
+ if(boss){
+  $('bossFill').style.width=(100*boss.hp/boss.maxHp)+'%';
+  $('bossPhase').textContent=boss.phase===2?'PHASE II · ENTFESSELT':'PHASE I';
+  $('bossHud').classList.toggle('enraged',boss.phase===2);
+  const names={volley:'GIFT-SALVE',slam:'SCHLAG AUS DEM HIMMEL',charge:'ANSTURM',nova:'SPORENSTURM',summon:'VERSTÄRKUNG'};
+  $('bossHint').textContent=boss.transitioning?'PHASENWECHSEL · KURZE VERSCHNAUFPAUSE':boss.attack?'WARNUNG · '+names[boss.attack]:'BEOBACHTE SEINE BEWEGUNGEN';
+ }
 }
 let last=0,accumulator=0,hudTime=0;
 function frame(now){

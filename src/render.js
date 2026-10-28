@@ -1,5 +1,6 @@
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js';
+import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js';
 const hash=(x,y,seed=0)=>{let a=Math.imul(x+seed,374761393)+Math.imul(y,668265263);a=Math.imul(a^(a>>>13),1274126177);return (a^(a>>>16))>>>0};
 const fill=(ctx,color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h)};
 export class Renderer {
@@ -29,6 +30,8 @@ export class Renderer {
   if(!game.dungeon){this.titleBackground();return}
   c.setTransform(this.scale,0,0,this.scale,-game.camera.x*this.scale,-game.camera.y*this.scale);
   this.map(game);
+  drawDungeonAtmosphere(c,game);
+  drawBossWarnings(c,game);
   const entities=[
    ...game.loot.map(e=>({kind:'loot',e,y:e.y})),
    ...game.enemies.map(e=>({kind:'enemy',e,y:e.y})),
@@ -41,6 +44,7 @@ export class Renderer {
   }
   for(const b of game.projectiles)this.projectile(b);
   for(const e of game.effects)this.effect(e);
+  drawVignette(c,game,canvas);
   this.minimap(game);
  }
  titleBackground(){
@@ -143,8 +147,8 @@ export class Renderer {
    fill(c,'#3a3730',-9,-2,6,5);fill(c,'#3a3730',4,-2,6,5);
   }else{
    c.fillStyle='#633950';c.beginPath();c.ellipse(0,5,r+4,r*.94,0,0,Math.PI*2);c.fill();
-   c.fillStyle=e.flash>0?'#ffebdf':'#f97e99';c.beginPath();c.ellipse(0,-5,r,r*.82,0,0,Math.PI*2);c.fill();
-   c.fillStyle='#f6d38a';c.beginPath();c.moveTo(-24,-25);c.lineTo(-15,-46);c.lineTo(-4,-28);c.lineTo(8,-48);c.lineTo(22,-27);c.closePath();c.fill();
+   c.fillStyle=e.flash>0?'#ffebdf':e.boss?.phase===2?'#d55883':'#f97e99';c.beginPath();c.ellipse(0,-5,r,r*.82,0,0,Math.PI*2);c.fill();
+   c.fillStyle=e.boss?.phase===2?'#ffd6e0':'#f6d38a';c.beginPath();c.moveTo(-24,-25);c.lineTo(-15,-46);c.lineTo(-4,-28);c.lineTo(8,-48);c.lineTo(22,-27);c.closePath();c.fill();
    fill(c,'#322a3b',-15,-4,9,7);fill(c,'#322a3b',7,-4,9,7);
    fill(c,'#fff0e1',-13,-3,4,4);fill(c,'#fff0e1',9,-3,4,4);
   }
@@ -155,9 +159,13 @@ export class Renderer {
    fill(c,'#17232a',e.x-width/2,e.y-r-24,width,7);
    fill(c,e.type==='boss'?'#e86c83':'#e1a67d',e.x-width/2,e.y-r-24,width*ratio,7);
   }
+  if(e.boss?.phase===2){
+   c.save();c.globalAlpha=.55+.22*Math.sin(time*8);c.strokeStyle='#ff6f9f';c.lineWidth=4;
+   c.beginPath();c.arc(e.x,e.y,r+7,0,Math.PI*2);c.stroke();c.restore();
+  }
   if(e.windup>0){
    c.strokeStyle=e.type==='boss'?'#ff7898':'#eed0ff';c.lineWidth=2;
-   c.beginPath();c.arc(e.x,e.y,e.radius+9,-Math.PI/2,-Math.PI/2+Math.PI*2*(1-e.windup/(e.type==='boss'?.8:.58)));c.stroke();
+   c.beginPath();c.arc(e.x,e.y,e.radius+9,-Math.PI/2,-Math.PI/2+Math.PI*2*(1-e.windup/.58));c.stroke();
   }
  }
  drop(d,t){
