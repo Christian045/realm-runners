@@ -130,7 +130,7 @@ function enemyHazardsHitHero(prevY=hero?.y??0){
   const x=hero.x+hero.w/2,y=hero.y+hero.h/2;
   if(Math.abs(shot.x-x)<hero.w/2+shot.radius-3&&Math.abs(shot.y-y)<hero.h/2+shot.radius-3){
    if(hero.dash>0){shot.life=0;burst(shot.x,shot.y,'#ffba84',6,2);}
-   else{shot.life=0;return die(shot.x);}
+   else{shot.life=0;const hit=die(shot.x);enemyShots=enemyShots.filter(s=>s.life>0);return hit;}
   }
  }
  enemyShots=enemyShots.filter(s=>s.life>0);
