@@ -257,7 +257,7 @@ test('v0.6 ground shockwave harms nonjumping hero while jump avoids it',()=>{
  h.run("start(4);boss.engaged=true;hero.x=2170;hero.y=422;bossWaves=[{x:hero.x+hero.w/2-6,dir:1,ttl:30}]");
  h.run('bossTick(1,hero.y)');
  assert.equal(h.run('hero.hearts'),2);
- assert.ok(h.run('hero.x')>2160,'boss hit knocks player away instead of restarting');
+ assert.ok(Math.abs(h.run('hero.x')-2170)<=28,'boss hit knocks player locally instead of restarting');
  h.run("start(4);boss.engaged=true;hero.x=2170;hero.y=315;hero.on=false;bossWaves=[{x:hero.x+hero.w/2-6,dir:1,ttl:30}]");
  h.run('bossTick(1,hero.y)');
  assert.equal(h.run('hero.hearts'),3);
