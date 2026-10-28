@@ -1,6 +1,13 @@
 'use strict';
 // In-game, locally bundled release notes. No network requests or user data.
 const RELEASE_NOTES=[
+ {v:'0.15.0',title:'Baumkronen ohne Brücken',items:[
+  'Alle fünf Brücken-/Astplattformen in Baumkronen sind vollständig aus der Spielgeometrie entfernt.',
+  'Zusammenhängende bewachsene Felsrücken und breitere Hügel ersetzen die frei stehenden Konstruktionen.',
+  'Auch dekorative Querbalken und Pfosten entfallen. Moos und kleine Farne wachsen direkt auf dem Boden.',
+  'Die drei Sterne liegen als erreichbare Sprungziele über den Kuppen; alle Klassen können den Abschnitt ohne Dash abschließen.',
+  'Nur Baumkronen bekommt neue Bestzeiten. Die anderen Level, der Boss, Steuerung und vorhandene Spielstände bleiben erhalten.'
+ ]},
  {v:'0.14.0',title:'Aufgeräumtes Menü und natürliche Baumformen',items:[
   'Update-Texte stehen ausschließlich im Updates-Fenster. Die Steuerungshilfe ist einklappbar.',
   'Welt und Level können per Doppelklick oder Doppeltippen direkt gestartet werden. Einzelklick öffnet die Welt beziehungsweise wählt ein Level aus.',

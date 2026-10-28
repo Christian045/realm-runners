@@ -327,13 +327,14 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
    ctx.fillRect(tx+20,G-32,24,8);ctx.fillStyle='#f8ecbd';ctx.fillRect(tx+26,G-35,12,5);
    ctx.fillStyle='#5a9b54';ctx.fillRect(tx+40,G-14,14,14);
   }else if(stage===1){
-   // Pale luminous cyan crystals and wind-blown violet foliage.
-   ctx.fillStyle='#1b697d';ctx.fillRect(tx-18,G-26,32,26);
-   ctx.fillStyle='#83d9e0';ctx.fillRect(tx-10,G-34,16,34);
-   ctx.fillStyle='#bdebf5';ctx.fillRect(tx-6,G-42,8,22);
-   ctx.fillStyle='#ce9bdf';ctx.fillRect(tx+24,G-24,28,7);
-   ctx.fillRect(tx+32,G-34,12,10);
-   ctx.fillStyle='#6599b5';ctx.fillRect(tx+32,G-18,8,18);
+   // Moss and small ferns sit directly on the ridge, without tall artificial spires.
+   ctx.fillStyle='#243e42';ctx.fillRect(tx-18,G-12,31,12);
+   ctx.fillStyle='#6e8b7c';ctx.fillRect(tx-14,G-15,22,6);
+   ctx.fillStyle='#9dbb89';ctx.fillRect(tx-12,G-17,14,4);
+   for(let j=0;j<4;j++){
+    line(ctx,tx+29,G,tx+12+j*10,G-11-(j%2)*9,'#82aa8d',2);
+    ellipse(ctx,tx+13+j*10,G-11-(j%2)*9,5,2,'#96b79a');
+   }
   }else if(stage===3&&tx>3550){
    // Approaching the gate: broken battlements and warm torchlights.
    ctx.fillStyle='#3a3449';ctx.fillRect(tx-16,G-34,40,34);

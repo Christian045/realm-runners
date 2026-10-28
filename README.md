@@ -1,6 +1,26 @@
-# Realm Runners v0.14 – aufgeräumtes Menü und natürliche Baumformen
+# Realm Runners v0.15 – Baumkronen ohne Brücken
 
-**Spielen: https://christian045.github.io/realm-runners/?v=0.14.0**
+**Spielen: https://christian045.github.io/realm-runners/?v=0.15.0**
+
+## Neu in v0.15
+
+Die fünf Brücken-/Astplattformen in **1-2 Baumkronen** sind vollständig entfernt. An ihrer Stelle verläuft der Weg auf durchgehenden, bewachsenen Felsrücken mit breiten Kuppen und sanften Anstiegen. Auch die dekorativen Querbalken, hohen Pfosten und Kristallsäulen entfallen; Moos und kleine Farne bilden den Vordergrund.
+
+- Die Geländeoberkante ist die tatsächliche begehbare Fläche; keine frei stehenden Ersatzplattformen.
+- Die drei Sterne sind erreichbare Sprungziele oberhalb der Kuppen.
+- Alle Klassen schaffen die vorhandenen Abgründe weiterhin ohne Dash oder Bewegungsausrüstung. Sprungparameter, Länge und die übrigen Level bleiben erhalten.
+- Neue Bestzeiten **nur für Baumkronen** unter `bestTimesCanopyV15`. Frühere Rekorde bleiben gespeichert; die anderen aktuellen Zeiten, Gold, XP, Skills, Ausrüstung und Freischaltungen bleiben erhalten.
+
+### Kurz testen
+
+1. Spiel öffnen; im Menü steht **v0.15.0**. Keine Website-Daten löschen.
+2. Welt 1 → Baumkronen starten. Zwischen den Baumkulissen müssen durchgehende moosige Hügel statt Holzdecks oder Astplattformen stehen.
+3. Über die Kuppen laufen, bergab Bodenkontakt prüfen und die drei Sterne anspringen.
+4. Mit allen Klassen Abgründe, Gegner, Pause und iPhone-Multitouch prüfen. Danach Fortschritt und Bestzeit nach einem Neuladen vergleichen.
+
+![Baumkronen v0.15: bewachsene Felsrücken ohne Brücken](docs/canopy-v015.jpg)
+
+## Frühere Updates
 
 ## Neu in v0.14
 

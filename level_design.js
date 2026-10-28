@@ -48,7 +48,7 @@ const WORLD_ONE_LAYOUTS=[
 // sequence inside an existing land segment; gap approaches and exits stay level.
 const COURSE_FORMS=[
  [[530,690,820,1010,-40],[1540,1740,1930,2150,20],[2790,2990,3150,3390,-56],[4400,4590,4770,4980,-48],[5850,6060,6200,6420,-52]],
- [[1080,1280,1420,1630,-64],[2020,2230,2450,2660,-48],[3090,3290,3510,3750,-64],[4290,4490,4700,4910,-48],[5400,5580,5790,5960,-60]],
+ [[1080,1320,1440,1690,-84],[2020,2240,2450,2690,-76],[3090,3320,3510,3770,-88],[4290,4510,4700,4920,-76],[5400,5620,5790,6010,-80]],
  [[960,1080,1330,1490,-32],[1940,2090,2290,2440,-48],[2850,3020,3210,3430,-48],[3970,4170,4370,4640,-40],[5150,5350,5520,5720,-48],[6170,6340,6510,6630,-32]],
  [[1300,1500,1720,1910,-32],[2480,2670,2900,3120,-48],[3690,3890,4100,4340,-48],[4900,5110,5300,5460,-48],[5870,6030,6160,6330,-32]]
 ];
@@ -57,7 +57,8 @@ function stairRoute(x,y,width=140,step=24){
 }
 const COURSE_PATHS=[
  [[1390,441,104],[2998,385,104],[4600,393,104],[6064,389,104]],
- [[1130,330,220],[2210,330,230],[3300,300,220],[4500,318,220],[5590,306,220]],
+ [], // Baumkronen: the traversable ground itself supplies all elevation.
+
  [...stairRoute(1070,409),...stairRoute(3040,393,160),...stairRoute(5340,393)],
  [[1450,409,80],[1530,385,240],[1770,409,80],
   [2610,393,80],[2690,369,240],[2930,393,80],
@@ -65,7 +66,7 @@ const COURSE_PATHS=[
   [5040,393,80],[5120,369,240],[5360,393,80]]
 ];
 const COURSE_STARS=[[[1442,396],[4652,348],[6116,344]],
- [[1290,285],[3470,255],[5750,261]],
+ [[1350,291],[3450,287],[5750,295]],
  [[1280,316],[3250,300],[5550,300]],
  [[1650,340],[4030,324],[5240,324]]];
 for(let i=0;i<WORLD_ONE_LAYOUTS.length;i++){
@@ -76,7 +77,7 @@ for(let i=0;i<WORLD_ONE_LAYOUTS.length;i++){
  c.profile=[[0,G],...COURSE_FORMS[i].flatMap(([a,b,c,d,dy])=>[[a,G],[b,G+dy],[c,G+dy],[d,G]]),[c.width,G]];
  c.hint=[
   'Sanfte Erdhügel, breite Senken und niedrige, verwurzelte Baumstämme.',
-  'Breite, feste Äste wachsen aus Bäumen über dem Waldpfad.',
+  'Bewachsene Felsrücken, breite Kuppen und Sprungziele über dem Waldpfad.',
   'Zerbrochene Steintreppen, niedrige Mauern und moosige Brückenreste.',
   'Breite Steinstufen und ein zunehmend befestigter Weg bis zur Burg.'
  ][i];
@@ -122,7 +123,7 @@ function drawCourseGround(p){
   const top=Math.floor(Math.min(p.y,p.yEnd??p.y))-8;
   const c=document.createElement('canvas');c.width=Math.ceil(p.w)+2;c.height=H-top;
   const q=c.getContext('2d'),r=rng(p.x*53+stage*937),stone=stage===2||stage===3&&p.x>=3535;
-  const pal=stage===3&&p.x>=3535?['#1e2230','#514955','#3c3647','#6f616b','#d3c097','#91818a']:stageThemes[stage].soil;
+  const pal=stage===1?['#172d35','#3d5053','#2b3f46','#596c64','#9fc49b','#6d8a69']:stage===3&&p.x>=3535?['#1e2230','#514955','#3c3647','#6f616b','#d3c097','#91818a']:stageThemes[stage].soil;
   q.beginPath();q.moveTo(0,p.y-top);q.lineTo(c.width,(p.yEnd??p.y)-top);q.lineTo(c.width,c.height);q.lineTo(0,c.height);q.closePath();q.save();q.clip();
   q.fillStyle=pal[0];q.fillRect(0,0,c.width,c.height);
   for(let yy=0;yy<c.height;yy+=16)for(let xx=-16;xx<c.width;xx+=16){
@@ -172,19 +173,9 @@ function drawBiomeLandmarks(){
   }
   // Decorative rectangles removed: the four collidable fallen logs carry this motif.
  }else if(motif==='canopy'){
-  for(const x of anchors.trees){
-   if(!visible(x,110)||!hasSceneryFoundation(x+24,44)||courseLedges().some(p=>Math.abs(x+46-p.x-32)<155))continue;
-   // All branches grow out of a trunk that visibly reaches the terrain.
-   ctx.save();ctx.translate(0,Math.max(courseGroundY(x+24),courseGroundY(x+68))-G);ctx.fillStyle='#264e43';ctx.fillRect(x+24,G-290,44,290);
-   ctx.fillStyle='#418569';ctx.fillRect(x+36,G-290,12,280);
-   for(let y=G-280;y<G-80;y+=55){
-    ctx.fillStyle='#326b5b';ctx.fillRect(x+6,y,95,13);
-    ctx.fillStyle='#7aab7a';ctx.fillRect(x+10,y,56,4);
-   }
-   // This creeper hangs directly from the trunk's branch, not from thin air.
-   ctx.fillStyle='#5e9277';ctx.fillRect(x+55,G-265,7,115);
-   ctx.fillStyle='#abcfaf';ctx.fillRect(x+58,G-232,3,38);ctx.restore();
-  }
+  // No branch decks, overhead silhouettes or decorative crossbar platforms.
+  // The HD tree backdrop and the grounded ridge carry this biome instead.
+  return;
  }else if(motif==='ruins'){
   for(const x of anchors.arches){
    // Require BOTH columns to be grounded before drawing the lintel or doorway.
