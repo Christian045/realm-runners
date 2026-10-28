@@ -84,7 +84,7 @@ function size(){let d=Math.min(devicePixelRatio||1,2),s=Math.min(innerWidth/W,in
 function menu(){
  clearInput();scene='menu';updateBossHud();
  layer.classList.remove('hide');hud.classList.add('hide');controls.classList.add('hide');
- $('#menu').classList.remove('hide');
+ $('#menu').classList.remove('hide');$('#levelResult').classList.add('hide');
  $('#play').classList.remove('hide');$('#resume').classList.add('hide');
  renderWorldMenu();
 }
@@ -157,7 +157,42 @@ function renderGameHud(){
   (stages[stage].boss?'':'<span class="star-counter" aria-label="'+hero.stars+' von 3 Sternen">'+PIXEL_STAR+'<strong>'+hero.stars+'/3</strong></span>');
  left.setAttribute('aria-label',hero.hearts+' von 3 Herzen · '+hero.coins+' Münzen · '+hero.stars+' Sterne · insgesamt '+save.gold+' Gold');
 }
-function end(win){if(scene!=='game')return;exitActive=false;scene='end';clearInput();updateBossHud();$('#play').classList.remove('hide');let finishedMs=0;if(win){finishedMs=recordTime();xp(70+hero.earned);save.stars[stage]=Math.max(save.stars[stage],hero.stars);save.unlocked=Math.max(save.unlocked,Math.min(stages.length,stage+2));if(stages[stage].boss)save.slimeKingWins=(Number(save.slimeKingWins)||0)+1;persist()}layer.classList.remove('hide');hud.classList.add('hide');controls.classList.add('hide');$('#menu').classList.add('hide');$('#return').classList.remove('hide');$('#return').onclick=()=>{menuView='levels';menu();};$('#heading').textContent=win?'LEVEL GESCHAFFT!':'Versuch es erneut';$('#intro').textContent=win?(stages[stage].boss?'Der Schleimkönig ist besiegt! · Zeit: '+formatRunTime(finishedMs)+' · '+(hero.earned+70)+' XP erhalten.':'Zeit: '+formatRunTime(finishedMs)+' '+medal(finishedMs)+' · Du hast '+hero.stars+'/3 Sterne gesammelt und '+(hero.earned+70)+' XP erhalten. · '+hero.coins+' Münzen gesammelt.'):'Alle Herzen verloren! Du kannst das Level von Anfang an erneut spielen. Taste R startet neu.';$('#play').textContent=win&&stage<stages.length-1?'Nächstes Level':'Erneut spielen';$('#play').onclick=()=>start(win&&stage<stages.length-1?stage+1:stage)}
+function end(win){
+ if(scene!=='game')return;
+ exitActive=false;scene='end';clearInput();updateBossHud();
+ $('#play').classList.remove('hide');
+ let finishedMs=0;
+ if(win){
+  finishedMs=recordTime();
+  xp(70+hero.earned);
+  save.stars[stage]=Math.max(save.stars[stage],hero.stars);
+  save.unlocked=Math.max(save.unlocked,Math.min(stages.length,stage+2));
+  if(stages[stage].boss)save.slimeKingWins=(Number(save.slimeKingWins)||0)+1;
+  persist();
+ }
+ layer.classList.remove('hide');hud.classList.add('hide');controls.classList.add('hide');
+ $('#menu').classList.add('hide');
+ $('#return').classList.remove('hide');
+ $('#return').textContent='← Zur Weltkarte';
+ $('#return').onclick=()=>{menuView='levels';menu();};
+ $('#heading').textContent=win?'LEVEL GESCHAFFT!':'VERSUCH BEENDET';
+ $('#intro').textContent=win?(stages[stage].boss?
+  'Der Schleimkönig ist besiegt. Das Schloss ist befreit!':
+  stages[stage].exitName+' · Der Weg ist geschafft.'):
+  'Alle Herzen verloren. Versuche den Abschnitt erneut – dein dauerhaftes Gold bleibt erhalten.';
+ const results=$('#levelResult');
+ results.classList.toggle('hide',!win);
+ if(win){
+  const icon=stages[stage].boss?'♛':PIXEL_STAR;
+  results.innerHTML='<div class="result-chapter">ABSCHNITT '+(stage+1)+' VON 5 · WELT 1</div>'+
+   '<div class="result-stats"><div><span>ZEIT</span><strong>'+formatRunTime(finishedMs)+'</strong></div>'+
+   '<div><span>STERNE</span><strong class="result-stars">'+icon+' '+hero.stars+'/3</strong></div>'+
+   '<div><span>MÜNZEN</span><strong>'+hero.coins+'</strong></div></div>'+
+   '<div class="result-reward"><span>'+medal(finishedMs,stage)+'</span><span>+'+(hero.earned+70)+' XP</span></div>';
+ }
+ $('#play').textContent=win&&stage<stages.length-1?'▶ Nächster Abschnitt':'↻ Erneut spielen';
+ $('#play').onclick=()=>start(win&&stage<stages.length-1?stage+1:stage);
+}
 function step(dt){
  if(scene!=='game')return;
  t+=dt;
