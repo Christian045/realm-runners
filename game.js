@@ -111,7 +111,14 @@ function xp(n){save.xp+=n;while(save.xp>=save.level*100){save.xp-=save.level*100
 // enough blinking immunity to escape overlapping enemies or spikes.
 const DAMAGE_INVULNERABLE_FRAMES=86;
 function die(sourceX=undefined,fall=false){
- if(scene!=='game'||!hero||invincible>0||hero.dash>0)return false;
+ if(scene!=='game'||!hero)return false;
+ // Falling during the immunity window still needs a safe rescue, without
+ // taking another heart or restarting collectibles.
+ if(fall&&invincible>0){
+  hero.x=hero.safeX;hero.y=hero.safeY-10;hero.vx=0;hero.vy=0;hero.on=false;
+  return true;
+ }
+ if(invincible>0||hero.dash>0)return false;
  hero.hearts=Math.max(0,hero.hearts-1);hero.hitFlash=24;
  burst(hero.x+hero.w/2,hero.y+hero.h/2,'#fb657c',19,2.8);
  hudSignature='';renderGameHud();
