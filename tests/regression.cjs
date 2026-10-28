@@ -92,7 +92,7 @@ test('v0.5 short tap is lower than hold for all classes',()=>{
  }
 });
 test('v0.5 coyote time allows a jump just after stepping off a ledge',()=>{
- h.run("save.class='warrior';start(0);hero.x=497;hero.on=true;input.right=true;step(1)");
+ h.run("save.class='warrior';start(0);hero.x=627;hero.on=true;input.right=true;step(1)");
  assert.equal(h.run('hero.on'),false);
  h.run('input.jump=true;step(1)');
  assert.ok(h.run('hero.vy')<0);
