@@ -12,7 +12,7 @@ function harness(initial){const elements=new Map(),listeners={},storage=new Map(
 }
 let checks=0;function test(name,fn){fn();checks++;console.log('PASS',name);}
 const h=harness({class:'mage',unlocked:3,stars:[3,2,1],xp:87,level:4,custom:'preserved'});
-test('v0.2 progress and unknown fields survive loading and saving',()=>{h.run('persist()');const data=JSON.parse(h.storage.get('realm-runners-save-v2'));for(const [k,v] of Object.entries({class:'mage',unlocked:3,xp:87,level:4,custom:'preserved'}))assert.deepEqual(data[k],v);assert.deepEqual(data.stars,[3,2,1,0,0]);assert.equal(data.saveVersion,5);});
+test('v0.2 progress and unknown fields survive loading and saving',()=>{h.run('persist()');const data=JSON.parse(h.storage.get('realm-runners-save-v2'));for(const [k,v] of Object.entries({class:'mage',unlocked:3,xp:87,level:4,custom:'preserved'}))assert.deepEqual(data[k],v);assert.deepEqual(data.stars,[3,2,1,0,0]);assert.equal(data.saveVersion,6);});
 test('all levels and classes render; terrain cache bounded',()=>{for(let s=0;s<5;s++)for(const c of ['warrior','hunter','mage']){h.run(`save.class='${c}';start(${s});for(let i=0;i<40;i++)step(1);draw()`);}assert.ok(h.run('terrainCache.size')<=64);});
 test('ground collision and jump',()=>{h.run('start(0);for(let i=0;i<60;i++)step(1)');assert.equal(h.run('hero.on'),true);const y=h.run('hero.y');h.run('input.jump=true;step(1)');assert.ok(h.run('hero.y')<y);});
 test('coin and star rewards emit particles',()=>{h.run("start(0);things=[{x:hero.x+15,y:hero.y+20,type:'star',taken:false}];step(1)");assert.equal(h.run('hero.stars'),1);assert.equal(h.run('hero.earned'),25);assert.ok(h.run('particles.length')>0);});
@@ -559,7 +559,7 @@ test('v0.9 old records and player progression remain intact',()=>{
  assert.equal(h.run('scene'),'end');
  assert.ok(h.run("save.bestTimesBossV09['1-5'].hunter")>0);
  assert.equal(h.run("save.bestTimesBossV062['1-5'].hunter"),48000);
- assert.equal(h.run('save.saveVersion'),5);
+ assert.equal(h.run('save.saveVersion'),6);
 });
 
 test('v0.9.1 heart HUD uses three clear pixel icons and updates immediately',()=>{
