@@ -218,7 +218,7 @@ test('v0.6 Slime King red health bar tracks damage and boss resets on death',()=
  h.run('damageBoss(4)');
  assert.equal(h.run('boss.hp'),52);
  assert.equal(h.run("document.querySelector('#bossHealthFill').style.width"),String(52/56*100)+'%');
- assert.equal(h.run("document.querySelector('#bossHealthTrack').attrs['aria-valuenow']"),'16');
+ assert.equal(h.run("document.querySelector('#bossHealthTrack').attrs['aria-valuenow']"),'52');
  h.run('die()');
  assert.equal(h.run('hero.hearts'),2);
  assert.equal(h.run('boss.hp'),56);
