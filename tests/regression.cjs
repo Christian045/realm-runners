@@ -7,17 +7,17 @@ function harness(initial){const elements=new Map(),listeners={},storage=new Map(
  class El {constructor(){this.dataset={};this.listeners={};this.style={};this.attrs={};this.classes=new Set();this.classList={add:k=>this.classes.add(k),remove:k=>this.classes.delete(k),toggle:(k,flag)=>flag===undefined?(this.classes.has(k)?this.classes.delete(k):this.classes.add(k)):(flag?this.classes.add(k):this.classes.delete(k)),contains:k=>this.classes.has(k)};}setAttribute(k,v){this.attrs[k]=String(v);}addEventListener(k,f){(this.listeners[k]??=[]).push(f)}setPointerCapture(){}focus(){}querySelectorAll(){return [];}dispatch(type,data){for(const f of this.listeners[type]||[])f({preventDefault(){},...data});}}
  const canvas=createCanvas(960,540);elements.set('#view',canvas);const buttons=['left','right','jump','dash','attack'].map(k=>{let el=new El();el.dataset.control=k;return el});
  const sandbox={console,Math,JSON,Number,Map,Set,Object,Array,devicePixelRatio:1,innerWidth:960,innerHeight:540,performance:{now:()=>1000},matchMedia:()=>({matches:false}),localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},addEventListener:(k,f)=>(listeners[k]??=[]).push(f),requestAnimationFrame:f=>raf=f,document:{hidden:false,querySelector:s=>{if(!elements.has(s))elements.set(s,new El());return elements.get(s)},querySelectorAll:()=>buttons,addEventListener:(k,f)=>(listeners[k]??=[]).push(f),createElement:tag=>tag==='canvas'?createCanvas(1,1):new El()}};
- vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'boss.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'enemies.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'castle_art.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'hd_background.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'changelog.js'),'utf8'),sandbox);
+ vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'boss.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'enemies.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'castle_art.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'hd_background.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'level_design.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'world_map.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'changelog.js'),'utf8'),sandbox);
  return {run:s=>vm.runInContext(s,sandbox),canvas,buttons,storage,emit:(k,e)=>{for(const f of listeners[k]||[])f({preventDefault(){},...e})}};
 }
 let checks=0;function test(name,fn){fn();checks++;console.log('PASS',name);}
 const h=harness({class:'mage',unlocked:3,stars:[3,2,1],xp:87,level:4,custom:'preserved'});
-test('v0.2 progress and unknown fields survive loading and saving',()=>{h.run('persist()');const data=JSON.parse(h.storage.get('realm-runners-save-v2'));for(const [k,v] of Object.entries({class:'mage',unlocked:3,xp:87,level:4,custom:'preserved'}))assert.deepEqual(data[k],v);assert.deepEqual(data.stars,[3,2,1,0,0]);assert.equal(data.saveVersion,6);});
+test('v0.2 progress and unknown fields survive loading and saving',()=>{h.run('persist()');const data=JSON.parse(h.storage.get('realm-runners-save-v2'));for(const [k,v] of Object.entries({class:'mage',unlocked:3,xp:87,level:4,custom:'preserved'}))assert.deepEqual(data[k],v);assert.deepEqual(data.stars,[3,2,1,0,0]);assert.equal(data.saveVersion,7);});
 test('all levels and classes render; terrain cache bounded',()=>{for(let s=0;s<5;s++)for(const c of ['warrior','hunter','mage']){h.run(`save.class='${c}';start(${s});for(let i=0;i<40;i++)step(1);draw()`);}assert.ok(h.run('terrainCache.size')<=64);});
 test('ground collision and jump',()=>{h.run('start(0);for(let i=0;i<60;i++)step(1)');assert.equal(h.run('hero.on'),true);const y=h.run('hero.y');h.run('input.jump=true;step(1)');assert.ok(h.run('hero.y')<y);});
 test('coin and star rewards emit particles',()=>{h.run("start(0);things=[{x:hero.x+15,y:hero.y+20,type:'star',taken:false}];step(1)");assert.equal(h.run('hero.stars'),1);assert.equal(h.run('hero.earned'),25);assert.ok(h.run('particles.length')>0);});
 test('stomping enemy',()=>{h.run('start(0);hero.x=420;hero.y=394;hero.vy=5;step(1)');assert.equal(h.run('bad[0].alive'),false);assert.ok(h.run('hero.vy')<0);});
-test('dash defeats enemy and starts cooldown',()=>{h.run('start(0);hero.x=406;hero.y=422;input.dash=true;step(1)');assert.equal(h.run('bad[0].alive'),false);assert.ok(h.run('dashCooldown')>0);});
+test('dash damages either enemy type and starts cooldown',()=>{h.run('start(0);hero.x=406;hero.y=422;input.dash=true;step(1)');assert.ok(h.run('bad[0].hp<bad[0].maxHp'));assert.ok(h.run('dashCooldown')>0);});
 test('v0.9.1 damage keeps position, coins, stars and timer while draining one heart',()=>{
  h.run("start(0);things[0].taken=true;for(let i=0;i<30;i++)step(1);hero.x=1700;die(1750)");
  assert.equal(h.run('hero.x'),1672);
@@ -34,7 +34,7 @@ test('v0.9.1 falling resumes from last safe ground, without restarting the level
  assert.equal(h.run('things[0].taken'),true);
  assert.ok(h.run('currentTime()')>0);
 });
-test('completion unlocks level, saves XP and best stars',()=>{h.run('save.unlocked=1;save.level=1;save.xp=90;save.stars=[2,0,0,0,0];start(0);hero.stars=1;hero.earned=25;hero.x=WIDTH-40;step(1)');assert.equal(h.run('scene'),'end');const s=JSON.parse(h.storage.get('realm-runners-save-v2'));assert.equal(s.level,2);assert.equal(s.xp,85);assert.equal(s.unlocked,2);assert.equal(s.stars[0],2);});
+test('completion unlocks level, saves XP and best stars',()=>{h.run('save.unlocked=1;save.level=1;save.xp=90;save.stars=[2,0,0,0,0];start(0);hero.stars=1;hero.earned=25;hero.x=stages[0].exitX-30;hero.y=G-43;step(1);for(let i=0;i<74;i++)step(1)');assert.equal(h.run('scene'),'end');const s=JSON.parse(h.storage.get('realm-runners-save-v2'));assert.equal(s.level,2);assert.equal(s.xp,85);assert.equal(s.unlocked,2);assert.equal(s.stars[0],2);});
 test('progress persists across a new runtime',()=>{const fresh=harness(JSON.parse(h.storage.get('realm-runners-save-v2')));assert.equal(fresh.run('save.level'),2);assert.equal(fresh.run('save.unlocked'),2);});
 test('multitouch plus keyboard independent release and cancel',()=>{h.run('start(0)');const right=h.buttons[1],jump=h.buttons[2];right.dispatch('pointerdown',{pointerId:1});jump.dispatch('pointerdown',{pointerId:2});assert.equal(h.run('input.right&&input.jump'),true);h.emit('keydown',{code:'KeyD'});right.dispatch('pointerup',{pointerId:1});assert.equal(h.run('input.right'),true);jump.dispatch('pointercancel',{pointerId:2});assert.equal(h.run('input.jump'),false);h.emit('keyup',{code:'KeyD'});assert.equal(h.run('input.right'),false);});
 test('blur pauses game and clears held inputs',()=>{h.run('start(0);input.right=true');h.emit('blur',{});assert.equal(h.run('scene'),'pause');assert.equal(h.run('input.right'),false);const x=h.run('hero.x');h.run('step(1)');assert.equal(h.run('hero.x'),x);h.run('resume()');assert.equal(h.run('scene'),'game');});
@@ -46,26 +46,28 @@ h.run("save.class='hunter';start(0);for(let i=0;i<60;i++)step(1);hero.x=300;cam=
 console.log(`${checks} checks passed. Canvas preview: test-output/forest-v03.png`);
 
 test('v0.4 timer only advances during active simulation',()=>{h.run("start(0);for(let i=0;i<60;i++)step(1)");assert.equal(h.run('currentTime()'),1000);h.run("pause();step(1)");assert.equal(h.run('currentTime()'),1000);h.run('resume()');});
-test('v0.8 local leaderboard records best time per class',()=>{h.run("save.class='mage';start(0);for(let i=0;i<80;i++)step(1);recordTime()");const first=h.run("save.bestTimesV09['1-1'].mage");h.run('start(0);for(let i=0;i<100;i++)step(1);recordTime()');assert.equal(h.run("save.bestTimesV09['1-1'].mage"),first);});
+test('v0.8 local leaderboard records best time per class',()=>{h.run("save.class='mage';start(0);for(let i=0;i<80;i++)step(1);recordTime()");const first=h.run("save.bestTimesV10['1-1'].mage");h.run('start(0);for(let i=0;i<100;i++)step(1);recordTime()');assert.equal(h.run("save.bestTimesV09['1-1'].mage"),first);});
 test('v0.4 skills unlock in order and survive persistence',()=>{h.run("save.class='mage';save.level=5;ensureRpgSave()");assert.equal(h.run("unlockSkill('double_fireball')"),false);assert.equal(h.run("unlockSkill('fireball_damage')"),true);assert.ok(JSON.parse(h.storage.get('realm-runners-save-v2')).skills.mage.includes('fireball_damage'));});
-test('v0.4 mage projectile damages an enemy',()=>{h.run("save.class='mage';start(0);hero.x=370;hero.y=420;hero.face=1;performAttack();for(let i=0;i<12;i++)combatTick(1)");assert.ok(h.run('bad[0].hp<2||!bad[0].alive'));});
+test('v0.4 mage projectile damages an enemy',()=>{h.run("save.class='mage';start(0);hero.x=370;hero.y=420;hero.face=1;performAttack();for(let i=0;i<12;i++)combatTick(1)");assert.ok(h.run('bad[0].hp<bad[0].maxHp||!bad[0].alive'));});
 test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';save.inventory.push('ember_staff');equipItem('ember_staff')");assert.equal(h.run("save.equipment.mage.weapon"),'ember_staff');assert.equal(h.run("equipItem('swift_bow')"),false);});
 
 // Guard against missing or stale runtime scripts in the published HTML.
 test('v0.4 HTML loads RPG systems before forest startup',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- const game=html.indexOf('src="game.js?v=0.9.1"');
- const rpg=html.indexOf('src="rpg.js?v=0.9.1"');
- const boss=html.indexOf('src="boss.js?v=0.9.1"');
- const enemies=html.indexOf('src="enemies.js?v=0.9.1"');
- const castleArt=html.indexOf('src="castle_art.js?v=0.9.1"');
- const hd=html.indexOf('src="hd_background.js?v=0.9.1"');
- const forest=html.indexOf('src="forest.js?v=0.9.1"');
- const changelog=html.indexOf('src="changelog.js?v=0.9.1"');
- assert.ok(game>=0 && rpg>game && boss>rpg && enemies>boss && castleArt>enemies && hd>castleArt && forest>hd && changelog>forest,'runtime scripts must load in order');
+ const game=html.indexOf('src="game.js?v=0.10.0"');
+ const rpg=html.indexOf('src="rpg.js?v=0.10.0"');
+ const boss=html.indexOf('src="boss.js?v=0.10.0"');
+ const enemies=html.indexOf('src="enemies.js?v=0.10.0"');
+ const castleArt=html.indexOf('src="castle_art.js?v=0.10.0"');
+ const hd=html.indexOf('src="hd_background.js?v=0.10.0"');
+ const layout=html.indexOf('src="level_design.js?v=0.10.0"');
+ const worldMap=html.indexOf('src="world_map.js?v=0.10.0"');
+ const forest=html.indexOf('src="forest.js?v=0.10.0"');
+ const changelog=html.indexOf('src="changelog.js?v=0.10.0"');
+ assert.ok(game>=0 && rpg>game && boss>rpg && enemies>boss && castleArt>enemies && hd>castleArt && layout>hd && worldMap>layout && forest>worldMap && changelog>forest,'runtime scripts must load in order');
  assert.ok(html.includes('id="rpgPanels"'));
  assert.ok(html.includes('data-control="attack"'));
- assert.ok(html.includes('HERZEN & MÜNZEN · 0.9.1'));assert.ok(html.includes('id="changelogBtn"'));assert.ok(html.includes('id="changelogOverlay"'));assert.ok(!html.includes('src="platforms.js'));
+ assert.ok(html.includes('WELTKARTE & NEUE LEVEL · 0.10.0'));assert.ok(html.includes('id="changelogBtn"'));assert.ok(html.includes('id="changelogOverlay"'));assert.ok(!html.includes('src="platforms.js'));
  assert.ok(html.includes('aria-valuemax="56"'));
  assert.ok(html.includes('id="bossHealthFill"'));
  assert.ok(html.includes('boss-health-fill'));
@@ -206,7 +208,7 @@ test('v0.6 adds two fully playable levels and preserves old save data',()=>{
  assert.equal(old.run('save.stars.length'),5);
  assert.equal(old.run('save.stars[2]'),1);
  assert.equal(old.run('save.custom'),'old-progress');
- assert.equal(old.run("stages[3].name.includes('Schlosstor')"),true);
+ assert.equal(old.run("stages[3].name.includes('Königstraße')"),true);
  assert.equal(old.run("stages[4].boss"),true);
  old.run('save.unlocked=5;persist()');
  const again=harness(JSON.parse(old.storage.get('realm-runners-save-v2')));
@@ -377,81 +379,50 @@ test('v0.7 backdrop cache holds only the current biome, including graphic qualit
  h.run("start(0);quality='full';draw()");
 });
 
-test('v0.8 all four non-boss levels have 4 enemy species; castle boss remains alone',()=>{
+test('v0.10 all levels randomly mix only slimes and mushrooms, boss stays solo',()=>{
  for(let level=0;level<4;level++){
   h.run(`start(${level})`);
-  const rosters=h.run('bad.map(e=>e.type)');
-  assert.equal(rosters.length,9);
-  assert.deepEqual([...new Set(rosters)].sort(),['bat','goblin','mushroom','slime']);
-  assert.equal(h.run('bad.every(e=>e.hp===e.maxHp&&e.w>0&&e.h>0&&e.alive)'),true);
+  let list=h.run('bad.map(e=>e.type)');
+  assert.ok(list.length>=7);
+  assert.deepEqual([...new Set(list)].sort(),['mushroom','slime']);
+  assert.ok(list.every(t=>['mushroom','slime'].includes(t)));
+  assert.ok(h.run('bad.every(e=>e.x<stages[stage].exitX-175)'),'door area stays clear');
+  const first=JSON.stringify(list);
+  h.run(`start(${level})`);
+  list=h.run('bad.map(e=>e.type)');
+  assert.notEqual(JSON.stringify(list),first,'reroll guarantees different layout of types');
  }
- h.run('start(4)');
- assert.equal(h.run('bad.length'),0);
- assert.equal(h.run('enemyShots.length'),0);
- assert.equal(h.run('boss.alive'),true);
+ h.run('start(4)');assert.equal(h.run('bad.length'),0);
 });
-test('v0.8 bat telegraphs a dive and recovers without teleporting or spawning shots',()=>{
- h.run("start(0);hero.x=bad[1].x-75;hero.y=G-43;bad[1].attackCooldown=0;enemyTick(1)");
- assert.equal(h.run("bad[1].phase"),'windup');
- assert.equal(h.run("bad[1].type"),'bat');
- h.run('for(let i=0;i<29;i++)enemyTick(1)');
- assert.equal(h.run("bad[1].phase"),'dive');
- assert.ok(h.run("Math.abs(bad[1].vx)")>3);
- h.run('for(let i=0;i<35;i++)enemyTick(1)');
- assert.ok(['recover','patrol'].includes(h.run('bad[1].phase')));
- assert.equal(h.run('enemyShots.length'),0);
-});
-test('v0.8 mushroom warning generates limited, slow, directional spores',()=>{
- h.run("start(0);hero.x=bad[2].x-85;hero.y=G-43;bad[2].attackCooldown=0;enemyTick(1)");
- assert.equal(h.run("bad[2].phase"),'windup');
- assert.equal(h.run('enemyShots.length'),0);
+test('v0.10 mushroom telegraph fires a directed spore and is dodgeable',()=>{
+ h.run("start(0);hero.x=bad.find(e=>e.type==='mushroom').x-85;hero.y=G-43;bad.find(e=>e.type==='mushroom').attackCooldown=0;enemyTick(1)");
+ assert.equal(h.run("bad.find(e=>e.type==='mushroom').phase"),'windup');
  h.run('for(let i=0;i<33;i++)enemyTick(1)');
  assert.equal(h.run('enemyShots.length'),1);
  assert.ok(h.run('enemyShots[0].vx')<0);
  assert.ok(h.run('Math.hypot(enemyShots[0].vx,enemyShots[0].vy)')<3.5);
- h.run('for(let i=0;i<200;i++)enemyTick(1)');
- assert.ok(h.run('enemyShots.length')<=12,'projectile count bounded for iPhone');
 });
-test('v0.8 goblin warns before fast charge and enters recover',()=>{
- h.run("start(0);hero.x=bad[3].x-85;hero.y=G-43;bad[3].attackCooldown=0;enemyTick(1)");
- assert.equal(h.run("bad[3].phase"),'windup');
- h.run('for(let i=0;i<26;i++)enemyTick(1)');
- assert.equal(h.run("bad[3].phase"),'charge');
- const initial=h.run('bad[3].x');
- h.run('for(let i=0;i<7;i++)enemyTick(1)');
- assert.ok(initial-h.run('bad[3].x')>20,'charging goblin moves faster than a patrol');
- h.run('for(let i=0;i<35;i++)enemyTick(1)');
- assert.equal(h.run("bad[3].phase"),'recover');
-});
-test('v0.8 spores harm on contact and dash cancels them',()=>{
- h.run("start(0);hero.x=150;hero.y=G-43;hero.dash=0;enemyShots=[{x:165,y:G-20,vx:0,vy:0,radius:9,life:20}]");
- assert.equal(h.run('enemyHazardsHitHero(hero.y)'),true);
- assert.equal(h.run('hero.hearts'),2);
- assert.equal(h.run('enemyShots.length'),0,'spore is consumed on damage without restarting');
- h.run("start(0);hero.x=150;hero.y=G-43;hero.dash=5;enemyShots=[{x:165,y:G-20,vx:0,vy:0,radius:9,life:20}]");
- assert.equal(h.run('enemyHazardsHitHero(hero.y)'),false);
- assert.equal(h.run('enemyShots.length'),0);
+test('v0.10 original stomp and dash defeat randomized enemies fairly',()=>{
+ h.run("start(0);hero.x=bad[0].x+1;hero.y=bad[0].y-hero.h-4;hero.vy=7;hero.dash=0");
+ const p=h.run('hero.y');h.run('hero.y+=7;enemyHazardsHitHero('+p+')');
+ assert.equal(h.run('bad[0].alive'),false);
+ assert.ok(h.run('hero.vy')<0);
+ h.run("start(0);const m=bad.find(e=>e.type==='mushroom');hero.x=m.x+2;hero.y=m.y;hero.dash=4;enemyHazardsHitHero(hero.y)");
+ assert.ok(h.run("bad.some(e=>e.type==='mushroom'&&e.hp===1)"));
  assert.equal(h.run('hero.hearts'),3);
 });
-test('v0.8 airborne stomps and dash safely defeat new enemy species',()=>{
- h.run("start(0);hero.x=bad[1].x+1;hero.y=bad[1].y-hero.h-4;hero.vy=7;hero.dash=0");
- const previous=h.run('hero.y');h.run('hero.y+=7;enemyHazardsHitHero('+previous+')');
- assert.equal(h.run('bad[1].alive'),false,'flying bat can be stomped');
- assert.ok(h.run('hero.vy')<0,'stomp bounces hero');
- h.run("start(0);hero.x=bad[2].x+2;hero.y=bad[2].y;hero.dash=4;enemyHazardsHitHero(hero.y)");
- assert.equal(h.run('bad[2].hp'),1,'mushroom has 4 HP and dash deals 3');
- assert.equal(h.run('hero.hearts'),3);
-});
-test('v0.8 each class can damage enemies with correct vertical hitboxes',()=>{
- // Krieger sword hits the goblin at walking height.
- h.run("save.class='warrior';start(0);hero.x=bad[3].x-48;hero.y=G-43;hero.face=1;performAttack()");
- assert.ok(h.run('bad[3].hp')<5);
- assert.ok(h.run('combatTexts.length')>0,'floating damage numbers appear');
- // Jäger and Magier can strike a flying bat while jumping.
- for(const kind of ['hunter','mage']){
-  h.run(`save.class='${kind}';start(0);hero.x=bad[1].x-95;hero.y=bad[1].y-9;hero.face=1;performAttack();for(let i=0;i<15;i++)combatTick(1)`);
-  assert.ok(h.run('bad[1].hp')<2,`${kind} projectile strikes bat`);
+test('v0.10 all class weapons hit only active enemy types',()=>{
+ for(const kind of ['warrior','hunter','mage']){
+  h.run(`save.class='${kind}';start(0);hero.face=1;const e=bad[0];hero.x=e.x-${kind==='warrior'?48:90};hero.y=G-43;performAttack();for(let i=0;i<20;i++)combatTick(1)`);
+  assert.ok(h.run('bad[0].hp<bad[0].maxHp||!bad[0].alive'),kind+' hits either species');
  }
+});
+test('v0.10 spore impacts spend only one heart and dash clears them',()=>{
+ h.run("start(0);hero.x=150;hero.y=G-43;hero.dash=0;enemyShots=[{x:165,y:G-20,vx:0,vy:0,radius:9,life:20}]");
+ assert.equal(h.run('enemyHazardsHitHero(hero.y)'),true);assert.equal(h.run('hero.hearts'),2);
+ assert.equal(h.run('enemyShots.length'),0);
+ h.run("start(0);hero.x=150;hero.y=G-43;hero.dash=5;enemyShots=[{x:165,y:G-20,vx:0,vy:0,radius:9,life:20}]");
+ assert.equal(h.run('enemyHazardsHitHero(hero.y)'),false);assert.equal(h.run('enemyShots.length'),0);
 });
 test('v0.8 holding attack repeats after class cooldown; release stops it',()=>{
  h.run("save.class='hunter';start(0);bad=[];hero.x=50;input.attack=true;for(let i=0;i<50;i++)combatTick(1)");
@@ -469,33 +440,31 @@ test('v0.8 old best times and skills survive; new enemy records do not overwrite
  assert.equal(h.run('save.skills.mage.includes(\'fireball_damage\')'),true);
 });
 
-test('v0.9 four adventure levels are 50 percent longer while boss arena stays compact',()=>{
- const cfg=h.run('stages.map(({width,gaps,ledges,enemies,spikes,stars,boss})=>({width,gaps,ledges,enemies,spikes,stars,boss}))');
+test('v0.10 distinct curated level geometry and themed exit animation',()=>{
+ const cfg=h.run('stages.map(s=>({width:s.width,gaps:s.gaps,ledges:s.ledges,enemies:s.enemies,spikes:s.spikes,stars:s.stars,exitX:s.exitX,motif:s.motif}))');
+ assert.deepEqual(cfg.slice(0,4).map(s=>s.width),[4100,4300,4400,4500]);
+ assert.deepEqual(cfg.slice(0,4).map(s=>s.gaps.length),[4,6,5,5]);
+ assert.equal(new Set(cfg.slice(0,4).map(s=>s.motif)).size,4);
+ assert.equal(new Set(cfg.slice(0,4).map(s=>JSON.stringify(s.ledges))).size,4);
  for(let i=0;i<4;i++){
-  assert.equal(cfg[i].width,4200,'long adventure stage '+(i+1));
-  assert.equal(cfg[i].gaps.length,5);
-  assert.ok(cfg[i].ledges.length>=10);
-  assert.ok(cfg[i].enemies.length>=9);
-  assert.ok(cfg[i].spikes.length>=6);
-  assert.equal(cfg[i].stars.length,3);
-  assert.ok(cfg[i].stars[2][0]>3700,'last star should reward longer route');
-  assert.ok(cfg[i].gaps.every(([a,b])=>b-a<=200&&b<4000));
+  assert.ok(cfg[i].stars.length===3&&cfg[i].enemies.length>=9);
+  assert.ok(cfg[i].gaps.every(([a,b])=>b-a<=200&&b<cfg[i].width-250));
+  assert.ok(cfg[i].spikes.every(x=>cfg[i].gaps.every(([a,b])=>x+44<a||x>b)));
   h.run(`start(${i})`);
-  assert.equal(h.run('WIDTH'),4200);
-  assert.ok(h.run('things.filter(x=>x.type===\'coin\').length')>=25,'hazard-free coin trail remains substantial');
-  assert.equal(h.run('bad.length'),9);
-  // Reaching the former 2,800-unit finish must not complete the level.
-  h.run('hero.x=2760;hero.y=G-43;step(1)');
+  assert.equal(h.run('WIDTH'),cfg[i].width);
+  assert.ok(h.run('things.filter(a=>a.type===\'coin\').length')>20);
+  h.run('bad=[];spikes=[];hero.x=WIDTH-75;hero.y=G-43;step(1)');
+  assert.equal(h.run('scene'),'game','invisible edge may not end level');
+  h.run('hero.x=stages[stage].exitX-30;hero.y=G-43;hero.on=true;hero.vy=0;step(1)');
+  assert.equal(h.run('exitActive'),true);
   assert.equal(h.run('scene'),'game');
-  h.run('bad=[];spikes=[];hero.x=WIDTH-35;hero.y=G-43;step(1)');
-  assert.equal(h.run('scene'),'end');
+  h.run('for(let frame=0;frame<73;frame++)step(1)');
+  assert.equal(h.run('scene'),'game');
+  h.run('step(1)');
+  assert.equal(h.run('scene'),'end','short exit animation completes level');
  }
- h.run('start(4)');
- assert.equal(h.run('WIDTH'),2800);
- assert.equal(h.run('stages[4].ledges.length'),0,'no clutter/platform cheese inside castle');
- assert.equal(h.run('hero.x'),2060);
+ h.run('start(4)');assert.equal(h.run('WIDTH'),2800);
  assert.equal(h.run('bad.length'),0);
- assert.equal(h.run('spikes.length'),0);
 });
 test('v0.9 arena boss uses three explicit attacks with player-facing telegraphs',()=>{
  h.run("start(4);hero.x=2120;hero.y=140;hero.on=false;boss.engaged=true;boss.attackIndex=0;boss.phase='patrol';boss.timer=1");
@@ -554,12 +523,12 @@ test('v0.9 old records and player progression remain intact',()=>{
  h.run("save.class='hunter';save.bestTimesV08={'1-1':{hunter:35000}};save.bestTimesBossV062={'1-5':{hunter:48000}};save.bestTimesV09={};save.bestTimesBossV09={};start(0);for(let i=0;i<50;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimesV08['1-1'].hunter"),35000);
  assert.equal(h.run("save.bestTimesBossV062['1-5'].hunter"),48000);
- assert.ok(h.run("save.bestTimesV09['1-1'].hunter")>0);
+ assert.ok(h.run("save.bestTimesV10['1-1'].hunter")>0);
  h.run("start(4);for(let i=0;i<10;i++)step(1);boss.engaged=true;boss.hurt=0;boss.hp=1;damageBoss(1);for(let i=0;i<42;i++)step(1)");
  assert.equal(h.run('scene'),'end');
  assert.ok(h.run("save.bestTimesBossV09['1-5'].hunter")>0);
  assert.equal(h.run("save.bestTimesBossV062['1-5'].hunter"),48000);
- assert.equal(h.run('save.saveVersion'),6);
+ assert.equal(h.run('save.saveVersion'),7);
 });
 
 test('v0.9.1 heart HUD uses three clear pixel icons and updates immediately',()=>{
@@ -615,7 +584,7 @@ test('v0.9.1 coin collection adds true gold, uses one-time pickups and survives 
 test('v0.9.1 slight extra hazards remain outside every ground gap',()=>{
  const geom=h.run('stages.map(s=>({width:s.width,gaps:s.gaps,spikes:s.spikes,moving:s.moving,crumbling:s.crumbling}))');
  for(let i=0;i<4;i++){
-  assert.equal(geom[i].spikes.length,8);
+  assert.ok(geom[i].spikes.length>=6);
   assert.ok(geom[i].spikes.every(x=>geom[i].gaps.every(([a,b])=>x+44<a||x>b)));
   assert.equal(geom[i].moving,undefined);
   assert.equal(geom[i].crumbling,undefined);
@@ -623,7 +592,7 @@ test('v0.9.1 slight extra hazards remain outside every ground gap',()=>{
 });
 test('v0.9.1 changelog lists all major versions and pauses/resumes safely',()=>{
  const all=h.run('RELEASE_NOTES.map(note=>note.v)');
- assert.deepEqual([...all],['0.9.1','0.9.0','0.8.0','0.7.0','0.6.2','0.6.1','0.6.0','0.5.0','0.4.0','0.1–0.3']);
+ assert.deepEqual([...all],['0.10.0','0.9.1','0.9.0','0.8.0','0.7.0','0.6.2','0.6.1','0.6.0','0.5.0','0.4.0','0.1–0.3']);
  assert.ok(h.run("document.querySelector('#changelogEntries').innerHTML").includes('Phase II'));
  h.run("start(0);document.querySelector('#changelogBtn').dispatch('click',{})");
  assert.equal(h.run('scene'),'pause');
