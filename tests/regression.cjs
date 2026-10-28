@@ -7,12 +7,12 @@ function harness(initial){const elements=new Map(),listeners={},storage=new Map(
  class El {constructor(){this.dataset={};this.listeners={};this.style={};this.attrs={};this.classes=new Set();this.classList={add:k=>this.classes.add(k),remove:k=>this.classes.delete(k),toggle:(k,flag)=>flag===undefined?(this.classes.has(k)?this.classes.delete(k):this.classes.add(k)):(flag?this.classes.add(k):this.classes.delete(k)),contains:k=>this.classes.has(k)};}setAttribute(k,v){this.attrs[k]=String(v);}addEventListener(k,f){(this.listeners[k]??=[]).push(f)}setPointerCapture(){}focus(){}querySelectorAll(){return [];}dispatch(type,data){for(const f of this.listeners[type]||[])f({preventDefault(){},...data});}}
  const canvas=createCanvas(960,540);elements.set('#view',canvas);const buttons=['left','right','jump','dash','attack'].map(k=>{let el=new El();el.dataset.control=k;return el});
  const sandbox={console,Math,JSON,Number,Map,Set,Object,Array,devicePixelRatio:1,innerWidth:960,innerHeight:540,performance:{now:()=>1000},matchMedia:()=>({matches:false}),localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},addEventListener:(k,f)=>(listeners[k]??=[]).push(f),requestAnimationFrame:f=>raf=f,document:{hidden:false,querySelector:s=>{if(!elements.has(s))elements.set(s,new El());return elements.get(s)},querySelectorAll:()=>buttons,addEventListener:(k,f)=>(listeners[k]??=[]).push(f),createElement:tag=>tag==='canvas'?createCanvas(1,1):new El()}};
- vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'boss.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'enemies.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'castle_art.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'hd_background.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'level_design.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'world_map.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'changelog.js'),'utf8'),sandbox);
+ vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'boss.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'enemies.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'castle_art.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'hd_background.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'level_design.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'course_features.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'world_map.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'changelog.js'),'utf8'),sandbox);
  return {run:s=>vm.runInContext(s,sandbox),canvas,buttons,storage,emit:(k,e)=>{for(const f of listeners[k]||[])f({preventDefault(){},...e})}};
 }
 let checks=0;function test(name,fn){fn();checks++;console.log('PASS',name);}
 const h=harness({class:'mage',unlocked:3,stars:[3,2,1],xp:87,level:4,custom:'preserved'});
-test('v0.2 progress and unknown fields survive loading and saving',()=>{h.run('persist()');const data=JSON.parse(h.storage.get('realm-runners-save-v2'));for(const [k,v] of Object.entries({class:'mage',unlocked:3,xp:87,level:4,custom:'preserved'}))assert.deepEqual(data[k],v);assert.deepEqual(data.stars,[3,2,1,0,0]);assert.equal(data.saveVersion,8);});
+test('v0.2 progress and unknown fields survive loading and saving',()=>{h.run('persist()');const data=JSON.parse(h.storage.get('realm-runners-save-v2'));for(const [k,v] of Object.entries({class:'mage',unlocked:3,xp:87,level:4,custom:'preserved'}))assert.deepEqual(data[k],v);assert.deepEqual(data.stars,[3,2,1,0,0]);assert.equal(data.saveVersion,9);});
 test('all levels and classes render; terrain cache bounded',()=>{for(let s=0;s<5;s++)for(const c of ['warrior','hunter','mage']){h.run(`save.class='${c}';start(${s});for(let i=0;i<40;i++)step(1);draw()`);}assert.ok(h.run('terrainCache.size')<=64);});
 test('ground collision and jump',()=>{h.run('start(0);for(let i=0;i<60;i++)step(1)');assert.equal(h.run('hero.on'),true);const y=h.run('hero.y');h.run('input.jump=true;step(1)');assert.ok(h.run('hero.y')<y);});
 test('coin and star rewards emit particles',()=>{h.run("start(0);things=[{x:hero.x+15,y:hero.y+20,type:'star',taken:false}];step(1)");assert.equal(h.run('hero.stars'),1);assert.equal(h.run('hero.earned'),25);assert.ok(h.run('particles.length')>0);});
@@ -46,7 +46,7 @@ h.run("save.class='hunter';start(0);for(let i=0;i<60;i++)step(1);hero.x=300;cam=
 console.log(`${checks} checks passed. Canvas preview: test-output/forest-v03.png`);
 
 test('v0.4 timer only advances during active simulation',()=>{h.run("start(0);for(let i=0;i<60;i++)step(1)");assert.equal(h.run('currentTime()'),1000);h.run("pause();step(1)");assert.equal(h.run('currentTime()'),1000);h.run('resume()');});
-test('v0.8 local leaderboard records best time per class',()=>{h.run("save.class='mage';start(0);for(let i=0;i<80;i++)step(1);recordTime()");const first=h.run("save.bestTimesV11['1-1'].mage");h.run('start(0);for(let i=0;i<100;i++)step(1);recordTime()');assert.equal(h.run("save.bestTimesV11['1-1'].mage"),first);});
+test('v0.8 local leaderboard records best time per class',()=>{h.run("save.class='mage';start(0);for(let i=0;i<80;i++)step(1);recordTime()");const first=h.run("save.bestTimesV12['1-1'].mage");h.run('start(0);for(let i=0;i<100;i++)step(1);recordTime()');assert.equal(h.run("save.bestTimesV11['1-1'].mage"),first);});
 test('v0.4 skills unlock in order and survive persistence',()=>{h.run("save.class='mage';save.level=5;ensureRpgSave()");assert.equal(h.run("unlockSkill('double_fireball')"),false);assert.equal(h.run("unlockSkill('fireball_damage')"),true);assert.ok(JSON.parse(h.storage.get('realm-runners-save-v2')).skills.mage.includes('fireball_damage'));});
 test('v0.4 mage projectile damages an enemy',()=>{h.run("save.class='mage';start(0);hero.x=370;hero.y=420;hero.face=1;performAttack();for(let i=0;i<12;i++)combatTick(1)");assert.ok(h.run('bad[0].hp<bad[0].maxHp||!bad[0].alive'));});
 test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';save.inventory.push('ember_staff');equipItem('ember_staff')");assert.equal(h.run("save.equipment.mage.weapon"),'ember_staff');assert.equal(h.run("equipItem('swift_bow')"),false);});
@@ -54,20 +54,21 @@ test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';
 // Guard against missing or stale runtime scripts in the published HTML.
 test('v0.4 HTML loads RPG systems before forest startup',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- const game=html.indexOf('src="game.js?v=0.11.0"');
- const rpg=html.indexOf('src="rpg.js?v=0.11.0"');
- const boss=html.indexOf('src="boss.js?v=0.11.0"');
- const enemies=html.indexOf('src="enemies.js?v=0.11.0"');
- const castleArt=html.indexOf('src="castle_art.js?v=0.11.0"');
- const hd=html.indexOf('src="hd_background.js?v=0.11.0"');
- const layout=html.indexOf('src="level_design.js?v=0.11.0"');
- const worldMap=html.indexOf('src="world_map.js?v=0.11.0"');
- const forest=html.indexOf('src="forest.js?v=0.11.0"');
- const changelog=html.indexOf('src="changelog.js?v=0.11.0"');
- assert.ok(game>=0 && rpg>game && boss>rpg && enemies>boss && castleArt>enemies && hd>castleArt && layout>hd && worldMap>layout && forest>worldMap && changelog>forest,'runtime scripts must load in order');
+ const game=html.indexOf('src="game.js?v=0.12.0"');
+ const rpg=html.indexOf('src="rpg.js?v=0.12.0"');
+ const boss=html.indexOf('src="boss.js?v=0.12.0"');
+ const enemies=html.indexOf('src="enemies.js?v=0.12.0"');
+ const castleArt=html.indexOf('src="castle_art.js?v=0.12.0"');
+ const hd=html.indexOf('src="hd_background.js?v=0.12.0"');
+ const layout=html.indexOf('src="level_design.js?v=0.12.0"');
+ const course=html.indexOf('src="course_features.js?v=0.12.0"');
+ const worldMap=html.indexOf('src="world_map.js?v=0.12.0"');
+ const forest=html.indexOf('src="forest.js?v=0.12.0"');
+ const changelog=html.indexOf('src="changelog.js?v=0.12.0"');
+ assert.ok(game>=0 && rpg>game && boss>rpg && enemies>boss && castleArt>enemies && hd>castleArt && layout>hd && course>layout && worldMap>course && forest>worldMap && changelog>forest,'runtime scripts must load in order');
  assert.ok(html.includes('id="rpgPanels"'));
  assert.ok(html.includes('data-control="attack"'));
- assert.ok(html.includes('LÄNGERE STRECKEN & BOSSARENA · 0.11.0'));assert.ok(html.includes('id="changelogBtn"'));assert.ok(html.includes('id="changelogOverlay"'));assert.ok(!html.includes('src="platforms.js'));
+ assert.ok(html.includes('THEMEN-LEVEL & FALLEN · 0.12.0'));assert.ok(html.includes('id="changelogBtn"'));assert.ok(html.includes('id="changelogOverlay"'));assert.ok(!html.includes('src="platforms.js'));
  assert.ok(html.includes('aria-valuemax="56"'));
  assert.ok(html.includes('id="bossHealthFill"'));
  assert.ok(html.includes('boss-health-fill'));
@@ -523,16 +524,16 @@ test('v0.9 old records and player progression remain intact',()=>{
  h.run("save.class='hunter';save.bestTimesV08={'1-1':{hunter:35000}};save.bestTimesBossV062={'1-5':{hunter:48000}};save.bestTimesV09={};save.bestTimesBossV09={};start(0);for(let i=0;i<50;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimesV08['1-1'].hunter"),35000);
  assert.equal(h.run("save.bestTimesBossV062['1-5'].hunter"),48000);
- assert.ok(h.run("save.bestTimesV11['1-1'].hunter")>0);
+ assert.ok(h.run("save.bestTimesV12['1-1'].hunter")>0);
  h.run("start(4);for(let i=0;i<10;i++)step(1);boss.engaged=true;boss.hurt=0;boss.hp=1;damageBoss(1);for(let i=0;i<42;i++)step(1)");
  assert.equal(h.run('scene'),'end');
  assert.ok(h.run("save.bestTimesBossV11['1-5'].hunter")>0);
  assert.equal(h.run("save.bestTimesBossV062['1-5'].hunter"),48000);
- assert.equal(h.run('save.saveVersion'),8);
+ assert.equal(h.run('save.saveVersion'),9);
 });
 
 test('v0.10 world overview and level selection show records for active class',()=>{
- h.run("menuView='worlds';menu();save.unlocked=3;save.class='mage';save.bestTimesV11['1-1']={mage:92000,hunter:87000};menu()");
+ h.run("menuView='worlds';menu();save.unlocked=3;save.class='mage';save.bestTimesV12['1-1']={mage:92000,hunter:87000};menu()");
  assert.equal(h.run('scene'),'menu');
  assert.ok(h.run("document.querySelector('#worlds').innerHTML").includes('Smaragdwald'));
  assert.ok(h.run("document.querySelector('#worlds').innerHTML").includes('Frostgipfel'));
@@ -624,7 +625,7 @@ test('v0.9.1 coin collection adds true gold, uses one-time pickups and survives 
 test('v0.9.1 slight extra hazards remain outside every ground gap',()=>{
  const geom=h.run('stages.map(s=>({width:s.width,gaps:s.gaps,spikes:s.spikes,moving:s.moving,crumbling:s.crumbling}))');
  for(let i=0;i<4;i++){
-  assert.ok(geom[i].spikes.length>=6);
+  assert.ok(geom[i].spikes.length>=4,'hazard count is curated by biome');
   assert.ok(geom[i].spikes.every(x=>geom[i].gaps.every(([a,b])=>x+44<a||x>b)));
   assert.equal(geom[i].moving,undefined);
   assert.equal(geom[i].crumbling,undefined);
@@ -739,7 +740,7 @@ test('v0.11 fresh longer-course and arena records preserve all old personal best
 });
 test('v0.10.1 release notes are restricted to the real main world menu',()=>{
  const all=h.run('RELEASE_NOTES.map(note=>note.v)');
- assert.deepEqual([...all],['0.11.0','0.10.1','0.10.0','0.9.1','0.9.0','0.8.0','0.7.0','0.6.2','0.6.1','0.6.0','0.5.0','0.4.0','0.1–0.3']);
+ assert.deepEqual([...all],['0.12.0','0.11.0','0.10.1','0.10.0','0.9.1','0.9.0','0.8.0','0.7.0','0.6.2','0.6.1','0.6.0','0.5.0','0.4.0','0.1–0.3']);
  assert.ok(h.run("document.querySelector('#changelogEntries').innerHTML").includes('Phase II'));
  h.run("menuView='worlds';menu()");
  assert.equal(h.run("document.querySelector('#changelogBtn').classes.has('hide')"),false);
