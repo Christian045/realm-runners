@@ -571,7 +571,7 @@ test('v0.9.1 heart HUD uses three clear pixel icons and updates immediately',()=
  assert.equal((h.run("document.querySelector('#hudLeft').innerHTML").match(/hud-heart empty/g)||[]).length,1);
  assert.equal(h.run("document.querySelector('#hudLeft').attrs['aria-label']").includes('2 von 3 Herzen'),true);
  assert.equal(h.run('scene'),'game');
- assert.equal(h.run('invincible'),DAMAGE_INVULNERABLE_FRAMES);
+ assert.equal(h.run('invincible'),h.run('DAMAGE_INVULNERABLE_FRAMES'));
 });
 test('v0.9.1 blinking grants consistent grace period and no reset of enemy progress',()=>{
  h.run("start(0);for(let i=0;i<25;i++)step(1);bad[0].hp=1;things[0].taken=true;hero.x=500;die(480)");
@@ -595,7 +595,7 @@ test('v0.9.1 falling during blink immunity preserves hearts and rescues to stabl
  h.run('step(1)');
  assert.equal(h.run('hero.hearts'),hearts);
  assert.equal(h.run('hero.x'),240);
- assert.equal(h.run('hero.y'),G-53);
+ assert.equal(h.run('hero.y'),h.run('G-53'));
  assert.equal(h.run('scene'),'game');
 });
 test('v0.9.1 coin collection adds true gold, uses one-time pickups and survives reload',()=>{
