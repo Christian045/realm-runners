@@ -1,15 +1,13 @@
 {
-  "name": "realm-runners",
-  "version": "0.16.0",
-  "private": true,
-  "description": "Realm Runners: Smaragdwald",
-  "scripts": {
-    "test": "node tests/regression.cjs",
-    "test:browser": "node tests/browser.cjs",
-    "start": "python3 -m http.server 8000"
-  },
-  "devDependencies": {
-    "@napi-rs/canvas": "0.1.80",
-    "playwright": "1.56.1"
-  }
+ "name":"realm-runners-dungeon-reborn",
+ "version":"0.1.0",
+ "type":"module",
+ "private":true,
+ "description":"HTML5 Canvas top-down roguelite / hack and slash",
+ "scripts":{
+  "start":"python3 -m http.server 8000",
+  "test":"node --test tests/core.test.js",
+  "test:browser":"node tests/browser.cjs"
+ },
+ "devDependencies":{"playwright":"1.56.1"}
 }

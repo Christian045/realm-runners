@@ -1,165 +1,43 @@
 <!doctype html>
-<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#101a33"><title>Realm Runners v0.16.0 · Smaragdwald</title>
-<style>
-html,body,body *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}*{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-user-drag:none}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0a1630;font-family:system-ui,sans-serif;color:#fff;touch-action:none}canvas{display:block;width:100vw;height:100dvh}.hud{position:fixed;inset:10px 12px auto;display:flex;justify-content:space-between;gap:8px;pointer-events:none;font-weight:800;text-shadow:0 2px 4px #112}.pill{background:#152950cb;border:1px solid #5577a5a0;padding:8px 11px;border-radius:12px;font-size:clamp(11px,2.7vw,15px)}.controls{position:fixed;inset:auto 14px calc(12px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;pointer-events:none}.group{display:flex;gap:12px}.controls button{width:clamp(60px,14vw,80px);height:clamp(60px,14vw,80px);border:2px solid #9ec5f6a0;border-radius:24px;background:#234d91a9;color:#fff;font-weight:900;font-size:25px;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none}.controls button.jump{background:#5a469cbf}.controls button.skill{background:#8d597fbf}.layer{position:fixed;inset:0;background:#08152ce8;display:grid;place-items:center;padding:15px;overflow-y:auto}.panel{width:min(580px,100%);padding:20px;border:1px solid #6e9cc5;border-radius:24px;background:linear-gradient(145deg,#2d4879,#132448);box-shadow:0 20px 80px #0009;text-align:center}.panel h1{margin:5px 0 8px;font-size:clamp(25px,6vw,39px);letter-spacing:.5px}.panel p{color:#c8d8f5;line-height:1.45;font-size:14px}.choices,.levels{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin:16px auto}.choices button,.levels button,.primary,.secondary{border:1px solid #8eadde;border-radius:12px;color:white;background:#284d89;padding:12px 15px;font-size:14px;font-weight:800;cursor:pointer}.choices button.active,.levels button.active,.primary{background:#5184eb;border-color:#a2c3ff}.levels button:disabled{opacity:.38;cursor:not-allowed}.row{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}.secondary{background:#37415e}.tip{font-size:12px!important;opacity:.85}.hide{display:none!important}@media(min-width:950px){.controls{opacity:.6}}
-
-:root{color-scheme:dark}body{background:#061a20}.hud{inset:calc(12px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) auto max(16px,env(safe-area-inset-left));font-weight:600}.pill{background:#071f23cf;border:1px solid #d3deb344;border-radius:8px;backdrop-filter:blur(12px);color:#ebedce}.controls{left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right))}.controls button{background:#122e35bb;border-color:#c3d8b85e;border-radius:50%;box-shadow:inset 0 0 18px #a2cfa811,0 4px 16px #0004;backdrop-filter:blur(8px)}.controls button.jump{background:#55734cc9}.controls button.skill{background:#386a72c9}.controls button.pressed{background:#8baf63dd;transform:scale(.94)}.layer{background:linear-gradient(90deg,#05151bd9,#061b2366);padding:24px}.panel{background:linear-gradient(145deg,#0e2c30ed,#081b24ed);border:1px solid #aac09b55;box-shadow:0 30px 100px #0008;border-radius:18px;padding:28px;max-height:100%;overflow:auto}.eyebrow{font-size:10px;letter-spacing:3px;color:#bace9b;margin-bottom:14px}.panel h1{font-family:Georgia,serif;letter-spacing:4px;color:#f2edcb;text-shadow:0 3px 20px #cbeaa533}.panel p{color:#b6ccc3}.choices button,.levels button,.secondary{background:#16363b;border:1px solid #6c948277;border-radius:7px}.choices button.active,.levels button.active{background:#385b49;border-color:#bbce96}.primary{background:#c7d6a2;color:#102e2e;border-color:#edf0cc;border-radius:7px;padding:14px 30px}.tip{color:#9fb4ad!important}.levels button{line-height:1.7}.panel #progress{font-size:13px;color:#d3dfb7}button:focus-visible{outline:3px solid #f8d888;outline-offset:3px}#pause{pointer-events:auto;background:#112f32;color:#dce7c5;border:1px solid #698471;border-radius:7px;padding:7px 11px;cursor:pointer}.hudRightGroup{display:flex;gap:8px}#resume{background:#c7d6a2;color:#102e2e}#quality{font:inherit;font-size:12px;background:#143236;color:#c9dac2;border:1px solid #75998466;border-radius:6px;padding:7px;margin-top:14px}@media(max-height:450px){.panel{padding:14px 24px}.panel h1{font-size:26px}.panel p{margin:7px 0}.choices,.levels{margin:8px auto}.eyebrow{margin-bottom:5px}.tip{font-size:10px!important}.controls button{width:58px;height:58px}.hud .pill{font-size:11px;padding:6px}}@media(prefers-reduced-motion:reduce){button{transition:none}}
- .rpg-panels{margin:12px auto;text-align:left;max-width:480px}.rpg-panels details{margin:8px 0;border:1px solid #6c948277;border-radius:8px;padding:10px;background:#103039}.rpg-panels summary{cursor:pointer;font-weight:700}.rpg-options{display:grid;gap:6px;margin-top:8px}.rpg-options button{background:#284d42;border:1px solid #8fae89;color:white;border-radius:6px;padding:8px;text-align:left}.rpg-options button:disabled{opacity:.65}.controls .group{gap:clamp(5px,1.7vw,12px)}@media(max-width:760px){.controls button{width:clamp(48px,12vw,66px);height:clamp(48px,12vw,66px);font-size:20px}} 
-/* Pixel Edition: locally available mono font and square high-contrast tile UI. */
-:root{--pixel-edge:#abc78a;--pixel-shadow:#06191e}
-html,body{font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;color:#f0f1d7}
-canvas{image-rendering:pixelated;image-rendering:crisp-edges}
-.panel,.pill,.choices button,.levels button,.primary,.secondary,#pause,#quality,
-.rpg-panels details,.rpg-options button{border-radius:0!important;backdrop-filter:none!important}
-.layer{background:#06191de8}
-.panel{background:#102c30;border:4px solid #94ae81;box-shadow:8px 8px 0 #051217,inset 0 0 0 4px #223f39}
-.panel h1{font-family:ui-monospace,Menlo,Consolas,monospace;text-shadow:4px 4px 0 #233d36;letter-spacing:2px}
-.panel p{line-height:1.55}
-.pill{background:#0b292c;border:2px solid #799a7a;box-shadow:3px 3px 0 #07161b;text-shadow:2px 2px 0 #112b2e}
-.choices button,.levels button,.primary,.secondary,.rpg-options button,#quality,#pause{
- font-family:inherit;border:2px solid var(--pixel-edge);box-shadow:3px 3px 0 var(--pixel-shadow);
- text-shadow:none;transition:none
-}
-.choices button.active,.levels button.active{background:#486e4a}
-.primary,#resume{background:#b9d48a;color:#12302c;font-weight:900}
-.controls button{
- border:3px solid #a4c691!important;border-radius:4px!important;
- background:#163d3eeb!important;box-shadow:4px 4px 0 #061b1c!important;
- backdrop-filter:none!important;touch-action:none!important;
- font-family:inherit;font-weight:900
-}
-.controls button.jump{background:#55763eec!important}
-.controls button.skill{background:#276268e8!important}
-.controls button.pressed{background:#b5cf87!important;color:#15312b!important;transform:translate(3px,3px);box-shadow:1px 1px 0 #061b1c!important}
-.rpg-panels details{background:#17373a;border:2px solid #7e9d79}
-.rpg-panels summary{padding:3px 0;letter-spacing:.3px}
-.rpg-options button{background:#23463e}
-/* The release marker makes stale iPhone Safari content immediately obvious. */
-.pixel-edition-badge{
- display:inline-block;padding:6px 12px;margin:3px auto 8px;
- background:#263e56;color:#f7e6a5;
- border:3px solid #e1c581;box-shadow:4px 4px 0 #081d25;
- font-family:ui-monospace,Menlo,Consolas,monospace;font-size:clamp(10px,2.4vw,13px);
- font-weight:900;letter-spacing:1px
-}
-.panel h1{color:#f6dea1}
-.panel{border-color:#d1b977}
-
-/* Red boss HP bar remains clear over the pixel world and avoids mobile controls. */
-.boss-hud{
- position:fixed;top:calc(58px + env(safe-area-inset-top));left:50%;
- transform:translateX(-50%);width:min(430px,72vw);
- z-index:2;pointer-events:none;font-family:ui-monospace,Menlo,Consolas,monospace;
- text-align:center;font-weight:900;
-}
-.boss-label{background:#191922ed;border:3px solid #ef8c81;border-bottom:0;color:#fff0d6;
- padding:5px 10px;font-size:clamp(11px,2.4vw,16px);letter-spacing:1px;text-shadow:2px 2px #421e29}
-.boss-health-track{height:22px;background:#241d2a;border:4px solid #f0c3b0;box-shadow:4px 4px 0 #0b171d;overflow:hidden}
-.boss-health-fill{height:100%;width:100%;background:#ed343e;
- box-shadow:inset 0 6px 0 #ff6266,inset 0 -4px 0 #ac192e;transition:width .1s linear}
-@media(max-height:450px){.boss-hud{top:calc(42px + env(safe-area-inset-top));width:min(350px,65vw)}
-.boss-health-track{height:16px;border-width:3px}.boss-label{padding:2px 7px;font-size:10px}}
-
-/* Status bar: clear, sharply pixelled hearts and independently counted gold. */
-#hudLeft{display:flex;align-items:center;gap:clamp(5px,1.15vw,12px);padding:6px 10px!important;white-space:nowrap;min-height:37px}
-.heart-row{display:flex;align-items:center;gap:2px}
-.hud-heart{display:flex;align-items:center;justify-content:center;width:25px;height:26px;flex-shrink:0}
-.hud-heart svg{width:25px;height:25px;image-rendering:pixelated;filter:drop-shadow(2px 2px 0 #08171e)}
-.hud-heart.empty .heart-core{fill:#414954}
-.hud-heart.empty .heart-shine{fill:#79818c}
-.coin-counter{display:flex;align-items:center;gap:5px;color:#ffe0a4;font-size:clamp(12px,2.8vw,17px)}
-.coin-counter svg{width:23px;height:23px;flex-shrink:0;image-rendering:pixelated;filter:drop-shadow(2px 2px 0 #091c23)}
-.star-counter{color:#fff0ae;font-size:clamp(10px,2.25vw,13px);white-space:nowrap}
-.hudRightGroup{min-width:0;align-items:center}
-.hudRightGroup .pill{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#changelogBtn{
- position:fixed;left:max(12px,env(safe-area-inset-left));bottom:calc(12px + env(safe-area-inset-bottom));
- z-index:12;min-height:40px;padding:8px 13px;background:#17383a;color:#ffdda1;
- border:3px solid #bbcb95;box-shadow:3px 3px 0 #081b24;
- border-radius:0;font:800 12px ui-monospace,monospace;cursor:pointer;touch-action:manipulation
-}
-/* Only shown in the main world overview, never over gameplay controls. */
-#changelogBtn:focus-visible,#changelogClose:focus-visible{outline:3px solid #ffe59f;outline-offset:3px}
-.changelog-overlay{
- position:fixed;inset:0;z-index:25;display:grid;place-items:center;
- background:#06151ee9;padding:calc(14px + env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))
-}
-.changelog-panel{
- width:min(600px,100%);max-height:min(84dvh,730px);overflow:auto;overscroll-behavior:contain;
- background:#112a30;color:#f6edcf;border:3px solid #aecb95;
- box-shadow:7px 7px 0 #07171e;padding:clamp(12px,3vw,24px);touch-action:pan-y
-}
-.changelog-header{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:0;z-index:1;background:#112a30;padding-bottom:9px;border-bottom:2px solid #536b5f}
-.changelog-header h2{font-size:clamp(17px,4vw,23px);margin:0}
-#changelogClose{font:800 12px ui-monospace,monospace;white-space:nowrap;background:#355156;color:#fff1cd;border:2px solid #a8bd96;padding:8px;cursor:pointer}
-.changelog-release{border:2px solid #4b6c65;margin:10px 0;background:#173238}
-.changelog-release summary{cursor:pointer;padding:12px 10px;font-size:clamp(12px,2.7vw,15px);font-weight:800;line-height:1.4}
-.release-version{color:#f7d18a;margin-right:5px}
-.changelog-release ul{padding:0 16px 12px 33px;margin:0;line-height:1.5;font-size:clamp(11px,2.5vw,13px);color:#d9e5d3}
-.changelog-release li{margin:7px 0}
-@media(max-width:760px){#hudLeft{padding:4px 5px!important;gap:4px}.hud-heart,.hud-heart svg{width:20px;height:20px}.coin-counter svg{width:19px;height:19px}.star-counter{font-size:10px}}
-@media(max-height:440px){#changelogBtn{font-size:10px;min-height:30px;padding:5px 8px}#controls:not(.hide)~#changelogBtn{bottom:calc(80px + env(safe-area-inset-bottom))}.changelog-panel{max-height:90dvh}}
-
-/* World map and level cards: readable, touch-first pixel panels. */
-.panel{touch-action:pan-y;overscroll-behavior:contain}
-.world-star-meter,.level-star-meter{display:inline-flex;align-items:center;gap:5px}
-.world-star-meter svg,.level-star-meter svg{width:19px;height:19px;flex:0 0 19px;image-rendering:pixelated}
-
-.panel{width:min(870px,100%);max-width:870px}
-.worlds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:14px 0}
-.world-card,.level-card{font-family:inherit;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:9px;
- background:#183837;color:#f2efcf;border:3px solid #668577;box-shadow:4px 4px 0 #071d25;
- border-radius:0;padding:15px;min-height:165px;cursor:pointer}
-.world-card strong,.level-card strong{font-size:clamp(15px,2.8vw,20px);color:#f3e4ba}
-.world-card span,.level-card span{font-size:12px;line-height:1.45}
-.world-card.world-open{border-color:#c4d69f;background:linear-gradient(135deg,#315c45,#182f31)}
-.world-card.world-locked,.level-card.locked{cursor:not-allowed;opacity:.58;background:#13282b}
-.world-card .world-number,.level-card .level-card-head{color:#f7d79b;font-weight:900;letter-spacing:.4px}
-.world-card .world-enter{margin-top:auto;font-weight:900;color:#c8ebad}
-.levels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;justify-content:stretch;margin:13px 0}
-.level-card{min-height:196px;width:100%;padding:13px;position:relative}
-.level-card.active{background:#30564a;border-color:#f1d995;box-shadow:4px 4px 0 #9f854a}
-.level-card:not(:disabled):hover,.world-card.world-open:hover{border-color:#fff0b4}
-.level-card-head,.level-card-meta{display:flex;justify-content:space-between;align-items:center;width:100%;gap:7px}
-.level-card-sub{min-height:50px;color:#c0d6c3}
-.level-card-meta{font-size:12px!important;color:#fff1bd;background:#10282c;padding:7px}
-.level-card-medal{margin-top:auto;color:#aacaad;font-size:11px!important}
-.world-selected{border:2px solid #6f977f;background:#112d2d;text-align:left;padding:11px 14px;display:grid;gap:5px;margin:12px 0}
-.world-selected>span:first-child{font-size:10px;letter-spacing:2px;color:#efcf8c}
-.world-selected strong{font-size:17px;color:#f6e0ad}
-.world-selected p{margin:2px 0!important}
-.world-selected>span:last-child{color:#c6ddc6;font-size:12px}
-#worldMapInfo.hide{display:none!important}
-#worlds.hide{display:none!important}
-#levels.hide{display:none!important}
-.star-counter{display:flex;align-items:center;gap:4px}
-.star-counter svg{width:21px;height:21px;image-rendering:pixelated;filter:drop-shadow(2px 2px #071a22)}
-.star-counter strong{font-size:13px;color:#ffe0a4;white-space:nowrap}
-@media(max-width:730px){.worlds{grid-template-columns:1fr}.world-card{min-height:97px;padding:10px}.levels{grid-template-columns:repeat(2,minmax(0,1fr))}.level-card{min-height:168px;gap:6px;padding:9px}.level-card-sub{font-size:11px!important;min-height:38px}.level-card-meta{font-size:10px!important;padding:4px}}
-@media(max-width:430px){.levels{grid-template-columns:1fr}.level-card{min-height:115px}.level-card-sub{min-height:0}.star-counter svg{width:17px;height:17px}.star-counter strong{font-size:11px}.hud .pill#hudRight{max-width:125px;font-size:10px}}
-@media(max-height:450px){.panel{padding:12px}.world-card{min-height:95px}.level-card{min-height:145px}.levels{gap:7px}}
-.level-result{background:#102d32;border:3px solid #c0c58c;padding:14px;box-shadow:4px 4px 0 #0b1c23;margin:13px auto}
-.result-chapter{font-weight:900;letter-spacing:2px;color:#e9d299;font-size:11px;margin-bottom:11px}
-.result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.result-stats>div{background:#1e4142;display:grid;justify-items:center;gap:6px;padding:12px 3px}
-.result-stats span{font-size:11px;color:#b1d1c1}.result-stats strong{font-size:clamp(13px,2.7vw,19px);color:#ffebac}
-.result-stars{display:flex;align-items:center;gap:5px}.result-stars svg{width:23px;height:23px;image-rendering:pixelated}
-.result-reward{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-weight:900;color:#ffe6a8;gap:10px}
-
-.control-help{margin-top:12px;text-align:left;color:#b6cfc2;font-size:12px}.control-help summary{cursor:pointer;padding:8px 0}.control-help p{margin:4px 0 0!important}.world-enter{font-size:11px!important}#pixelEditionBadge{font-size:10px;letter-spacing:1px;border:0;background:none;padding:0;color:#9db9a5}.level-card[aria-pressed="true"]{outline:2px solid #d2e7aa;outline-offset:-2px}
-</style></head><body><canvas id="view"></canvas><div id="hud" class="hud hide"><div class="pill" id="hudLeft" role="status" aria-live="polite" aria-label="Drei Herzen, null Münzen"></div><div class="hudRightGroup"><div class="pill" id="hudRight"></div><button id="pause" aria-label="Spiel pausieren">Ⅱ</button></div></div><div id="bossHud" class="boss-hud hide"><div id="bossState" class="boss-label">SCHLEIMKÖNIG</div><div id="bossHealthTrack" class="boss-health-track" role="progressbar" aria-label="Lebenspunkte des Schleimkönigs" aria-valuemin="0" aria-valuemax="56" aria-valuenow="56"><div id="bossHealthFill" class="boss-health-fill"></div></div></div><div class="controls hide" id="controls"><div class="group"><button data-control="left" aria-label="Links">◀</button><button data-control="right" aria-label="Rechts">▶</button></div><div class="group"><button class="skill" data-control="dash" aria-label="Dash">D</button><button class="skill" data-control="attack" aria-label="Angreifen">A</button><button class="jump" data-control="jump" aria-label="Springen">▲</button></div></div><div id="layer" class="layer"><div class="panel"><div class="eyebrow">DIE CHRONIKEN DES SMARAGDWALDS</div><div id="pixelEditionBadge" class="pixel-edition-badge">v0.16.0</div><h1 id="heading">REALM RUNNERS</h1><p id="intro">Klassisches Jump ’n’ Run mit RPG-Fortschritt. Welt 1 mit fließenden Erdhügeln, festen Baumwegen, Ruinenstufen und dem Schleimkönig.</p><div id="menu"><div class="choices" id="classes"><button data-class="warrior">[K] Krieger</button><button data-class="hunter">[J] Jäger</button><button data-class="mage">[M] Magier</button></div><div id="progress"></div><div class="worlds" id="worlds"></div><div id="worldMapInfo" class="hide"></div><div class="levels hide" id="levels"></div><div id="rpgPanels" class="rpg-panels"></div><p class="tip"></p></div><div id="levelResult" class="level-result hide" role="status"></div><div class="row"><button class="primary hide" id="resume">Fortsetzen</button><button class="primary" id="play">Level starten</button><button class="secondary hide" id="return">Zur Weltkarte</button></div><button id="quality" aria-label="Grafikqualität wechseln">Grafik: Voll</button><details class="control-help"><summary>Steuerung</summary><p class="tip" id="help">Windows: A/D · Leertaste springen · Shift Dash · K/F Angriff. Menü: Enter starten · Escape zurück. iPhone: Bildschirmtasten; kurz tippen = niedriger Sprung, halten = höher.</p></details></div></div>
-<button id="changelogBtn" type="button" aria-haspopup="dialog" aria-controls="changelogOverlay" aria-expanded="false">📜 Updates</button>
-<div id="changelogOverlay" class="changelog-overlay hide" role="dialog" aria-modal="true" aria-labelledby="changelogTitle">
- <section class="changelog-panel"><header class="changelog-header">
-  <h2 id="changelogTitle">Realm Runners · Versionsverlauf</h2>
-  <button id="changelogClose" type="button">✕ Schließen</button>
- </header><div id="changelogEntries"></div></section>
-</div>
-<script>
-// Long presses belong to the game, not Safari's text selection or image callout.
-// Touch gestures are handled independently in game.js.
-for (const eventName of ['contextmenu', 'selectstart', 'dragstart']) {
-  document.addEventListener(eventName, event => event.preventDefault(), {capture:true});
-}
-</script>
-<script src="game.js?v=0.16.0"></script><script src="rpg.js?v=0.16.0"></script><script src="boss.js?v=0.16.0"></script><script src="enemies.js?v=0.16.0"></script><script src="castle_art.js?v=0.16.0"></script><script src="hd_background.js?v=0.16.0"></script><script src="level_design.js?v=0.16.0"></script><script src="world_map.js?v=0.16.0"></script><script src="forest.js?v=0.16.0"></script><script src="changelog.js?v=0.16.0"></script></body></html>
+<html lang="de">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+ <meta name="theme-color" content="#091b20">
+ <meta name="description" content="Realm Runners: ein Top-down-Roguelite mit Dungeons, Klassen, Loot und Bosskämpfen.">
+ <title>Realm Runners · Dungeon Reborn</title>
+ <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+ <canvas id="gameCanvas" aria-label="Realm Runners Spielfeld"></canvas>
+ <div class="game-top">
+  <div class="identity"><span class="sigil">✦</span><span>REALM <b>RUNNERS</b><small>DUNGEON REBORN · ALPHA 0.1</small></span></div>
+  <div id="hud" class="hud hidden" aria-live="off">
+   <div class="hud-stat hp-stat"><span class="stat-label">LEBEN</span><span id="hpText">100 / 100</span><div class="hp-track"><div id="hpFill"></div></div></div>
+   <div class="hud-stat"><span class="stat-label">DUNGEON</span><strong id="roomText">0 / 9</strong></div>
+   <div class="hud-stat"><span class="stat-label">BEUTE</span><strong id="coinText">0 <span class="coin">◆</span></strong></div>
+  </div>
+  <button id="pauseBtn" class="mini-button hidden" type="button" aria-label="Spiel pausieren">Ⅱ</button>
+ </div>
+ <div id="abilityHud" class="ability-hud hidden"><span id="classTag">KRIEGER</span><span id="dashLabel">DASH BEREIT</span><span id="abilityLabel">Q: WIRBELSTURM</span></div>
+ <div id="mobileControls" class="mobile-controls">
+  <div id="joystick" class="joystick" role="group" aria-label="Virtueller Bewegungsstick"><div class="joystick-inner"></div></div>
+  <div class="mobile-actions">
+   <button id="abilityTouch" class="action ability" type="button" aria-label="Spezialfähigkeit">✦</button>
+   <button id="dashTouch" class="action dash" type="button" aria-label="Ausweichen">↝</button>
+   <button id="attackTouch" class="action attack" type="button" aria-label="Angreifen">⚔</button>
+  </div>
+ </div>
+ <section id="overlay" class="overlay" aria-live="polite">
+  <div class="panel">
+   <div class="eyebrow">✧ DAS TOR ZUM SMARAGDWALD ✧</div>
+   <h1>REALM<br><em>RUNNERS</em></h1>
+   <div class="chapter">DUNGEON REBORN</div>
+   <p>Ein neues Abenteuer beginnt unter den Ruinen. Kämpfe dich durch zufällige Kammern, finde mächtige Relikte und besiege den Schleimkönig.</p>
+   <div id="panelContent"></div>
+  </div>
+ </section>
+ <div id="toast" class="toast hidden" role="status"></div>
+ <script type="module" src="./src/main.js"></script>
+</body>
+</html>
