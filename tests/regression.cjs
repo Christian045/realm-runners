@@ -54,20 +54,20 @@ test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';
 // Guard against missing or stale runtime scripts in the published HTML.
 test('v0.4 HTML loads RPG systems before forest startup',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- const game=html.indexOf('src="game.js?v=0.10.0"');
- const rpg=html.indexOf('src="rpg.js?v=0.10.0"');
- const boss=html.indexOf('src="boss.js?v=0.10.0"');
- const enemies=html.indexOf('src="enemies.js?v=0.10.0"');
- const castleArt=html.indexOf('src="castle_art.js?v=0.10.0"');
- const hd=html.indexOf('src="hd_background.js?v=0.10.0"');
- const layout=html.indexOf('src="level_design.js?v=0.10.0"');
- const worldMap=html.indexOf('src="world_map.js?v=0.10.0"');
- const forest=html.indexOf('src="forest.js?v=0.10.0"');
- const changelog=html.indexOf('src="changelog.js?v=0.10.0"');
+ const game=html.indexOf('src="game.js?v=0.10.1"');
+ const rpg=html.indexOf('src="rpg.js?v=0.10.1"');
+ const boss=html.indexOf('src="boss.js?v=0.10.1"');
+ const enemies=html.indexOf('src="enemies.js?v=0.10.1"');
+ const castleArt=html.indexOf('src="castle_art.js?v=0.10.1"');
+ const hd=html.indexOf('src="hd_background.js?v=0.10.1"');
+ const layout=html.indexOf('src="level_design.js?v=0.10.1"');
+ const worldMap=html.indexOf('src="world_map.js?v=0.10.1"');
+ const forest=html.indexOf('src="forest.js?v=0.10.1"');
+ const changelog=html.indexOf('src="changelog.js?v=0.10.1"');
  assert.ok(game>=0 && rpg>game && boss>rpg && enemies>boss && castleArt>enemies && hd>castleArt && layout>hd && worldMap>layout && forest>worldMap && changelog>forest,'runtime scripts must load in order');
  assert.ok(html.includes('id="rpgPanels"'));
  assert.ok(html.includes('data-control="attack"'));
- assert.ok(html.includes('WELTKARTE & NEUE LEVEL · 0.10.0'));assert.ok(html.includes('id="changelogBtn"'));assert.ok(html.includes('id="changelogOverlay"'));assert.ok(!html.includes('src="platforms.js'));
+ assert.ok(html.includes('KULISSEN & LEVELPOLITUR · 0.10.1'));assert.ok(html.includes('id="changelogBtn"'));assert.ok(html.includes('id="changelogOverlay"'));assert.ok(!html.includes('src="platforms.js'));
  assert.ok(html.includes('aria-valuemax="56"'));
  assert.ok(html.includes('id="bossHealthFill"'));
  assert.ok(html.includes('boss-health-fill'));
@@ -452,7 +452,7 @@ test('v0.10 distinct curated level geometry and themed exit animation',()=>{
   assert.ok(cfg[i].spikes.every(x=>cfg[i].gaps.every(([a,b])=>x+44<a||x>b)));
   h.run(`start(${i})`);
   assert.equal(h.run('WIDTH'),cfg[i].width);
-  assert.ok(h.run('things.filter(a=>a.type===\'coin\').length')>20);
+  assert.ok(h.run('things.filter(a=>a.type===\'coin\').length')>=9);
   h.run('bad=[];spikes=[];hero.x=WIDTH-75;hero.y=G-43;step(1)');
   assert.equal(h.run('scene'),'game','invisible edge may not end level');
   h.run('hero.x=stages[stage].exitX-30;hero.y=G-43;hero.on=true;hero.vy=0;step(1)');
@@ -630,13 +630,64 @@ test('v0.9.1 slight extra hazards remain outside every ground gap',()=>{
   assert.equal(geom[i].crumbling,undefined);
  }
 });
-test('v0.9.1 changelog lists all major versions and pauses/resumes safely',()=>{
+
+test('v0.10.1 every large background set piece has solid terrain under its feet',()=>{
+ const sceneAnchors=h.run('SCENERY_ANCHORS');
+ const check=(i,x,w,label)=>assert.equal(h.run('hasSceneryFoundation('+x+','+w+','+i+')'),true,
+  'floating '+label+' in stage '+(i+1)+' at '+x);
+ for(const x of sceneAnchors.grove.trees)check(0,x+36,28,'tree trunk');
+ for(const x of sceneAnchors.grove.logs)check(0,x,78,'fallen log');
+ for(const x of sceneAnchors.canopy.trees)check(1,x+24,44,'canopy trunk and connected vines');
+ for(const x of sceneAnchors.ruins.arches){
+  check(2,x,24,'left ruin pillar');
+  check(2,x+141,25,'right ruin pillar');
+ }
+ for(const x of sceneAnchors.castle.towers)check(3,x,125,'castle wall/tower');
+ for(const [x,w] of [[3310,135],[3700,145],[4070,130],[4270,135]])
+  check(3,x,w,'distant castle approach tower');
+ assert.equal(h.run('hasSceneryFoundation(1995,25,2)'),false,'gap cannot support a pillar');
+ assert.equal(h.run('hasSceneryFoundation(3470,135,3)'),false,'old hovering castle tower must fail');
+ for(let i=0;i<4;i++)h.run('start('+i+');draw()');
+});
+test('v0.10.1 authored coins are scarce, safe and never hover above a gap',()=>{
+ const counts=[12,11,12,13];
+ for(let i=0;i<4;i++){
+  h.run('start('+i+')');
+  const state=h.run('({coins:things.filter(a=>a.type===\'coin\'),gaps:stages[stage].gaps,spikes,exitX:stages[stage].exitX,spots:stages[stage].coinSpots})');
+  assert.equal(state.coins.length,counts[i],'sparse curated coin count in '+(i+1));
+  assert.equal(state.spots.length,counts[i]);
+  const xs=state.coins.map(a=>a.x);
+  assert.equal(new Set(xs).size,xs.length);
+  for(const coin of state.coins){
+   assert.ok(coin.x<state.exitX-110,'no pickup obscures exit');
+   assert.ok(h.run('hasSceneryFoundation('+(coin.x-22)+',44,'+i+')'),'coin has solid ground support');
+   assert.ok(state.spikes.every(p=>coin.x<p.x-58||coin.x>p.x+p.w+58),'coin stays away from spikes');
+  }
+ }
+ h.run('start(4)');assert.equal(h.run("things.filter(x=>x.type==='coin').length"),0);
+});
+test('v0.10.1 release notes are restricted to the real main world menu',()=>{
  const all=h.run('RELEASE_NOTES.map(note=>note.v)');
- assert.deepEqual([...all],['0.10.0','0.9.1','0.9.0','0.8.0','0.7.0','0.6.2','0.6.1','0.6.0','0.5.0','0.4.0','0.1–0.3']);
+ assert.deepEqual([...all],['0.10.1','0.10.0','0.9.1','0.9.0','0.8.0','0.7.0','0.6.2','0.6.1','0.6.0','0.5.0','0.4.0','0.1–0.3']);
  assert.ok(h.run("document.querySelector('#changelogEntries').innerHTML").includes('Phase II'));
- h.run("start(0);document.querySelector('#changelogBtn').dispatch('click',{})");
- assert.equal(h.run('scene'),'pause');
- assert.equal(h.run("document.querySelector('#changelogOverlay').attrs['aria-hidden']"),undefined);
+ h.run("menuView='worlds';menu()");
+ assert.equal(h.run("document.querySelector('#changelogBtn').classes.has('hide')"),false);
+ assert.equal(h.run("document.querySelector('#changelogBtn').attrs['aria-hidden']"),'false');
+ h.run("document.querySelector('#changelogBtn').dispatch('click',{})");
+ assert.equal(h.run('scene'),'menu','opening patch notes from main menu never pauses a running game');
+ assert.equal(h.run("document.querySelector('#changelogOverlay').classes.has('hide')"),false);
  h.run("document.querySelector('#changelogClose').dispatch('click',{})");
- assert.equal(h.run('scene'),'game');
+ assert.equal(h.run("document.querySelector('#changelogOverlay').classes.has('hide')"),true);
+ h.run("menuView='levels';menu()");
+ assert.equal(h.run("document.querySelector('#changelogBtn').classes.has('hide')"),true);
+ h.run("document.querySelector('#changelogBtn').dispatch('click',{})");
+ assert.equal(h.run("document.querySelector('#changelogOverlay').classes.has('hide')"),true);
+ h.run("start(0)");
+ assert.equal(h.run("document.querySelector('#changelogBtn').classes.has('hide')"),true);
+ h.run("document.querySelector('#changelogBtn').dispatch('click',{})");
+ assert.equal(h.run('scene'),'game','hidden updates never pause an active level');
+ h.run('pause()');
+ assert.equal(h.run("document.querySelector('#changelogBtn').classes.has('hide')"),true);
+ h.run("menuView='worlds';menu()");
+ assert.equal(h.run("document.querySelector('#changelogBtn').classes.has('hide')"),false);
 });

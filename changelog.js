@@ -1,6 +1,13 @@
 'use strict';
 // In-game, locally bundled release notes. No network requests or user data.
 const RELEASE_NOTES=[
+ {v:'0.10.1',title:'Kulissen am Boden, weniger Münzen, Updates im Hauptmenü',items:[
+  'Bäume, Hängepflanzen, Ruinentore und Burgmauern stehen jetzt auf überprüften Bodenflächen statt über Abgründen.',
+  'Burgzufahrt und Boden-Dekorationen wurden auf tragfähige Positionen angepasst.',
+  'Münzen erscheinen seltener, gezielt auf sicherem Boden und nicht mehr als durchgehende Reihen.',
+  'Der Versionsverlauf ist ausschließlich in der Haupt-Weltübersicht erreichbar.'
+ ]},
+
  {v:'0.10.0',title:'Vier einzigartige Level, Weltkarte und neue Ausgänge',items:[
   'Startmenü neu geordnet: zuerst Welt 1 auswählen, dann eine Karte mit fünf Abschnitten.',
   'Für jedes Level siehst du die Sterne, Freischaltung und Bestzeit deiner aktuellen Klasse direkt auf der Karte.',
@@ -77,18 +84,16 @@ const RELEASE_NOTES=[
  if(!btn||!modal||!closeBtn||!entries)return;
  const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  entries.innerHTML=RELEASE_NOTES.map((note,i)=>'<details class="changelog-release"'+(i===0?' open':'')+'><summary><span class="release-version">v'+escape(note.v)+'</span> '+escape(note.title)+'</summary><ul>'+note.items.map(item=>'<li>'+escape(item)+'</li>').join('')+'</ul></details>').join('');
- let resumeAfterClose=false;
+ // Only available from the world overview; never blocks game controls.
  function openChangelog(){
-  resumeAfterClose=scene==='game';
-  if(resumeAfterClose)pause();
+  if(scene!=='menu'||menuView!=='worlds')return;
   modal.classList.remove('hide');btn.setAttribute('aria-expanded','true');
   closeBtn.focus();
  }
  function closeChangelog(){
   if(modal.classList.contains('hide'))return;
   modal.classList.add('hide');btn.setAttribute('aria-expanded','false');
-  if(resumeAfterClose&&scene==='pause')resume();
-  resumeAfterClose=false;btn.focus();
+  btn.focus();
  }
  btn.addEventListener('click',openChangelog);
  closeBtn.addEventListener('click',closeChangelog);

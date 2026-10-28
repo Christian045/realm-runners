@@ -1,6 +1,18 @@
-# Realm Runners v0.10 – Weltkarte und vier verschiedene Abenteuerlevel
+# Realm Runners v0.10.1 – Geerdete Kulissen, weniger Münzen und Updates nur im Hauptmenü
 
 **Spielen: https://christian045.github.io/realm-runners/**
+
+## Neu in v0.10.1 – saubere Kulissen und ruhigere Sammelobjekte
+
+- **Keine schwebende Dekoration über Abgründen:** Alle größeren Bäume, Wipfelstämme, Tempel-Torbögen und Burgtürme sind jetzt auf ihren echten Grundflächen geprüft. Insbesondere die Ruinenbögen haben zwei geerdete Säulen; die Königstraße setzt ihre Türme nicht mehr auf Luft. Hängende Pflanzen wachsen sichtbar aus Ästen statt aus dem Nichts.
+- **Bodenobjekte dürfen nicht über Gruben hinausragen:** Pilze, Felsen, Kristalle und Fackeln erhalten dieselbe Fundamentprüfung. Der große Burgeingang bleibt erreichbar und stimmig.
+- **Weniger Münzen:** Statt einer durchgehenden Münzreihe liegen nun nur 11–13 bewusst platzierte Münzen pro Abenteuerlevel auf sicheren Bodenabschnitten. Abgründe, Dornen und das Leveltor bleiben frei; Bossraum und Sterne sind unverändert.
+- **Changelog nur noch im echten Hauptmenü:** Der „📜 Updates“-Knopf erscheint ausschließlich in der Weltübersicht. Auf der Levelauswahl, im laufenden Spiel, beim Pausieren und am Levelende ist er ausgeblendet und kann nicht geöffnet werden.
+- Alle vorhandenen Spielstände, Goldbestände, Sterne, Bestzeiten und Kampffunktionen bleiben erhalten.
+
+**Auf dem iPhone:** Neue Version `?v=0.10.1` aufrufen und auf **„KULISSEN & LEVELPOLITUR · 0.10.1“** achten. Website-Daten nicht löschen.
+
+
 
 ## Neu in v0.10 – eine Welt, vier eigenständige Abenteuer
 

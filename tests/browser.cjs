@@ -8,15 +8,24 @@ const fs=require('node:fs');
  await page.goto('http://127.0.0.1:8000');
  await page.evaluate(()=>localStorage.setItem('realm-runners-save-v2',JSON.stringify({class:'hunter',unlocked:3,stars:[3,2,1],xp:87,level:4})));
  await page.reload();
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.10\.0/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.10\.1/);
  assert.ok(await page.locator('[data-world="0"]').isVisible(),'World 1 is visible');
  assert.equal(await page.locator('.world-card').count(),3);
+ assert.ok(await page.locator('#changelogBtn').isVisible(),'Updates visible on main world overview');
+ await page.locator('#changelogBtn').click();
+ assert.ok(await page.locator('#changelogOverlay').isVisible());
+ assert.match(await page.locator('#changelogEntries').innerText(),/0.10.1/);
+ await page.screenshot({path:`test-output/${name}-menu-only-changelog.png`});
+ await page.locator('#changelogClose').click();
+ assert.ok(!await page.locator('#changelogOverlay').isVisible());
  await page.screenshot({path:`test-output/${name}-worlds-overview.png`});
  await page.locator('[data-world="0"]').click();
+ assert.ok(!await page.locator('#changelogBtn').isVisible(),'Updates hidden on level selection');
  assert.equal(await page.locator('.level-card').count(),5,'five stage cards');
  assert.equal(await page.locator('.level-card:disabled').count(),2,'locked stages remain locked');
  await page.screenshot({path:`test-output/${name}-world-one-stage-map.png`});
  await page.locator('#play').click();
+ assert.ok(!await page.locator('#changelogBtn').isVisible(),'Updates hidden during gameplay');
  try {
   await page.waitForFunction(()=>scene==='game'&&hero?.on,{},{timeout:10000});
  } catch (error) {
@@ -79,7 +88,24 @@ const fs=require('node:fs');
  assert.equal(pixelArt.backdropSkyAlpha,255,'HD sky should be visible under gameplay');
  await page.evaluate(()=>menu());
  assert.ok(await page.locator('#pixelEditionBadge').isVisible());
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.10\.0/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.10\.1/);
+ // Visual-support and scarcity checks for all four new adventure routes.
+ await page.evaluate(()=>{
+  const expected=[12,11,12,13];
+  for(let i=0;i<4;i++){
+   start(i);
+   const coins=things.filter(t=>t.type==='coin');
+   if(coins.length!==expected[i])throw Error('Coin density not sparse in '+i+': '+coins.length);
+   if(coins.some(coin=>!hasSceneryFoundation(coin.x-22,44,i)))throw Error('Coin above a pit');
+   if(coins.some(coin=>spikes.some(p=>coin.x>=p.x-58&&coin.x<=p.x+p.w+58)))throw Error('Coin above spikes');
+  }
+  for(const x of SCENERY_ANCHORS.ruins.arches){
+   if(!hasSceneryFoundation(x,24,2)||!hasSceneryFoundation(x+141,25,2))
+    throw Error('Ruin arch has a floating support column at '+x);
+  }
+  for(const x of SCENERY_ANCHORS.castle.towers)
+   if(!hasSceneryFoundation(x,125,3))throw Error('Tower floating at '+x);
+ });
  // Store each biome in the CI artifacts so pixel-style changes are reviewable.
  for(const [level,label] of [[0,'forest'],[1,'canopy'],[2,'ruins'],[3,'swamp'],[4,'slime-king']]){
   await page.evaluate(index=>{start(index);if(index===4){hero.x=2220;step(1);cam=1840;}draw();},level);
@@ -218,15 +244,14 @@ const fs=require('node:fs');
   cam=1340;draw();
  });
  await page.screenshot({path:`test-output/${name}-pixel-hearts-and-coins.png`});
- await page.locator('#changelogBtn').click();
- assert.equal(await page.evaluate(()=>scene),'pause','changelog must pause gameplay');
- await page.locator('#changelogOverlay').waitFor({state:'visible'});
- assert.match(await page.locator('#changelogEntries').innerText(),/0.9.1/);
- assert.match(await page.locator('#changelogEntries').innerText(),/0.4.0/);
- await page.screenshot({path:`test-output/${name}-changelog.png`});
- await page.locator('#changelogClose').click();
- assert.equal(await page.evaluate(()=>scene),'game','closing changelog resumes gameplay');
+ // Changelog may never be opened while running, even programmatically.
+ assert.equal(await page.locator('#changelogBtn').isVisible(),false);
+ await page.evaluate(()=>document.querySelector('#changelogBtn').click());
+ assert.equal(await page.evaluate(()=>scene),'game');
  assert.equal(await page.locator('#changelogOverlay').isVisible(),false);
+ await page.evaluate(()=>pause());
+ assert.equal(await page.locator('#changelogBtn').isVisible(),false,'not shown on pause');
+ await page.evaluate(()=>resume());
   // Real in-browser encounter: red bar appears, three classes and stamp attacks run.
  await page.evaluate(()=>{
   save.class='mage';start(4);hero.x=boss.x-175;hero.y=G-43;
@@ -307,7 +332,14 @@ const fs=require('node:fs');
  await page.evaluate(()=>testTouch('touchstart',[[43,'right']]));
  await page.locator('#pause').click();assert.equal(await page.evaluate(()=>scene),'pause');assert.equal(await page.evaluate(()=>input.right),false);await page.locator('#resume').click();
  const beforeLevel1=await page.evaluate(()=>({xp:save.xp,level:save.level}));
- await page.evaluate(()=>{hero.x=stages[stage].exitX-30;hero.y=G-43;hero.on=true;hero.stars=2;hero.earned=25;step(1);for(let i=0;i<74;i++)step(1)});assert.equal(await page.evaluate(()=>scene),'end');
+ await page.evaluate(()=>{
+  clearInput();hero.x=stages[stage].exitX-30;hero.y=G-43;
+  hero.on=true;hero.vy=0;hero.vx=0;hero.stars=2;hero.earned=25;
+  step(1);
+  if(!exitActive)throw Error('Grounded level exit did not activate');
+  for(let i=0;i<74;i++)step(1);
+ });
+ assert.equal(await page.evaluate(()=>scene),'end','entering a gate must complete the level even after touch/pause/resume');
  await page.reload();
  const expectedProgress={...beforeLevel1};
  expectedProgress.xp+=95;
