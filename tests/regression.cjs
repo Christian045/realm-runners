@@ -547,7 +547,7 @@ test('v0.10 world overview and level selection show records for active class',()
  assert.ok(markup.includes('01:32.00'),'best mage time is printed on its level card');
  assert.equal(h.run('worldBestTime(0)'),92000);
  assert.equal(h.run("document.querySelector('#worldMapInfo').innerHTML").includes('01:32.00'),true);
- assert.equal((markup.match(/class="level-card/g)||[]).length,5);
+ assert.equal((markup.match(/<button data-level=/g)||[]).length,5);
  assert.equal((markup.match(/ disabled/g)||[]).length,2);
  h.run("save.class='hunter';menu()");
  assert.equal(h.run('worldBestTime(0)'),87000);
