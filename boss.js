@@ -2,16 +2,17 @@
 // Soulslike Slime King: deterministic 60 Hz boss arena with readable windups,
 // aggression against ranged classes, distinct moves and a phase-two transformation.
 const BOSS_LEVEL=4,BOSS_HP=56,BOSS_VICTORY_FRAMES=42;
-const BOSS_ARENA_LEFT=2020,BOSS_ARENA_RIGHT=2775;
+// Exactly one logical viewport wide: physical stone walls are visible at both edges.
+const BOSS_ARENA_LEFT=18,BOSS_ARENA_RIGHT=W-18;
 let boss=null,bossGoo=[],bossWaves=[];
 function bossEnraged(){return !!boss?.enraged;}
 function resetBossRun(){
  bossGoo=[];bossWaves=[];
  boss=stage===BOSS_LEVEL?{
-  x:2460,y:G-94,w:108,h:94,baseY:G-94,vy:0,
+  x:650,y:G-94,w:108,h:94,baseY:G-94,vy:0,
   hp:BOSS_HP,maxHp:BOSS_HP,hurt:0,alive:true,
-  engaged:false,enraged:false,phase:'patrol',timer:62,shotTimer:0,
-  attackIndex:0,chargeDir:-1,targetX:2460,slamCount:0,
+  engaged:true,enraged:false,phase:'patrol',timer:80,shotTimer:0,
+  attackIndex:0,chargeDir:-1,targetX:650,slamCount:0,
   volleyCount:0,chargeCount:0,defeatTimer:0
  }:null;
  updateBossHud();

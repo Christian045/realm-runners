@@ -3,63 +3,46 @@
 // Every stage has a distinct rhythm: gentle trail -> vertical canopy ->
 // clustered ruin passages -> defended castle causeway. All walkable geometry
 // is static. Boss arena intentionally remains unchanged.
+// Ground-first courses: a few raised, fully supported optional lookout
+// platforms, long running stretches, meaningful hazards and a quiet exit runway.
+// World lengths are ~80% greater than v0.10; boss is intentionally unchanged.
 const WORLD_ONE_LAYOUTS=[
- {
-  name:'1-1 · Sonnenpfad',short:'Sonnenpfad',subtitle:'Lichtung und Baumstämme',
-  hint:'Weite Waldlichtungen, erste Sprünge und ein ruhiger Weg zum Hain.',
-  motif:'grove',difficulty:'★☆☆',width:4100,base:5,exitX:3960,exitName:'Tor zum Wipfelwald',
-  gaps:[[625,735],[1660,1780],[2850,2990],[3570,3690]],
-  ledges:[[255,397,158],[470,360,130],[830,383,150],[1125,333,145],
-   [1445,383,172],[1880,379,153],[2180,341,178],[2450,402,139],
-   [2720,362,148],[3070,371,154],[3330,331,156],[3760,375,160]],
-  enemies:[420,900,1290,1920,2330,2550,3080,3410,3790],
-  spikes:[1030,1560,2460,2650,3300,3740],
-  stars:[[515,305],[2260,282],[3440,272]],
-  coinSpots:[185,425,905,1145,1385,1865,2105,2345,2585,2825,3065,3545]
- },
- {
-  name:'1-2 · Baumkronen',short:'Baumkronen',subtitle:'Hoch über dem Waldboden',
-  hint:'Versetzte Äste, höhere Routen und sechs Sprunggräben.',
-  motif:'canopy',difficulty:'★★☆',width:4300,base:8,exitX:4155,exitName:'Hain der alten Steine',
-  gaps:[[385,525],[965,1135],[1555,1730],[2290,2470],[3040,3220],[3755,3925]],
-  ledges:[[185,402,155],[420,344,158],[650,303,151],[880,380,147],
-   [1050,348,152],[1280,297,148],[1500,373,120],[1750,339,160],
-   [1940,295,165],[2150,371,145],[2410,331,161],[2680,298,160],
-   [2945,368,145],[3160,333,157],[3380,295,155],[3610,362,153],
-   [3870,331,145],[4045,360,144]],
-  enemies:[640,850,1300,1865,2110,2700,2960,3340,4090],
-  spikes:[740,1410,2020,2560,2840,3470,4010],
-  stars:[[735,251],[2760,245],[3455,239]],
-  coinSpots:[185,570,900,1185,1300,1790,2190,2700,3000,3270,3690]
- },
- {
-  name:'1-3 · Versunkene Ruinen',short:'Moosruinen',subtitle:'Zerbrochene Brücken und Tempelbögen',
-  hint:'Engere Steinpassagen, zerfallene Torbögen und riskante Nebenwege.',
-  motif:'ruins',difficulty:'★★★',width:4400,base:12,exitX:4240,exitName:'Straße zur Festung',
-  gaps:[[540,702],[1260,1440],[1990,2175],[2840,3020],[3600,3775]],
-  ledges:[[218,389,128],[420,327,148],[725,368,155],[940,304,140],
-   [1205,375,137],[1465,328,164],[1685,284,145],[1840,376,126],
-   [2180,361,166],[2390,309,152],[2590,390,118],[2980,339,164],
-   [3250,289,145],[3480,376,127],[3755,338,159],[3980,299,149]],
-  enemies:[385,925,1040,1550,1870,2405,2530,3265,3360,3950],
-  spikes:[785,1140,1635,2240,2650,3070,3440,3820,4100],
-  stars:[[475,272],[1730,231],[3300,235]],
-  coinSpots:[185,425,905,1070,1515,1865,2345,2585,2790,3305,3545,4025]
- },
- {
-  name:'1-4 · Die Königstraße',short:'Königstraße',subtitle:'Vom Wald zur Burgmauer',
-  hint:'Steinerne Rampen, schmale Bollwerke und die Tore des Schleimkönigs.',
-  motif:'castle',difficulty:'★★★',width:4500,base:15,exitX:4230,exitName:'Schlosstor betreten',
-  gaps:[[475,617],[1120,1285],[1790,1965],[2690,2870],[3455,3635]],
-  ledges:[[240,394,146],[630,365,164],[890,312,158],[1080,372,120],
-   [1300,339,164],[1575,296,151],[1910,365,163],[2210,327,154],
-   [2500,385,134],[2855,349,163],[3115,306,155],[3390,365,130],
-   [3640,331,165],[3900,378,149]],
-  enemies:[340,795,1350,1630,2140,2500,3060,3190,3830,4050],
-  spikes:[910,1470,2030,2380,2950,3290,3730,3960],
-  stars:[[320,336],[1640,241],[3695,275]],
-  coinSpots:[185,425,680,770,1050,1330,1650,2190,2550,3070,3400,3850,4110]
- }
+ {name:'1-1 · Sonnenpfad',short:'Sonnenpfad',subtitle:'Lichtung und Baumstämme',
+  hint:'Lange Waldpfade, leichte Gräben und wenige erhöhte Baumstämme.',
+  motif:'grove',difficulty:'★☆☆',width:7380,base:5,exitX:7200,exitName:'Tor zum Wipfelwald',
+  gaps:[[1100,1215],[2530,2660],[4030,4175],[5540,5690],[6520,6660]],
+  ledges:[[1390,320,170],[2940,314,180],[4600,323,155],[5920,312,176]],
+  enemies:[450,920,1530,2010,2360,2820,3340,3770,4310,4740,5090,5430,5850,6100,6400],
+  spikes:[800,1700,2190,3180,3520,4450,4920,5280,6280],
+  stars:[[1470,274],[4670,276],[5995,245]],
+  coinSpots:[215,580,980,1280,1880,2390,2820,3700,3890,4350,4780,5160,5740,6090,6920]},
+ {name:'1-2 · Baumkronen',short:'Baumkronen',subtitle:'Hoch über dem Waldboden',
+  hint:'Bodenläufe zwischen hohen Baumstämmen und sieben gut sichtbaren Gräben.',
+  motif:'canopy',difficulty:'★★☆',width:7740,base:8,exitX:7560,exitName:'Hain der alten Steine',
+  gaps:[[860,995],[1770,1935],[2810,2975],[3980,4155],[5070,5250],[6100,6275],[6800,6975]],
+  ledges:[[1150,320,180],[2350,315,175],[3340,316,184],[4550,310,174],[5600,320,184]],
+  enemies:[340,680,1120,1560,2220,2570,3120,3540,3820,4390,4830,5380,5770,6420,6650,7020],
+  spikes:[550,1440,2110,2660,3210,3670,4470,4970,5480,5860,6500],
+  stars:[[1230,262],[3430,249],[5690,255]],
+  coinSpots:[215,730,1080,1660,2020,2490,3130,3450,3790,4270,4730,5330,5680,5990,6700,7100]},
+ {name:'1-3 · Versunkene Ruinen',short:'Moosruinen',subtitle:'Zerbrochene Brücken und Tempelbögen',
+  hint:'Steinwege mit kleinen Hochrouten, gestaffelten Gefahren und klaren Passagen.',
+  motif:'ruins',difficulty:'★★★',width:7920,base:12,exitX:7730,exitName:'Straße zur Festung',
+  gaps:[[700,865],[1670,1840],[2560,2740],[3600,3780],[4810,4995],[5890,6070],[6750,6930]],
+  ledges:[[1070,320,175],[2080,315,170],[3000,320,185],[4280,315,168],[5400,318,180],[6260,320,175]],
+  enemies:[300,900,1290,1570,1970,2420,2910,3430,3860,4170,4590,5070,5410,5730,6160,6540,7240],
+  spikes:[430,1000,1440,2100,2350,2840,3310,3960,4530,5140,5640,6410,7090],
+  stars:[[1150,245],[3080,246],[5480,236]],
+  coinSpots:[215,920,1350,2020,2470,2970,3500,3840,4230,4690,5290,5520,6180,6620,7400]},
+ {name:'1-4 · Die Königstraße',short:'Königstraße',subtitle:'Vom Wald zur Burgmauer',
+  hint:'Lange Burgstraße, niedrige Hindernisse und ein freier Anlauf zum Schlosstor.',
+  motif:'castle',difficulty:'★★★',width:8100,base:15,exitX:7845,exitName:'Schlosstor betreten',
+  gaps:[[1020,1165],[2190,2360],[3350,3535],[4560,4740],[5600,5770],[6500,6680]],
+  ledges:[[1450,320,190],[2810,322,175],[4010,320,185],[5180,318,185]],
+  enemies:[370,850,1270,1690,2060,2580,2890,3190,3750,4110,4460,4860,5300,5960,6310,6970],
+  spikes:[690,1350,1970,2450,3060,3910,4380,4990,5430,6140],
+  stars:[[1540,245],[4100,243],[5270,236]],
+  coinSpots:[225,590,920,1240,1820,2640,2770,3170,3700,4170,4820,5270,5920,6250,7030,7440]}
 ];
 for(let i=0;i<WORLD_ONE_LAYOUTS.length;i++)Object.assign(stages[i],WORLD_ONE_LAYOUTS[i]);
 Object.assign(stages[4],{short:'Schleimkönig',subtitle:'Thronsaal',hint:'Eine kompakte Bossarena mit Phase II und drei angekündigten Angriffen.',difficulty:'★★★'});
@@ -67,10 +50,11 @@ Object.assign(stages[4],{short:'Schleimkönig',subtitle:'Thronsaal',hint:'Eine k
 // Every structural FOOT has a collision-ground foundation. This avoids the
 // floating columns, trees, trunks and towers that appeared above chasms.
 const SCENERY_ANCHORS=Object.freeze({
- grove:{trees:[145,1050,1990,3100,3810],logs:[530,1530,2720,3450]},
- canopy:{trees:[240,840,1440,2185,2920,3550,3990]},
- ruins:{arches:[350,1085,1770,2635,3390,4070]},
- castle:{towers:[350,960,1985,2510,3280]}
+ grove:{trees:[145,1410,2780,3560,4390,5140,5840,6820],
+        logs:[530,2050,3240,4810,6020]},
+ canopy:{trees:[200,1130,2110,3160,4370,5500,6300,7180]},
+ ruins:{arches:[250,1085,1980,2920,4110,5300,6190,7100]},
+ castle:{towers:[300,1450,2800,4000,5100,5950]}
 });
 function hasSceneryFoundation(x,width,stageIndex=stage){
  const cfg=stages[stageIndex];
@@ -132,6 +116,40 @@ function drawBiomeLandmarks(){
   }
  }
 }
+// Raised surfaces are deliberate side routes, not airborne stepping-stones.
+// Draw their foundations all the way into the actual ground before platform
+// tiles, so every optional elevated walkway is visibly supported.
+function drawCoursePlatformSupports(){
+ if(stage===BOSS_LEVEL)return;
+ const biome=stages[stage].motif;
+ for(const [x,y,w] of stages[stage].ledges){
+  if(x+w<cam-60||x>cam+W+60)continue;
+  const feet=[x+16,x+w-30];
+  for(const foot of feet){
+   if(!hasSceneryFoundation(foot,14))continue;
+   if(biome==='grove'||biome==='canopy'){
+    ctx.fillStyle='#243e37';ctx.fillRect(foot-3,y+5,20,G-y-5);
+    ctx.fillStyle='#5c8760';ctx.fillRect(foot+2,y+11,9,G-y-18);
+    ctx.fillStyle='#80ab78';ctx.fillRect(foot+5,y+20,3,G-y-33);
+    // Tree roots visually meet the ground beneath the supported deck.
+    ctx.fillStyle='#355b43';ctx.fillRect(foot-9,G-15,31,15);
+   }else{
+    ctx.fillStyle=biome==='ruins'?'#333943':'#302d40';
+    ctx.fillRect(foot-5,y+5,24,G-y-5);
+    ctx.fillStyle=biome==='ruins'?'#899184':'#95818a';
+    ctx.fillRect(foot-1,y+11,8,G-y-19);
+    for(let yy=y+25;yy<G-7;yy+=30){
+     ctx.fillStyle=biome==='ruins'?'#59666a':'#645468';
+     ctx.fillRect(foot-4,yy,21,4);
+    }
+    ctx.fillStyle='#1d2930';ctx.fillRect(foot-9,G-11,32,11);
+   }
+  }
+  // A continuous crossbeam joins both structural supports.
+  ctx.fillStyle=biome==='grove'||biome==='canopy'?'#2b4c40':'#3a3748';
+  ctx.fillRect(x+10,y+9,w-20,10);
+ }
+}
 function drawWorldStar(cx,cy){
  const x=Math.round(cx/2)*2,y=Math.round(cy/2)*2;
  ctx.save();ctx.translate(x,y);
@@ -177,11 +195,12 @@ function drawLevelExit(){
  if(x+85<cam||x>cam+W+70)return;
  ctx.save();
  if(motif==='castle'){
-  // Match existing rendered castle doorway, now the actual interactive exit.
-  ctx.fillStyle='#171a27';ctx.fillRect(x-24,y-121,84,121);
-  ctx.fillStyle='#7f5261';ctx.fillRect(x-19,y-117,17,117);
-  ctx.fillStyle='#b18f73';ctx.fillRect(x+45,y-117,11,117);
-  ctx.fillStyle='#d4b57c';ctx.fillRect(x-12,y-124,63,10);
+  // The full medieval gate already exists in the HD castle approach exactly
+  // behind this coordinate. Show its entrance, not a second floating door.
+  ctx.fillStyle='#161625';ctx.fillRect(x-26,y-115,52,110);
+  ctx.fillStyle='#d5af74';ctx.fillRect(x-30,y-122,60,7);
+  ctx.fillStyle='#8f7180';ctx.fillRect(x-30,y-115,7,115);
+  ctx.fillRect(x+23,y-115,7,115);
  }else{
   const color=motif==='grove'?'#91bb79':motif==='canopy'?'#80d0b2':'#b3a3b9';
   ctx.fillStyle='#152a32';ctx.fillRect(x-31,y-127,93,127);

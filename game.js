@@ -28,8 +28,8 @@ const stages=[
   spikes:[940,1510,2140,2635,3140,3410,3735,3940],
   stars:[[308,348],[970,258],[4015,318]],
   },
- {name:'1-5 · Schloss des Schleimkönigs',width:2800,base:18,
-  gaps:[],ledges:[],enemies:[],spikes:[],stars:[],boss:true,spawnX:2060}
+ {name:'1-5 · Schloss des Schleimkönigs',width:W,base:18,
+  gaps:[],ledges:[],enemies:[],spikes:[],stars:[],boss:true,spawnX:245}
 ];
 // v0.5 pixel phase: roughly 12.5% less maximum height without changing tap jump.
 const JUMP={coyote:7,buffer:7,holdFrames:14,holdGravity:.50,gravity:.70,cut:.58};
@@ -152,7 +152,7 @@ function die(sourceX=undefined,fall=false){
   hero.x=hero.safeX;hero.y=hero.safeY-10;hero.vx=0;hero.vy=0;hero.on=false;
  }else{
   const away=Number.isFinite(sourceX)?Math.sign(hero.x+hero.w/2-sourceX)||-hero.face:-hero.face;
-  hero.x=Math.max(stages[stage].boss?2020:0,Math.min(WIDTH-hero.w,hero.x+away*28));
+  hero.x=Math.max(stages[stage].boss?BOSS_ARENA_LEFT+3:0,Math.min(stages[stage].boss?BOSS_ARENA_RIGHT-hero.w-4:WIDTH-hero.w,hero.x+away*28));
   hero.y=Math.max(0,hero.y-6);hero.vy=-5.7;hero.on=false;
  }
  return true;
@@ -241,7 +241,7 @@ function step(dt){
  if(h.dash>0&&Math.floor(t)%2===0)burst(h.x+15,h.y+24,cl.color,2,1);
  const wasOn=h.on;
  const prevY=h.y;
- h.x=Math.max(stages[stage].boss?2020:0,Math.min(WIDTH-30,h.x+h.vx*dt));
+ h.x=Math.max(stages[stage].boss?BOSS_ARENA_LEFT+3:0,Math.min(stages[stage].boss?BOSS_ARENA_RIGHT-h.w-4:WIDTH-h.w,h.x+h.vx*dt));
  h.y+=h.vy*dt;h.on=false;
  for(const p of solids())if(h.x+h.w>p.x&&h.x<p.x+p.w&&prevY+h.h<=p.y+9&&h.y+h.h>=p.y&&h.vy>=0){
   h.y=p.y-h.h;h.vy=0;h.on=true;h.usedDash=false;h.jumpActive=false;h.coyote=JUMP.coyote;
