@@ -1,6 +1,24 @@
-# Realm Runners v0.8 – Neue Gegner und Kampf-Update
+# Realm Runners v0.9 – Längere Level und der zornige Schleimkönig
 
 **Spielen: https://christian045.github.io/realm-runners/**
+
+## Neu in v0.9 – vier lange Abenteuerlevel und Soulslike-Bosskampf
+
+- **Level 1-1 bis 1-4 sind jeweils 4.200 statt 2.800 Welt-Einheiten lang (+50 %).** Zusätzliche Sprünge und fünf statt drei Abgründe, mehr Plattformen, insgesamt neun normale Gegner sowie mehr Dornen und Sammelmünzen je Level. Die drei Sterne bleiben erhalten, der dritte liegt jetzt im neuen letzten Drittel.
+- **Level 1-4:** längere Schlosszufahrt mit einer dritten beweglichen Plattform und einer weiteren einstürzenden Steinplatte. Das große Burgtor steht passend am Ende der längeren Strecke.
+- **Level 1-5:** absichtlich kompakte und optisch aufgeräumte Schlossarena (2.800 Welt-Einheiten und keine verstreuten Plattformen, normalen Gegner, Dornen oder Gräben).
+- **Schleimkönig (56 HP):** verfolgt den Spieler aktiv, besonders wenn ein Magier oder Jäger auf Distanz bleibt. Drei abwechselnde Angriffsmuster:
+  - Stampfangriff mit rot markierter Landezone und beidseitigen, überspringbaren Boden-Schockwellen.
+  - Gerichtete Schleim-Salve nach einer auffälligen Warnung; die Geschosse lassen sich durch Bewegung, Sprünge und Dash vermeiden.
+  - Schneller Boden-Ansturm mit roter Bodenwarnung; im Sprung überqueren oder mit Dash ausweichen.
+- **Phase II bei unter 50 % HP:** Der König verändert seine Farbe, die Lebensleiste wird als zweite Phase beschriftet, er erhält eine kurze klar erkennbare Verwandlungsphase. Anschließend jagt er schneller, seine Warnfenster und Erholungspausen verkürzen sich, die Salven enthalten drei Geschosse.
+- **Schwer, aber lesbar:** Jeder größere Angriff ist vorab sichtbar, nach den Attacken gibt es kurze Konterfenster. Schwerthiebe, Pfeile, Magie, Dash und gezielte Sprungangriffe funktionieren weiter. Der Boss-Tod beendet das Level automatisch wie bisher.
+- **Neue Bestzeitenwertung v0.9:** Die längeren Level und der härtere Boss bekommen getrennte Bestzeitentabellen (`bestTimesV09` und `bestTimesBossV09`). Alle bisherigen Bestzeiten von v0.4 bis v0.8, RPG-Skills, Ausrüstung, XP und Freischaltungen bleiben erhalten.
+- HD-Hintergründe, iPhone-Multitouch, variable Sprunghöhe und das Pixel-Art-Gameplay bleiben erhalten.
+
+**iPhone-Test:** Auf dem Startbildschirm muss **„LANGE LEVEL · BOSS-PHASE II · 0.9.0“** stehen. Nutze bei Bedarf `?v=0.9.0` gegen den Safari-Cache. Spiele Level 1-4 bis zum weiter nach hinten verlegten Schlosseingang. Im Bossraum besonders die drei roten/orangen Vorwarnungen und die deutlich schnellere zweite Phase prüfen. Keinesfalls Safari-Website-Daten löschen, um Fortschritt zu erhalten.
+
+
 
 ## Neu in v0.8 – mehr Abwechslung im Kampf
 
