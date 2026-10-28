@@ -317,7 +317,7 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
    ctx.fillStyle='#ce9bdf';ctx.fillRect(tx+24,G-24,28,7);
    ctx.fillRect(tx+32,G-34,12,10);
    ctx.fillStyle='#6599b5';ctx.fillRect(tx+32,G-18,8,18);
-  }else if(stage===3&&tx>3250){
+  }else if(stage===3&&tx>3550){
    // Approaching the gate: broken battlements and warm torchlights.
    ctx.fillStyle='#3a3449';ctx.fillRect(tx-16,G-34,40,34);
    ctx.fillStyle='#8b7581';ctx.fillRect(tx-21,G-39,51,8);
