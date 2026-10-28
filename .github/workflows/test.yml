@@ -23,7 +23,7 @@ jobs:
           node-version: '22'
       - run: npm install --ignore-scripts
       - name: Check JavaScript syntax
-        run: node --check game.js && node --check rpg.js && node --check boss.js && node --check enemies.js && node --check castle_art.js && node --check hd_background.js && node --check forest.js && node --check changelog.js
+        run: node --check game.js && node --check rpg.js && node --check boss.js && node --check enemies.js && node --check level_design.js && node --check world_map.js && node --check castle_art.js && node --check hd_background.js && node --check forest.js && node --check changelog.js
       - run: npm test
 
   browsers:

@@ -65,8 +65,8 @@ function drawCastleInterior(){
  }
 }
 function drawCastleApproach(){
- if(stage!==3||cam+W<3070)return;
- ctx.save();ctx.translate(1250,0);
+ if(stage!==3||cam+W<3370)return;
+ ctx.save();ctx.translate(1550,0);
  // First distant towers, then the massive wall with an actual entrance.
  ctx.fillStyle='#222638';
  for(const [x,width,top] of [[1920,135,220],[2150,145,120],[2520,130,68],[2720,135,140]]){

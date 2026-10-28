@@ -81,15 +81,21 @@ function pause(){if(scene!=='game')return;scene='pause';clearInput();updateBossH
 function resume(){if(scene!=='pause')return;clearInput();scene='game';updateBossHud();layer.classList.add('hide');controls.classList.remove('hide');last=performance.now();}
 $('#pause').onclick=pause;$('#resume').onclick=resume;
 function size(){let d=Math.min(devicePixelRatio||1,2),s=Math.min(innerWidth/W,innerHeight/H);canvas.width=innerWidth*d;canvas.height=innerHeight*d;ctx.setTransform(d*s,0,0,d*s,(innerWidth-W*s)*d/2,(innerHeight-H*s)*d/2)}addEventListener('resize',size);size();
-function menu(){clearInput();$('#play').classList.remove('hide');$('#resume').classList.add('hide');scene='menu';updateBossHud();layer.classList.remove('hide');hud.classList.add('hide');controls.classList.add('hide');$('#menu').classList.remove('hide');$('#return').classList.add('hide');$('#heading').textContent='REALM RUNNERS';$('#intro').textContent='Welt 1: Smaragdwald · Vier lange Abenteuerlevel und ein kompakter Bossraum! Kurz tippen = kleiner Sprung, lang halten = hoher Sprung.';$('#play').textContent='Level starten';$('#classes').innerHTML=Object.entries(classes).map(([id,c])=>'<button data-class="'+id+'" class="'+(save.class===id?'active':'')+'">'+({warrior:'[K]',hunter:'[J]',mage:'[M]'}[id])+' '+c.label+'</button>').join('');$('#classes').querySelectorAll('button').forEach(b=>b.onclick=()=>{save.class=b.dataset.class;persist();menu()});$('#levels').innerHTML=stages.map((s,i)=>'<button data-level="'+i+'" '+(i>=save.unlocked?'disabled':'')+' class="'+(i===selected?'active':'')+'">'+(i>=save.unlocked?'🔒 ':'')+s.name+'<br>'+'★'.repeat(save.stars[i]||0)+'</button>').join('');$('#levels').querySelectorAll('button:not(:disabled)').forEach(b=>b.onclick=()=>{selected=Number(b.dataset.level);menu()});if(selected>=save.unlocked)selected=save.unlocked-1;$('#progress').textContent='Level '+save.level+' · '+save.xp+'/'+save.level*100+' XP · ★ '+save.stars.reduce((a,b)=>a+b,0)+'/'+(stages.length*3)+' · 🪙 '+save.gold+' Gold';$('#play').onclick=()=>start(selected);renderRpgMenu()}
+function menu(){
+ clearInput();scene='menu';updateBossHud();
+ layer.classList.remove('hide');hud.classList.add('hide');controls.classList.add('hide');
+ $('#menu').classList.remove('hide');$('#levelResult').classList.add('hide');
+ $('#play').classList.remove('hide');$('#resume').classList.add('hide');
+ renderWorldMenu();
+}
 function land(){let gaps=stages[stage].gaps,ends=[0,...gaps.map(g=>g[1])],begins=[...gaps.map(g=>g[0]),WIDTH];return ends.map((x,i)=>({x,w:begins[i]-x,y:G}))}
 function solids(){return [...land(),...stages[stage].ledges.map(a=>({x:a[0],y:a[1],w:a[2]}))]}
 function floorY(x){let p=solids().filter(s=>x>=s.x+10&&x<=s.x+s.w-10).sort((a,b)=>b.y-a.y);return p.length?p[0].y:G}
 function start(i,hearts=3){
  if(!Number.isInteger(i)||i<0||i>=stages.length)return;
  clearInput();resetRpgRun();particles=[];
- $('#play').classList.remove('hide');$('#resume').classList.add('hide');
- stage=i;WIDTH=stages[i].width;scene='game';cam=0;dashCooldown=0;jumpWas=false;invincible=0;t=0;
+ $('#play').classList.remove('hide');$('#resume').classList.add('hide');$('#levelResult').classList.add('hide');
+ stage=i;WIDTH=stages[i].width;scene='game';cam=0;dashCooldown=0;jumpWas=false;invincible=0;t=0;exitActive=false;exitFrames=0;exitVisual=0;
  const spawnX=stages[i].spawnX??50,spawnY=G-43;
  hero={x:spawnX,y:spawnY,w:30,h:43,vx:0,vy:0,on:true,face:1,
   hearts,stars:0,coins:0,earned:0,dash:0,usedDash:false,coyote:JUMP.coyote,
@@ -148,13 +154,49 @@ function renderGameHud(){
  const left=$('#hudLeft');
  left.innerHTML='<span class="heart-row" aria-label="'+hero.hearts+' von 3 Herzen">'+hearts+'</span>'+
   '<span class="coin-counter" aria-label="'+hero.coins+' Münzen gesammelt">'+PIXEL_COIN+'<strong>'+hero.coins+'</strong></span>'+
-  (stages[stage].boss?'':'<span class="star-counter" aria-label="'+hero.stars+' von 3 Sternen">★ '+hero.stars+'/3</span>');
+  (stages[stage].boss?'':'<span class="star-counter" aria-label="'+hero.stars+' von 3 Sternen">'+PIXEL_STAR+'<strong>'+hero.stars+'/3</strong></span>');
  left.setAttribute('aria-label',hero.hearts+' von 3 Herzen · '+hero.coins+' Münzen · '+hero.stars+' Sterne · insgesamt '+save.gold+' Gold');
 }
-function end(win){if(scene!=='game')return;scene='end';clearInput();updateBossHud();$('#play').classList.remove('hide');let finishedMs=0;if(win){finishedMs=recordTime();xp(70+hero.earned);save.stars[stage]=Math.max(save.stars[stage],hero.stars);save.unlocked=Math.max(save.unlocked,Math.min(stages.length,stage+2));if(stages[stage].boss)save.slimeKingWins=(Number(save.slimeKingWins)||0)+1;persist()}layer.classList.remove('hide');hud.classList.add('hide');controls.classList.add('hide');$('#menu').classList.add('hide');$('#return').classList.remove('hide');$('#return').onclick=menu;$('#heading').textContent=win?'LEVEL GESCHAFFT!':'Versuch es erneut';$('#intro').textContent=win?(stages[stage].boss?'Der Schleimkönig ist besiegt! · Zeit: '+formatRunTime(finishedMs)+' · '+(hero.earned+70)+' XP erhalten.':'Zeit: '+formatRunTime(finishedMs)+' '+medal(finishedMs)+' · Du hast '+hero.stars+'/3 Sterne gesammelt und '+(hero.earned+70)+' XP erhalten. · '+hero.coins+' Münzen gesammelt.'):'Alle Herzen verloren! Du kannst das Level von Anfang an erneut spielen. Taste R startet neu.';$('#play').textContent=win&&stage<stages.length-1?'Nächstes Level':'Erneut spielen';$('#play').onclick=()=>start(win&&stage<stages.length-1?stage+1:stage)}
+function end(win){
+ if(scene!=='game')return;
+ exitActive=false;scene='end';clearInput();updateBossHud();
+ $('#play').classList.remove('hide');
+ let finishedMs=0;
+ if(win){
+  finishedMs=recordTime();
+  xp(70+hero.earned);
+  save.stars[stage]=Math.max(save.stars[stage],hero.stars);
+  save.unlocked=Math.max(save.unlocked,Math.min(stages.length,stage+2));
+  if(stages[stage].boss)save.slimeKingWins=(Number(save.slimeKingWins)||0)+1;
+  persist();
+ }
+ layer.classList.remove('hide');hud.classList.add('hide');controls.classList.add('hide');
+ $('#menu').classList.add('hide');
+ $('#return').classList.remove('hide');
+ $('#return').textContent='← Zur Weltkarte';
+ $('#return').onclick=()=>{menuView='levels';menu();};
+ $('#heading').textContent=win?'LEVEL GESCHAFFT!':'VERSUCH BEENDET';
+ $('#intro').textContent=win?(stages[stage].boss?
+  'Der Schleimkönig ist besiegt. Das Schloss ist befreit!':
+  stages[stage].exitName+' · Der Weg ist geschafft.'):
+  'Alle Herzen verloren. Versuche den Abschnitt erneut – dein dauerhaftes Gold bleibt erhalten.';
+ const results=$('#levelResult');
+ results.classList.toggle('hide',!win);
+ if(win){
+  const icon=stages[stage].boss?'♛':PIXEL_STAR;
+  results.innerHTML='<div class="result-chapter">ABSCHNITT '+(stage+1)+' VON 5 · WELT 1</div>'+
+   '<div class="result-stats"><div><span>ZEIT</span><strong>'+formatRunTime(finishedMs)+'</strong></div>'+
+   '<div><span>STERNE</span><strong class="result-stars">'+icon+' '+hero.stars+'/3</strong></div>'+
+   '<div><span>MÜNZEN</span><strong>'+hero.coins+'</strong></div></div>'+
+   '<div class="result-reward"><span>'+medal(finishedMs,stage)+'</span><span>+'+(hero.earned+70)+' XP</span></div>';
+ }
+ $('#play').textContent=win&&stage<stages.length-1?'▶ Nächster Abschnitt':'↻ Erneut spielen';
+ $('#play').onclick=()=>start(win&&stage<stages.length-1?stage+1:stage);
+}
 function step(dt){
  if(scene!=='game')return;
  t+=dt;
+ if(exitActive){tickLevelExit(dt);return;}
  // Freeze player movement and all hazards during the short boss-victory sequence.
  if(stages[stage].boss&&boss&&!boss.alive){bossTick(dt,hero?.y??0);return;}
  const h=hero,cl=classes[save.class],movement=(input.right?1:0)-(input.left?1:0);
@@ -209,7 +251,7 @@ function step(dt){
  if(scene!=='game')return;
  for(const spike of spikes)if(h.x+h.w>spike.x+3&&h.x<spike.x+spike.w-3&&h.y+h.h>spike.y+8&&h.y<spike.y+spike.h){if(die(spike.x+spike.w/2))return;}
  if(h.y>H+110){if(die(undefined,true))return;}
- if(h.x>WIDTH-85&&!stages[stage].boss)end(true);
+ if(tryEnterLevelExit())return;
  invincible=Math.max(0,invincible-dt);h.hitFlash=Math.max(0,h.hitFlash-dt);
  dashCooldown=Math.max(0,dashCooldown-dt);
  cam=Math.max(0,Math.min(WIDTH-W,h.x-350));

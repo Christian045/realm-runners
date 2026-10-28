@@ -7,7 +7,16 @@ const fs=require('node:fs');
  page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:8000');
  await page.evaluate(()=>localStorage.setItem('realm-runners-save-v2',JSON.stringify({class:'hunter',unlocked:3,stars:[3,2,1],xp:87,level:4})));
- await page.reload();await page.locator('#play').click();
+ await page.reload();
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.10\.0/);
+ assert.ok(await page.locator('[data-world="0"]').isVisible(),'World 1 is visible');
+ assert.equal(await page.locator('.world-card').count(),3);
+ await page.screenshot({path:`test-output/${name}-worlds-overview.png`});
+ await page.locator('[data-world="0"]').click();
+ assert.equal(await page.locator('.level-card').count(),5,'five stage cards');
+ assert.equal(await page.locator('.level-card:disabled').count(),2,'locked stages remain locked');
+ await page.screenshot({path:`test-output/${name}-world-one-stage-map.png`});
+ await page.locator('#play').click();
  try {
   await page.waitForFunction(()=>scene==='game'&&hero?.on,{},{timeout:10000});
  } catch (error) {
@@ -70,7 +79,7 @@ const fs=require('node:fs');
  assert.equal(pixelArt.backdropSkyAlpha,255,'HD sky should be visible under gameplay');
  await page.evaluate(()=>menu());
  assert.ok(await page.locator('#pixelEditionBadge').isVisible());
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.9\.1/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.10\.0/);
  // Store each biome in the CI artifacts so pixel-style changes are reviewable.
  for(const [level,label] of [[0,'forest'],[1,'canopy'],[2,'ruins'],[3,'swamp'],[4,'slime-king']]){
   await page.evaluate(index=>{start(index);if(index===4){hero.x=2220;step(1);cam=1840;}draw();},level);
@@ -85,71 +94,72 @@ const fs=require('node:fs');
    await page.screenshot({path:`test-output/${name}-HD-${label}.png`});
   }
  }
- // New v0.8 species all render visibly and use independent attack warnings.
+ // Only slimes and mushrooms can now spawn; reroll their encounter slots
+ // and check that either projectile/weapon class still works on both engines.
  await page.evaluate(()=>{
   start(0);
-  if(bad.length!==9||JSON.stringify(bad.slice(0,4).map(e=>e.type))!==JSON.stringify(['slime','bat','mushroom','goblin']))
-   throw Error('Missing v0.8 enemy roster');
-  hero.x=bad[1].x-75;hero.y=G-43;bad[1].attackCooldown=0;
-  enemyTick(1);
-  if(bad[1].phase!=='windup')throw Error('Bat warning not active');
-  cam=590;draw();
- });
- await page.screenshot({path:`test-output/${name}-bat-warning.png`});
- await page.evaluate(()=>{
-  start(0);hero.x=bad[2].x-85;hero.y=G-43;
-  bad[2].attackCooldown=0;enemyTick(1);
-  if(bad[2].phase!=='windup')throw Error('Mushroom warning not active');
+  const types=bad.map(e=>e.type);
+  if(!types.includes('slime')||!types.includes('mushroom')||types.some(t=>!['slime','mushroom'].includes(t)))
+   throw Error('Wrong v0.10 enemy pool');
+  const old=types.join(',');
+  start(0);
+  if(bad.map(e=>e.type).join(',')===old)throw Error('Encounter reroll did not change');
+  const mushroom=bad.find(e=>e.type==='mushroom');
+  hero.x=mushroom.x-85;hero.y=G-43;mushroom.attackCooldown=0;enemyTick(1);
+  if(mushroom.phase!=='windup')throw Error('Mushroom warning not active');
   for(let i=0;i<34;i++)enemyTick(1);
-  if(enemyShots.length!==1)throw Error('Mushroom did not shoot spore');
-  cam=1250;draw();
+  if(enemyShots.length!==1)throw Error('Mushroom spore not launched');
+  cam=mushroom.x-320;draw();
  });
  await page.screenshot({path:`test-output/${name}-mushroom-spore.png`});
  await page.evaluate(()=>{
-  start(0);hero.x=bad[3].x-85;hero.y=G-43;
-  bad[3].attackCooldown=0;enemyTick(1);
-  for(let i=0;i<30;i++)enemyTick(1);
-  if(bad[3].phase!=='charge')throw Error('Goblin did not charge after warning');
-  cam=1970;draw();
- });
- await page.screenshot({path:`test-output/${name}-goblin-charge.png`});
- // Warrior melee, Hunter arrows and Mage magic keep working on the iPhone viewport.
- await page.evaluate(()=>{
-  save.class='warrior';start(0);
-  hero.x=bad[3].x-50;hero.y=G-43;hero.face=1;performAttack();
-  if(!(bad[3].hp<bad[3].maxHp))throw Error('Warrior melee missed');
+  save.class='warrior';start(0);const e=bad[0];
+  hero.x=e.x-48;hero.y=G-43;hero.face=1;performAttack();
+  if(!(e.hp<e.maxHp))throw Error('Warrior sword missed randomized target');
   if(!combatTexts.length)throw Error('Damage numbers missing');
-  cam=1980;draw();
+  cam=120;draw();
  });
  await page.screenshot({path:`test-output/${name}-combat-hit-feedback.png`});
  const ranged=await page.evaluate(()=>{
-  const hp=[];
+  const outcomes=[];
   for(const kind of ['hunter','mage']){
-   save.class=kind;start(0);
-   hero.x=bad[1].x-95;hero.y=bad[1].y-9;hero.face=1;
-   performAttack();for(let i=0;i<15;i++)combatTick(1);
-   hp.push(bad[1].hp);
+   save.class=kind;start(0);const e=bad[0];
+   hero.x=e.x-95;hero.y=G-43;hero.face=1;
+   performAttack();for(let i=0;i<20;i++)combatTick(1);
+   outcomes.push(e.hp<e.maxHp);
   }
-  return hp;
+  return outcomes;
  });
- assert.ok(ranged.every(hp=>hp<2),name+' airborne enemy target: '+ranged);
+ assert.ok(ranged.every(Boolean),name+' ranged attacks work on randomized enemies');
  await page.evaluate(()=>{
   save.class='hunter';start(0);bad=[];input.attack=true;
   for(let i=0;i<50;i++)combatTick(1);
   if(projectiles.length<3)throw Error('Held touch attack must auto-repeat');
   input.attack=false;
  });
-  // Longer worlds: verify old end is not the exit and late scenery is visible.
+ // Longer worlds: verify old end is not the exit and late scenery is visible.
  await page.evaluate(()=>{
   start(0);hero.x=2760;hero.y=G-43;step(1);
-  if(scene!=='game'||WIDTH!==4200)throw Error('Extended level ends too soon');
-  cam=WIDTH-W;hero.x=3910;bad=[];draw();
+  if(scene!=='game'||WIDTH!==4100)throw Error('Sonnenpfad ends too soon');
+  cam=WIDTH-W;hero.x=3850;bad=[];draw();
  });
  await page.screenshot({path:`test-output/${name}-long-level-ending.png`});
  await page.evaluate(()=>{
-  start(3);hero.x=3880;hero.y=G-43;cam=WIDTH-W;draw();
+  start(3);hero.x=4220;hero.y=G-43;cam=WIDTH-W;draw();
  });
  await page.screenshot({path:`test-output/${name}-new-castle-gate.png`});
+ // Show the physical exit and visible non-instant transition.
+ await page.evaluate(()=>{
+  start(0);hero.x=WIDTH-55;hero.y=G-43;step(1);
+  if(scene!=='game'||exitActive)throw Error('No invisible right-edge completion permitted');
+  hero.x=stages[0].exitX-30;hero.y=G-43;hero.on=true;hero.vy=0;step(1);
+  if(!exitActive||scene!=='game')throw Error('Gate did not begin an exit transition');
+  for(let i=0;i<39;i++)step(1);
+  cam=WIDTH-W;draw();
+ });
+ await page.screenshot({path:`test-output/${name}-animated-forest-exit.png`});
+ await page.evaluate(()=>{for(let i=0;i<35;i++)step(1)});
+ assert.equal(await page.evaluate(()=>scene),'end','gate animation finishes then wins');
  await page.evaluate(()=>{
   start(4);
   if(WIDTH!==2800||stages[4].ledges.length!==0||bad.length!==0)
@@ -297,7 +307,7 @@ const fs=require('node:fs');
  await page.evaluate(()=>testTouch('touchstart',[[43,'right']]));
  await page.locator('#pause').click();assert.equal(await page.evaluate(()=>scene),'pause');assert.equal(await page.evaluate(()=>input.right),false);await page.locator('#resume').click();
  const beforeLevel1=await page.evaluate(()=>({xp:save.xp,level:save.level}));
- await page.evaluate(()=>{hero.x=WIDTH-34;hero.stars=2;hero.earned=25;step(1)});assert.equal(await page.evaluate(()=>scene),'end');
+ await page.evaluate(()=>{hero.x=stages[stage].exitX-30;hero.y=G-43;hero.on=true;hero.stars=2;hero.earned=25;step(1);for(let i=0;i<74;i++)step(1)});assert.equal(await page.evaluate(()=>scene),'end');
  await page.reload();
  const expectedProgress={...beforeLevel1};
  expectedProgress.xp+=95;
@@ -308,7 +318,7 @@ const fs=require('node:fs');
   'boss and regular level XP must survive reload, including level ups');
  assert.equal(await page.evaluate(()=>save.stars[0]),3);
  assert.ok(await page.evaluate(()=>save.gold>=1),'collected gold survives reload');
- await page.locator('#play').click();await page.screenshot({path:`test-output/${name}-landscape.png`});
+ await page.locator('[data-world="0"]').click();await page.locator('#play').click();await page.screenshot({path:`test-output/${name}-landscape.png`});
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:`test-output/${name}-portrait.png`});
  for(const b of await page.locator('[data-control]').all()){const box=await b.boundingBox();assert.ok(box&&box.x>=0&&box.y>=0&&box.x+box.width<=390&&box.y+box.height<=844);}
  assert.deepEqual(errors,[]);console.log(`PASS ${name}: startup, movement, jump, concurrent pointers, pause, save, responsive controls, no JS errors`);

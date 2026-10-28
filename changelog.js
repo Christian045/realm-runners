@@ -1,6 +1,16 @@
 'use strict';
 // In-game, locally bundled release notes. No network requests or user data.
 const RELEASE_NOTES=[
+ {v:'0.10.0',title:'Vier einzigartige Level, Weltkarte und neue Ausgänge',items:[
+  'Startmenü neu geordnet: zuerst Welt 1 auswählen, dann eine Karte mit fünf Abschnitten.',
+  'Für jedes Level siehst du die Sterne, Freischaltung und Bestzeit deiner aktuellen Klasse direkt auf der Karte.',
+  'Sonnenpfad, Baumkronen, Versunkene Ruinen und Königstraße haben jetzt eigene Routen, Hindernisse und Kulissen.',
+  'Keine unsichtbare Zielgrenze oder Standardflagge mehr: thematische Portale und eine sanfte Eintrittsanimation.',
+  'Sterne erscheinen als gut sichtbare, goldene Pixel-Icons – im Level und im HUD.',
+  'Goblins und Fledermäuse pausieren. An den Gegnerpositionen erscheinen bei jedem Versuch zufällig Schleime oder Pilzmonster.',
+  'Für die völlig neuen Levelkarten starten eigene v0.10-Bestzeiten; ältere Rekorde bleiben erhalten.'
+ ]},
+
  {v:'0.9.1',title:'Herzen, Münzen und Level-Feinschliff',items:[
   'Neuer Changelog-Button unten links mit allen bisherigen großen Updates.',
   'Drei große Pixel-Herzen zeigen den Gesundheitszustand direkt an.',

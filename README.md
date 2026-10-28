@@ -1,6 +1,23 @@
-# Realm Runners v0.9.1 – Herzen, Münzen und Changelog
+# Realm Runners v0.10 – Weltkarte und vier verschiedene Abenteuerlevel
 
 **Spielen: https://christian045.github.io/realm-runners/**
+
+## Neu in v0.10 – eine Welt, vier eigenständige Abenteuer
+
+- **Weltkarte:** Zuerst „Welt 1 · Smaragdwald“ auswählen, danach auf einer eigenen Ebene die fünf Levelkarten ansehen und den freigeschalteten Abschnitt starten. Weitere Welten sind als gesperrte Vorschauen gekennzeichnet.
+- **Bestzeiten auf der Karte:** Jede Karte zeigt die Anzahl gesammelter Sterne, den Freischaltstatus, den Schwierigkeitsgrad und die persönliche Bestzeit der ausgewählten Klasse; die Spielstände anderer Klassen bleiben erhalten.
+- **Sonnenpfad (4.100 Einheiten):** Helle Lichtungen, breite Wege, leichte Baumstamm-Sprünge.
+- **Baumkronen (4.300):** Hohe Ranken, gestaffelte Äste und sechs anspruchsvollere Abgründe.
+- **Versunkene Ruinen (4.400):** Alte Steinbögen, enge Passagen, zerfallenes Mauerwerk und Dornengruppen.
+- **Königstraße (4.500):** Wehranlagen, Höhenwege und der schlüssige Weg durch das Schlosstor.
+- **Saubere Levelabschlüsse:** Kein Zielflaggen-Auslösen oder unsichtbarer rechter Rand mehr. Jedes Abenteuer endet an einem thematisch passenden, sichtbar leuchtenden Tor mit eigener Eintrittsanimation.
+- **Pixel-Sterne:** Goldene Sterne mit dunkler Kontur und Highlights im Level und als eigenes Symbol neben dem Sternenzähler oben links, passend zu Herz- und Münz-Icons.
+- **Zufällige Gegner:** Nur Schleime und Pilzmonster erscheinen an festgelegten Stellen in neuer Mischung pro Versuch, beide Arten garantiert. Goblins und Fledermäuse sind für eine spätere Welt zurückgestellt.
+- **Neue Bestzeiten:** Die geänderten vier Abenteuerlevel bekommen `bestTimesV10`. Ältere Zeiten und die Bestzeiten des unveränderten Bosskampfes bleiben erhalten.
+- Beibehalten: 3 Herzen mit Treffer-Immunität, permanente Münzen, starre Plattformen, Bosskampf mit Phase II, HD-Kulissen, Klassen-RPG und iPhone-Multitouch.
+
+**Safari-Tipp:** `?v=0.10.0` an die Spiel-URL anhängen; keine Website-Daten löschen. Im Menü erscheint „WELTKARTE & NEUE LEVEL · 0.10.0“.
+
 
 ## Neu in v0.9.1 – Herzen und Münzen statt Level-Neustart
 
