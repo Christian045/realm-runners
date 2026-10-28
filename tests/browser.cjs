@@ -332,7 +332,14 @@ const fs=require('node:fs');
  await page.evaluate(()=>testTouch('touchstart',[[43,'right']]));
  await page.locator('#pause').click();assert.equal(await page.evaluate(()=>scene),'pause');assert.equal(await page.evaluate(()=>input.right),false);await page.locator('#resume').click();
  const beforeLevel1=await page.evaluate(()=>({xp:save.xp,level:save.level}));
- await page.evaluate(()=>{hero.x=stages[stage].exitX-30;hero.y=G-43;hero.on=true;hero.stars=2;hero.earned=25;step(1);for(let i=0;i<74;i++)step(1)});assert.equal(await page.evaluate(()=>scene),'end');
+ await page.evaluate(()=>{
+  clearInput();hero.x=stages[stage].exitX-30;hero.y=G-43;
+  hero.on=true;hero.vy=0;hero.vx=0;hero.stars=2;hero.earned=25;
+  step(1);
+  if(!exitActive)throw Error('Grounded level exit did not activate');
+  for(let i=0;i<74;i++)step(1);
+ });
+ assert.equal(await page.evaluate(()=>scene),'end','entering a gate must complete the level even after touch/pause/resume');
  await page.reload();
  const expectedProgress={...beforeLevel1};
  expectedProgress.xp+=95;
