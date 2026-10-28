@@ -4,7 +4,7 @@ const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path'),asse
 const {createCanvas}=require('@napi-rs/canvas');
 const root=path.resolve(__dirname,'..');
 function harness(initial){const elements=new Map(),listeners={},storage=new Map(initial?[['realm-runners-save-v2',JSON.stringify(initial)]]:[]);let raf;
- class El {constructor(){this.dataset={};this.listeners={};this.style={};this.attrs={};this.classList={add(){},remove(){},toggle(){}};}setAttribute(k,v){this.attrs[k]=String(v);}addEventListener(k,f){(this.listeners[k]??=[]).push(f)}setPointerCapture(){}querySelectorAll(){return [];}dispatch(type,data){for(const f of this.listeners[type]||[])f({preventDefault(){},...data});}}
+ class El {constructor(){this.dataset={};this.listeners={};this.style={};this.attrs={};this.classes=new Set();this.classList={add:k=>this.classes.add(k),remove:k=>this.classes.delete(k),toggle:(k,flag)=>flag===undefined?(this.classes.has(k)?this.classes.delete(k):this.classes.add(k)):(flag?this.classes.add(k):this.classes.delete(k)),contains:k=>this.classes.has(k)};}setAttribute(k,v){this.attrs[k]=String(v);}addEventListener(k,f){(this.listeners[k]??=[]).push(f)}setPointerCapture(){}focus(){}querySelectorAll(){return [];}dispatch(type,data){for(const f of this.listeners[type]||[])f({preventDefault(){},...data});}}
  const canvas=createCanvas(960,540);elements.set('#view',canvas);const buttons=['left','right','jump','dash','attack'].map(k=>{let el=new El();el.dataset.control=k;return el});
  const sandbox={console,Math,JSON,Number,Map,Set,Object,Array,devicePixelRatio:1,innerWidth:960,innerHeight:540,performance:{now:()=>1000},matchMedia:()=>({matches:false}),localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},addEventListener:(k,f)=>(listeners[k]??=[]).push(f),requestAnimationFrame:f=>raf=f,document:{hidden:false,querySelector:s=>{if(!elements.has(s))elements.set(s,new El());return elements.get(s)},querySelectorAll:()=>buttons,addEventListener:(k,f)=>(listeners[k]??=[]).push(f),createElement:tag=>tag==='canvas'?createCanvas(1,1):new El()}};
  vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(root,'game.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'rpg.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'boss.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'enemies.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'castle_art.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'hd_background.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'forest.js'),'utf8'),sandbox);vm.runInContext(fs.readFileSync(path.join(root,'changelog.js'),'utf8'),sandbox);
@@ -560,4 +560,74 @@ test('v0.9 old records and player progression remain intact',()=>{
  assert.ok(h.run("save.bestTimesBossV09['1-5'].hunter")>0);
  assert.equal(h.run("save.bestTimesBossV062['1-5'].hunter"),48000);
  assert.equal(h.run('save.saveVersion'),5);
+});
+
+test('v0.9.1 heart HUD uses three clear pixel icons and updates immediately',()=>{
+ h.run('start(0)');
+ assert.ok(h.run("document.querySelector('#hudLeft').innerHTML").includes('heart-row'));
+ assert.equal((h.run("document.querySelector('#hudLeft').innerHTML").match(/class="hud-heart/g)||[]).length,3);
+ h.run('die()');
+ assert.equal(h.run('hero.hearts'),2);
+ assert.equal((h.run("document.querySelector('#hudLeft').innerHTML").match(/hud-heart empty/g)||[]).length,1);
+ assert.equal(h.run("document.querySelector('#hudLeft').attrs['aria-label']").includes('2 von 3 Herzen'),true);
+ assert.equal(h.run('scene'),'game');
+ assert.equal(h.run('invincible'),DAMAGE_INVULNERABLE_FRAMES);
+});
+test('v0.9.1 blinking grants consistent grace period and no reset of enemy progress',()=>{
+ h.run("start(0);for(let i=0;i<25;i++)step(1);bad[0].hp=1;things[0].taken=true;hero.x=500;die(480)");
+ const after=h.run('hero.x'),timer=h.run('currentTime()');
+ assert.equal(h.run('hero.hearts'),2);
+ assert.equal(h.run('die()'),false);
+ assert.equal(h.run('hero.hearts'),2,'repeated damage must not drain hearts immediately');
+ assert.equal(h.run('bad[0].hp'),1,'injured enemies remain injured');
+ assert.equal(h.run('things[0].taken'),true,'coins are not reset');
+ assert.equal(h.run('currentTime()'),timer,'damage does not alter the run timer');
+ assert.ok(Math.abs(after-500)<=28);
+ h.run('invincible=0;die()');
+ assert.equal(h.run('hero.hearts'),1);
+ assert.equal(h.run('scene'),'game');
+ h.run('invincible=0;die()');
+ assert.equal(h.run('scene'),'end','only the third heart loss ends the level');
+});
+test('v0.9.1 falling during blink immunity preserves hearts and rescues to stable ledge',()=>{
+ h.run("start(0);hero.safeX=240;hero.safeY=G-43;hero.x=590;hero.y=720;invincible=50");
+ const hearts=h.run('hero.hearts');
+ h.run('step(1)');
+ assert.equal(h.run('hero.hearts'),hearts);
+ assert.equal(h.run('hero.x'),240);
+ assert.equal(h.run('hero.y'),G-53);
+ assert.equal(h.run('scene'),'game');
+});
+test('v0.9.1 coin collection adds true gold, uses one-time pickups and survives reload',()=>{
+ h.run("start(0);hero.x=65;hero.y=G-43;things=[{x:hero.x+15,y:hero.y+20,type:'coin',taken:false}]");
+ const gold=h.run('save.gold');
+ h.run('step(1)');
+ assert.equal(h.run('hero.coins'),1);
+ assert.equal(h.run('hero.earned'),5);
+ assert.equal(h.run('save.gold'),gold+1);
+ assert.ok(h.run("document.querySelector('#hudLeft').innerHTML").includes('coin-counter'));
+ h.run('for(let i=0;i<20;i++)step(1)');
+ assert.equal(h.run('save.gold'),gold+1,'coin cannot be picked up twice');
+ assert.equal(JSON.parse(h.storage.get('realm-runners-save-v2')).gold,gold+1);
+ const loaded=harness(JSON.parse(h.storage.get('realm-runners-save-v2')));
+ assert.equal(loaded.run('save.gold'),gold+1);
+});
+test('v0.9.1 slight extra hazards remain outside every ground gap',()=>{
+ const geom=h.run('stages.map(s=>({width:s.width,gaps:s.gaps,spikes:s.spikes,moving:s.moving,crumbling:s.crumbling}))');
+ for(let i=0;i<4;i++){
+  assert.equal(geom[i].spikes.length,8);
+  assert.ok(geom[i].spikes.every(x=>geom[i].gaps.every(([a,b])=>x+44<a||x>b)));
+  assert.equal(geom[i].moving,undefined);
+  assert.equal(geom[i].crumbling,undefined);
+ }
+});
+test('v0.9.1 changelog lists all major versions and pauses/resumes safely',()=>{
+ const all=h.run('RELEASE_NOTES.map(note=>note.v)');
+ assert.deepEqual([...all],['0.9.1','0.9.0','0.8.0','0.7.0','0.6.2','0.6.1','0.6.0','0.5.0','0.4.0','0.1–0.3']);
+ assert.ok(h.run("document.querySelector('#changelogEntries').innerHTML").includes('Phase II'));
+ h.run("start(0);document.querySelector('#changelogBtn').dispatch('click',{})");
+ assert.equal(h.run('scene'),'pause');
+ assert.equal(h.run("document.querySelector('#changelogOverlay').attrs['aria-hidden']"),undefined);
+ h.run("document.querySelector('#changelogClose').dispatch('click',{})");
+ assert.equal(h.run('scene'),'game');
 });
