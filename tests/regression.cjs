@@ -689,6 +689,24 @@ test('v0.11 stages extend ~80 percent with ground-first Mario/Sonic-style routin
   assert.equal(c.coins.length,[15,16,15,16][i],'coins remain relatively sparse');
  }
 });
+test('v0.11 every mandatory ground gap is jumpable without Dash in all three classes',()=>{
+ const gaps=h.run('stages.slice(0,4).map(s=>s.gaps)');
+ for(const kind of ['warrior','hunter','mage'])for(let level=0;level<4;level++){
+  for(const [from,to] of gaps[level]){
+   h.run(`save.class='${kind}';start(${level});bad=[];spikes=[];things=[];
+    hero.x=${from-23};hero.y=G-hero.h;hero.vy=0;hero.on=true;
+    input.right=true;input.jump=true;
+    for(let frame=0;frame<90;frame++){if(frame===31)input.jump=false;step(1);}
+    input.right=false;input.jump=false;`);
+   const state=h.run('({x:hero.x,y:hero.y,on:hero.on,hearts:hero.hearts,scene})');
+   assert.equal(state.scene,'game',kind+' stage '+level+' gap '+from+'..'+to);
+   assert.equal(state.hearts,3,kind+' fell into the gap at '+from+'..'+to);
+   assert.ok(state.x>to+28,kind+' did not cross gap '+from+'..'+to);
+   assert.ok(state.on&&Math.abs(state.y-(465-43))<3,
+    kind+' did not safely land beyond '+from+'..'+to+' at '+JSON.stringify(state));
+  }
+ }
+});
 test('v0.11 the boss occupies the entire visible viewport, not a hidden sub-arena',()=>{
  h.run('start(4)');
  assert.equal(h.run('WIDTH'),h.run('W'));
