@@ -49,7 +49,7 @@ function renderWorldMenu(){
   return '<button data-level="'+i+'" class="level-card'+(active?' active':'')+(locked?' locked':'')+'"'+(locked?' disabled':'')+
    ' aria-label="Level '+id+', '+stageInfo.name+', '+(locked?'gesperrt':'freigeschaltet')+'">'+
    '<span class="level-card-head"><span>'+id+'</span><span>'+(locked?'🔒':stageInfo.difficulty||'★★★')+'</span></span>'+
-   '<strong>'+stageInfo.short||''+'</strong>'+
+   '<strong>'+(stageInfo.short||'Schleimkönig')+'</strong>'+
    '<span class="level-card-sub">'+desc+'</span>'+
    '<span class="level-card-meta"><span>★ '+stars+'/3</span><span>⏱ '+(best?formatRunTime(best):'--:--')+'</span></span>'+
    '<span class="level-card-medal">'+(locked?'NOCH GESPERRT':best?'BESTZEIT · '+medals:'NOCH KEINE ZEIT')+'</span>'+
