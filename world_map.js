@@ -32,7 +32,7 @@ function renderWorldMenu(){
  $('#classes').querySelectorAll('button').forEach(b=>b.onclick=()=>{save.class=b.dataset.class;persist();menu();});
  const worldCard='<button data-world="0" class="world-card world-open">'+
   '<span class="world-number">WELT 1 · VERFÜGBAR</span><strong>🌲 '+WORLD_INFO.name+'</strong>'+
-  '<span>'+WORLD_INFO.subtitle+'</span><span>★ '+worldTotalStars()+'/'+(stages.length*3)+
+  '<span>'+WORLD_INFO.subtitle+'</span><span class="world-star-meter">'+PIXEL_STAR+' '+worldTotalStars()+'/'+(stages.length*3)+
   ' · '+save.unlocked+'/'+stages.length+' Level freigeschaltet</span>'+
   '<span class="world-enter">Welt öffnen →</span></button>';
  const upcoming=WORLD_UPCOMING.map(w=>'<div class="world-card world-locked" aria-disabled="true">'+
@@ -51,7 +51,7 @@ function renderWorldMenu(){
    '<span class="level-card-head"><span>'+id+'</span><span>'+(locked?'🔒':stageInfo.difficulty||'★★★')+'</span></span>'+
    '<strong>'+(stageInfo.short||'Schleimkönig')+'</strong>'+
    '<span class="level-card-sub">'+desc+'</span>'+
-   '<span class="level-card-meta"><span>★ '+stars+'/3</span><span>⏱ '+(best?formatRunTime(best):'--:--')+'</span></span>'+
+   '<span class="level-card-meta"><span class="level-star-meter">'+PIXEL_STAR+' '+stars+'/3</span><span>⏱ '+(best?formatRunTime(best):'--:--')+'</span></span>'+
    '<span class="level-card-medal">'+(locked?'NOCH GESPERRT':best?'BESTZEIT · '+medals:'NOCH KEINE ZEIT')+'</span>'+
   '</button>';
  }).join('');
