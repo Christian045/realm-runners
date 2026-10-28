@@ -1,0 +1,32 @@
+export const CLASSES = Object.freeze({
+  warrior: { name: 'Krieger', subtitle: 'Nahkampf · widerstandsfähig', hp: 145, speed: 210, damage: 24, cooldown: .32, range: 76, color: '#83c8ff', ability: 'Wirbelsturm' },
+  hunter: { name: 'Jäger', subtitle: 'Fernkampf · schnell', hp: 105, speed: 245, damage: 15, cooldown: .24, range: 510, color: '#a8e18f', ability: 'Pfeilhagel' },
+  mage: { name: 'Magier', subtitle: 'Magie · Flächenschaden', hp: 90, speed: 225, damage: 22, cooldown: .48, range: 490, color: '#c4a1ff', ability: 'Arkanschlag' }
+});
+export const UPGRADES = Object.freeze([
+  { id:'power', name:'Geschärfte Klinge', description:'+20% Angriffsschaden', rarity:'common' },
+  { id:'fury', name:'Rasender Angriff', description:'+15% Angriffsgeschwindigkeit', rarity:'common' },
+  { id:'stride', name:'Windschritt', description:'+12% Bewegungstempo', rarity:'common' },
+  { id:'heart', name:'Lebenskraft', description:'+30 maximale LP, heilt 35 LP', rarity:'common' },
+  { id:'guard', name:'Eisernes Herz', description:'10% weniger eingehender Schaden', rarity:'rare' },
+  { id:'reach', name:'Langer Arm', description:'+20% Angriffsreichweite', rarity:'common' },
+  { id:'leech', name:'Vampirzahn', description:'6% verursachten Schaden als Heilung', rarity:'rare' },
+  { id:'crit', name:'Jägerglück', description:'+12% Krit-Chance', rarity:'rare' },
+  { id:'bolt', name:'Blitzsplitter', description:'Jeder vierte Treffer verursacht zusätzlichen Schaden', rarity:'rare' }
+]);
+export const ENEMY_DATA = Object.freeze({
+  slime: { hp:46, speed:86, damage:10, radius:17, color:'#8cd78d', reward:8 },
+  mushroom: { hp:69, speed:58, damage:14, radius:19, color:'#ffac8c', reward:12 },
+  archer: { hp:52, speed:94, damage:12, radius:16, color:'#e0b6ff', reward:14 },
+  goblin: { hp:84, speed:112, damage:15, radius:18, color:'#e9d180', reward:17 },
+  boss: { hp:730, speed:93, damage:23, radius:38, color:'#f97e99', reward:140 }
+});
+export const TILE = 48;
+export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+export function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+export function normalized(x,y){const length=Math.hypot(x,y)||1;return {x:x/length,y:y/length}}
+export function chooseUpgrades(random, count=3){
+  const pool=[...UPGRADES];
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(random()* (i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+  return pool.slice(0,count);
+}
