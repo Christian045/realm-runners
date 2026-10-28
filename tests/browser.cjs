@@ -8,7 +8,7 @@ const fs=require('node:fs');
  await page.goto('http://127.0.0.1:8000');
  await page.evaluate(()=>localStorage.setItem('realm-runners-save-v2',JSON.stringify({class:'hunter',unlocked:3,stars:[3,2,1],xp:87,level:4})));
  await page.reload();
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.11\.0/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.12\.0/);
  assert.ok(await page.locator('[data-world="0"]').isVisible(),'World 1 is visible');
  assert.equal(await page.locator('.world-card').count(),3);
  assert.ok(await page.locator('#changelogBtn').isVisible(),'Updates visible on main world overview');
@@ -88,8 +88,74 @@ const fs=require('node:fs');
  assert.equal(pixelArt.backdropSkyAlpha,255,'HD sky should be visible under gameplay');
  await page.evaluate(()=>menu());
  assert.ok(await page.locator('#pixelEditionBadge').isVisible());
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.11\.0/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.12\.0/);
  // Visual-support and scarcity checks for all four new adventure routes.
+ // The redesigned challenges are grounded, visible and dodgeable across iPhone layouts.
+ await page.evaluate(()=>{
+  const expectedKinds=['log','roots','rubble','barricade'];
+  const expectedSpikes=[5,5,6,4],expectedTraps=[0,0,2,2];
+  for(let i=0;i<4;i++){
+   start(i);const cfg=stages[i];
+   if(cfg.obstacles.length!==5||cfg.traps.length!==expectedTraps[i]||
+      cfg.spikes.length!==expectedSpikes[i])throw Error('Thematic layout mismatch '+i);
+   if(cfg.obstacles.some(o=>o.type!==expectedKinds[i]||!hasSceneryFoundation(o.x,o.w,i)))
+    throw Error('Floating or out-of-place obstacle: '+i);
+   if(cfg.obstacles.some(o=>o.x+o.w>cfg.exitX-600))
+    throw Error('Obstacle obscures themed exit: '+i);
+   if(cfg.traps.some(t=>!hasSceneryFoundation(t.x-12,27,i)))
+    throw Error('Mounted trap has no stone support: '+i);
+  }
+ });
+ for(const [index,label] of [[0,'fallen-logs'],[1,'root-hurdles'],[2,'broken-masonry'],[3,'castle-barricades']]){
+  await page.evaluate(i=>{
+   start(i);
+   const o=stages[i].obstacles[1];
+   hero.x=o.x-110;hero.y=G-hero.h;hero.on=true;
+   cam=Math.max(0,Math.min(WIDTH-W,o.x-335));draw();
+  },index);
+  await page.screenshot({path:`test-output/${name}-v012-${label}.png`});
+ }
+ await page.evaluate(()=>{
+  start(2);bad=[];spikes=[];
+  hero.x=courseTraps[0].x-225;hero.y=G-hero.h;hero.on=true;
+  tickCourseFeatures(1);
+  if(courseTraps[0].phase!=='warn')throw Error('Ruins dart warning not active');
+  cam=courseTraps[0].x-480;draw();
+ });
+ await page.screenshot({path:`test-output/${name}-v012-ruins-arrow-warning.png`});
+ await page.evaluate(()=>{
+  start(3);bad=[];spikes=[];hero.x=courseTraps[0].x-245;hero.y=G-hero.h;
+  tickCourseFeatures(1);
+  cam=courseTraps[0].x-490;draw();
+ });
+ await page.screenshot({path:`test-output/${name}-v012-castle-arrow-warning.png`});
+ // A solid obstacle must block walking but allow normal jumping, even on touch.
+ await page.evaluate(()=>{
+  save.class='hunter';start(0);bad=[];spikes=[];const o=stages[0].obstacles[0];
+  hero.x=o.x-55;hero.y=G-hero.h;hero.on=true;input.right=true;
+  for(let i=0;i<12;i++)step(1);
+  if(hero.x!==o.x-hero.w)throw Error('Log could be walked through');
+  input.jump=true;for(let i=0;i<41;i++)step(1);
+  input.right=false;input.jump=false;
+  if(hero.x<=o.x+o.w+8)throw Error('Log cannot be jumped over');
+ });
+ await page.evaluate(()=>{
+  start(2);bad=[];spikes=[];const t=courseTraps[0];
+  hero.x=t.x-235;hero.y=G-hero.h;hero.on=true;
+  tickCourseFeatures(1);
+  for(let i=0;i<41;i++)tickCourseFeatures(1);
+  if(courseDarts.length!==0)throw Error('Dart fired before warning elapsed');
+  tickCourseFeatures(1);
+  if(courseDarts.length!==1)throw Error('Dart was never fired');
+  hero.x=t.x-170;hero.y=G-hero.h;
+  courseDarts=[{x:hero.x+15,y:G-31,vx:-7.6,ttl:40,source:t.x}];
+  if(!tickCourseFeatures(1)||hero.hearts!==2||scene!=='game')
+   throw Error('Arrow hit must drain only one heart without level reset');
+  const hearts=hero.hearts;
+  courseDarts=[{x:hero.x+15,y:G-31,vx:-7.6,ttl:40,source:t.x}];
+  tickCourseFeatures(1);
+  if(hero.hearts!==hearts)throw Error('Projectile ignored hit grace period');
+ });
  await page.evaluate(()=>{
   const expected=[15,16,15,16];
   for(let i=0;i<4;i++){
