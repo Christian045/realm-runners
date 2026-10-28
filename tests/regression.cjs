@@ -92,7 +92,7 @@ test('v0.5 stages have safe gaps, distinct paths, stars and no checkpoint state'
  assert.ok(geometry.filter(s=>!s.boss).every(s=>s.ledges.length>=5&&s.stars.length===3));
  assert.ok(geometry.find(s=>s.boss).enemies.length===0);
  for(const s of geometry){
-  for(const [a,b] of s.gaps)assert.ok(a>150&&b-a<=210&&b<stages[0].width-150);
+  for(const [a,b] of s.gaps)assert.ok(a>150&&b-a<=210&&b<4050);
   for(const x of s.spikes)assert.ok(s.gaps.every(([a,b])=>x+44<a||x>b));
  }
  assert.equal(h.run("typeof checkpoints"),'undefined');
