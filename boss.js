@@ -1,15 +1,18 @@
 'use strict';
-// Pixel-art Slime King. Logic runs at the same deterministic 60 Hz as game.js.
-// There are no checkpoints: damage resets the encounter along with the level.
-const BOSS_LEVEL=4, BOSS_HP=20, BOSS_VICTORY_FRAMES=42;
+// Soulslike Slime King: deterministic 60 Hz boss arena with readable windups,
+// aggression against ranged classes, distinct moves and a phase-two transformation.
+const BOSS_LEVEL=4,BOSS_HP=56,BOSS_VICTORY_FRAMES=42;
+const BOSS_ARENA_LEFT=2020,BOSS_ARENA_RIGHT=2775;
 let boss=null,bossGoo=[],bossWaves=[];
+function bossEnraged(){return !!boss?.enraged;}
 function resetBossRun(){
  bossGoo=[];bossWaves=[];
  boss=stage===BOSS_LEVEL?{
   x:2460,y:G-94,w:108,h:94,baseY:G-94,vy:0,
   hp:BOSS_HP,maxHp:BOSS_HP,hurt:0,alive:true,
-  engaged:false,phase:'patrol',timer:105,shotTimer:68,
-  targetX:2460,slamCount:0,defeatTimer:0
+  engaged:false,enraged:false,phase:'patrol',timer:62,shotTimer:0,
+  attackIndex:0,chargeDir:-1,targetX:2460,slamCount:0,
+  volleyCount:0,chargeCount:0,defeatTimer:0
  }:null;
  updateBossHud();
 }
@@ -17,46 +20,74 @@ function bossDefeated(){return !boss||!boss.alive;}
 function updateBossHud(){
  const ui=$('#bossHud'),bar=$('#bossHealthFill'),label=$('#bossState');
  if(!ui||!bar||!label)return;
- const show=scene==='game'&&boss?.engaged;
+ const show=scene==='game'&&!!boss?.engaged;
  ui.classList.toggle('hide',!show);
  if(!boss)return;
  const hp=Math.max(0,Math.round(boss.hp));
- // Defeated HP must become visually empty immediately, not animate from 80% to 0.
  bar.style.transition=boss.phase==='defeated'?'none':'';
  bar.style.width=(hp/boss.maxHp*100)+'%';
  const track=$('#bossHealthTrack');
  if(track){track.setAttribute('aria-valuenow',String(hp));track.setAttribute('aria-valuemax',String(boss.maxHp));}
- label.textContent=boss.phase==='defeated'?'SCHLEIMKÖNIG BESIEGT!':boss.phase==='warn'?'STAMPSCHLAG! AUSWEICHEN':boss.phase==='leap'?'SCHLEIMKÖNIG SPRINGT':'SCHLEIMKÖNIG';
+ const titles={
+  defeated:'SCHLEIMKÖNIG BESIEGT!',
+  phaseShift:'PHASE II · ZORN DES KÖNIGS!',
+  warn:'STAMPSCHLAG! SPRINGEN!',
+  leap:'STAMPFANGRIFF!',
+  volleyWarn:'SCHLEIM-SALVE! AUSWEICHEN!',
+  volley:'SCHLEIM-SALVE!',
+  chargeWarn:'ANSTURM! HOCHSPRINGEN!',
+  charge:'KÖNIGS-ANSTURM!'
+ };
+ label.textContent=titles[boss.phase]||(boss.enraged?'SCHLEIMKÖNIG · PHASE II':'SCHLEIMKÖNIG');
 }
 function damageBoss(amount){
- if(!boss||!boss.alive||!boss.engaged||boss.hurt>0||!Number.isFinite(amount)||amount<=0)return false;
+ if(!boss||!boss.alive||!boss.engaged||boss.hurt>0||boss.phase==='phaseShift'||!Number.isFinite(amount)||amount<=0)return false;
+ const before=boss.hp;
  boss.hp=Math.max(0,boss.hp-amount);
- boss.hurt=9;
+ boss.hurt=10;
  burst(boss.x+boss.w/2,boss.y+boss.h/2,'#f6ca92',16,3);
  if(boss.hp===0){
   boss.alive=false;boss.phase='defeated';boss.defeatTimer=BOSS_VICTORY_FRAMES;
-  bossGoo=[];bossWaves=[];hero.earned+=120;
+  bossGoo=[];bossWaves=[];hero.earned+=170;
   burst(boss.x+boss.w/2,boss.y+boss.h/2,'#c9ed7f',55,5);
+ }else if(before>BOSS_HP/2&&boss.hp<=BOSS_HP/2&&!boss.enraged){
+  // A dramatic but safe transition: all pre-existing projectiles dissipate.
+  boss.enraged=true;boss.phase='phaseShift';boss.timer=58;
+  bossGoo=[];bossWaves=[];boss.y=boss.baseY;boss.vy=0;
+  burst(boss.x+boss.w/2,boss.y+40,'#ff9c7d',38,4);
  }
  updateBossHud();
  return true;
 }
-function shootBossGoo(){
+function shootBossGoo(fan=1){
  if(!boss||!boss.alive)return;
- const fromX=boss.x+boss.w/2,fromY=boss.y+24;
- const targetX=hero.x+hero.w/2,targetY=hero.y+hero.h/2;
- const direction=targetX<fromX?-1:1;
- const speed=5.7;
- const vx=direction*speed;
- const travel=Math.max(1,Math.abs(targetX-fromX)/speed);
- const vy=Math.max(-3.5,Math.min(3.5,(targetY-fromY)/travel));
- bossGoo.push({x:fromX,y:fromY,vx,vy,r:11,ttl:115});
+ const fromX=boss.x+(hero.x<boss.x?9:boss.w-9),fromY=boss.y+34;
+ const dx=(hero.x+hero.w/2)-fromX,dy=(hero.y+hero.h/2)-fromY;
+ const angle=Math.atan2(dy,dx),speed=boss.enraged?7.3:6.2;
+ const spread=fan===1?[0]:fan===2?[-.12,.12]:[-.23,0,.23];
+ for(const offset of spread){
+  if(bossGoo.length>=12)break; // Keep iPhone memory and hit readability bounded.
+  const a=angle+offset;
+  bossGoo.push({x:fromX,y:fromY,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,r:10,ttl:120});
+ }
+}
+function bossChooseAttack(b){
+ const attack=['slam','volley','charge'][b.attackIndex%3];
+ b.attackIndex++;
+ b.targetX=Math.max(BOSS_ARENA_LEFT+40,Math.min(BOSS_ARENA_RIGHT-b.w-15,hero.x+10));
+ if(attack==='slam'){b.phase='warn';b.timer=b.enraged?32:44;}
+ else if(attack==='volley'){b.phase='volleyWarn';b.timer=b.enraged?27:36;}
+ else{
+  b.phase='chargeWarn';b.timer=b.enraged?27:35;
+  b.chargeDir=Math.sign(hero.x+b.w/2-(b.x+b.w/2))||-1;
+ }
+}
+function bossRecover(b,frames){
+ b.phase='recover';b.timer=frames;b.vy=0;b.y=b.baseY;
 }
 function bossTick(dt,prevY){
  if(!boss||scene!=='game')return false;
  const b=boss;
- // The final hit starts a short visible victory sequence. No goal/flag is required.
- // Trigger completion from the fixed-step loop, never from a timeout.
  if(!b.alive){
   if(b.phase==='defeated'){
    b.defeatTimer=Math.max(0,b.defeatTimer-dt);
@@ -65,40 +96,57 @@ function bossTick(dt,prevY){
   }
   return true;
  }
- if(hero.x>2015)b.engaged=true;
+ if(hero.x>BOSS_ARENA_LEFT-10)b.engaged=true;
  if(!b.engaged)return false;
  b.hurt=Math.max(0,b.hurt-dt);
  b.timer-=dt;
- if(b.phase==='patrol'){
-  const desired=Math.max(2230,Math.min(2580,hero.x+120));
-  if(Math.abs(desired-b.x)>3)b.x+=Math.sign(desired-b.x)*Math.min(1.5*dt,Math.abs(desired-b.x));
-  b.shotTimer-=dt;
-  if(b.shotTimer<=0){shootBossGoo();b.shotTimer=b.hp<BOSS_HP/2?50:77;}
-  if(b.timer<=0){
-   b.phase='warn';b.timer=46;
-   b.targetX=Math.max(2260,Math.min(2630,hero.x+12));
-  }
+ if(b.phase==='phaseShift'){
+  if(b.timer<=0){b.phase='patrol';b.timer=17;}
+ }else if(b.phase==='patrol'){
+  // Constant pressure prevents a mage from standing still and firing from safety.
+  const inFront=hero.x<b.x?-65:65;
+  const goal=Math.max(BOSS_ARENA_LEFT+30,Math.min(BOSS_ARENA_RIGHT-b.w-10,hero.x+inFront));
+  const move=Math.max(-((b.enraged?3.75:2.75)*dt),Math.min((b.enraged?3.75:2.75)*dt,goal-b.x));
+  b.x+=move;
+  if(b.timer<=0)bossChooseAttack(b);
  }else if(b.phase==='warn'){
-  if(b.timer<=0){b.phase='leap';b.vy=-13.8;b.timer=0;}
+  if(b.timer<=0){b.phase='leap';b.vy=b.enraged?-16:-14.3;}
  }else if(b.phase==='leap'){
-  b.vy=Math.min(20,b.vy+.78*dt);
+  b.vy=Math.min(21,b.vy+.79*dt);
   b.y+=b.vy*dt;
-  const dx=b.targetX-b.x;
-  b.x+=Math.sign(dx)*Math.min(Math.abs(dx),4.7*dt);
+  const diff=b.targetX-b.x;
+  b.x+=Math.sign(diff)*Math.min(Math.abs(diff),(b.enraged?7.2:6.1)*dt);
   if(b.y>=b.baseY&&b.vy>0){
-   b.y=b.baseY;b.vy=0;b.phase='recover';b.timer=38;b.slamCount++;
+   b.y=b.baseY;b.slamCount++;
+   bossRecover(b,b.enraged?18:26);
    const center=b.x+b.w/2;
-   bossWaves.push({x:center,dir:-1,ttl:65});
-   bossWaves.push({x:center,dir:1,ttl:65});
-   burst(center,G-10,'#fb9286',26,4);
-   if(hero.x+hero.w>b.x-12&&hero.x<b.x+b.w+12&&hero.y+hero.h>G-92){
-    if(hero.dash<=0){die();return true;}
+   bossWaves.push({x:center,dir:-1,ttl:96},{x:center,dir:1,ttl:96});
+   burst(center,G-10,'#fb9286',33,4);
+   if(hero.x+hero.w>b.x-10&&hero.x<b.x+b.w+10&&hero.y+hero.h>G-88&&hero.dash<=0){
+    die();return true;
    }
   }
+ }else if(b.phase==='volleyWarn'){
+  if(b.timer<=0){
+   shootBossGoo(b.enraged?3:2);
+   b.volleyCount++;
+   b.phase='volley';b.timer=b.enraged?13:20;
+  }
+ }else if(b.phase==='volley'){
+  if(b.timer<=0)bossRecover(b,b.enraged?13:23);
+ }else if(b.phase==='chargeWarn'){
+  if(b.timer<=0){b.phase='charge';b.timer=b.enraged?32:29;}
+ }else if(b.phase==='charge'){
+  b.x+=b.chargeDir*(b.enraged?11.6:9.3)*dt;
+  if(b.x<=BOSS_ARENA_LEFT+10||b.x>=BOSS_ARENA_RIGHT-b.w-5||b.timer<=0){
+   b.x=Math.max(BOSS_ARENA_LEFT+10,Math.min(BOSS_ARENA_RIGHT-b.w-5,b.x));
+   b.chargeCount++;bossRecover(b,b.enraged?19:29);
+   burst(b.x+b.w/2,G-10,'#c9ad9a',19,2.5);
+  }
  }else if(b.phase==='recover'&&b.timer<=0){
-  b.phase='patrol';b.timer=b.hp<BOSS_HP/2?85:125;
+  b.phase='patrol';b.timer=b.enraged?18:28;
  }
- // Hero lands on the crown's slime body; grounded collision hurts unless dashing.
+ // Stomp bounce works for all classes; contact during a charge is still dangerous.
  if(b.alive&&hero.x+hero.w>b.x+12&&hero.x<b.x+b.w-12&&hero.y+hero.h>b.y+14&&hero.y<b.y+b.h-7){
   if(hero.vy>0&&prevY+hero.h<=b.y+28){
    if(damageBoss(2))hero.vy=-10;
@@ -107,7 +155,6 @@ function bossTick(dt,prevY){
    damageBoss(2);
   }else{die();return true;}
  }
- // The projectiles travel at a legible, predictable speed; a jump avoids ground shockwaves.
  for(const shot of bossGoo){
   shot.x+=shot.vx*dt;shot.y+=shot.vy*dt;shot.ttl-=dt;
   if(shot.x+shot.r>hero.x&&shot.x-shot.r<hero.x+hero.w&&shot.y+shot.r>hero.y&&shot.y-shot.r<hero.y+hero.h){
@@ -115,14 +162,14 @@ function bossTick(dt,prevY){
    shot.ttl=0;
   }
  }
- bossGoo=bossGoo.filter(shot=>shot.ttl>0&&shot.x>0&&shot.x<WIDTH&&shot.y>-30&&shot.y<H+20);
+ bossGoo=bossGoo.filter(s=>s.ttl>0&&s.x>BOSS_ARENA_LEFT-50&&s.x<BOSS_ARENA_RIGHT+50&&s.y>-30&&s.y<H+20);
  for(const wave of bossWaves){
-  wave.x+=wave.dir*(b.hp<BOSS_HP/2?8.2:6.4)*dt;wave.ttl-=dt;
+  wave.x+=wave.dir*(b.enraged?9.1:7.3)*dt;wave.ttl-=dt;
   if(hero.y+hero.h>G-23&&hero.y<G&&Math.abs(hero.x+hero.w/2-wave.x)<23&&hero.dash<=0){
    die();return true;
   }
  }
- bossWaves=bossWaves.filter(wave=>wave.ttl>0&&wave.x>0&&wave.x<WIDTH);
+ bossWaves=bossWaves.filter(w=>w.ttl>0&&w.x>BOSS_ARENA_LEFT-40&&w.x<BOSS_ARENA_RIGHT+40);
  updateBossHud();
  return false;
 }
@@ -131,8 +178,27 @@ function drawBoss(){
  // Ground warning uses red stripes and precedes a shockwave slam by 46 frames.
  const b=boss;
  if(b.alive&&b.engaged&&b.phase==='warn'){
-  ctx.fillStyle='#642436';ctx.fillRect(b.targetX-60,G-9,120,9);
-  ctx.fillStyle='#ff7777';for(let i=0;i<120;i+=20)ctx.fillRect(b.targetX-60+i,G-13,10,4);
+  // The danger zone is fixed during windup; players can move out before impact.
+  ctx.fillStyle='#652a37';ctx.fillRect(b.targetX-15,G-10,b.w+30,10);
+  ctx.fillStyle='#ff7777';for(let i=0;i<b.w+30;i+=18)ctx.fillRect(b.targetX-15+i,G-16,9,6);
+ }
+ if(b.alive&&b.phase==='chargeWarn'){
+  const start=b.chargeDir<0?BOSS_ARENA_LEFT:b.x+b.w;
+  const end=b.chargeDir<0?b.x:BOSS_ARENA_RIGHT;
+  ctx.fillStyle='#531e33';ctx.fillRect(start,G-14,Math.max(0,end-start),13);
+  ctx.fillStyle='#ff866e';
+  for(let x=start;x<end;x+=26)ctx.fillRect(x,G-17,13,5);
+ }
+ if(b.alive&&b.phase==='volleyWarn'){
+  const fx=b.x+(hero.x<b.x?0:b.w),fy=b.y+35;
+  ctx.fillStyle='#3c243c';ctx.fillRect(fx-24,fy-22,44,44);
+  ctx.fillStyle='#ff9074';ctx.fillRect(fx-18,fy-16,32,32);
+  ctx.fillStyle='#ffe0aa';ctx.fillRect(fx-10,fy-9,16,16);
+ }
+ if(b.alive&&b.phase==='phaseShift'){
+  const cx=b.x+b.w/2,cy=b.y+36;
+  ctx.fillStyle='#ff986477';ctx.fillRect(cx-70,cy-58,140,116);
+  ctx.fillStyle='#ffb78b';for(let j=-2;j<=2;j++)ctx.fillRect(cx+j*24-6,cy-70,12,20);
  }
  for(const wave of bossWaves){
   ctx.fillStyle='#281a32';ctx.fillRect(wave.x-17,G-18,34,18);
@@ -164,11 +230,11 @@ function drawBoss(){
  // Dark, thick silhouette keeps the boss legible against bright backgrounds.
  ctx.fillStyle='#152a2e';ctx.fillRect(x+12,y+20,90,69);ctx.fillRect(x+25,y+7,64,80);
  const flash=b.hurt>0&&Math.floor(b.hurt/3)%2===0;
- ctx.fillStyle=flash?'#f8ebb9':'#68a94a';
+ ctx.fillStyle=flash?'#f8ebb9':b.enraged?'#b26d63':'#68a94a';
  ctx.fillRect(x+13,y+34,82,53);ctx.fillRect(x+26,y+19,58,20);
- ctx.fillStyle=flash?'#fff6d9':'#9ad76b';
+ ctx.fillStyle=flash?'#fff6d9':b.enraged?'#e9a67c':'#9ad76b';
  ctx.fillRect(x+22,y+29,66,12);ctx.fillRect(x+14,y+65,80,12);
- ctx.fillStyle='#3d783d';ctx.fillRect(x+15,y+77,80,9);ctx.fillRect(x+35,y+82,14,10);ctx.fillRect(x+69,y+82,16,10);
+ ctx.fillStyle=b.enraged?'#824c54':'#3d783d';ctx.fillRect(x+15,y+77,80,9);ctx.fillRect(x+35,y+82,14,10);ctx.fillRect(x+69,y+82,16,10);
  // Crown: blocky gold with red jewel.
  ctx.fillStyle='#4f362f';ctx.fillRect(x+25,y+12,66,11);
  ctx.fillStyle='#eabf61';ctx.fillRect(x+30,y+1,12,20);ctx.fillRect(x+50,y-8,15,30);ctx.fillRect(x+76,y+1,12,20);
@@ -179,6 +245,7 @@ function drawBoss(){
  ctx.fillStyle='#14252b';ctx.fillRect(x+35,y+41,14,18);ctx.fillRect(x+70,y+41,14,18);
  ctx.fillStyle='#fff2db';ctx.fillRect(x+39,y+43,5,7);ctx.fillRect(x+74,y+43,5,7);
  ctx.fillStyle='#b74351';ctx.fillRect(x+52,y+66,20,5);
+ if(b.phase==='charge'){ctx.fillStyle='#f7ba86';ctx.fillRect(x-13,y+40,20,24);ctx.fillRect(x+b.w-4,y+45,17,14);}
  if(b.phase==='leap'){ctx.fillStyle='#f5aa6c';ctx.fillRect(x+8,y+84,15,6);ctx.fillRect(x+85,y+84,15,6);}
  ctx.restore();
 }
