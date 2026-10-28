@@ -296,7 +296,7 @@ test('v0.9.1 all adventure stages use static platforms only',()=>{
 });
 test('v0.6.1 static early stages and physics are preserved',()=>{
  h.run('start(0)');
- assert.equal(h.run('movingPlatforms.length'),0);
+ assert.equal(h.run('typeof movingPlatforms'),0);
  assert.equal(h.run('JUMP.holdFrames'),14);
  assert.equal(h.run('JUMP.holdGravity'),.5);
  const y=h.run('hero.y');h.run('input.jump=true;step(1)');
