@@ -70,7 +70,7 @@ const fs=require('node:fs');
  assert.equal(pixelArt.backdropSkyAlpha,255,'HD sky should be visible under gameplay');
  await page.evaluate(()=>menu());
  assert.ok(await page.locator('#pixelEditionBadge').isVisible());
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.8\.0/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.9\.0/);
  // Store each biome in the CI artifacts so pixel-style changes are reviewable.
  for(const [level,label] of [[0,'forest'],[1,'canopy'],[2,'ruins'],[3,'swamp'],[4,'slime-king']]){
   await page.evaluate(index=>{start(index);if(index===4){hero.x=2220;step(1);cam=1840;}draw();},level);
@@ -139,6 +139,41 @@ const fs=require('node:fs');
   if(projectiles.length<3)throw Error('Held touch attack must auto-repeat');
   input.attack=false;
  });
+  // Longer worlds: verify old end is not the exit and late scenery is visible.
+ await page.evaluate(()=>{
+  start(0);hero.x=2760;hero.y=G-43;step(1);
+  if(scene!=='game'||WIDTH!==4200)throw Error('Extended level ends too soon');
+  cam=WIDTH-W;hero.x=3910;bad=[];draw();
+ });
+ await page.screenshot({path:`test-output/${name}-long-level-ending.png`});
+ await page.evaluate(()=>{
+  start(3);hero.x=3880;hero.y=G-43;cam=WIDTH-W;draw();
+ });
+ await page.screenshot({path:`test-output/${name}-new-castle-gate.png`});
+ await page.evaluate(()=>{
+  start(4);
+  if(WIDTH!==2800||stages[4].ledges.length!==0||bad.length!==0)
+   throw Error('Boss chamber must stay compact, uncluttered and solo');
+  boss.engaged=true;hero.x=2100;hero.y=145;hero.on=false;
+  boss.attackIndex=1;boss.phase='patrol';boss.timer=1;bossTick(1,hero.y);
+  if(boss.phase!=='volleyWarn')throw Error('Boss should telegraph spore volley');
+  cam=1840;draw();
+ });
+ await page.screenshot({path:`test-output/${name}-boss-volley-warning.png`});
+ await page.evaluate(()=>{
+  start(4);hero.x=2100;hero.y=140;hero.on=false;boss.engaged=true;boss.phase='patrol';boss.timer=1;boss.attackIndex=2;bossTick(1,hero.y);
+  if(boss.phase!=='chargeWarn')throw Error('Boss charge warning missing');
+  cam=1840;draw();
+ });
+ await page.screenshot({path:`test-output/${name}-boss-charge-warning.png`});
+ await page.evaluate(()=>{
+  start(4);boss.engaged=true;hero.x=2110;hero.y=130;boss.hp=29;boss.hurt=0;
+  damageBoss(2);
+  if(!boss.enraged||boss.phase!=='phaseShift')throw Error('Phase II not started');
+  cam=1840;draw();
+ });
+ assert.match(await page.locator('#bossState').innerText(),/PHASE II/);
+ await page.screenshot({path:`test-output/${name}-boss-phase-two.png`});
   // Original castle transition and throne room screenshots at the action areas.
  await page.evaluate(()=>{start(3);hero.x=2420;hero.y=G-43;cam=WIDTH-W;draw()});
  await page.screenshot({path:`test-output/${name}-castle-gate.png`});
@@ -171,9 +206,9 @@ const fs=require('node:fs');
   updateBossHud();
  });
  assert.ok(await page.locator('#bossHud').isVisible());
- assert.equal(await page.evaluate(()=>boss.maxHp),20);
+ assert.equal(await page.evaluate(()=>boss.maxHp),56);
  const hp=await page.evaluate(()=>boss.hp);
- assert.ok(hp>0&&hp<20,name+' mage fireball must damage Slime King: '+hp);
+ assert.ok(hp>0&&hp<56,name+' mage fireball must damage Slime King: '+hp);
  assert.equal(await page.locator('#bossHealthTrack').getAttribute('aria-valuenow'),String(hp));
  assert.ok((await page.locator('#bossHealthFill').evaluate(el=>getComputedStyle(el).backgroundColor)).includes('237, 52, 62'));
  await page.evaluate(()=>{
@@ -197,7 +232,7 @@ const fs=require('node:fs');
  await page.evaluate(()=>{for(let i=0;i<42;i++)step(1)});
  assert.equal(await page.evaluate(()=>scene),'end','Slime King must end level automatically');
  assert.match(await page.locator('#heading').innerText(),/LEVEL GESCHAFFT/);
- assert.ok(await page.evaluate(()=>save.bestTimesBossV062['1-5'].mage>0));
+ assert.ok(await page.evaluate(()=>save.bestTimesBossV09['1-5'].mage>0));
  await page.evaluate(()=>start(0));
  
  await page.keyboard.down('KeyD');try{await page.waitForFunction(()=>hero.x>70,{},{timeout:20000});}catch(e){console.error(name,await page.evaluate(()=>({scene,x:hero.x,t,input,hidden:document.hidden})));throw e;}await page.keyboard.up('KeyD');
@@ -243,7 +278,7 @@ const fs=require('node:fs');
  await page.evaluate(()=>testTouch('touchstart',[[43,'right']]));
  await page.locator('#pause').click();assert.equal(await page.evaluate(()=>scene),'pause');assert.equal(await page.evaluate(()=>input.right),false);await page.locator('#resume').click();
  const xpBeforeLevel1=await page.evaluate(()=>save.xp);
- await page.evaluate(()=>{hero.x=2750;hero.stars=2;hero.earned=25;step(1)});assert.equal(await page.evaluate(()=>scene),'end');
+ await page.evaluate(()=>{hero.x=WIDTH-34;hero.stars=2;hero.earned=25;step(1)});assert.equal(await page.evaluate(()=>scene),'end');
  await page.reload();assert.equal(await page.evaluate(()=>save.level),4);
  assert.equal(await page.evaluate(()=>save.xp),xpBeforeLevel1+95,'boss rewards must survive reload alongside regular level XP');
  assert.equal(await page.evaluate(()=>save.stars[0]),3);
