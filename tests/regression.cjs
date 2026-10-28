@@ -285,18 +285,18 @@ test('v0.6.1 moving platforms carry their rider horizontally and vertically',()=
  assert.ok(Math.abs(h.run('hero.y')-beforeY-diffY)<1.5);
 });
 test('v0.6.1 crumble platforms warn, fall, respawn and restart at initial location',()=>{
- h.run('start(3);hero.x=movingPlatforms[2].x+24;hero.y=movingPlatforms[2].y-hero.h-8;hero.vy=10;hero.on=false;step(1)');
- assert.equal(h.run("movingPlatforms[2].state"),'shaking');
+ h.run('start(3);hero.x=movingPlatforms[3].x+24;hero.y=movingPlatforms[3].y-hero.h-8;hero.vy=10;hero.on=false;step(1)');
+ assert.equal(h.run("movingPlatforms[3].state"),'shaking');
  h.run('for(let i=0;i<35;i++)platformTick(1)');
- assert.equal(h.run("movingPlatforms[2].state"),'falling');
+ assert.equal(h.run("movingPlatforms[3].state"),'falling');
  assert.equal(h.run('activePlatforms().some(p=>p.id===\'c0\')'),false);
  h.run('for(let i=0;i<100;i++)platformTick(1)');
- assert.equal(h.run("movingPlatforms[2].state"),'gone');
+ assert.equal(h.run("movingPlatforms[3].state"),'gone');
  h.run('for(let i=0;i<220;i++)platformTick(1)');
- assert.equal(h.run("movingPlatforms[2].state"),'ready');
- assert.equal(h.run('movingPlatforms[2].y'),386);
- h.run('movingPlatforms[2].state=\'falling\';die()');
- assert.equal(h.run("movingPlatforms[2].state"),'ready');
+ assert.equal(h.run("movingPlatforms[3].state"),'ready');
+ assert.equal(h.run('movingPlatforms[3].y'),386);
+ h.run('movingPlatforms[3].state=\'falling\';die()');
+ assert.equal(h.run("movingPlatforms[3].state"),'ready');
 });
 test('v0.6.1 static early stages and physics are preserved',()=>{
  h.run('start(0)');
