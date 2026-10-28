@@ -88,7 +88,7 @@ const fs=require('node:fs');
  // New v0.8 species all render visibly and use independent attack warnings.
  await page.evaluate(()=>{
   start(0);
-  if(JSON.stringify(bad.map(e=>e.type))!==JSON.stringify(['slime','bat','mushroom','goblin']))
+  if(bad.length!==9||JSON.stringify(bad.slice(0,4).map(e=>e.type))!==JSON.stringify(['slime','bat','mushroom','goblin']))
    throw Error('Missing v0.8 enemy roster');
   hero.x=bad[1].x-75;hero.y=G-43;bad[1].attackCooldown=0;
   enemyTick(1);
