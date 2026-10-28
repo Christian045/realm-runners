@@ -442,7 +442,7 @@ test('v0.8 old best times and skills survive; new enemy records do not overwrite
 
 test('v0.10 distinct curated level geometry and themed exit animation',()=>{
  const cfg=h.run('stages.map(s=>({width:s.width,gaps:s.gaps,ledges:s.ledges,enemies:s.enemies,spikes:s.spikes,stars:s.stars,exitX:s.exitX,motif:s.motif}))');
- assert.deepEqual(cfg.slice(0,4).map(s=>s.width),[4100,4300,4400,4500]);
+ assert.deepEqual([...cfg.slice(0,4).map(s=>s.width)],[4100,4300,4400,4500]);
  assert.deepEqual(cfg.slice(0,4).map(s=>s.gaps.length),[4,6,5,5]);
  assert.equal(new Set(cfg.slice(0,4).map(s=>s.motif)).size,4);
  assert.equal(new Set(cfg.slice(0,4).map(s=>JSON.stringify(s.ledges))).size,4);
