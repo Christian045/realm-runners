@@ -1,6 +1,25 @@
-# Realm Runners v0.11 – lange Bodenstrecken und eine zentral sichtbare Bossarena
+# Realm Runners v0.12 – Handgebaute Begegnungen und logische Levelhindernisse
 
 **Spielen: https://christian045.github.io/realm-runners/**
+
+## Neu in v0.12 – Levelideen statt zufälliger Dornen
+
+Die großen, bodenorientierten Level und die zentrale Bossarena aus v0.11 bleiben unverändert. Statt willkürlich verteilter Metallstacheln sind die vier Spielabschnitte nun als **handgebaute, logisch platzierte Herausforderungen** gestaltet:
+
+- **1-1 Sonnenpfad:** Fünf überspringbare, auf sicherem Waldboden liegende Baumstämme; fünf natürliche Dornenhecken, sonst genügend Raum für Gegnerbegegnungen und Ruhephasen.
+- **1-2 Baumkronen:** Fünf niedrige, echte Wurzelhürden, die von den Waldbäumen ausgehen, fünf klar erkennbar dunkle Wurzeldornen und weiterhin optionale hohe Wege mit Sternen.
+- **1-3 Versunkene Ruinen:** Fünf eingestürzte Steinhaufen, sechs passende Steinboden-Stachelfallen und zwei deutlich angekündigte Pfeilscharten, fest an tragenden Ruinenpfeilern montiert.
+- **1-4 Königstraße:** Fünf solide, nicht-stachelige Burgbarrikaden, nur vier Metallfallen sowie zwei Pfeilscharten an stehenden Wehrtürmen.
+- **Physische Hindernisse:** 29–39 Pixel hohe Baumstämme/Wurzeln/Steine/Barrikaden stoppen normales Durchlaufen; ihre Oberseiten sind begehbar, alle drei Klassen können sie mit einem normalen Sprung überwinden. Keine Spezialfähigkeit oder Dash nötig.
+- **Pfeilfallen mit Vorwarnung:** 42 Simulationsframes orangefarbenes **!** und eine Schusslinie zeigen die Richtung; danach genau ein Pfeil, gefolgt von einer langen Pause. Springen oder Dash vermeidet Treffer. Bei Kontakt geht nur ein Herz verloren (mit alter Blink-Immunität).
+- **Autorenprüfung der Platzierung:** Kollisionsobjekte stehen auf durchgehendem Boden, mit freiem Anlauf und Auslauf; keine gleichzeitig gestapelten Gegner, Dornen oder Abgründe. Vor den Levelausgängen bleibt ein langer ruhiger Laufabschnitt.
+- **Eindeutige Grafik:** Dunkle Konturen und klar verschiedene Pixel-Formen für Holz, Wurzeln, Mauerwerk und Holzschilde; Dornen im Wald wirken organisch, Metallfallen stehen nur dort, wo es Ruinen und Burg gibt.
+- **Neue Zeitwertung:** `bestTimesV12` erfasst die überarbeiteten Strecken separat. Rekorde v0.4–v0.11, Gold, Sterne, RPG-Fortschritt und der unveränderte Boss-Zeitenstand bleiben erhalten.
+- Bewegliche oder einstürzende Plattformen und Fledermäuse/Goblins bleiben weiterhin deaktiviert.
+
+**iPhone-Check:** Die URL mit `?v=0.12.0` aufrufen. Die Startmarkierung ist „THEMEN-LEVEL & FALLEN · 0.12.0“. In den Ruinen und auf der Königstraße besonders die gut sichtbaren Warnzeichen und das Ausweichen testen. Keine Safari-Websitedaten löschen.
+
+
 
 ## Neu in v0.11 – Laufstrecken statt Plattform-Ketten
 
