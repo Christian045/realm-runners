@@ -1,6 +1,21 @@
-# Realm Runners v0.9 – Längere Level und der zornige Schleimkönig
+# Realm Runners v0.9.1 – Herzen, Münzen und Changelog
 
 **Spielen: https://christian045.github.io/realm-runners/**
+
+## Neu in v0.9.1 – Herzen und Münzen statt Level-Neustart
+
+- **Versionsverlauf:** Ein pixeliger **„📜 Updates“-Button unten links** öffnet ein scrollbares Changelog von den frühen Versionen bis v0.9.1. Während des Spiels wird automatisch pausiert und beim Schließen fortgesetzt. Funktioniert über Touch und Tastatur.
+- **Drei große Pixel-Herzen im HUD:** Bei einem Treffer wird ein Herz leer, die Figur blinkt rund 1,4 Sekunden und bekommt einen kurzen Rückstoß. In dieser Zeit ist sie gegen weitere Treffer geschützt. **Position, gesammelte Sterne/Münzen, Gegnerstatus, Timer und Boss-HP bleiben erhalten.** Erst mit dem letzten verlorenen Herz ist Game Over.
+- **Abgründe:** Statt eines Level-Resets wird die Figur auf die letzte sichere Plattform zurückgesetzt, mit einem verlorenen Herz. Ein Sturz während der Immunitätsphase kostet kein weiteres Herz.
+- **Überarbeitete Goldmünzen:** Klar gerasterte, konturierte Gold-Pixelcoins statt kleiner Ellipsen. Oben links ist die **echte Anzahl in diesem Versuch gesammelter Münzen** zu sehen, nicht aus XP geschätztes Geld. Jede Münze wird dauerhaft als `save.gold` im bestehenden Spielstand gespeichert. Im Menü zeigt die Fortschrittsanzeige dein Gesamtgold.
+- **Nur statische Plattformen:** Bewegliche Aufzüge, fahrende Brücken und einstürzende Plattformen sind **vorerst aus dem Spiel entfernt**. Der frühere Code bleibt im Repository zur späteren Wiedereinführung, wird aber nicht geladen oder ausgeführt.
+- **Leicht höhere Schwierigkeit:** Die langen Level 1-1 bis 1-4 besitzen nun jeweils acht statt sechs gut sichtbare Dornenfallen. Die Sprungphysik, Level-Längen und Gegner-KI bleiben unverändert.
+- **Bosskampf:** Der Schleimkönig mit 56 HP und Phase II bleibt herausfordernd, aber auch hier führen Treffer jetzt zu Herzverlust und kurzer Immunität **ohne Boss-Neustart**. Das Besiegen des Königs schließt das Level weiterhin automatisch ab.
+- Alle Klassen, Touch-Buttons, XP, Fähigkeiten, Ausrüstung, alten Bestzeiten und Level-Freischaltungen bleiben kompatibel.
+
+**Auf dem iPhone:** In der Startansicht steht **„HERZEN & MÜNZEN · 0.9.1“**. Für Safari ohne Löschen von Spielständen `?v=0.9.1` an die Spiel-URL anhängen.
+
+
 
 ## Neu in v0.9 – vier lange Abenteuerlevel und Soulslike-Bosskampf
 
