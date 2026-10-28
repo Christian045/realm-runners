@@ -787,7 +787,7 @@ test('v0.12 a jump or dash cleanly avoids an indicated architectural arrow',()=>
   h.run('courseDarts=[{x:hero.x+15,y:G-31,vx:-7.6,ttl:40,source:courseTraps[0].x}]');
   assert.equal(h.run('tickCourseFeatures(1)'),false);
   assert.equal(h.run('hero.hearts'),3,avoid+' must avoid projectile');
-  assert.equal(h.run('courseDarts.length'),0,'avoided arrow does not linger');
+  assert.equal(h.run('courseDarts.length'),avoid==='dash'?0:1,'airborne dodge lets a dart safely pass underneath; dash clears contact');
  }
 });
 test('v0.11 the boss occupies the entire visible viewport, not a hidden sub-arena',()=>{
