@@ -1,6 +1,20 @@
-# Realm Runners v0.10.1 – Geerdete Kulissen, weniger Münzen und Updates nur im Hauptmenü
+# Realm Runners v0.11 – lange Bodenstrecken und eine zentral sichtbare Bossarena
 
 **Spielen: https://christian045.github.io/realm-runners/**
+
+## Neu in v0.11 – Laufstrecken statt Plattform-Ketten
+
+- **Ca. 80 % längere Level:** Sonnenpfad 7.380 statt 4.100, Baumkronen 7.740 statt 4.300, Versunkene Ruinen 7.920 statt 4.400 und Königstraße 8.100 statt 4.500 Welt-Einheiten.
+- **Bodenorientiertes Leveldesign:** Längere Laufstrecken und klar gesetzte Abgründe, Dornen und Schleim-/Pilzmonster-Begegnungen. Weniger unnötige Luftplattformen: nur noch 4, 5, 6 bzw. 4 klar erhöhte Hochwege. Ihre Baum- und Steinstützen reichen sichtbar bis zum Boden. Keine Hochwege im letzten Abschnitt vor dem Ausgang.
+- **Sauberer Levelausgang:** Jeweils eine längere, fast freie Zielgerade ohne Plattform-Haufen; die vorhandenen Tor- und Abschlussanimationen bleiben erhalten. Der Schlosseingang und die Burgmauer wurden an das Ende der neuen 8.100er-Königstraße versetzt.
+- **Zentraler Bossraum ohne unsichtbare Wand:** Die Schlossarena belegt genau die sichtbare 960×540-Canvas-Welt. Kamera fixiert, Spieler links der Mitte, König rechts der Mitte, beide echte, sichtbare Raumwände direkt am Bildschirmrand. Es gibt keine plötzlich mitten im Raum endende Spielfläche mehr.
+- **Kampf bleibt erhalten:** Schleimkönig weiterhin 56 HP, Stampf- und Schockwellenangriff, Schleimsalve, Ansturm sowie Phase II, aber seine Warnungen, Projektile und die Spielerbewegung verwenden jetzt die neue gesamte Arena.
+- **Faire Zeiten:** Neue `bestTimesV11` und `bestTimesBossV11` mit angepassten Medaillen, alle früheren Rekorde und der ganze RPG-Spielstand bleiben bestehen.
+- **Pixel-Look, Münzen und Sterne:** Die bisherigen gut erkennbaren Icons, die sparsam platzierten Münzen, statischen Plattformen und HD-Hintergründe bleiben erhalten.
+
+**iPhone-Test:** `?v=0.11.0` an die Spiel-URL anhängen. Kontrolliere **„LÄNGERE STRECKEN & BOSSARENA · 0.11.0“** und prüfe besonders, ob du bis zur sichtbaren rechten Schlosswand laufen kannst. Safari-Website-Daten keinesfalls löschen.
+
+
 
 ## Neu in v0.10.1 – saubere Kulissen und ruhigere Sammelobjekte
 
