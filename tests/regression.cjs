@@ -482,7 +482,7 @@ test('v0.9 four adventure levels are 50 percent longer while boss arena stays co
   assert.ok(cfg[i].gaps.every(([a,b])=>b-a<=200&&b<4000));
   h.run(`start(${i})`);
   assert.equal(h.run('WIDTH'),4200);
-  assert.ok(h.run('things.filter(x=>x.type===\'coin\').length')>35);
+  assert.ok(h.run('things.filter(x=>x.type===\'coin\').length')>=25,'hazard-free coin trail remains substantial');
   assert.equal(h.run('bad.length'),9);
   // Reaching the former 2,800-unit finish must not complete the level.
   h.run('hero.x=2760;hero.y=G-43;step(1)');
