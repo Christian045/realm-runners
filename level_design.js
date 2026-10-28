@@ -58,6 +58,7 @@ const WORLD_ONE_LAYOUTS=[
  }
 ];
 for(let i=0;i<WORLD_ONE_LAYOUTS.length;i++)Object.assign(stages[i],WORLD_ONE_LAYOUTS[i]);
+Object.assign(stages[4],{short:'Schleimkönig',subtitle:'Thronsaal',hint:'Eine kompakte Bossarena mit Phase II und drei angekündigten Angriffen.',difficulty:'★★★'});
 // Minimap-like world decorations use the same sharp Pixel Edition palette as
 // solid tiles, but are placed behind playable terrain to avoid visual ambiguity.
 function drawBiomeLandmarks(){
