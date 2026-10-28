@@ -1,6 +1,15 @@
 'use strict';
 // In-game, locally bundled release notes. No network requests or user data.
 const RELEASE_NOTES=[
+ {v:'0.11.0',title:'Längere Bodenlevel und zentraler Bossraum',items:[
+  'Alle vier Abenteuerstrecken sind rund 80 Prozent länger geworden.',
+  'Lange Bodenwege statt vieler niedriger Plattformen; nur vier bis sechs abgestützte erhöhte Wege pro Level.',
+  'Keine Plattform-Ketten mehr kurz vor den Ausgängen, längere klare Zielgeraden.',
+  'Die Königstraße führt jetzt weiter bis zum passend versetzten Schlosstor.',
+  'Der Schleimkönig kämpft in einem mittig gestalteten, bildschirmbreiten Schlossraum mit sichtbaren Seitenwänden.',
+  'Neue Bestzeiten und Medaillen für längere Strecken sowie die neue Bossarena; alte Rekorde bleiben erhalten.'
+ ]},
+
  {v:'0.10.1',title:'Kulissen am Boden, weniger Münzen, Updates im Hauptmenü',items:[
   'Bäume, Hängepflanzen, Ruinentore und Burgmauern stehen jetzt auf überprüften Bodenflächen statt über Abgründen.',
   'Burgzufahrt und Boden-Dekorationen wurden auf tragfähige Positionen angepasst.',
