@@ -6,7 +6,7 @@
 
 - **Keine schwebende Dekoration über Abgründen:** Alle größeren Bäume, Wipfelstämme, Tempel-Torbögen und Burgtürme sind jetzt auf ihren echten Grundflächen geprüft. Insbesondere die Ruinenbögen haben zwei geerdete Säulen; die Königstraße setzt ihre Türme nicht mehr auf Luft. Hängende Pflanzen wachsen sichtbar aus Ästen statt aus dem Nichts.
 - **Bodenobjekte dürfen nicht über Gruben hinausragen:** Pilze, Felsen, Kristalle und Fackeln erhalten dieselbe Fundamentprüfung. Der große Burgeingang bleibt erreichbar und stimmig.
-- **Weniger Münzen:** Statt der durchgehenden Reihen alle 70 Einheiten sind die Münzen jetzt etwa 240 Einheiten auseinander. Es werden nur Münzen oberhalb einer durchgehenden Bodenfläche und mit Abstand zu Dornen erzeugt; Bossraum und Sterne bleiben unverändert.
+- **Weniger Münzen:** Statt einer durchgehenden Münzreihe liegen nun nur 11–13 bewusst platzierte Münzen pro Abenteuerlevel auf sicheren Bodenabschnitten. Abgründe, Dornen und das Leveltor bleiben frei; Bossraum und Sterne sind unverändert.
 - **Changelog nur noch im echten Hauptmenü:** Der „📜 Updates“-Knopf erscheint ausschließlich in der Weltübersicht. Auf der Levelauswahl, im laufenden Spiel, beim Pausieren und am Levelende ist er ausgeblendet und kann nicht geöffnet werden.
 - Alle vorhandenen Spielstände, Goldbestände, Sterne, Bestzeiten und Kampffunktionen bleiben erhalten.
 
