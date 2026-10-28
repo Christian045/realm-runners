@@ -101,6 +101,10 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 @media(max-height:440px){#changelogBtn{font-size:10px;min-height:30px;padding:5px 8px}#controls:not(.hide)~#changelogBtn{bottom:calc(80px + env(safe-area-inset-bottom))}.changelog-panel{max-height:90dvh}}
 
 /* World map and level cards: readable, touch-first pixel panels. */
+.panel{touch-action:pan-y;overscroll-behavior:contain}
+.world-star-meter,.level-star-meter{display:inline-flex;align-items:center;gap:5px}
+.world-star-meter svg,.level-star-meter svg{width:19px;height:19px;flex:0 0 19px;image-rendering:pixelated}
+
 .panel{width:min(870px,100%);max-width:870px}
 .worlds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:14px 0}
 .world-card,.level-card{font-family:inherit;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:9px;
