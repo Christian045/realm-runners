@@ -98,7 +98,7 @@ function menu(){
  renderWorldMenu();syncChangelogButton();
 }
 function land(){let gaps=stages[stage].gaps,ends=[0,...gaps.map(g=>g[1])],begins=[...gaps.map(g=>g[0]),WIDTH];return ends.map((x,i)=>({x,w:begins[i]-x,y:G}))}
-function solids(){return [...land(),...stages[stage].ledges.map(a=>({x:a[0],y:a[1],w:a[2]}))]}
+function solids(){return [...land(),...stages[stage].ledges.map(a=>({x:a[0],y:a[1],w:a[2]})),...courseSolids()]}
 function floorY(x){let p=solids().filter(s=>x>=s.x+10&&x<=s.x+s.w-10).sort((a,b)=>b.y-a.y);return p.length?p[0].y:G}
 function start(i,hearts=3){
  if(!Number.isInteger(i)||i<0||i>=stages.length)return;
@@ -123,7 +123,7 @@ function start(i,hearts=3){
   }
  }
  for(const [x,y] of stages[i].stars)things.push({x,y,type:'star',taken:false});
- bad=spawnEnemies(i);resetBossRun();
+ bad=spawnEnemies(i);resetCourseFeatures();resetBossRun();
  hudSignature='';renderGameHud();
  layer.classList.add('hide');controls.classList.remove('hide');hud.classList.remove('hide');
 }
@@ -240,8 +240,9 @@ function step(dt){
  }
  if(h.dash>0&&Math.floor(t)%2===0)burst(h.x+15,h.y+24,cl.color,2,1);
  const wasOn=h.on;
- const prevY=h.y;
+ const prevY=h.y,prevX=h.x;
  h.x=Math.max(stages[stage].boss?BOSS_ARENA_LEFT+3:0,Math.min(stages[stage].boss?BOSS_ARENA_RIGHT-h.w-4:WIDTH-h.w,h.x+h.vx*dt));
+ resolveCourseObstacles(h,prevX);
  h.y+=h.vy*dt;h.on=false;
  for(const p of solids())if(h.x+h.w>p.x&&h.x<p.x+p.w&&prevY+h.h<=p.y+9&&h.y+h.h>=p.y&&h.vy>=0){
   h.y=p.y-h.h;h.vy=0;h.on=true;h.usedDash=false;h.jumpActive=false;h.coyote=JUMP.coyote;
@@ -261,6 +262,8 @@ function step(dt){
  combatTick(dt);
  if(scene!=='game')return;
  if(enemyHazardsHitHero(prevY))return;
+ if(scene!=='game')return;
+ if(tickCourseFeatures(dt))return;
  if(scene!=='game')return;
  if(bossTick(dt,prevY))return;
  if(scene!=='game')return;

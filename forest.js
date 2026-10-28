@@ -281,7 +281,7 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
  ctx.save();ctx.translate(-cam,0);
  drawBiomeLandmarks();
  drawCoursePlatformSupports();
- for(const [i,p] of solids().filter(p=>!p.kind).entries()){
+ for(const [i,p] of solids().filter(p=>!p.kind&&!p.blockType).entries()){
   if(p.x+p.w<cam-20||p.x>cam+W+20)continue;
   ctx.imageSmoothingEnabled=false;
   ctx.drawImage(terrain(p,i),p.x-16,p.y-20);
@@ -364,15 +364,11 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
    ctx.fillStyle='#7a5861';ctx.fillRect(tx+28,G-17,18,17);
   }
  }
- // No decorative dangling ropes under an unsupported floating platform.
- // Each optional high route is rooted to the terrain by drawCoursePlatformSupports().
- for(const s of spikes){
-  ctx.fillStyle='#351e2b';ctx.fillRect(s.x,s.y+14,s.w,6);
-  for(let k=0;k<3;k++){
-   poly(ctx,[[s.x+k*15,s.y+18],[s.x+8+k*15,s.y],[s.x+15+k*15,s.y+18]],'#ff837a');
-   ctx.fillStyle='#ffe5a4';ctx.fillRect(s.x+6+k*15,s.y+7,4,7);
-  }
- }
+ // Course-specific silhouettes replace generic floating/metal spikes.
+ drawCourseWarningPosts();
+ drawCourseObstacles();
+ drawStageGroundHazards();
+ drawCourseTraps();
  for(const a of things){if(a.taken||a.x<cam-25||a.x>cam+W+25)continue;const y=a.y+(reducedMotion?0:Math.sin(visualTime*3+a.x)*3);if(a.type==='star'){drawWorldStar(a.x,y);}else{drawWorldCoin(a.x,y);}}
  bad.forEach(drawEnemyMob);drawEnemyShots();drawBoss();drawLevelExit();drawHero();drawCombatEffects();
  for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}ctx.globalAlpha=1;ctx.restore();

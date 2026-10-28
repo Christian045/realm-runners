@@ -1,6 +1,16 @@
 'use strict';
 // In-game, locally bundled release notes. No network requests or user data.
 const RELEASE_NOTES=[
+ {v:'0.12.0',title:'Leveldesign mit sinnvollen Hindernissen',items:[
+  'Jeder Abschnitt hat passende echte Hindernisse: Waldbaumstämme, Wurzelhürden, eingestürzte Ruinensteine und Burgbarrikaden.',
+  'Hindernisse stehen auf tragendem Boden, lassen sich überspringen und sind nicht mit Gegnern und Dornen überladen.',
+  'Unpassende Metallstacheln im Wald wurden durch natürliche Dornenbüsche und Wurzeln ersetzt; die Zahl wurde reduziert.',
+  'In den Ruinen und der Burg sitzen wenige gut angekündigte Pfeilfallen direkt an vorhandenen Säulen und Türmen.',
+  'Pfeilfallen zeigen vor dem Angriff ein oranges ! und eine Schusslinie; Sprünge oder Dash schützen.',
+  'Ruhige Abschnitte wechseln sich mit Sprüngen und Kämpfen ab; Weltlänge, Boss und bewährte Steuerung bleiben gleich.',
+  'Neue Level-Bestzeiten für v0.12, ältere Rekorde bleiben im Spielstand.'
+ ]},
+
  {v:'0.11.0',title:'Längere Bodenlevel und zentraler Bossraum',items:[
   'Alle vier Abenteuerstrecken sind rund 80 Prozent länger geworden.',
   'Lange Bodenwege statt vieler niedriger Plattformen; nur vier bis sechs abgestützte erhöhte Wege pro Level.',
