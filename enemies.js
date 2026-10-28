@@ -8,20 +8,32 @@ const ENEMY_TYPES=Object.freeze({
  mushroom:{w:35,h:35,hp:4,move:.3,accent:'#ffac87',reward:25},
  goblin:{w:30,h:39,hp:5,move:.9,accent:'#f0d590',reward:30}
 });
-const ENEMY_ROSTER=[
- ['slime','bat','mushroom','goblin'],
- ['slime','bat','goblin','mushroom'],
- ['slime','goblin','bat','mushroom'],
- ['slime','mushroom','goblin','bat']
-];
+// Goblins and bats remain in the source for a future world, but never spawn.
+// Each new run rolls a fresh and fair slime / mushroom distribution.
+const ACTIVE_ENEMY_TYPES=['slime','mushroom'];
+let previousEnemyRoster=Array.from({length:4},()=>null);
 let enemyShots=[];
 function spawnEnemies(stageIndex){
  enemyShots=[];
  if(stages[stageIndex].boss)return[];
- const positions=stages[stageIndex].enemies;
+ const cfg=stages[stageIndex];
+ // Keep a calm approach to the themed exit. Do not spawn directly in doorways.
+ const positions=cfg.enemies.filter(x=>x<(cfg.exitX??WIDTH)-175);
+ const types=positions.map(()=>Math.random()<.43?'mushroom':'slime');
+ // Guaranteed diversity within each stage, but still a different combination
+ // on replay. Never force 9 identical mushrooms against a weak starter.
+ if(types.length>=2){
+  if(!types.includes('slime'))types[0]='slime';
+  if(!types.includes('mushroom'))types[types.length-1]='mushroom';
+ }
+ const signature=types.join(',');
+ if(previousEnemyRoster[stageIndex]===signature&&types.length>2){
+  const flip=1+Math.floor(Math.random()*(types.length-2));
+  types[flip]=types[flip]==='slime'?'mushroom':'slime';
+ }
+ previousEnemyRoster[stageIndex]=types.join(',');
  return positions.map((x,i)=>{
-  const type=ENEMY_ROSTER[stageIndex][i%ENEMY_ROSTER[stageIndex].length],spec=ENEMY_TYPES[type];
-  const y=(type==='bat'?G-118:G-spec.h);
+  const type=types[i],spec=ENEMY_TYPES[type],y=G-spec.h;
   return {type,x,y,home:x,baseY:y,w:spec.w,h:spec.h,maxHp:spec.hp,hp:spec.hp,dir:i%2?-1:1,
    alive:true,phase:'patrol',timer:0,attackCooldown:48+i*19,
    hurt:0,kb:0,vx:0,vy:0,targetX:x,targetY:y,seed:i*2+stageIndex,anim:0};
