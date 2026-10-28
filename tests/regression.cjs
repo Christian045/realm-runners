@@ -289,8 +289,8 @@ test('v0.9.1 all adventure stages use static platforms only',()=>{
   assert.equal(h.run('typeof activePlatforms'),'undefined');
   assert.equal(h.run('typeof platformTick'),'undefined');
   assert.equal(h.run('typeof drawDynamicPlatforms'),'undefined');
-  assert.equal(h.run('stages[stage].moving'),'undefined');
-  assert.equal(h.run('stages[stage].crumbling'),'undefined');
+  assert.equal(h.run('typeof stages[stage].moving'),'undefined');
+  assert.equal(h.run('typeof stages[stage].crumbling'),'undefined');
   assert.ok(h.run('solids().every(p=>!p.kind)'));
  }
 });
