@@ -50,7 +50,7 @@ document.querySelectorAll('[data-control]').forEach(b=>{b.addEventListener('poin
 // Own Touch Events explicitly; keep each finger independent and never also register
 // touch Pointer Events (Safari may cancel them when touchstart is prevented).
 function clearSelection(){const selection=document.getSelection?.();if(selection&&selection.rangeCount)selection.removeAllRanges();}
-function gameTouchTarget(target){return scene==='game'&&!target.closest?.('#pause');}
+function gameTouchTarget(target){return scene==='game'&&!target.closest?.('#pause,#changelogBtn,#changelogOverlay');}
 document.addEventListener('touchstart',e=>{
   if(!gameTouchTarget(e.target))return;
   if(e.cancelable)e.preventDefault();
