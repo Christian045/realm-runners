@@ -77,8 +77,17 @@ for(const eventName of ['touchend','touchcancel']){
 }
 document.addEventListener('selectionchange',()=>{if(scene==='game')clearSelection();});
 
-function pause(){if(scene!=='game')return;scene='pause';clearInput();updateBossHud();layer.classList.remove('hide');controls.classList.add('hide');$('#menu').classList.add('hide');$('#play').classList.add('hide');$('#resume').classList.remove('hide');$('#return').classList.remove('hide');$('#return').onclick=menu;$('#heading').textContent='PAUSE';$('#intro').textContent='Der Wald wartet auf dich.';}
-function resume(){if(scene!=='pause')return;clearInput();scene='game';updateBossHud();layer.classList.add('hide');controls.classList.remove('hide');last=performance.now();}
+// The release history belongs to the actual MAIN menu, not the map,
+// pause screen, a level or the results screen.
+function syncChangelogButton(){
+ const button=$('#changelogBtn');if(!button)return;
+ const show=scene==='menu'&&menuView==='worlds';
+ button.classList.toggle('hide',!show);
+ button.setAttribute('aria-hidden',String(!show));
+ button.tabIndex=show?0:-1;
+}
+function pause(){if(scene!=='game')return;scene='pause';syncChangelogButton();clearInput();updateBossHud();layer.classList.remove('hide');controls.classList.add('hide');$('#menu').classList.add('hide');$('#play').classList.add('hide');$('#resume').classList.remove('hide');$('#return').classList.remove('hide');$('#return').onclick=menu;$('#heading').textContent='PAUSE';$('#intro').textContent='Der Wald wartet auf dich.';}
+function resume(){if(scene!=='pause')return;clearInput();scene='game';syncChangelogButton();updateBossHud();layer.classList.add('hide');controls.classList.remove('hide');last=performance.now();}
 $('#pause').onclick=pause;$('#resume').onclick=resume;
 function size(){let d=Math.min(devicePixelRatio||1,2),s=Math.min(innerWidth/W,innerHeight/H);canvas.width=innerWidth*d;canvas.height=innerHeight*d;ctx.setTransform(d*s,0,0,d*s,(innerWidth-W*s)*d/2,(innerHeight-H*s)*d/2)}addEventListener('resize',size);size();
 function menu(){
@@ -86,7 +95,7 @@ function menu(){
  layer.classList.remove('hide');hud.classList.add('hide');controls.classList.add('hide');
  $('#menu').classList.remove('hide');$('#levelResult').classList.add('hide');
  $('#play').classList.remove('hide');$('#resume').classList.add('hide');
- renderWorldMenu();
+ renderWorldMenu();syncChangelogButton();
 }
 function land(){let gaps=stages[stage].gaps,ends=[0,...gaps.map(g=>g[1])],begins=[...gaps.map(g=>g[0]),WIDTH];return ends.map((x,i)=>({x,w:begins[i]-x,y:G}))}
 function solids(){return [...land(),...stages[stage].ledges.map(a=>({x:a[0],y:a[1],w:a[2]}))]}
@@ -95,17 +104,25 @@ function start(i,hearts=3){
  if(!Number.isInteger(i)||i<0||i>=stages.length)return;
  clearInput();resetRpgRun();particles=[];
  $('#play').classList.remove('hide');$('#resume').classList.add('hide');$('#levelResult').classList.add('hide');
- stage=i;WIDTH=stages[i].width;scene='game';cam=0;dashCooldown=0;jumpWas=false;invincible=0;t=0;exitActive=false;exitFrames=0;exitVisual=0;
+ stage=i;WIDTH=stages[i].width;scene='game';syncChangelogButton();cam=0;dashCooldown=0;jumpWas=false;invincible=0;t=0;exitActive=false;exitFrames=0;exitVisual=0;
  const spawnX=stages[i].spawnX??50,spawnY=G-43;
  hero={x:spawnX,y:spawnY,w:30,h:43,vx:0,vy:0,on:true,face:1,
   hearts,stars:0,coins:0,earned:0,dash:0,usedDash:false,coyote:JUMP.coyote,
   jumpBuffer:0,jumpHeld:0,jumpActive:false,safeX:spawnX,safeY:spawnY,hitFlash:0};
  cam=Math.max(0,Math.min(WIDTH-W,hero.x-350));
  things=[];bad=[];spikes=stages[i].spikes.map(x=>({x,y:G-18,w:44,h:18}));
- if(!stages[i].boss)for(let n=0;n<Math.ceil((WIDTH-220)/70);n++){
-  const x=125+n*70,y=floorY(x)-42-(n%3)*9;
-  if(solids().some(p=>x>p.x+8&&x<p.x+p.w-8) &&
-   !spikes.some(p=>Math.abs(p.x+22-x)<45))things.push({x,y,type:'coin',taken:false});
+ // Sparse, intentional coin pickups instead of a uniform 70-unit trail.
+ // Only place them over an actual continuous ground segment, clear of spikes,
+ // and stop before each thematic exit. Stars remain fixed collectibles.
+ const COIN_SPACING=240;
+ if(!stages[i].boss){
+  const ground=land();
+  for(let n=0,x=185;x<stages[i].exitX-110;x+=COIN_SPACING,n++){
+   const supported=ground.some(p=>x-22>=p.x&&x+22<=p.x+p.w);
+   const hazardous=spikes.some(p=>x>=p.x-58&&x<=p.x+p.w+58);
+   if(!supported||hazardous)continue;
+   things.push({x,y:G-54-(n%3===1?12:0),type:'coin',taken:false});
+  }
  }
  for(const [x,y] of stages[i].stars)things.push({x,y,type:'star',taken:false});
  bad=spawnEnemies(i);resetBossRun();
@@ -159,7 +176,7 @@ function renderGameHud(){
 }
 function end(win){
  if(scene!=='game')return;
- exitActive=false;scene='end';clearInput();updateBossHud();
+ exitActive=false;scene='end';syncChangelogButton();clearInput();updateBossHud();
  $('#play').classList.remove('hide');
  let finishedMs=0;
  if(win){
