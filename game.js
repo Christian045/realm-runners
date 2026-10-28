@@ -96,8 +96,8 @@ function start(i,hearts=3){
   jumpBuffer:0,jumpHeld:0,jumpActive:false,safeX:spawnX,safeY:spawnY,hitFlash:0};
  cam=Math.max(0,Math.min(WIDTH-W,hero.x-350));
  things=[];bad=[];spikes=stages[i].spikes.map(x=>({x,y:G-18,w:44,h:18}));
- if(!stages[i].boss)for(let n=0;n<Math.ceil((WIDTH-220)/82);n++){
-  const x=125+n*82,y=floorY(x)-42-(n%3)*9;
+ if(!stages[i].boss)for(let n=0;n<Math.ceil((WIDTH-220)/70);n++){
+  const x=125+n*70,y=floorY(x)-42-(n%3)*9;
   if(solids().some(p=>x>p.x+8&&x<p.x+p.w-8) &&
    !spikes.some(p=>Math.abs(p.x+22-x)<45))things.push({x,y,type:'coin',taken:false});
  }
