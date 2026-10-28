@@ -301,6 +301,9 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
  for(const p of land())for(let x=p.x+66;x<p.x+p.w-20;x+=136){
   if(x<cam-60||x>cam+W+60)continue;
   const tx=Math.floor(x/4)*4;
+  // Decorations reach up to 54px to the right of their anchor. Never
+  // allow flowers, torch pedestals or masonry to overhang a real pit.
+  if(!hasSceneryFoundation(tx-22,80))continue;
   if(stage===0){
    // Giant woodland mushrooms, golden flower heads, bright leafy shrubs.
    ctx.fillStyle='#2c6241';ctx.fillRect(tx-20,G-20,40,20);
