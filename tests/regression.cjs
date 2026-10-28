@@ -686,7 +686,7 @@ test('v0.11 stages extend ~80 percent with ground-first Mario/Sonic-style routin
   assert.ok(c.spikes.every(x=>x<c.exitX-500));
   assert.ok(c.enemies.every(x=>x<c.exitX-475));
   assert.ok(c.stars.length===3,'3 stars remain in each adventure');
-  assert.equal(c.coinSpots.length,[15,16,15,16][i],'coins remain relatively sparse');
+  assert.equal(c.coins.length,[15,16,15,16][i],'coins remain relatively sparse');
  }
 });
 test('v0.11 the boss occupies the entire visible viewport, not a hidden sub-arena',()=>{
