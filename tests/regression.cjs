@@ -167,7 +167,7 @@ test('Pixel Edition: previous time trials remain untouched after recording new r
  h.run("save.class='mage';save.bestTimes={'1-1':{mage:69000}};save.bestTimesV05={'1-1':{mage:72000}};start(0);for(let i=0;i<90;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimes['1-1'].mage"),69000);
  assert.equal(h.run("save.bestTimesV05['1-1'].mage"),72000);
- assert.ok(h.run("save.bestTimesV09['1-1'].mage")>0);
+ assert.ok(h.run("save.bestTimesV10['1-1'].mage")>0);
 });
 test('Pixel Edition: maximum terrain gap remains passable without forced long dash',()=>{
  const gapLengths=h.run('stages.flatMap(s=>s.gaps.map(([a,b])=>b-a))');
@@ -435,7 +435,7 @@ test('v0.8 holding attack repeats after class cooldown; release stops it',()=>{
 test('v0.8 old best times and skills survive; new enemy records do not overwrite them',()=>{
  h.run("save.class='mage';save.bestTimesPixelV051['1-1']={mage:76000};save.bestTimesV08={};save.level=6;start(0);for(let i=0;i<25;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimesPixelV051['1-1'].mage"),76000);
- assert.ok(h.run("save.bestTimesV09['1-1'].mage")>0);
+ assert.ok(h.run("save.bestTimesV10['1-1'].mage")>0);
  assert.equal(h.run('save.level'),6);
  assert.equal(h.run('save.skills.mage.includes(\'fireball_damage\')'),true);
 });
@@ -531,6 +531,46 @@ test('v0.9 old records and player progression remain intact',()=>{
  assert.equal(h.run('save.saveVersion'),7);
 });
 
+test('v0.10 world overview and level selection show records for active class',()=>{
+ h.run("menuView='worlds';menu();save.unlocked=3;save.class='mage';save.bestTimesV10['1-1']={mage:92000,hunter:87000};menu()");
+ assert.equal(h.run('scene'),'menu');
+ assert.ok(h.run("document.querySelector('#worlds').innerHTML").includes('Smaragdwald'));
+ assert.ok(h.run("document.querySelector('#worlds').innerHTML").includes('Frostgipfel'));
+ assert.ok(h.run("document.querySelector('#worlds').innerHTML").includes('GESPERRT'));
+ h.run("menuView='levels';menu()");
+ const markup=h.run("document.querySelector('#levels').innerHTML");
+ assert.ok(markup.includes('Sonnenpfad'));
+ assert.ok(markup.includes('Baumkronen'));
+ assert.ok(markup.includes('Moosruinen'));
+ assert.ok(markup.includes('Königstraße'));
+ assert.ok(markup.includes('Schleimkönig'));
+ assert.ok(markup.includes('01:32.00'),'best mage time is printed on its level card');
+ assert.equal(h.run('worldBestTime(0)'),92000);
+ assert.equal(h.run("document.querySelector('#worldMapInfo').innerHTML").includes('01:32.00'),true);
+ assert.equal((markup.match(/class="level-card/g)||[]).length,5);
+ assert.equal((markup.match(/ disabled/g)||[]).length,2);
+ h.run("save.class='hunter';menu()");
+ assert.equal(h.run('worldBestTime(0)'),87000);
+ assert.ok(h.run("document.querySelector('#levels').innerHTML").includes('01:27.00'));
+ h.run("save.unlocked=5;menuView='worlds';menu()");
+});
+test('v0.10 pixel star is a distinct crisp sprite on map and in HUD',()=>{
+ h.run("start(0);things=[{x:hero.x+15,y:hero.y+20,type:'star',taken:false}];step(1);draw()");
+ assert.equal(h.run('hero.stars'),1);
+ assert.ok(h.run("document.querySelector('#hudLeft').innerHTML").includes('viewBox="0 0 24 24"'));
+ assert.ok(h.run("document.querySelector('#hudLeft').innerHTML").includes('star-counter'));
+ assert.equal(h.run('typeof drawWorldStar'),'function');
+ assert.equal(h.run('typeof drawLevelExit'),'function');
+});
+test('v0.10 each level exit refuses passing from far away or while airborne',()=>{
+ for(let i=0;i<4;i++){
+  h.run(`start(${i});hero.x=WIDTH-55;hero.y=G-43;hero.on=true;step(1)`);
+  assert.equal(h.run('exitActive'),false,'right boundary no longer wins');
+  assert.equal(h.run('scene'),'game');
+  h.run("hero.x=stages[stage].exitX-30;hero.y=G-90;hero.on=false");
+  assert.equal(h.run('tryEnterLevelExit()'),false,'no airborne exit activation');
+ }
+});
 test('v0.9.1 heart HUD uses three clear pixel icons and updates immediately',()=>{
  h.run('start(0)');
  assert.ok(h.run("document.querySelector('#hudLeft').innerHTML").includes('heart-row'));
