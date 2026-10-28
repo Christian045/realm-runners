@@ -210,7 +210,7 @@ test('v0.6 fifth level cannot finish until the Slime King is defeated',()=>{
  assert.equal(h.run('scene'),'end','boss death alone must finish without reaching any flag');
  const saved=JSON.parse(h.storage.get('realm-runners-save-v2'));
  assert.equal(saved.slimeKingWins>=1,true);
- assert.ok(saved.bestTimesBossV062['1-5'].mage>0);
+ assert.ok(saved.bestTimesBossV09['1-5'].mage>0);
 });
 test('v0.6 Slime King red health bar tracks damage and boss resets on death',()=>{
  h.run("start(4);hero.x=2070;step(1)");
