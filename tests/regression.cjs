@@ -46,7 +46,7 @@ h.run("save.class='hunter';start(0);for(let i=0;i<60;i++)step(1);hero.x=300;cam=
 console.log(`${checks} checks passed. Canvas preview: test-output/forest-v03.png`);
 
 test('v0.4 timer only advances during active simulation',()=>{h.run("start(0);for(let i=0;i<60;i++)step(1)");assert.equal(h.run('currentTime()'),1000);h.run("pause();step(1)");assert.equal(h.run('currentTime()'),1000);h.run('resume()');});
-test('v0.8 local leaderboard records best time per class',()=>{h.run("save.class='mage';start(0);for(let i=0;i<80;i++)step(1);recordTime()");const first=h.run("save.bestTimesV12['1-1'].mage");h.run('start(0);for(let i=0;i<100;i++)step(1);recordTime()');assert.equal(h.run("save.bestTimesV11['1-1'].mage"),first);});
+test('v0.8 local leaderboard records best time per class',()=>{h.run("save.class='mage';start(0);for(let i=0;i<80;i++)step(1);recordTime()");const first=h.run("save.bestTimesV12['1-1'].mage");h.run('start(0);for(let i=0;i<100;i++)step(1);recordTime()');assert.equal(h.run("save.bestTimesV12['1-1'].mage"),first);});
 test('v0.4 skills unlock in order and survive persistence',()=>{h.run("save.class='mage';save.level=5;ensureRpgSave()");assert.equal(h.run("unlockSkill('double_fireball')"),false);assert.equal(h.run("unlockSkill('fireball_damage')"),true);assert.ok(JSON.parse(h.storage.get('realm-runners-save-v2')).skills.mage.includes('fireball_damage'));});
 test('v0.4 mage projectile damages an enemy',()=>{h.run("save.class='mage';start(0);hero.x=370;hero.y=420;hero.face=1;performAttack();for(let i=0;i<12;i++)combatTick(1)");assert.ok(h.run('bad[0].hp<bad[0].maxHp||!bad[0].alive'));});
 test('v0.4 inventory equips class-specific items',()=>{h.run("save.class='mage';save.inventory.push('ember_staff');equipItem('ember_staff')");assert.equal(h.run("save.equipment.mage.weapon"),'ember_staff');assert.equal(h.run("equipItem('swift_bow')"),false);});
@@ -168,7 +168,7 @@ test('Pixel Edition: previous time trials remain untouched after recording new r
  h.run("save.class='mage';save.bestTimes={'1-1':{mage:69000}};save.bestTimesV05={'1-1':{mage:72000}};start(0);for(let i=0;i<90;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimes['1-1'].mage"),69000);
  assert.equal(h.run("save.bestTimesV05['1-1'].mage"),72000);
- assert.ok(h.run("save.bestTimesV11['1-1'].mage")>0);
+ assert.ok(h.run("save.bestTimesV12['1-1'].mage")>0);
 });
 test('Pixel Edition: maximum terrain gap remains passable without forced long dash',()=>{
  const gapLengths=h.run('stages.flatMap(s=>s.gaps.map(([a,b])=>b-a))');
@@ -436,7 +436,7 @@ test('v0.8 holding attack repeats after class cooldown; release stops it',()=>{
 test('v0.8 old best times and skills survive; new enemy records do not overwrite them',()=>{
  h.run("save.class='mage';save.bestTimesPixelV051['1-1']={mage:76000};save.bestTimesV08={};save.level=6;start(0);for(let i=0;i<25;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimesPixelV051['1-1'].mage"),76000);
- assert.ok(h.run("save.bestTimesV11['1-1'].mage")>0);
+ assert.ok(h.run("save.bestTimesV12['1-1'].mage")>0);
  assert.equal(h.run('save.level'),6);
  assert.equal(h.run('save.skills.mage.includes(\'fireball_damage\')'),true);
 });
@@ -811,14 +811,15 @@ test('v0.11 the boss occupies the entire visible viewport, not a hidden sub-aren
  assert.ok(pixels.every(a=>a>0),'both visible room boundaries are drawn');
 });
 test('v0.11 fresh longer-course and arena records preserve all old personal bests',()=>{
- h.run("save.class='hunter';save.bestTimesV10={'1-1':{hunter:90000}};save.bestTimesBossV09={'1-5':{hunter:52000}};start(0);for(let i=0;i<35;i++)step(1);recordTime()");
+ h.run("save.class='hunter';save.bestTimesV10={'1-1':{hunter:90000}};save.bestTimesV11={'1-1':{hunter:125000}};save.bestTimesBossV09={'1-5':{hunter:52000}};start(0);for(let i=0;i<35;i++)step(1);recordTime()");
  assert.equal(h.run("save.bestTimesV10['1-1'].hunter"),90000);
- assert.ok(h.run("save.bestTimesV11['1-1'].hunter")>0);
+ assert.equal(h.run("save.bestTimesV11['1-1'].hunter"),125000);
+ assert.ok(h.run("save.bestTimesV12['1-1'].hunter")>0);
  h.run("start(4);for(let i=0;i<8;i++)step(1);boss.hurt=0;boss.hp=1;damageBoss(1);for(let i=0;i<BOSS_VICTORY_FRAMES;i++)step(1)");
  assert.equal(h.run('scene'),'end');
  assert.equal(h.run("save.bestTimesBossV09['1-5'].hunter"),52000);
  assert.ok(h.run("save.bestTimesBossV11['1-5'].hunter")>0);
- assert.equal(h.run('save.saveVersion'),8);
+ assert.equal(h.run('save.saveVersion'),9);
 });
 test('v0.10.1 release notes are restricted to the real main world menu',()=>{
  const all=h.run('RELEASE_NOTES.map(note=>note.v)');
