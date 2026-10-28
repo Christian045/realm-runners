@@ -124,11 +124,13 @@ function enemyTick(dt){
 }
 function enemyHazardsHitHero(prevY=hero?.y??0){
  if(scene!=='game'||!hero)return false;
+ // Grace frames are an intentional escape route from stacked enemies.
+ if(invincible>0)return false;
  for(const shot of enemyShots){
   const x=hero.x+hero.w/2,y=hero.y+hero.h/2;
   if(Math.abs(shot.x-x)<hero.w/2+shot.radius-3&&Math.abs(shot.y-y)<hero.h/2+shot.radius-3){
    if(hero.dash>0){shot.life=0;burst(shot.x,shot.y,'#ffba84',6,2);}
-   else{die();return true;}
+   else{shot.life=0;const hit=die(shot.x);enemyShots=enemyShots.filter(s=>s.life>0);return hit;}
   }
  }
  enemyShots=enemyShots.filter(s=>s.life>0);
@@ -147,7 +149,7 @@ function enemyHazardsHitHero(prevY=hero?.y??0){
    hero.y=Math.min(hero.y,e.y-hero.h+1);
    continue;
   }
-  die();return true;
+  return die(e.x+e.w/2);
  }
  return false;
 }

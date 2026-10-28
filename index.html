@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#101a33"><title>Realm Runners v0.9.0 · Smaragdwald</title>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#101a33"><title>Realm Runners v0.9.1 · Smaragdwald</title>
 <style>
 html,body,body *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}*{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-user-drag:none}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0a1630;font-family:system-ui,sans-serif;color:#fff;touch-action:none}canvas{display:block;width:100vw;height:100dvh}.hud{position:fixed;inset:10px 12px auto;display:flex;justify-content:space-between;gap:8px;pointer-events:none;font-weight:800;text-shadow:0 2px 4px #112}.pill{background:#152950cb;border:1px solid #5577a5a0;padding:8px 11px;border-radius:12px;font-size:clamp(11px,2.7vw,15px)}.controls{position:fixed;inset:auto 14px calc(12px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;pointer-events:none}.group{display:flex;gap:12px}.controls button{width:clamp(60px,14vw,80px);height:clamp(60px,14vw,80px);border:2px solid #9ec5f6a0;border-radius:24px;background:#234d91a9;color:#fff;font-weight:900;font-size:25px;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none}.controls button.jump{background:#5a469cbf}.controls button.skill{background:#8d597fbf}.layer{position:fixed;inset:0;background:#08152ce8;display:grid;place-items:center;padding:15px;overflow-y:auto}.panel{width:min(580px,100%);padding:20px;border:1px solid #6e9cc5;border-radius:24px;background:linear-gradient(145deg,#2d4879,#132448);box-shadow:0 20px 80px #0009;text-align:center}.panel h1{margin:5px 0 8px;font-size:clamp(25px,6vw,39px);letter-spacing:.5px}.panel p{color:#c8d8f5;line-height:1.45;font-size:14px}.choices,.levels{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin:16px auto}.choices button,.levels button,.primary,.secondary{border:1px solid #8eadde;border-radius:12px;color:white;background:#284d89;padding:12px 15px;font-size:14px;font-weight:800;cursor:pointer}.choices button.active,.levels button.active,.primary{background:#5184eb;border-color:#a2c3ff}.levels button:disabled{opacity:.38;cursor:not-allowed}.row{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}.secondary{background:#37415e}.tip{font-size:12px!important;opacity:.85}.hide{display:none!important}@media(min-width:950px){.controls{opacity:.6}}
 
@@ -59,7 +59,54 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
  box-shadow:inset 0 6px 0 #ff6266,inset 0 -4px 0 #ac192e;transition:width .1s linear}
 @media(max-height:450px){.boss-hud{top:calc(42px + env(safe-area-inset-top));width:min(350px,65vw)}
 .boss-health-track{height:16px;border-width:3px}.boss-label{padding:2px 7px;font-size:10px}}
-</style></head><body><canvas id="view"></canvas><div id="hud" class="hud hide"><div class="pill" id="hudLeft"></div><div class="hudRightGroup"><div class="pill" id="hudRight"></div><button id="pause" aria-label="Spiel pausieren">Ⅱ</button></div></div><div id="bossHud" class="boss-hud hide"><div id="bossState" class="boss-label">SCHLEIMKÖNIG</div><div id="bossHealthTrack" class="boss-health-track" role="progressbar" aria-label="Lebenspunkte des Schleimkönigs" aria-valuemin="0" aria-valuemax="56" aria-valuenow="56"><div id="bossHealthFill" class="boss-health-fill"></div></div></div><div class="controls hide" id="controls"><div class="group"><button data-control="left" aria-label="Links">◀</button><button data-control="right" aria-label="Rechts">▶</button></div><div class="group"><button class="skill" data-control="dash" aria-label="Dash">D</button><button class="skill" data-control="attack" aria-label="Angreifen">A</button><button class="jump" data-control="jump" aria-label="Springen">▲</button></div></div><div id="layer" class="layer"><div class="panel"><div class="eyebrow">DIE CHRONIKEN DES SMARAGDWALDS</div><div id="pixelEditionBadge" class="pixel-edition-badge">◆ PIXEL-WELTEN  ·  LANGE LEVEL · BOSS-PHASE II · 0.9.0 ◆</div><h1 id="heading">REALM RUNNERS</h1><p id="intro">Klassisches Jump ’n’ Run mit RPG-Fortschritt. Vier längere Abenteuerlevel, mehr Herausforderungen und ein gnadenloser Schleimkönig mit drei Angriffen und Phase II!</p><div id="menu"><div class="choices" id="classes"><button data-class="warrior">[K] Krieger</button><button data-class="hunter">[J] Jäger</button><button data-class="mage">[M] Magier</button></div><div id="progress"></div><div class="levels" id="levels"></div><div id="rpgPanels" class="rpg-panels"></div><p class="tip">Weitere Welten: ❄ Frostgipfel · 🌋 Glutberge · ☁ Himmelsruinen (in Entwicklung)</p></div><div class="row"><button class="primary hide" id="resume">Fortsetzen</button><button class="primary" id="play">Level starten</button><button class="secondary hide" id="return">Zur Weltkarte</button></div><button id="quality" aria-label="Grafikqualität wechseln">Grafik: Voll</button><p class="tip" id="help">v0.9.0: Level 1-1 bis 1-4 sind 50 % länger. Der Schleimkönig hat 56 HP, drei angekündigte Angriffe (Stampfen, Schleimsalve, Ansturm) und wird bei halber Gesundheit zornig. Springe über Wellen und Anstürme, weiche Schüssen aus und nutze kurze Erholungsphasen für Gegentreffer. Boss besiegt = Sieg! Springen: kurz tippen = niedrig, halten = hoch. Windows: A/D, Leertaste, Shift Dash, K/F Angriff, R Neustart. iPhone: Touch-Tasten. Keine Checkpoints.</p></div></div>
+
+/* Status bar: clear, sharply pixelled hearts and independently counted gold. */
+#hudLeft{display:flex;align-items:center;gap:clamp(5px,1.15vw,12px);padding:6px 10px!important;white-space:nowrap;min-height:37px}
+.heart-row{display:flex;align-items:center;gap:2px}
+.hud-heart{display:flex;align-items:center;justify-content:center;width:25px;height:26px;flex-shrink:0}
+.hud-heart svg{width:25px;height:25px;image-rendering:pixelated;filter:drop-shadow(2px 2px 0 #08171e)}
+.hud-heart.empty .heart-core{fill:#414954}
+.hud-heart.empty .heart-shine{fill:#79818c}
+.coin-counter{display:flex;align-items:center;gap:5px;color:#ffe0a4;font-size:clamp(12px,2.8vw,17px)}
+.coin-counter svg{width:23px;height:23px;flex-shrink:0;image-rendering:pixelated;filter:drop-shadow(2px 2px 0 #091c23)}
+.star-counter{color:#fff0ae;font-size:clamp(10px,2.25vw,13px);white-space:nowrap}
+.hudRightGroup{min-width:0;align-items:center}
+.hudRightGroup .pill{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#changelogBtn{
+ position:fixed;left:max(12px,env(safe-area-inset-left));bottom:calc(12px + env(safe-area-inset-bottom));
+ z-index:12;min-height:40px;padding:8px 13px;background:#17383a;color:#ffdda1;
+ border:3px solid #bbcb95;box-shadow:3px 3px 0 #081b24;
+ border-radius:0;font:800 12px ui-monospace,monospace;cursor:pointer;touch-action:manipulation
+}
+#controls:not(.hide)~#changelogBtn{bottom:calc(106px + env(safe-area-inset-bottom))}
+#changelogBtn:focus-visible,#changelogClose:focus-visible{outline:3px solid #ffe59f;outline-offset:3px}
+.changelog-overlay{
+ position:fixed;inset:0;z-index:25;display:grid;place-items:center;
+ background:#06151ee9;padding:calc(14px + env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))
+}
+.changelog-panel{
+ width:min(600px,100%);max-height:min(84dvh,730px);overflow:auto;overscroll-behavior:contain;
+ background:#112a30;color:#f6edcf;border:3px solid #aecb95;
+ box-shadow:7px 7px 0 #07171e;padding:clamp(12px,3vw,24px);touch-action:pan-y
+}
+.changelog-header{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:0;z-index:1;background:#112a30;padding-bottom:9px;border-bottom:2px solid #536b5f}
+.changelog-header h2{font-size:clamp(17px,4vw,23px);margin:0}
+#changelogClose{font:800 12px ui-monospace,monospace;white-space:nowrap;background:#355156;color:#fff1cd;border:2px solid #a8bd96;padding:8px;cursor:pointer}
+.changelog-release{border:2px solid #4b6c65;margin:10px 0;background:#173238}
+.changelog-release summary{cursor:pointer;padding:12px 10px;font-size:clamp(12px,2.7vw,15px);font-weight:800;line-height:1.4}
+.release-version{color:#f7d18a;margin-right:5px}
+.changelog-release ul{padding:0 16px 12px 33px;margin:0;line-height:1.5;font-size:clamp(11px,2.5vw,13px);color:#d9e5d3}
+.changelog-release li{margin:7px 0}
+@media(max-width:760px){#hudLeft{padding:4px 5px!important;gap:4px}.hud-heart,.hud-heart svg{width:20px;height:20px}.coin-counter svg{width:19px;height:19px}.star-counter{font-size:10px}}
+@media(max-height:440px){#changelogBtn{font-size:10px;min-height:30px;padding:5px 8px}#controls:not(.hide)~#changelogBtn{bottom:calc(80px + env(safe-area-inset-bottom))}.changelog-panel{max-height:90dvh}}
+</style></head><body><canvas id="view"></canvas><div id="hud" class="hud hide"><div class="pill" id="hudLeft" role="status" aria-live="polite" aria-label="Drei Herzen, null Münzen"></div><div class="hudRightGroup"><div class="pill" id="hudRight"></div><button id="pause" aria-label="Spiel pausieren">Ⅱ</button></div></div><div id="bossHud" class="boss-hud hide"><div id="bossState" class="boss-label">SCHLEIMKÖNIG</div><div id="bossHealthTrack" class="boss-health-track" role="progressbar" aria-label="Lebenspunkte des Schleimkönigs" aria-valuemin="0" aria-valuemax="56" aria-valuenow="56"><div id="bossHealthFill" class="boss-health-fill"></div></div></div><div class="controls hide" id="controls"><div class="group"><button data-control="left" aria-label="Links">◀</button><button data-control="right" aria-label="Rechts">▶</button></div><div class="group"><button class="skill" data-control="dash" aria-label="Dash">D</button><button class="skill" data-control="attack" aria-label="Angreifen">A</button><button class="jump" data-control="jump" aria-label="Springen">▲</button></div></div><div id="layer" class="layer"><div class="panel"><div class="eyebrow">DIE CHRONIKEN DES SMARAGDWALDS</div><div id="pixelEditionBadge" class="pixel-edition-badge">◆ PIXEL-WELTEN  ·  HERZEN & MÜNZEN · 0.9.1 ◆</div><h1 id="heading">REALM RUNNERS</h1><p id="intro">Klassisches Jump ’n’ Run mit RPG-Fortschritt. Vier längere Abenteuerlevel, Pixel-Herzen, schönere Münzen und ein herausfordernder Schleimkönig!</p><div id="menu"><div class="choices" id="classes"><button data-class="warrior">[K] Krieger</button><button data-class="hunter">[J] Jäger</button><button data-class="mage">[M] Magier</button></div><div id="progress"></div><div class="levels" id="levels"></div><div id="rpgPanels" class="rpg-panels"></div><p class="tip">Weitere Welten: ❄ Frostgipfel · 🌋 Glutberge · ☁ Himmelsruinen (in Entwicklung)</p></div><div class="row"><button class="primary hide" id="resume">Fortsetzen</button><button class="primary" id="play">Level starten</button><button class="secondary hide" id="return">Zur Weltkarte</button></div><button id="quality" aria-label="Grafikqualität wechseln">Grafik: Voll</button><p class="tip" id="help">v0.9.1: Bei Treffern verlierst du nur ein Herz, blinkst kurz und spielst sofort weiter. Drei Treffer = Game Over. Münzen werden dauerhaft als Gold gespeichert; fallende und fahrende Plattformen sind vorerst entfernt. Der Schleimkönig behält seine drei Angriffe und Phase II. Änderungen findest du unten links unter „Updates“. Springen: kurz tippen = niedrig, halten = hoch. Windows: A/D, Leertaste, Shift Dash, K/F Angriff, R Neustart. iPhone: Touch-Tasten. Keine Checkpoints.</p></div></div>
+<button id="changelogBtn" type="button" aria-haspopup="dialog" aria-controls="changelogOverlay" aria-expanded="false">📜 Updates</button>
+<div id="changelogOverlay" class="changelog-overlay hide" role="dialog" aria-modal="true" aria-labelledby="changelogTitle">
+ <section class="changelog-panel"><header class="changelog-header">
+  <h2 id="changelogTitle">Realm Runners · Versionsverlauf</h2>
+  <button id="changelogClose" type="button">✕ Schließen</button>
+ </header><div id="changelogEntries"></div></section>
+</div>
 <script>
 // Long presses belong to the game, not Safari's text selection or image callout.
 // Touch gestures are handled independently in game.js.
@@ -67,4 +114,4 @@ for (const eventName of ['contextmenu', 'selectstart', 'dragstart']) {
   document.addEventListener(eventName, event => event.preventDefault(), {capture:true});
 }
 </script>
-<script src="game.js?v=0.9.0"></script><script src="rpg.js?v=0.9.0"></script><script src="boss.js?v=0.9.0"></script><script src="platforms.js?v=0.9.0"></script><script src="enemies.js?v=0.9.0"></script><script src="castle_art.js?v=0.9.0"></script><script src="hd_background.js?v=0.9.0"></script><script src="forest.js?v=0.9.0"></script></body></html>
+<script src="game.js?v=0.9.1"></script><script src="rpg.js?v=0.9.1"></script><script src="boss.js?v=0.9.1"></script><script src="enemies.js?v=0.9.1"></script><script src="castle_art.js?v=0.9.1"></script><script src="hd_background.js?v=0.9.1"></script><script src="forest.js?v=0.9.1"></script><script src="changelog.js?v=0.9.1"></script></body></html>

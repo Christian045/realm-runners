@@ -260,6 +260,23 @@ function draw(){
  screen.drawImage(pixelCanvas,0,0,W,H);
  screen.restore();
 }
+// High-contrast 24px pixel coin, individually shaded and outlined.
+// It matches the gold HUD icon and remains legible on an iPhone.
+function drawWorldCoin(cx,cy){
+ const x=Math.round(cx/2)*2,y=Math.round(cy/2)*2;
+ ctx.save();ctx.translate(x,y);
+ ctx.fillStyle='#10252e';ctx.fillRect(-8,-14,16,28);ctx.fillRect(-13,-9,26,18);
+ ctx.fillStyle='#986128';ctx.fillRect(-8,-11,16,22);ctx.fillRect(-11,-8,22,16);
+ ctx.fillStyle='#f2b94f';ctx.fillRect(-7,-10,14,20);ctx.fillRect(-10,-6,20,12);
+ ctx.fillStyle='#ffdf79';ctx.fillRect(-5,-9,10,18);ctx.fillRect(-8,-4,16,8);
+ ctx.fillStyle='#ffefae';ctx.fillRect(-6,-7,5,5);ctx.fillRect(-4,-10,7,3);
+ ctx.fillStyle='#b97527';ctx.fillRect(1,-6,5,3);ctx.fillRect(-2,-3,8,3);ctx.fillRect(-2,0,4,6);ctx.fillRect(-1,6,6,2);
+ ctx.fillStyle='#fff7cb';ctx.fillRect(-6,-4,3,4);
+ if(!reducedMotion&&Math.sin(visualTime*3+cx*.015)>.65){
+  ctx.fillStyle='#fff3b9';ctx.fillRect(11,-14,4,7);ctx.fillRect(9,-12,9,3);
+ }
+ ctx.restore();
+}
 function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();
  ctx.save();ctx.translate(-cam,0);
  for(const [i,p] of solids().filter(p=>!p.kind).entries()){
@@ -270,7 +287,7 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
   ctx.fillStyle=stageThemes[stage].soil[4];ctx.fillRect(p.x,p.y-3,p.w,4);
   ctx.fillStyle=stageThemes[stage].soil[0];ctx.fillRect(p.x,p.y+2,p.w,3);
  }
- drawDynamicPlatforms();
+ // Moving and collapsing platforms are deliberately disabled in this edition.
  if(stage===BOSS_LEVEL){
   for(const x of [BOSS_ARENA_LEFT-14,BOSS_ARENA_RIGHT+6]){
    ctx.fillStyle='#192031';ctx.fillRect(x,G-82,14,82);
@@ -354,9 +371,15 @@ function drawPixelScene(){ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip(
    ctx.fillStyle='#ffe5a4';ctx.fillRect(s.x+6+k*15,s.y+7,4,7);
   }
  }
- for(const a of things){if(a.taken||a.x<cam-25||a.x>cam+W+25)continue;const y=a.y+(reducedMotion?0:Math.sin(visualTime*3+a.x)*3);if(a.type==='star'){glow(a.x,y,26,'#f3df8b35');let pts=[];for(let j=0;j<10;j++){const an=j*Math.PI/5-Math.PI/2,r=j%2?7:16;pts.push([a.x+Math.cos(an)*r,y+Math.sin(an)*r]);}poly(ctx,pts,'#f4dd93');line(ctx,a.x,y-10,a.x-3,y-1,'#fff4d0',2);}else{const rx=reducedMotion?6:3+Math.abs(Math.cos(visualTime*2+a.x))*4;ellipse(ctx,a.x,y,rx,9,'#99774b');ellipse(ctx,a.x,y-1,rx-1,7,'#e5be6c');line(ctx,a.x,y-5,a.x,y+3,'#fff0b0',1);}}
+ for(const a of things){if(a.taken||a.x<cam-25||a.x>cam+W+25)continue;const y=a.y+(reducedMotion?0:Math.sin(visualTime*3+a.x)*3);if(a.type==='star'){glow(a.x,y,26,'#f3df8b35');let pts=[];for(let j=0;j<10;j++){const an=j*Math.PI/5-Math.PI/2,r=j%2?7:16;pts.push([a.x+Math.cos(an)*r,y+Math.sin(an)*r]);}poly(ctx,pts,'#f4dd93');line(ctx,a.x,y-10,a.x-3,y-1,'#fff4d0',2);}else{drawWorldCoin(a.x,y);}}
  bad.forEach(drawEnemyMob);drawEnemyShots();drawBoss();if(stage!==3&&!stages[stage].boss)finishFlag({x:WIDTH-77});drawHero();drawCombatEffects();
  for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}ctx.globalAlpha=1;ctx.restore();
+ // Brief red damage feedback is confined to the border of the viewport.
+ if(hero?.hitFlash>0&&scene==='game'){
+  ctx.save();ctx.globalAlpha=Math.min(.30,hero.hitFlash/105);
+  ctx.fillStyle='#ed536b';ctx.fillRect(0,0,W,8);ctx.fillRect(0,H-8,W,8);
+  ctx.fillRect(0,8,8,H-16);ctx.fillRect(W-8,8,8,H-16);ctx.restore();
+ }
  // No foreground haze or vignette: the player and interactive tiles retain full contrast.
  // Minimal in-world labels leave the playfield visible on a phone.
  if(scene==='game'&&t<240){ctx.globalAlpha=Math.min(1,(240-t)/60);ctx.textAlign='center';ctx.font='bold 12px monospace';ctx.fillStyle='#e0ebce';ctx.fillText('SMARAGDWALD  /  '+stages[stage].name.toUpperCase(),W/2,84);ctx.globalAlpha=1;}

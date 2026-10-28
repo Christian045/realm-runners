@@ -101,7 +101,7 @@ function ensureRpgSave(){
  const spent=Object.values(save.skills).reduce((sum,ids)=>sum+ids.length,0);
  save.skillPoints=Math.max(0,save.level-1-spent);
  save.slimeKingWins=Number.isFinite(Number(save.slimeKingWins))?Math.max(0,Math.floor(Number(save.slimeKingWins))):0;
- save.saveVersion=5;
+ save.saveVersion=6;
 }
 ensureRpgSave();
 let runFrames=0,attackWas=false,attackCooldown=0,projectiles=[],attackFlash=0,groundLoot=[];

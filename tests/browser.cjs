@@ -70,7 +70,7 @@ const fs=require('node:fs');
  assert.equal(pixelArt.backdropSkyAlpha,255,'HD sky should be visible under gameplay');
  await page.evaluate(()=>menu());
  assert.ok(await page.locator('#pixelEditionBadge').isVisible());
- assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.9\.0/);
+ assert.match(await page.locator('#pixelEditionBadge').innerText(),/0\.9\.1/);
  // Store each biome in the CI artifacts so pixel-style changes are reviewable.
  for(const [level,label] of [[0,'forest'],[1,'canopy'],[2,'ruins'],[3,'swamp'],[4,'slime-king']]){
   await page.evaluate(index=>{start(index);if(index===4){hero.x=2220;step(1);cam=1840;}draw();},level);
@@ -178,26 +178,45 @@ const fs=require('node:fs');
  await page.evaluate(()=>{start(3);hero.x=2420;hero.y=G-43;cam=WIDTH-W;draw()});
  await page.screenshot({path:`test-output/${name}-castle-gate.png`});
  await page.evaluate(()=>{start(3);hero.x=1090;hero.y=G-43;cam=760;draw()});
- await page.screenshot({path:`test-output/${name}-moving-bridge.png`});
+ await page.screenshot({path:`test-output/${name}-static-castle-path.png`});
  await page.evaluate(()=>{start(4);hero.x=2210;cam=1840;draw()});
  await page.screenshot({path:`test-output/${name}-castle-throne.png`});
  assert.deepEqual(await page.evaluate(()=>({enemies:bad.length,spikes:spikes.length,gaps:stages[4].gaps.length})),{enemies:0,spikes:0,gaps:0});
  await page.evaluate(()=>{
-  start(3);
-  hero.x=movingPlatforms[1].x+35;
-  hero.y=movingPlatforms[1].y-hero.h;
-  hero.on=true;hero.riding=movingPlatforms[1].id;hero.vy=0;
-  const previous=hero.x;
-  step(1);
-  if(hero.riding!=='m1'||hero.x<=previous)throw Error('Moving platform did not carry the player');
-  start(3);
-  const p=movingPlatforms.find(item=>item.id==='c0');
-  hero.x=p.x+20;hero.y=p.y-hero.h-8;hero.vy=10;hero.on=false;
-  step(1);
-  if(p.state!=='shaking')throw Error('Crumbling platform did not warn');
-  for(let i=0;i<35;i++)platformTick(1);
-  if(p.state!=='falling')throw Error('Crumbling platform did not fall');
+  for(let i=0;i<5;i++){
+   start(i);
+   if(stages[i].moving||stages[i].crumbling||typeof movingPlatforms!=='undefined')
+    throw Error('Moving and collapsing platforms must be disabled');
+   if(solids().some(p=>p.kind))throw Error('Only static platforms should render');
+  }
  });
+ // Actual gold collection, non-resetting damage and visible pixel hearts.
+ await page.evaluate(()=>{
+  start(0);hero.x=85;hero.y=G-43;
+  things=[{x:hero.x+15,y:hero.y+20,type:'coin',taken:false}];
+  step(1);
+  if(hero.coins!==1||!save.gold)throw Error('Coin pickup failed');
+  if(!document.querySelector('#hudLeft').innerHTML.includes('coin-counter'))
+   throw Error('Gold HUD icon missing');
+  hero.x=1600;hero.y=G-43;die(1640);
+  if(hero.hearts!==2||hero.x<1500||scene!=='game')throw Error('Hit incorrectly reset progress');
+  if(!document.querySelector('#hudLeft').getAttribute('aria-label').includes('2 von 3 Herzen'))
+   throw Error('Pixel hearts did not update');
+  const hearts=hero.hearts;
+  die(1640);
+  if(hero.hearts!==hearts)throw Error('Repeat hit bypassed grace frames');
+  cam=1340;draw();
+ });
+ await page.screenshot({path:`test-output/${name}-pixel-hearts-and-coins.png`});
+ await page.locator('#changelogBtn').click();
+ assert.equal(await page.evaluate(()=>scene),'pause','changelog must pause gameplay');
+ await page.locator('#changelogOverlay').waitFor({state:'visible'});
+ assert.match(await page.locator('#changelogEntries').innerText(),/0.9.1/);
+ assert.match(await page.locator('#changelogEntries').innerText(),/0.4.0/);
+ await page.screenshot({path:`test-output/${name}-changelog.png`});
+ await page.locator('#changelogClose').click();
+ assert.equal(await page.evaluate(()=>scene),'game','closing changelog resumes gameplay');
+ assert.equal(await page.locator('#changelogOverlay').isVisible(),false);
   // Real in-browser encounter: red bar appears, three classes and stamp attacks run.
  await page.evaluate(()=>{
   save.class='mage';start(4);hero.x=boss.x-175;hero.y=G-43;
@@ -288,6 +307,7 @@ const fs=require('node:fs');
  assert.deepEqual(await page.evaluate(()=>({xp:save.xp,level:save.level})),expectedProgress,
   'boss and regular level XP must survive reload, including level ups');
  assert.equal(await page.evaluate(()=>save.stars[0]),3);
+ assert.ok(await page.evaluate(()=>save.gold>=1),'collected gold survives reload');
  await page.locator('#play').click();await page.screenshot({path:`test-output/${name}-landscape.png`});
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:`test-output/${name}-portrait.png`});
  for(const b of await page.locator('[data-control]').all()){const box=await b.boundingBox();assert.ok(box&&box.x>=0&&box.y>=0&&box.x+box.width<=390&&box.y+box.height<=844);}
