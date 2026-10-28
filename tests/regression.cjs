@@ -708,6 +708,88 @@ test('v0.11 every mandatory ground gap is jumpable without Dash in all three cla
   }
  }
 });
+test('v0.12 every obstacle is grounded, uniquely placed and clear of hazards/landings',()=>{
+ const scenes=h.run('stages.slice(0,4).map(s=>({width:s.width,exitX:s.exitX,gaps:s.gaps,spikes:s.spikes,enemies:s.enemies,obstacles:s.obstacles,traps:s.traps,stars:s.stars}))');
+ assert.deepEqual([...scenes.map(s=>s.obstacles.length)],[5,5,5,5]);
+ assert.deepEqual([...scenes.map(s=>s.traps.length)],[0,0,2,2]);
+ assert.deepEqual([...scenes.map(s=>s.spikes.length)],[5,5,6,4]);
+ for(let i=0;i<4;i++){
+  const cfg=scenes[i];const obs=cfg.obstacles;
+  assert.ok(obs.every(o=>o.x>220&&o.x+o.w<cfg.exitX-600&&o.h>=29&&o.h<=39));
+  assert.ok(obs.every(o=>['log','roots','rubble','barricade'][i]===o.type));
+  for(const o of obs){
+   assert.ok(cfg.gaps.every(([a,b])=>o.x+o.w<a-40||o.x>b+40),'grounded block has gap-safe approaches');
+   assert.equal(h.run('hasSceneryFoundation('+o.x+','+o.w+','+i+')'),true);
+   assert.ok(cfg.enemies.every(x=>o.x+o.w<x-70||o.x>x+35+70),'enemy patrol not merged with block');
+   assert.ok(cfg.spikes.every(x=>o.x+o.w<x-50||o.x>x+44+50),'hazards not stacked immediately behind blocks');
+  }
+  for(const trap of cfg.traps){
+   assert.equal(trap.dir,-1,'traps face approaching heroes');
+   assert.ok(cfg.gaps.every(([a,b])=>trap.x+20<a||trap.x-20>b),'trap is supported');
+   assert.ok(cfg.enemies.every(x=>Math.abs(x-trap.x)>=100),'no enemy camps the firing slot');
+   assert.ok(cfg.spikes.every(x=>x<trap.x-110||x>trap.x+50),'no hidden overlapping spikes');
+   assert.ok(cfg.obstacles.every(o=>Math.abs(o.x-trap.x)>=140),'no unreachable combined trap + wall');
+   assert.ok(cfg.exitX-trap.x>600,'no surprise trap at the exit');
+  }
+  h.run('start('+i+')');
+  assert.equal(h.run('courseTraps.length'),cfg.traps.length);
+  assert.equal(h.run('courseSolids().length'),cfg.obstacles.length);
+ }
+ h.run('start(4)');
+ assert.equal(h.run('courseTraps.length'),0);
+ assert.equal(h.run('courseSolids().length'),0);
+});
+test('v0.12 all three classes cannot walk through a block but can jump over it without Dash',()=>{
+ for(const cls of ['warrior','hunter','mage'])for(let i=0;i<4;i++){
+  const ob=h.run('stages['+i+'].obstacles[0]');
+  h.run("save.class='"+cls+"';start("+i+");bad=[];spikes=[];courseTraps=[];hero.x="+(ob.x-57)+";hero.y=G-hero.h;hero.vy=0;hero.on=true;input.right=true;");
+  h.run('for(let f=0;f<12;f++)step(1)');
+  assert.equal(h.run('hero.x'),ob.x-30,cls+' must be blocked at face of '+ob.type);
+  assert.equal(h.run('hero.hearts'),3);
+  h.run('input.jump=true;for(let f=0;f<41;f++)step(1);input.jump=false;input.right=false');
+  assert.ok(h.run('hero.x')>ob.x+ob.w+8,
+   cls+' should jump fully over '+ob.type+' at stage '+(i+1)+'; x='+h.run('hero.x'));
+  assert.equal(h.run('hero.hearts'),3);
+  assert.equal(h.run('scene'),'game');
+ }
+});
+test('v0.12 raised block tops can be safely landed on without float-through',()=>{
+ h.run("save.class='warrior';start(0);bad=[];spikes=[];courseTraps=[]");
+ const o=h.run('stages[0].obstacles[0]');
+ h.run("hero.x="+(o.x+o.w/2-15)+";hero.y=G-"+o.h+"-hero.h-55;hero.vy=7;hero.on=false");
+ h.run('for(let f=0;f<20;f++)step(1)');
+ assert.equal(h.run('hero.on'),true);
+ assert.equal(h.run('hero.y'),465-o.h-43);
+ assert.equal(h.run('hero.hearts'),3);
+});
+test('v0.12 visible turret windup is dodgeable and deals at most one heart',()=>{
+ h.run("save.class='mage';start(2);bad=[];spikes=[];hero.x=courseTraps[0].x-260;hero.y=G-hero.h;hero.on=true");
+ h.run('tickCourseFeatures(1)');
+ assert.equal(h.run("courseTraps[0].phase"),'warn');
+ assert.equal(h.run('courseDarts.length'),0);
+ h.run('for(let i=0;i<41;i++)tickCourseFeatures(1)');
+ assert.equal(h.run('courseDarts.length'),0,'windup stays safe for full 42-frame tell');
+ h.run('tickCourseFeatures(1)');
+ assert.equal(h.run("courseTraps[0].phase"),'idle');
+ assert.equal(h.run('courseDarts.length'),1);
+ assert.ok(h.run('courseTraps[0].cooldown')>=190);
+ h.run("courseDarts=[{x:hero.x+15,y:G-31,vx:-7.6,ttl:50,source:courseTraps[0].x}]");
+ assert.equal(h.run('tickCourseFeatures(1)'),true);
+ assert.equal(h.run('hero.hearts'),2);
+ assert.equal(h.run('scene'),'game');
+ assert.equal(h.run('invincible'),86);
+ h.run("courseDarts=[{x:hero.x+15,y:G-31,vx:-7.6,ttl:50,source:courseTraps[0].x}];tickCourseFeatures(1)");
+ assert.equal(h.run('hero.hearts'),2,'brief immunity cannot chain one-shot multiple hearts');
+});
+test('v0.12 a jump or dash cleanly avoids an indicated architectural arrow',()=>{
+ for(const avoid of ['jump','dash']){
+  h.run("start(3);bad=[];spikes=[];hero.x=courseTraps[0].x-190;hero.y="+(avoid==='jump'?250:'G-hero.h')+";hero.on="+(avoid==='jump'?'false':'true')+";hero.dash="+(avoid==='dash'?5:0));
+  h.run('courseDarts=[{x:hero.x+15,y:G-31,vx:-7.6,ttl:40,source:courseTraps[0].x}]');
+  assert.equal(h.run('tickCourseFeatures(1)'),false);
+  assert.equal(h.run('hero.hearts'),3,avoid+' must avoid projectile');
+  assert.equal(h.run('courseDarts.length'),0,'avoided arrow does not linger');
+ }
+});
 test('v0.11 the boss occupies the entire visible viewport, not a hidden sub-arena',()=>{
  h.run('start(4)');
  assert.equal(h.run('WIDTH'),h.run('W'));
