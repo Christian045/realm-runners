@@ -38,7 +38,7 @@ function renderWorldMenu(){
  const upcoming=WORLD_UPCOMING.map(w=>'<div class="world-card world-locked" aria-disabled="true">'+
   '<span class="world-number">'+w.tag+' · GESPERRT</span><strong>🔒 '+w.name+'</strong><span>'+w.desc+'</span></div>').join('');
  $('#worlds').innerHTML=worldCard+upcoming;
- $('#worlds').querySelector('[data-world="0"]').onclick=()=>{menuView='levels';menu();};
+ $('#worlds').querySelectorAll('[data-world="0"]').forEach(button=>button.onclick=()=>{menuView='levels';menu();});
  const cards=stages.map((stageInfo,i)=>{
   const locked=i>=save.unlocked,active=i===selected;
   const best=worldBestTime(i);
