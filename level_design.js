@@ -59,42 +59,56 @@ const WORLD_ONE_LAYOUTS=[
 ];
 for(let i=0;i<WORLD_ONE_LAYOUTS.length;i++)Object.assign(stages[i],WORLD_ONE_LAYOUTS[i]);
 Object.assign(stages[4],{short:'Schleimkönig',subtitle:'Thronsaal',hint:'Eine kompakte Bossarena mit Phase II und drei angekündigten Angriffen.',difficulty:'★★★'});
-// Minimap-like world decorations use the same sharp Pixel Edition palette as
-// solid tiles, but are placed behind playable terrain to avoid visual ambiguity.
+// World-space set pieces are authored against the actual ground segments.
+// Every structural FOOT has a collision-ground foundation. This avoids the
+// floating columns, trees, trunks and towers that appeared above chasms.
+const SCENERY_ANCHORS=Object.freeze({
+ grove:{trees:[145,1050,1990,3100,3810],logs:[530,1530,2720,3450]},
+ canopy:{trees:[240,840,1440,2185,2920,3550,3990]},
+ ruins:{arches:[350,1085,1770,2635,3390,4070]},
+ castle:{towers:[350,960,1985,2510,3280]}
+});
+function hasSceneryFoundation(x,width,stageIndex=stage){
+ const cfg=stages[stageIndex];
+ return Number.isFinite(x)&&Number.isFinite(width)&&width>0&&x>=0&&x+width<=cfg.width &&
+  cfg.gaps.every(([a,b])=>x+width<=a||x>=b);
+}
 function drawBiomeLandmarks(){
- if(stage===4)return;
- const motif=stages[stage].motif;
+ if(stage===BOSS_LEVEL)return;
+ const motif=stages[stage].motif,anchors=SCENERY_ANCHORS[motif];
+ if(!anchors)return;
  const visible=(x,w=90)=>x+w>cam-100&&x<cam+W+100;
  if(motif==='grove'){
-  for(const x of [145,1050,1990,3100,3810]){
-   if(!visible(x,125))continue;
+  for(const x of anchors.trees){
+   if(!visible(x,125)||!hasSceneryFoundation(x+36,28))continue;
    ctx.fillStyle='#355e43';ctx.fillRect(x+36,G-172,28,172);
    ctx.fillStyle='#6b9056';ctx.fillRect(x+18,G-200,90,40);ctx.fillRect(x,G-177,120,34);
    ctx.fillStyle='#a2ba69';ctx.fillRect(x+24,G-200,57,9);
    ctx.fillStyle='#213d32';ctx.fillRect(x+48,G-113,12,15);
   }
-  for(const x of [550,1530,2770,3450])if(visible(x,70)){
+  for(const x of anchors.logs){
+   if(!visible(x,78)||!hasSceneryFoundation(x,78))continue;
    ctx.fillStyle='#604d3f';ctx.fillRect(x,G-25,78,26);
    ctx.fillStyle='#977857';ctx.fillRect(x+3,G-23,66,7);
   }
  }else if(motif==='canopy'){
-  for(const x of [240,840,1490,2185,2920,3550,3990]){
-   if(!visible(x,110))continue;
+  for(const x of anchors.trees){
+   if(!visible(x,110)||!hasSceneryFoundation(x+24,44))continue;
+   // All branches grow out of a trunk that visibly reaches the terrain.
    ctx.fillStyle='#264e43';ctx.fillRect(x+24,G-290,44,290);
    ctx.fillStyle='#418569';ctx.fillRect(x+36,G-290,12,280);
    for(let y=G-280;y<G-80;y+=55){
     ctx.fillStyle='#326b5b';ctx.fillRect(x+6,y,95,13);
     ctx.fillStyle='#7aab7a';ctx.fillRect(x+10,y,56,4);
    }
-   ctx.fillStyle='#7db4a5';ctx.fillRect(x+55,G-270,5,67);
-  }
-  for(const x of [680,1740,2670,3375])if(visible(x,60)){
-   ctx.fillStyle='#5e9277';ctx.fillRect(x,G-264,8,110);
-   ctx.fillStyle='#abcfaf';ctx.fillRect(x+3,G-235,3,39);
+   // This creeper hangs directly from the trunk's branch, not from thin air.
+   ctx.fillStyle='#5e9277';ctx.fillRect(x+55,G-265,7,115);
+   ctx.fillStyle='#abcfaf';ctx.fillRect(x+58,G-232,3,38);
   }
  }else if(motif==='ruins'){
-  for(const x of [350,1085,1850,2685,3440,4070]){
-   if(!visible(x,175))continue;
+  for(const x of anchors.arches){
+   // Require BOTH columns to be grounded before drawing the lintel or doorway.
+   if(!visible(x,175)||!hasSceneryFoundation(x,24)||!hasSceneryFoundation(x+141,25))continue;
    ctx.fillStyle='#313c43';ctx.fillRect(x,G-225,24,225);ctx.fillRect(x+141,G-225,25,225);
    ctx.fillRect(x,G-240,167,28);ctx.fillRect(x+18,G-259,129,22);
    ctx.fillStyle='#7e897b';ctx.fillRect(x+4,G-238,154,6);
@@ -104,8 +118,8 @@ function drawBiomeLandmarks(){
    ctx.fillStyle='#1f353b';ctx.fillRect(x+24,G-199,117,199);
   }
  }else if(motif==='castle'){
-  for(const x of [350,1040,1940,2670,3400]){
-   if(!visible(x,140))continue;
+  for(const x of anchors.towers){
+   if(!visible(x,140)||!hasSceneryFoundation(x,125))continue;
    ctx.fillStyle='#3b3d50';ctx.fillRect(x,G-208,125,208);
    ctx.fillStyle='#777181';ctx.fillRect(x-10,G-215,146,13);
    for(let b=0;b<125;b+=27){ctx.fillStyle='#4b4556';ctx.fillRect(x+b,G-236,17,22);}
