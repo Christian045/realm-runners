@@ -9,6 +9,8 @@ const assert=require('node:assert/strict');
   await page.goto('http://127.0.0.1:8000/',{waitUntil:'load'});
   await page.locator('[data-action="start"]').waitFor({timeout:10000});
   assert.match(await page.title(),/Realm Runners/);
+  assert.ok(await page.locator('#bossHud').count(),'boss HUD structure must exist');
+  assert.ok(await page.locator('#bossPhase').count(),'second-phase label must exist');
   await page.locator('[data-action="class:mage"]').click();
   await page.locator('[data-action="start"]').click();
   await page.locator('#overlay').waitFor({state:'hidden'});

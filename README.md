@@ -1,4 +1,4 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.1)
+# Realm Runners – Dungeon Reborn (Alpha 0.2)
 
 **Top-down-Roguelite / Hack-and-Slash** auf Basis der bisherigen JavaScript-/HTML5-Canvas-Technik.
 Das bisherige Jump-and-Run wurde technisch und spielerisch neu aufgebaut. Der alte Stand bleibt im `main`-Branch bis zum Merge der Umstellung erhalten.
@@ -12,6 +12,17 @@ python3 -m http.server 8000
 ```
 
 Danach **http://localhost:8000** im Browser öffnen. Kein Build erforderlich.
+
+## Neu in Alpha 0.2 – Schleimkönig und Dungeon-Atmosphäre
+
+- **Schleimkönig mit zwei Phasen:** Phase II beginnt bei 55 % Lebenspunkten und besitzt eine sichtbare, kurze Übergangsphase.
+- **Phase I:** Gift-Salve, gezielter Flächenschlag (markierter Bereich), geradliniger Ansturm (markierter Korridor).
+- **Phase II:** schnellere Salven und Anstürme, radialer Sporensturm sowie beschworene Schleime/Pilze.
+- Alle großen Angriffe zeigen **vor ihrer Ausführung Warnflächen**; der Ansturm verfolgt nicht nachträglich die Bewegung des Spielers.
+- Großer Boss-Lebensbalken inklusive Phasenanzeige und Angriffshinweisen.
+- Räume bekommen seedbasierte visuelle Identitäten: Gruft, Pilzgrotte, versunkene Halle, Reliquienkammer, Heiligtum und Thronsaal.
+- Pixel-Fackeln mit Lichtschein, Ruinen, Bodensiegel, Pilze, Staubpartikel, Spinnweben und Vignette. Die Dekoration verändert keine begehbaren Flächen.
+- Neue Tests für den Phasenwechsel, Treffer-Telegraphen, Ansturm, Spawn und den Boss-Tod.
 
 ## Spielloop
 
@@ -48,6 +59,8 @@ Die Räume verwenden zufällige Verbindungen, garantieren aber einen begehbaren 
 | `src/game.js` | Run-State, Spieler, Kampf, Gegner, Loot, Raumfortschritt |
 | `src/dungeon.js` | Seed-RNG, zusammenhängende Raumgraphen, Tile-Kollision |
 | `src/render.js` | Canvas-Welt, Kreaturen, Effekte, Kamera, Minimap |
+| `src/boss.js` | Zwei-Phasen-Boss-KI, Angriffswarnungen, Bossfähigkeiten |
+| `src/atmosphere.js` | Visuelle Raumthemen, Fackeln, Lichteffekte und Boss-Warnzonen |
 | `src/input.js` | Keyboard, Maus und Touch |
 | `src/data.js` | Klassen, Gegnertypen, Upgrade-Definitionen |
 | `src/progression.js` | Save-Schema, Legacy-Import, persistente Käufe |
@@ -73,7 +86,7 @@ npx playwright install chromium
 npm run test:browser
 ```
 
-Die Unit-Tests prüfen Raum-Erreichbarkeit, Seeds, Speicherstände, Käufe, Klassen, Angriffe und Dungeon-Fortschritt. Browser-Smoke-Tests prüfen Desktop- und Touch-Grundabläufe. GitHub Actions führt beides bei Push und PR aus.
+Die Unit-Tests prüfen Raum-Erreichbarkeit, Seeds, Speicherstände, Käufe, Klassen, Angriffe und Dungeon-Fortschritt sowie die Bossphasen und Angriffsmechaniken. Browser-Smoke-Tests prüfen Desktop- und Touch-Grundabläufe. GitHub Actions führt beides bei Push und PR aus.
 
 ## Migration
 

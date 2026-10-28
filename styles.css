@@ -68,3 +68,16 @@ canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
 }
 @media(max-height:540px){.panel h1{font-size:36px}.panel{max-height:94dvh}.ability-hud{display:none!important}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Full-width boss encounter indicator with an obvious, accessible second-phase state. */
+.boss-hud{position:fixed;z-index:4;top:max(74px,calc(59px + env(safe-area-inset-top)));left:50%;transform:translateX(-50%);width:min(430px,54vw);pointer-events:none;padding:7px 10px 9px;background:#120f20df;border:2px solid #b88e9b;box-shadow:0 7px 30px #0008,0 0 22px #ab456533;text-align:center}
+.boss-header{display:flex;justify-content:space-between;gap:8px;align-items:center;color:#ffe5ce;font-size:11px;font-weight:900;letter-spacing:1.3px}
+#bossPhase{color:#edb5a9;white-space:nowrap;font-size:10px}
+.boss-track{margin:7px 0 5px;height:13px;background:#211f2b;border:2px solid #956e88;overflow:hidden}
+.boss-track>div{height:100%;width:100%;background:linear-gradient(90deg,#ad365d,#e08e98);transition:width .13s linear}
+.boss-hint{font-size:9px;color:#edc8b9;letter-spacing:.6px;font-weight:750;min-height:12px}
+.boss-hud.enraged{border-color:#f0779e;box-shadow:0 7px 30px #0008,0 0 30px #df4b6573}
+.boss-hud.enraged .boss-track>div{background:linear-gradient(90deg,#b91a53,#f45d88)}
+.boss-hud.enraged #bossPhase{color:#ff87a5}
+@media(max-width:700px){.boss-hud{top:max(94px,calc(82px + env(safe-area-inset-top)));width:min(300px,72vw);padding:5px 8px}.boss-header{font-size:9px;letter-spacing:.4px}#bossPhase{font-size:8px}.boss-hint{font-size:8px}.boss-track{height:10px;margin:4px 0}}
+@media(max-height:540px){.boss-hud{top:max(46px,calc(35px + env(safe-area-inset-top)));width:min(320px,45vw)}}
