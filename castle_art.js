@@ -69,7 +69,9 @@ function drawCastleApproach(){
  ctx.save();ctx.translate(1550,0);
  // First distant towers, then the massive wall with an actual entrance.
  ctx.fillStyle='#222638';
- for(const [x,width,top] of [[1920,135,220],[2150,145,120],[2520,130,68],[2720,135,140]]){
+ for(const [x,width,top] of [[1760,135,220],[2150,145,120],[2520,130,68],[2720,135,140]]){
+  // Draw towers only where the entire stone footprint has solid ground.
+  if(!hasSceneryFoundation(1550+x,width,3))continue;
   ctx.fillRect(x,top,width,465-top);
   ctx.fillRect(x-10,top-15,width+20,15);
   for(let i=0;i<width;i+=30){
