@@ -694,7 +694,7 @@ test('v0.11 every mandatory ground gap is jumpable without Dash in all three cla
  const gaps=h.run('stages.slice(0,4).map(s=>s.gaps)');
  for(const kind of ['warrior','hunter','mage'])for(let level=0;level<4;level++){
   for(const [from,to] of gaps[level]){
-   h.run(`save.class='${kind}';start(${level});bad=[];spikes=[];things=[];
+   h.run(`save.class='${kind}';start(${level});bad=[];spikes=[];things=[];courseTraps=[];courseDarts=[];
     hero.x=${from-23};hero.y=G-hero.h;hero.vy=0;hero.on=true;
     input.right=true;input.jump=true;
     for(let frame=0;frame<90;frame++){if(frame===31)input.jump=false;step(1);}
