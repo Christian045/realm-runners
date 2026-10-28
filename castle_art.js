@@ -65,13 +65,13 @@ function drawCastleInterior(){
  }
 }
 function drawCastleApproach(){
- if(stage!==3||cam+W<3370)return;
- ctx.save();ctx.translate(1550,0);
+ if(stage!==3||cam+W<6850)return;
+ ctx.save();ctx.translate(5180,0);
  // First distant towers, then the massive wall with an actual entrance.
  ctx.fillStyle='#222638';
  for(const [x,width,top] of [[1760,135,220],[2150,145,120],[2520,130,68],[2720,135,140]]){
   // Draw towers only where the entire stone footprint has solid ground.
-  if(!hasSceneryFoundation(1550+x,width,3))continue;
+  if(!hasSceneryFoundation(5180+x,width,3))continue;
   ctx.fillRect(x,top,width,465-top);
   ctx.fillRect(x-10,top-15,width+20,15);
   for(let i=0;i<width;i+=30){
@@ -133,7 +133,7 @@ function drawCastleApproach(){
 function drawCastleThrone(){
  if(stage!==4)return;
  // The throne is behind the boss; its position matches the attack arena.
- const x=2490,y=302;
+ const x=505,y=302; // Centered behind the boss in the one-screen arena
  ctx.fillStyle='#141929';ctx.fillRect(x-88,y-88,178,252);
  ctx.fillStyle='#584454';ctx.fillRect(x-78,y-68,160,221);
  ctx.fillStyle='#a17d70';ctx.fillRect(x-64,y-59,133,17);
