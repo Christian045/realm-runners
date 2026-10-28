@@ -122,8 +122,8 @@ function bossTick(dt,prevY){
    const center=b.x+b.w/2;
    bossWaves.push({x:center,dir:-1,ttl:96},{x:center,dir:1,ttl:96});
    burst(center,G-10,'#fb9286',33,4);
-   if(hero.x+hero.w>b.x-10&&hero.x<b.x+b.w+10&&hero.y+hero.h>G-88&&hero.dash<=0){
-    die();return true;
+   if(hero.x+hero.w>b.x-10&&hero.x<b.x+b.w+10&&hero.y+hero.h>G-88&&hero.dash<=0&&invincible<=0){
+    return die(b.x+b.w/2);
    }
   }
  }else if(b.phase==='volleyWarn'){
@@ -147,26 +147,26 @@ function bossTick(dt,prevY){
   b.phase='patrol';b.timer=b.enraged?18:28;
  }
  // Stomp bounce works for all classes; contact during a charge is still dangerous.
- if(b.alive&&hero.x+hero.w>b.x+12&&hero.x<b.x+b.w-12&&hero.y+hero.h>b.y+14&&hero.y<b.y+b.h-7){
+ if(b.alive&&invincible<=0&&hero.x+hero.w>b.x+12&&hero.x<b.x+b.w-12&&hero.y+hero.h>b.y+14&&hero.y<b.y+b.h-7){
   if(hero.vy>0&&prevY+hero.h<=b.y+28){
    if(damageBoss(2))hero.vy=-10;
    hero.jumpActive=false;
   }else if(hero.dash>0){
    damageBoss(2);
-  }else{die();return true;}
+  }else{return die(b.x+b.w/2);}
  }
  for(const shot of bossGoo){
   shot.x+=shot.vx*dt;shot.y+=shot.vy*dt;shot.ttl-=dt;
   if(shot.x+shot.r>hero.x&&shot.x-shot.r<hero.x+hero.w&&shot.y+shot.r>hero.y&&shot.y-shot.r<hero.y+hero.h){
-   if(hero.dash<=0){die();return true;}
+   if(hero.dash<=0&&invincible<=0){shot.ttl=0;return die(shot.x);}
    shot.ttl=0;
   }
  }
  bossGoo=bossGoo.filter(s=>s.ttl>0&&s.x>BOSS_ARENA_LEFT-50&&s.x<BOSS_ARENA_RIGHT+50&&s.y>-30&&s.y<H+20);
  for(const wave of bossWaves){
   wave.x+=wave.dir*(b.enraged?9.1:7.3)*dt;wave.ttl-=dt;
-  if(hero.y+hero.h>G-23&&hero.y<G&&Math.abs(hero.x+hero.w/2-wave.x)<23&&hero.dash<=0){
-   die();return true;
+  if(hero.y+hero.h>G-23&&hero.y<G&&Math.abs(hero.x+hero.w/2-wave.x)<23&&hero.dash<=0&&invincible<=0){
+   return die(wave.x);
   }
  }
  bossWaves=bossWaves.filter(w=>w.ttl>0&&w.x>BOSS_ARENA_LEFT-40&&w.x<BOSS_ARENA_RIGHT+40);
