@@ -472,3 +472,96 @@ test('v0.8 old best times and skills survive; new enemy records do not overwrite
  assert.equal(h.run('save.level'),6);
  assert.equal(h.run('save.skills.mage.includes(\'fireball_damage\')'),true);
 });
+
+test('v0.9 four adventure levels are 50 percent longer while boss arena stays compact',()=>{
+ const cfg=h.run('stages.map(({width,gaps,ledges,enemies,spikes,stars,boss})=>({width,gaps,ledges,enemies,spikes,stars,boss}))');
+ for(let i=0;i<4;i++){
+  assert.equal(cfg[i].width,4200,'long adventure stage '+(i+1));
+  assert.equal(cfg[i].gaps.length,5);
+  assert.ok(cfg[i].ledges.length>=12);
+  assert.ok(cfg[i].enemies.length>=9);
+  assert.ok(cfg[i].spikes.length>=6);
+  assert.equal(cfg[i].stars.length,3);
+  assert.ok(cfg[i].stars[2][0]>3700,'last star should reward longer route');
+  assert.ok(cfg[i].gaps.every(([a,b])=>b-a<=200&&b<4000));
+  h.run(`start(${i})`);
+  assert.equal(h.run('WIDTH'),4200);
+  assert.ok(h.run('things.filter(x=>x.type===\'coin\').length')>35);
+  assert.equal(h.run('bad.length'),9);
+  // Reaching the former 2,800-unit finish must not complete the level.
+  h.run('hero.x=2760;hero.y=G-43;step(1)');
+  assert.equal(h.run('scene'),'game');
+  h.run('bad=[];spikes=[];hero.x=WIDTH-35;hero.y=G-43;step(1)');
+  assert.equal(h.run('scene'),'end');
+ }
+ h.run('start(4)');
+ assert.equal(h.run('WIDTH'),2800);
+ assert.equal(h.run('stages[4].ledges.length'),0,'no clutter/platform cheese inside castle');
+ assert.equal(h.run('hero.x'),2060);
+ assert.equal(h.run('bad.length'),0);
+ assert.equal(h.run('spikes.length'),0);
+});
+test('v0.9 arena boss uses three explicit attacks with player-facing telegraphs',()=>{
+ h.run("start(4);hero.x=2120;hero.y=140;hero.on=false;boss.engaged=true;boss.attackIndex=0;boss.phase='patrol';boss.timer=1");
+ h.run('bossTick(1,hero.y)');
+ assert.equal(h.run('boss.phase'),'warn');
+ assert.equal(h.run('boss.targetX')>=2020,true);
+ h.run('boss.phase=\'patrol\';boss.timer=1;bossTick(1,hero.y)');
+ assert.equal(h.run('boss.phase'),'volleyWarn');
+ h.run('for(let i=0;i<37;i++)bossTick(1,hero.y)');
+ assert.equal(h.run('boss.volleyCount'),1);
+ assert.equal(h.run('bossGoo.length'),2);
+ assert.equal(h.run('boss.phase'),'volley');
+ h.run("bossGoo=[];boss.phase='patrol';boss.timer=1;bossTick(1,hero.y)");
+ assert.equal(h.run('boss.phase'),'chargeWarn');
+ h.run('for(let i=0;i<37;i++)bossTick(1,hero.y)');
+ assert.equal(h.run('boss.phase'),'charge');
+ const before=h.run('boss.x');
+ h.run('bossTick(1,hero.y)');
+ assert.ok(Math.abs(h.run('boss.x')-before)>8);
+});
+test('v0.9 boss actively closes the distance even against safe ranged mage',()=>{
+ h.run("save.class='mage';start(4);hero.x=2060;hero.y=G-43;boss.engaged=true;boss.phase='patrol';boss.timer=100");
+ const x=h.run('boss.x');
+ h.run('for(let i=0;i<24;i++)bossTick(1,hero.y)');
+ assert.ok(x-h.run('boss.x')>55,'boss must close on ranged attacker');
+ assert.equal(h.run('BOSS_HP'),56);
+});
+test('v0.9 phase two transforms at half health with brief protected telegraph',()=>{
+ h.run("start(4);boss.engaged=true;hero.x=2090;hero.y=130;boss.hp=29;boss.hurt=0;bossGoo=[{x:2100,y:240,vx:0,vy:0,r:10,ttl:50}]");
+ assert.equal(h.run('damageBoss(2)'),true);
+ assert.equal(h.run('boss.hp'),27);
+ assert.equal(h.run('boss.enraged'),true);
+ assert.equal(h.run('boss.phase'),'phaseShift');
+ assert.equal(h.run('bossGoo.length'),0,'phase transition clears old projectiles');
+ assert.equal(h.run('damageBoss(5)'),false,'protected phase transition');
+ assert.equal(h.run("document.querySelector('#bossState').textContent"),'PHASE II · ZORN DES KÖNIGS!');
+ h.run('for(let i=0;i<59;i++)bossTick(1,hero.y)');
+ assert.equal(h.run('boss.phase'),'patrol');
+ h.run("boss.attackIndex=1;boss.timer=1;bossTick(1,hero.y)");
+ assert.equal(h.run('boss.phase'),'volleyWarn');
+ h.run('for(let i=0;i<28;i++)bossTick(1,hero.y)');
+ assert.equal(h.run('bossGoo.length'),3,'angry phase fires three aimed projectiles');
+});
+test('v0.9 boss attack windups are dodgeable and contact remains punishable',()=>{
+ h.run("start(4);boss.engaged=true;hero.x=2080;hero.y=G-43;boss.phase='warn';boss.timer=16");
+ h.run('for(let i=0;i<12;i++)bossTick(1,hero.y)');
+ assert.equal(h.run('hero.hearts'),3,'red warning cannot deal damage before attack');
+ h.run("boss.phase='chargeWarn';boss.timer=20;boss.chargeDir=-1;boss.x=2360;hero.x=2150;hero.y=310;hero.on=false");
+ h.run('for(let i=0;i<35;i++)bossTick(1,hero.y)');
+ assert.equal(h.run('hero.hearts'),3,'jumping above a charge is safe');
+ h.run("hero.y=G-43;hero.on=true;boss.phase='charge';boss.timer=5;boss.x=hero.x+16;boss.chargeDir=-1");
+ h.run('bossTick(1,hero.y)');
+ assert.equal(h.run('hero.hearts'),2,'an unprotected body collision should cost a heart');
+});
+test('v0.9 old records and player progression remain intact',()=>{
+ h.run("save.class='hunter';save.bestTimesV08={'1-1':{hunter:35000}};save.bestTimesBossV062={'1-5':{hunter:48000}};save.bestTimesV09={};save.bestTimesBossV09={};start(0);for(let i=0;i<50;i++)step(1);recordTime()");
+ assert.equal(h.run("save.bestTimesV08['1-1'].hunter"),35000);
+ assert.equal(h.run("save.bestTimesBossV062['1-5'].hunter"),48000);
+ assert.ok(h.run("save.bestTimesV09['1-1'].hunter")>0);
+ h.run("start(4);for(let i=0;i<10;i++)step(1);boss.engaged=true;boss.hurt=0;boss.hp=1;damageBoss(1);for(let i=0;i<42;i++)step(1)");
+ assert.equal(h.run('scene'),'end');
+ assert.ok(h.run("save.bestTimesBossV09['1-5'].hunter")>0);
+ assert.equal(h.run("save.bestTimesBossV062['1-5'].hunter"),48000);
+ assert.equal(h.run('save.saveVersion'),5);
+});
