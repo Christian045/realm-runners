@@ -77,6 +77,18 @@ const assert=require('node:assert/strict');
    'switching a hero must preserve the open settings panel');
   const openedPanel=await page.locator('.castle-advanced').first().evaluate(n=>n.open);
   assert.ok(openedPanel);
+  // Programmatic class changes must retain the position of the scrollable menu.
+  const scrollBeforeMenuChange=await page.locator('#overlay .panel').evaluate(panel=>{
+   panel.scrollTop=Math.min(140,Math.max(0,panel.scrollHeight-panel.clientHeight));
+   const saved=panel.scrollTop;
+   document.querySelector('[data-action="class:mage"]').click();
+   return saved;
+  });
+  const scrollAfterMenuChange=await page.locator('#overlay .panel').evaluate(panel=>panel.scrollTop);
+  assert.ok(Math.abs(scrollBeforeMenuChange-scrollAfterMenuChange)<=2,
+   'menu scroll position should survive rerender: '+scrollBeforeMenuChange+' -> '+scrollAfterMenuChange);
+  assert.ok(await page.locator('.castle-advanced').first().evaluate(n=>n.open),
+   'expanded menu groups should survive class changes');
   const menuOverflow=await page.evaluate(()=>{
    const panel=document.querySelector('#overlay .panel');
    const overlay=document.querySelector('#overlay');
@@ -206,6 +218,14 @@ const assert=require('node:assert/strict');
   const mobile=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true,deviceScaleFactor:2});
   mobile.on('pageerror',e=>errors.push(e.message));
   await mobile.goto('http://127.0.0.1:8000/',{waitUntil:'load'});
+  const mobileMenu=await mobile.evaluate(()=>{
+   const overlay=document.querySelector('#overlay'),panel=overlay.querySelector('.panel');
+   return {horizontal:overlay.scrollWidth>overlay.clientWidth+2||panel.scrollWidth>panel.clientWidth+2,
+    modes:document.querySelectorAll('.castle-mode-list .mode-toggle').length,
+    hero:!!document.querySelector('.castle-hero canvas')};
+  });
+  assert.deepEqual(mobileMenu,{horizontal:false,modes:3,hero:true},
+   'portrait menu should show hero and all three game modes without lateral overflow');
   assert.ok(await mobile.locator('.challenge-grid').count(),'mobile challenge selection exists');
   await mobile.locator('[data-action="tower"]').tap();
   const recordUI=await mobile.locator('[data-action="tower"]').innerText();
