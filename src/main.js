@@ -22,7 +22,7 @@ const progress=loadProgress();
 const game=new Game(progress,input,()=>refreshPanel());
 const audio=new AudioFeedback();game.sound=id=>audio.play(id);
 let selected=progress.selectedClass,menuTab='play';
-const icons={warrior:'⚔',hunter:'➶',mage:'✦'};
+const icons={warrior:'⚔',hunter:'➶',mage:'✦',glasscannon:'◇',summoner:'♜',alchemist:'⚗'};
 const label=key=>({vitality:'Lebenskraft',strength:'Waffenschmiede'})[key];
 const upgradeDescription=key=>key==='vitality'?'+12 LP pro Stufe':'+8% Schaden pro Stufe';
 const fmtTime=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/3600)?Math.floor(s/3600)+':'+String(Math.floor(s/60)%60).padStart(2,'0')+':'+String(s%60).padStart(2,'0'):Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
@@ -112,6 +112,9 @@ function refreshPanel(){
   if(menuTab==='stats'){panel.innerHTML=renderStatistics()}else{
   panel.innerHTML='<div class="castle-stage"><span class="castle-stage-caption">DIE HALLE DER HELDEN</span><div class="castle-hero"><canvas data-hero="'+selected+'" width="32" height="36" aria-label="Ausgewählter Charakter"></canvas></div><span class="castle-hero-name">'+CLASSES[selected].name+'</span><span class="castle-hero-sub">'+CLASSES[selected].subtitle+'</span></div><div class="section-label">WÄHLE DEINEN HELDEN</div><div class="class-grid">'+
    Object.entries(CLASSES).map(([id,c])=>'<button class="class-card '+(selected===id?'active':'')+'" data-action="class:'+id+'"><canvas class="class-preview" data-hero="'+id+'" width="32" height="36" aria-hidden="true"></canvas><strong>'+c.name+'</strong><small>'+c.subtitle+'</small></button>').join('')+'</div>'+
+   (selected==='summoner'?'<div class="section-label">DIENER FÜR DEN NÄCHSTEN RUN</div><div class="castle-servants">'+
+    [['guardian','WÄCHTER','Nahkampf, Schild'],['ranger','SCHÜTZE','Fernkampf'],['spirit','GEIST','Heilung']].map(([id,name,role])=>
+    '<button data-action="servant:'+id+'" class="servant-card '+(game.servantChoice===id?'selected':'')+'"><strong>'+name+'</strong><small>'+role+'</small></button>').join('')+'</div>':'')+
    '<details class="castle-advanced"><summary>KLASSE ANPASSEN · SPEZIALISIERUNG</summary><div class="section-label">SPEZIALISIERUNG</div><div class="specialization-grid">'+
    SPECIALIZATIONS[selected].map(spec=>{
     const unlocked=specializationUnlocked(progress,spec.id);
@@ -152,7 +155,7 @@ function refreshPanel(){
    }).join('')+'</div>'+
    '</details><details class="castle-advanced"><summary>ERFOLGE</summary><div class="section-label">ERFOLGE · '+ACHIEVEMENTS.filter(a=>progress.achievements?.[a.id]).length+'/'+ACHIEVEMENTS.length+'</div>'+
    '<div class="achievement-list">'+ACHIEVEMENTS.map(a=>'<div class="achievement '+(progress.achievements?.[a.id]?'unlocked':'')+'">'+
-     '<span>'+(progress.achievements?.[a.id]?'★':'◇')+'</span><div><strong>'+a.name+'</strong><small>'+a.description+' · '+Math.min(a.target,progress[a.metric]||0)+'/'+a.target+' · +'+a.reward+' ◆</small></div></div>').join('')+'</div>'+
+     '<span>'+(progress.achievements?.[a.id]?'★':'◇')+'</span><div><strong>'+a.name+'</strong><small>'+a.description+' · '+Math.min(a.target,a.metric.split('.').reduce((v,key)=>v?.[key],progress)||0)+'/'+a.target+' · +'+a.reward+' ◆</small></div></div>').join('')+'</div>'+
    '</details><button class="sound-toggle" data-action="sound">'+(audio.enabled?'♪ TON AN':'♪ TON AUS')+'</button>'+
    '<p class="footnote">WASD bewegen · Maus zielen · Linksklick/F angreifen · Leertaste/Shift ausweichen · Q Spezialfähigkeit · I Inventar<br>Handy: Stick und Aktionsknöpfe. Dein bisheriger Spielstand bleibt erhalten.</p>';
   }
@@ -316,6 +319,7 @@ $('panelContent').addEventListener('click',e=>{
  if(action==='class'){selected=value;game.chooseClass(value)}
  if(action==='challenge')game.setChallenge(value);
  if(action==='specialization')game.selectSpecialization(value);
+ if(action==='servant')game.setServant(value);
  if(action==='normal'){game.setTower(false);game.setEndless(false)}
  if(action==='endless')game.setEndless(!game.endless);
  if(action==='tower')game.setTower(!game.tower);
