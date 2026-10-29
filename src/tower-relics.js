@@ -1,4 +1,4 @@
-import {distance,normalized} from './data.js';
+import {distance,normalized} from './data.js?v=0.21.0';
 
 export const TOWER_RELICS=Object.freeze([
  {id:'storm',name:'Gewitterkrone',description:'Jeder vierte Treffer setzt einen Kettenblitz frei.',color:'#a4dfff'},
