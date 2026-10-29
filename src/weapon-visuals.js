@@ -1,6 +1,5 @@
-// v0.17: actual held weapon rendered above the warrior sprite.
-// Unlike the older static 2px sprite blade, this follows the exact aim vector
-// and visibly moves through all three strikes, including portrait Safari.
+// Pixel-sized longsword, anchored to the warrior's right hand.
+// Kept separate from the body sprite so the actual blade follows aim and combo.
 export function swordPose(player){
  const aim=player?.direction||{x:1,y:0};
  const base=Math.atan2(Number(aim.y)||0,Number(aim.x)||0);
@@ -9,11 +8,13 @@ export function swordPose(player){
  const remaining=Math.min(1,Math.max(0,(player?.attackTimer||0)/.18));
  const progress=1-remaining;
  const sign=step===2?-1:1;
- const angle=active?base+sign*(-.96+1.72*progress):base+.47;
- return {angle,active,step,progress,
-  scale:step===3&&active?1.19:1,
-  x:player.x+Math.cos(base)*12,
-  y:player.y+Math.sin(base)*12};
+ const angle=active?base+sign*(-.88+1.58*progress):base+.42;
+ // The sprite is ~52 px wide; the hilt sits just outside the right gauntlet.
+ // The idle weapon is carried diagonally instead of extending 77 px from the player.
+ const handRadius=17;
+ return {angle,active,step,progress,scale:step===3&&active?1.13:1,
+  x:player.x+Math.cos(base)*handRadius,
+  y:player.y+Math.sin(base)*handRadius};
 }
 export function drawWarriorSword(ctx,player){
  if(player?.kind!=='warrior')return;
@@ -22,31 +23,28 @@ export function drawWarriorSword(ctx,player){
  ctx.translate(Math.round(pose.x),Math.round(pose.y));
  ctx.rotate(pose.angle);
  ctx.scale(pose.scale,pose.scale);
- // Deep outline gives the sword a real silhouette even on dark masonry.
- // Handle and pommel appear connected to the dominant hand at x~0.
- ctx.fillStyle='#101f2d';ctx.fillRect(-2,-5,20,10);
- ctx.fillStyle='#785242';ctx.fillRect(1,-3,13,6);
- ctx.fillStyle='#e7b976';ctx.fillRect(-2,-4,5,8);
- ctx.fillStyle='#f8daa0';ctx.fillRect(-1,-2,2,4);
- // Proper crossguard, always outside the character silhouette.
- ctx.fillStyle='#182a38';ctx.fillRect(15,-14,8,28);
- ctx.fillStyle='#d7ba85';ctx.fillRect(17,-12,4,24);
- ctx.fillStyle='#fff0ba';ctx.fillRect(17,-10,2,20);
- // Large steel blade, dark lower edge, bright upper bevel, tapered tip.
- ctx.fillStyle='#0c273a';ctx.beginPath();
- ctx.moveTo(22,-7);ctx.lineTo(63,-7);ctx.lineTo(77,0);
- ctx.lineTo(63,7);ctx.lineTo(22,7);ctx.closePath();ctx.fill();
- ctx.fillStyle='#8aafc3';ctx.beginPath();
- ctx.moveTo(23,-5);ctx.lineTo(62,-5);ctx.lineTo(74,0);
- ctx.lineTo(62,1);ctx.lineTo(23,1);ctx.closePath();ctx.fill();
- ctx.fillStyle='#effcff';ctx.beginPath();
- ctx.moveTo(25,-4);ctx.lineTo(61,-4);ctx.lineTo(72,-1);
- ctx.lineTo(25,-1);ctx.closePath();ctx.fill();
- ctx.fillStyle='#426579';ctx.fillRect(25,2,36,2);
+ // Grip and pommel; one consistent pixel-art outline.
+ ctx.fillStyle='#172733';ctx.fillRect(-7,-4,14,8);
+ ctx.fillStyle='#73523d';ctx.fillRect(-4,-2,10,4);
+ ctx.fillStyle='#e7c58b';ctx.fillRect(-8,-3,3,6);
+ // Compact crossguard, proportionate to the gauntlet.
+ ctx.fillStyle='#172733';ctx.fillRect(6,-10,5,20);
+ ctx.fillStyle='#d3ad70';ctx.fillRect(7,-8,3,16);
+ // The steel blade is 37px long (rather than a giant 55px protrusion).
+ ctx.fillStyle='#142c3a';ctx.beginPath();
+ ctx.moveTo(11,-5);ctx.lineTo(38,-5);ctx.lineTo(49,0);
+ ctx.lineTo(38,5);ctx.lineTo(11,5);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#8faab9';ctx.beginPath();
+ ctx.moveTo(12,-3);ctx.lineTo(37,-3);ctx.lineTo(46,0);
+ ctx.lineTo(37,1);ctx.lineTo(12,1);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#e5f0ec';ctx.beginPath();
+ ctx.moveTo(13,-3);ctx.lineTo(36,-3);ctx.lineTo(44,-1);
+ ctx.lineTo(13,-1);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#486577';ctx.fillRect(14,2,24,2);
  if(pose.active){
-  // The combo finisher has a gold slash highlight without hiding the sword.
-  ctx.globalAlpha=.75;ctx.fillStyle=pose.step===3?'#ffe096':'#b9eeff';
-  ctx.fillRect(31,-8,27,2);ctx.globalAlpha=1;
+  ctx.globalAlpha=.68;
+  ctx.fillStyle=pose.step===3?'#f7d38d':'#c4e4e9';
+  ctx.fillRect(19,-6,18,2);
  }
  ctx.restore();
 }
