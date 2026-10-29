@@ -28,11 +28,20 @@ export class Renderer {
   c.setTransform(1,0,0,1,0,0);
   fill(c,'#09161b',0,0,canvas.width,canvas.height);
   if(!game.dungeon){this.titleBackground();return}
-  c.setTransform(this.scale,0,0,this.scale,-game.camera.x*this.scale,-game.camera.y*this.scale);
+  const shake=game.shake||0;
+  const sx=shake?Math.sin(performance.now()*.099)*shake:0;
+  const sy=shake?Math.cos(performance.now()*.11)*shake:0;
+  c.setTransform(this.scale,0,0,this.scale,(-game.camera.x+sx)*this.scale,(-game.camera.y+sy)*this.scale);
   this.map(game);
   drawDungeonAtmosphere(c,game);
   this.fogOfWar(game);
   drawBossWarnings(c,game);
+  for(const h of game.hazards||[]){
+   c.save();c.globalAlpha=.14+.25*(1-Math.max(0,h.time)/h.maxTime);
+   c.fillStyle='#ff895a';c.strokeStyle='#ffd5a1';c.lineWidth=3;
+   c.beginPath();c.arc(h.x,h.y,h.radius,0,Math.PI*2);c.fill();c.stroke();
+   c.restore();
+  }
   const entities=[
    ...game.loot.map(e=>({kind:'loot',e,y:e.y})),
    ...game.enemies.map(e=>({kind:'enemy',e,y:e.y})),
@@ -108,7 +117,7 @@ export class Renderer {
    c.textAlign='center';c.font='11px monospace';c.fillStyle='#9ab5a177';
    c.fillText(room.type==='boss'?'THRON':room.type==='treasure'?'SCHATZ':
     room.type==='shrine'?'SCHREIN':room.type==='elite'?'ELITE':
-    room.type==='secret'?'GEHEIMNIS':'KAMMER '+(room.id+1),
+    room.type==='secret'?'GEHEIMNIS':room.type==='event'?'EREIGNIS':'KAMMER '+(room.id+1),
     room.cx,room.cy-ROOM_H*TILE*.34);
   }
  }
@@ -126,6 +135,7 @@ export class Renderer {
   const c=this.ctx,k=CLASSES[p.kind],f=p.direction;
   this.shadow(p.x,p.y,p.radius+5);
   c.save();c.translate(p.x,p.y);
+  c.translate(0,p.dashTimer>0?-3:Math.sin(p.walkCycle||0)*2);
   if(p.invulnerable>0&&Math.floor(time*20)%3===0)c.globalAlpha=.55;
   // Outer cloak and torso stay oriented towards the target.
   c.rotate(Math.atan2(f.y,f.x)+Math.PI/2);
@@ -138,6 +148,7 @@ export class Renderer {
   else if(p.kind==='hunter'){c.strokeStyle='#e7c184';c.lineWidth=4;c.beginPath();c.arc(12,0,13,-1.6,1.6);c.stroke()}
   else{fill(c,'#bb97f9',13,-11,6,6);fill(c,'#694cb0',15,-7,3,20)}
   c.restore();
+  if(p.shield>0){c.save();c.globalAlpha=.5+.12*Math.sin(time*8);c.strokeStyle='#a8e7ff';c.lineWidth=3;c.beginPath();c.arc(p.x,p.y,23,0,Math.PI*2);c.stroke();c.restore()}
   if(p.dashTimer>0){c.strokeStyle='#b1f1ee99';c.lineWidth=3;c.beginPath();c.arc(p.x,p.y,24,0,Math.PI*2);c.stroke()}
  }
  enemy(e,time){
@@ -175,6 +186,11 @@ export class Renderer {
    fill(c,'#fff0e1',-13,-3,4,4);fill(c,'#fff0e1',9,-3,4,4);
   }
   c.restore();
+  if(e.burn>0||e.poison>0||e.slow>0){
+   const col=e.burn>0?'#ffc078':e.poison>0?'#9add7f':'#9edbff';
+   c.save();c.globalAlpha=.5+.25*Math.sin(time*11);c.strokeStyle=col;c.lineWidth=3;
+   c.beginPath();c.arc(e.x,e.y,r+3,0,Math.PI*2);c.stroke();c.restore();
+  }
   if(e.elite){c.save();c.strokeStyle='#f9cf82';c.globalAlpha=.65+.25*Math.sin(time*7);
    c.lineWidth=3;c.beginPath();c.arc(e.x,e.y,r+7,0,2*Math.PI);c.stroke();c.restore()}
   const ratio=clamp(e.hp/e.maxHp,0,1);
@@ -186,6 +202,10 @@ export class Renderer {
   if(e.boss?.phase===2){
    c.save();c.globalAlpha=.55+.22*Math.sin(time*8);c.strokeStyle='#ff6f9f';c.lineWidth=4;
    c.beginPath();c.arc(e.x,e.y,r+7,0,Math.PI*2);c.stroke();c.restore();
+  }
+  if(e.elite&&e.eliteMod){
+   c.font='bold 9px monospace';c.textAlign='center';c.fillStyle='#f4d4a6';
+   c.fillText(({swift:'FLINK',guardian:'PANZER',arcane:'ARKAN',volatile:'EXPLOSIV',vampiric:'VAMPIR'})[e.eliteMod]||'ELITE',e.x,e.y-r-34);
   }
   if(e.windup>0){
    c.strokeStyle=e.type==='boss'?'#ff7898':'#eed0ff';c.lineWidth=2;
@@ -213,9 +233,12 @@ export class Renderer {
    c.lineWidth=12;c.beginPath();c.arc(e.x,e.y,e.radius,e.angle-.8,e.angle+.8);c.stroke();
    c.lineWidth=3;c.strokeStyle='#fff8dd';c.stroke();
   }else if(e.type==='text'){
-   c.font='bold 17px monospace';c.textAlign='center';c.strokeStyle='#122a32';c.lineWidth=4;
+   c.font=(e.text?.startsWith('KRIT')?'bold 22px monospace':'bold 17px monospace');c.textAlign='center';c.strokeStyle='#122a32';c.lineWidth=4;
    c.strokeText(e.text||'',e.x,e.y-(1-alpha)*22);
    c.fillText(e.text||'',e.x,e.y-(1-alpha)*22);
+  }else if(e.type==='lightning'){
+   c.lineWidth=4;c.shadowColor=e.color;c.shadowBlur=10;
+   c.beginPath();c.moveTo(e.x,e.y);c.lineTo(e.x+Math.cos(e.angle)*e.radius,e.y+Math.sin(e.angle)*e.radius);c.stroke();c.shadowBlur=0;
   }else{
    for(let i=0;i<7;i++){
     const a=i*Math.PI*2/7+(e.x%3);
@@ -238,6 +261,7 @@ export class Renderer {
    if(room.type==='treasure'&&room.visited)fill(c,'#f5d28d',x+size*.25,y+size*.25,size*.5,size*.5);
    if(room.type==='shrine'&&room.visited)fill(c,'#7bd6c2',x+size*.3,y+size*.3,size*.4,size*.4);
    if(room.type==='elite'&&room.visited)fill(c,'#fc975a',x+size*.3,y+size*.3,size*.4,size*.4);
+   if(room.type==='event'&&room.visited)fill(c,'#c5a1ff',x+size*.3,y+size*.3,size*.4,size*.4);
    if(active?.id===room.id){c.strokeStyle='#fff0cf';c.lineWidth=2*dp;c.strokeRect(x,y,size,size)}
   }
  }

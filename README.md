@@ -1,4 +1,4 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.5.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.8.0)
 
 **Top-down-Roguelite / Hack-and-Slash** auf Basis der bisherigen JavaScript-/HTML5-Canvas-Technik.
 Das bisherige Jump-and-Run wurde technisch und spielerisch neu aufgebaut. Der alte Stand bleibt im `main`-Branch bis zum Merge der Umstellung erhalten.
@@ -12,6 +12,17 @@ python3 -m http.server 8000
 ```
 
 Danach **http://localhost:8000** im Browser öffnen. Kein Build erforderlich.
+
+## Update Alpha 0.6–0.8 – Combat-Polish, Raumvielfalt und Endgame
+
+- **Kampfgefühl (0.6):** 35–75 ms Hitstop beim Treffen, echte kritische Trefferanzeigen, Rückstoß, kurze Kamerawackler, zusätzliche Animationen und originale synthetisierte Soundeffekte. Kein externer Audio-Download, kein Autoplay.
+- **Elite-Modifikatoren:** flink, gepanzert, arkan, explosiv (sichtbare Verzögerung vor der Explosion) und vampirisch.
+- **Dungeon-Variety (0.7):** 14 statt 6 Raumlayouts, weitere stimmige Boden- und Ruinendetails, optionale Ereigniskammern mit Schmiede oder gefährlicher Kampfprüfung.
+- **Gegenstandseffekte (0.7):** 15 mögliche Spezialeffekte auf seltenen oder besseren Gegenständen; darunter Kettenblitz, Feuer, Gift, Frost, Krit-Heilung, Dash-Nova, Dornen, Lebensraub, Flächentreffer und Dreifachschuss. Nur ausgerüstete Effekte zählen, pro Treffer maximal eine nicht rekursive Auslösung.
+- **Langzeitmotivation (0.8):** vier Herausforderungen mit klaren Freischaltbedingungen und Goldmultiplikatoren; sieben dauerhaft gespeicherte Erfolge mit einmaligen Goldprämien.
+- **Endlos-Abstieg:** nach dem ersten Boss-Sieg freischaltbar. Jeder Boss führt in eine neue, schwerere Etage, ohne Ausrüstung oder Run-Gold zurückzusetzen. Endet erst mit dem Tod.
+- **Speicherstände:** Der vorhandene Roguelite-Schlüssel bleibt erhalten und wird um Erfolge/Statistiken erweitert; ältere Jump-and-Run-Saves bleiben unberührt.
+- **Tests:** neuer Suite-Block für Item-Procs, Kartenlayout, Challenges, Meta-Fortschritt, Ereignisse und Endlosmodus plus Touch-Browserchecks.
 
 ## Erweiterung Alpha 0.3–0.5
 

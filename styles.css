@@ -111,3 +111,24 @@ canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
 /* Keep the iPhone HUD, bag, and pause controls on-screen side by side. */
 @media(max-width:700px){.game-top:has(.hud:not(.hidden)) .identity{display:none}.game-top{gap:4px}.hud{min-width:0}}
 body:has(.boss-hud:not(.hidden)) .biome-label{display:none!important}
+
+/* 0.8.0: challenge selection, unlocked achievements, one-thumb controls. */
+.challenge-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.challenge-card{background:#102f34;color:#e1edde;border:1px solid #6b9180;text-align:left;border-radius:4px;padding:10px 12px;min-height:72px;touch-action:manipulation}
+.challenge-card.active{border:2px solid #e9d095;background:#2c4b43;box-shadow:0 0 14px #c9be7e22}
+.challenge-card:disabled{opacity:.42}
+.challenge-card strong{display:block;color:#e5d4a5;font-size:12px;margin-bottom:5px}
+.challenge-card small{display:block;line-height:1.4;color:#bbd1c1;font-size:10px}
+.mode-toggle{display:block;background:#223e46;border:1px solid #83a49c;padding:11px 9px;width:100%;color:#b7d9d2;margin-top:10px;font-size:12px;font-weight:800;touch-action:manipulation}
+.mode-toggle.selected{background:#3d5360;border-color:#d8bf80;color:#f4e5b4}
+.mode-toggle small{display:block;font-size:10px;margin-top:5px;font-weight:400}
+.mode-toggle:disabled{opacity:.4}
+.achievement-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.achievement{display:flex;gap:9px;text-align:left;align-items:center;background:#0c262e;border:1px solid #3d6762;padding:8px;opacity:.65;min-height:52px}
+.achievement.unlocked{opacity:1;border-color:#ad975f}
+.achievement>span{font-size:22px;color:#d9bf83}
+.achievement strong{display:block;font-size:11px;color:#e7dfb5}
+.achievement small{display:block;font-size:9px;line-height:1.45;color:#b6c7b6}
+.earned-achievements{color:#ead39e!important;font-weight:700;font-size:12px!important}
+.sound-toggle{width:100%;padding:11px;background:#264746;border:1px solid #6d9187;color:#d8e6d7;font-weight:750;margin-top:12px;font-size:11px}
+@media(max-width:700px){.challenge-grid{gap:5px}.challenge-card{min-height:65px;padding:8px}.challenge-card strong{font-size:10px}.challenge-card small{font-size:9px}.achievement-list{gap:4px}.achievement{gap:5px;padding:6px}.achievement strong{font-size:10px}.achievement small{font-size:8px}}

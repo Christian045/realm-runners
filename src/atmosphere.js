@@ -108,6 +108,19 @@ export function drawDungeonAtmosphere(ctx,game){
    drawChest(ctx,cx,cy-12,room.cleared);
    for(let i=0;i<6;i++)rect(ctx,'#d7ad6a',cx-69+i*24,cy+66+(i%2)*7,8,5);
   }
+  if(room.type==='event'){
+   renderSigil(ctx,cx,cy,92,room.eventKind==='forge'?'#f6b87c':'#be9cf2',time);
+   if(room.eventKind==='forge'){
+    rect(ctx,'#303b40',cx-28,cy-10,56,34);
+    rect(ctx,'#8c9a91',cx-35,cy-19,70,15);
+    rect(ctx,'#d68c58',cx-22,cy-28,44,6);
+    for(const dx of [-80,80]){rect(ctx,'#543b34',cx+dx-10,cy+42,20,20);rect(ctx,'#ffba75',cx+dx-7,cy+36,14,9)}
+   }else{
+    rect(ctx,'#383650',cx-34,cy-18,68,40);
+    rect(ctx,'#8e79b6',cx-24,cy-28,48,11);
+    rect(ctx,'#c6a6fa',cx-6,cy-44,12,18);
+   }
+  }
   if(room.type==='shrine'){
    renderSigil(ctx,cx,cy,92,'#8fe8d0',time);
    rect(ctx,'#456962',cx-24,cy-27,48,55);
@@ -134,6 +147,18 @@ export function drawDungeonAtmosphere(ctx,game){
    ctx.globalAlpha=.13+pulse*.1;rect(ctx,'#df5471',cx-210,cy-30,420,60);ctx.globalAlpha=1;
   }
   if(room.theme==='crypt'){drawCobweb(ctx,left+TILE+3,top+TILE+3);drawCobweb(ctx,right-TILE-3,bottom-TILE-56,true)}
+  // Room layout has a coherent architectural silhouette instead of random floating props.
+  if(room.layout==='longhall'||room.layout==='arcade'){
+   const stone=room.biome==='flooded'?'#5c8290':room.biome==='fungal'?'#4d765d':'#6b7476';
+   for(const dx of [-245,245]){rect(ctx,stone+'aa',cx+dx-7,cy-130,14,260);
+    rect(ctx,'#091e26b0',cx+dx-10,cy+126,20,7)}
+  }
+  if(room.layout==='vault'||room.layout==='tombs'){
+   for(const dx of [-170,170])for(const dy of [-100,100]){
+    rect(ctx,'#1b2d3288',cx+dx-22,cy+dy-17,44,34);
+    rect(ctx,'#8c989458',cx+dx-17,cy+dy-17,34,5);
+   }
+  }
   if(room.theme==='reliquary')for(const dx of [-175,175])drawChest(ctx,cx+dx,cy-95,room.cleared);
   // Wall torches are decoration only, not extra collision obstacles.
   const warm=room.type==='boss'||room.theme==='reliquary'||room.type==='elite';

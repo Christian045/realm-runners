@@ -1,4 +1,5 @@
 import { CLASSES, clamp } from './data.js';
+import {AFFIXES,rollAffix} from './affixes.js';
 export const RARITIES=Object.freeze({
  common:{name:'Gewöhnlich',color:'#d8e1d4',weight:60},
  rare:{name:'Selten',color:'#8ed0ff',weight:29},
@@ -51,11 +52,12 @@ export function generateItem(random,level=0,kind='warrior',guaranteedRare=false)
   const n=base[key]*multiplier*bonus;
   stats[key]=['crit','guard','leech'].includes(key)?Math.round(n*1000)/1000:Math.round(n);
  }
+ const affix=rollAffix(random,rarity);
  return {
   id:base.id+'-'+rarity+'-'+Math.floor(random()*1e9),
   baseId:base.id,slot:base.slot,kind,rarity,
   name:(rarity==='legendary'?'Mythischer ':rarity==='epic'?'Verzauberter ':rarity==='rare'?'Alter ':'')+base.name,
-  classes:base.classes,stats,
+  classes:base.classes,stats,affix,
   level:Math.max(1,level+1)
  };
 }
@@ -79,10 +81,11 @@ export function equipItem(player,item){
 export function describeStats(item){
  if(!item)return '';
  const map={damage:'Schaden',hp:'LP',speed:'Tempo',crit:'Krit',guard:'Schutz',leech:'Lebensraub'};
- return Object.entries(itemStats(item)).filter(([k,v])=>v).map(([key,value])=>{
+ const raw=Object.entries(itemStats(item)).filter(([k,v])=>v).map(([key,value])=>{
   const amount=['crit','guard','leech'].includes(key)?Math.round(value*1000)/10+'%':String(value);
   return (value>0?'+':'')+amount+' '+map[key];
  }).join(' · ');
+ return raw+(item.affix&&AFFIXES[item.affix]?' · ✦ '+AFFIXES[item.affix].name+': '+AFFIXES[item.affix].description:'');
 }
 export function talentCost(level){return 65+level*65}
 export function buyTalent(progress,kind,id){

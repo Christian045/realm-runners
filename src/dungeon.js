@@ -1,6 +1,6 @@
 import { TILE } from './data.js';
 export const ROOM_W=15, ROOM_H=11, ROOM_COLS=3, ROOM_ROWS=3;
-export const ROOM_LAYOUTS=['columns','ruins','open','alcoves','crossroads','arcade'];
+export const ROOM_LAYOUTS=['columns','ruins','open','alcoves','crossroads','arcade','longhall','pillared','vault','chambers','shattered','tombs','mirror','crescent'];
 export function seeded(seed){let state=(seed>>>0)||1;return ()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296}}
 export function generateDungeon(seed=1){
  const random=seeded(seed),width=ROOM_W*ROOM_COLS,height=ROOM_H*ROOM_ROWS;
@@ -22,7 +22,15 @@ export function generateDungeon(seed=1){
   open:[],
   alcoves:[[3,2],[11,2],[3,8],[11,8]],
   crossroads:[[3,3],[11,3],[3,7],[11,7],[4,2],[10,8]],
-  arcade:[[3,2],[3,8],[11,2],[11,8],[4,3],[10,7]]
+  arcade:[[3,2],[3,8],[11,2],[11,8],[4,3],[10,7]],
+  longhall:[[2,2],[2,3],[12,7],[12,8]],
+  pillared:[[3,2],[3,8],[11,2],[11,8],[2,5],[12,5]],
+  vault:[[3,3],[3,7],[11,3],[11,7],[2,3],[12,7]],
+  chambers:[[2,2],[3,2],[11,8],[12,8],[2,8],[12,2]],
+  shattered:[[3,2],[4,2],[10,8],[11,8],[11,3]],
+  tombs:[[3,3],[3,7],[11,3],[11,7],[2,2],[12,8]],
+  mirror:[[3,2],[3,8],[11,2],[11,8],[4,3],[10,3]],
+  crescent:[[3,2],[4,2],[10,2],[11,2],[3,8],[11,8]]
  };
  for(const room of rooms){
   const ox=room.gx*ROOM_W,oy=room.gy*ROOM_H;
@@ -68,18 +76,19 @@ export function generateDungeon(seed=1){
  rooms[0].type='start';rooms[0].cleared=true;rooms[0].visited=true;rooms[0].discovered=true;
  rooms[bossId].type='boss';rooms[bossId].layout='open';
  // Six unique encounter functions across nine rooms; still 3-4 normal combats.
- const special=['treasure','shrine','elite','secret'];
+ const special=['treasure','shrine','elite','secret','event'];
  for(let i=0;i<Math.min(special.length,rest.length);i++)rest[i].type=special[i];
  // Secret branches are reachable; their contents stay hidden until the room is entered.
  const biomes=['crypt','fungal','flooded'];
  for(const room of rooms){
   const tier=dist[room.id]/Math.max(1,dist[bossId]);
   room.biome=biomes[Math.min(2,Math.floor(tier*2.95))];
+  room.eventKind=room.type==='event'?(random()<.5?'forge':'trial'):null;
   room.theme=room.type==='start'?'sanctuary':room.type==='boss'?'throne':
    room.type==='treasure'?'reliquary':room.type==='shrine'?'sanctuary':
    room.type==='secret'?'reliquary':room.biome;
   // No occluding decorations/collisions on the boss arena or shrine center.
-  if(['boss','shrine','treasure','secret'].includes(room.type)){
+  if(['boss','shrine','treasure','secret','event'].includes(room.type)){
    const ox=room.gx*ROOM_W,oy=room.gy*ROOM_H;
    for(let y=2;y<=8;y++)for(let x=3;x<=11;x++)free(ox+x,oy+y);
   }
