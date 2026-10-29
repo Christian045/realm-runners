@@ -7,7 +7,7 @@ export const TOWER_STAGES=Object.freeze([
  {floor:3,name:'Die eisernen Barrikaden',biome:'crypt',boss:'EISENKOLOSS',roster:['sentinel','bulwark','goblin','brute'],signature:['dash','cross','mark'],color:'#f1c37b'},
  {floor:4,name:'Die Pilzsporen-Gruft',biome:'fungal',boss:'SPORENHEXER',roster:['mushroom','hexer','cultist','wraith'],signature:['summon','fan','meteor'],color:'#b89ae9'},
  {floor:5,name:'Der Thron der Tiefe',biome:'flooded',boss:'KÖNIG DER FLUT',roster:['archer','scout','wraith','sentinel'],signature:['ring','lances','dash'],color:'#7ce3dd'},
- {floor:6,name:'Die blutrote Festung',biome:'crypt',boss:'SCHARLACH-RITTER',roster:['brute','bulwark','sentinel','goblin'],signature:['cross','dash','meteor'],color:'#ff9b9f'},
+ {floor:6,name:'Die blutrote Festung',biome:'crypt',boss:'SCHARLACH-RITTER',roster:['brute','bulwark','sentinel','scout','hexer'],signature:['cross','dash','meteor'],color:'#ff9b9f'},
  {floor:7,name:'Der zerbrochene Zirkel',biome:'fungal',boss:'ASTRALMAGIER',roster:['hexer','cultist','scout','wraith'],signature:['orbit','mark','summon'],color:'#c5a8ff'},
  {floor:8,name:'Die verfluchten Hallen',biome:'crypt',boss:'SEELENFRESSER',roster:['assassin','wraith','hexer','brute'],signature:['meteor','orbit','lances'],color:'#b2d0ff'},
  {floor:9,name:'Vor der letzten Pforte',biome:'flooded',boss:'DÄMMERUNGS-HÜTER',roster:['bulwark','sentinel','brute','hexer'],signature:['cross','ring','summon','dash'],color:'#f6bc7a'},

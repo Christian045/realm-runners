@@ -1,4 +1,19 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.16.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.17.0)
+
+## Alpha 0.17 – Gameplay-Feedback: Etage 6 anspruchsvoller & Kriegerschwert sichtbar
+
+Auf Basis einer 62 Sekunden langen iPhone-Aufnahme vom 29.10.2026: Turm-Etage 6 war mit 337 LP, 2–3 gegnerischen Zielen je Raum und wenigen Sekunden Bosskampf zu leicht. Das Schwert war hinter der Ritterfigur kaum erkennbar, während ein weißer Bogen dominierte.
+
+- **Krieger-Schwert sichtbar**: Ein tatsächlich gezeichnetes, breites Pixelschwert mit Griff, Parierstange, Stahlschneide und heller Spitze folgt exakt der Zielrichtung. Im Idle ist es gut zu erkennen; die drei Kombos schwingen es in verschiedenen Richtungen, der dritte Hieb ist größer. Der helle Schlagbogen wurde abgeschwächt, um das Schwert nicht zu überdecken.
+- **Anspruchsvollere Kampfräume ab Etage 4**: Neue, deterministische Schwierigkeitsskala mit größeren Gegnergruppen; ab Etage 6 starten Kampfräume mit mindestens fünf Gegnern. Gezielt eingestreute Fernkämpfer kontern reines Stehenbleiben und Schwertspammen.
+- **Verstärkungswellen**: Ab Etage 4 haben normale Kampfräume eine zweite, angekündigte Welle. Türen öffnen erst, wenn alle Wellen besiegt wurden. Die zweite Welle erscheint spätestens kurz nach dem Sieg über die erste; keine künstlich leere Wartezeit. Turm bleibt bei sieben Räumen je Etage.
+- **Aktivere Gegner, nicht nur mehr HP**: Spätere Etagen haben kürzere, aber weiterhin deutlich sichtbare Angriffsankündigungen und Erholungszeiten, moderat höhere Bewegungsgeschwindigkeit und Schaden. Etage 6 erhält auch Fernkämpfer im bisher rein nahkampforientierten Festungs-Roster.
+- **Frühere Raumgefahren**: Die erste markierte Gefahrenzone erscheint ab den höheren Etagen früher im Raum und die Folgeintervalle sind etwas kürzer; weiterhin mit sichtbarem Vorwarnkreis und Ausweichweg.
+- **Boss darf seine Angriffe ausführen**: Ab Etage 4 bekommt der normale Turmboss einen sichtbaren Runenschild, wenn sonst eine Phase oder der Tod vorzeitig durch extrem hohen Spielerschaden ausgelöst würde. Auf Etage 6 müssen vor Phase II mindestens drei und vor dem Sieg insgesamt sechs telegraphierte Bossaktionen ausgeführt worden sein. Der Schutz verschwindet nach den Aktionen; der Finale Herrscher mit seinem dreiphasigen System bleibt unverändert.
+- **Regressions-Tests** für Anzahl und Mischung der Raumgegner, Wellenfortschritt, begehbare Nachspawnpunkte, Etagenlänge, Bossschild-Freigabe und gerichtet schwingende Pixelschwerter, zusätzlich zur bestehenden Desktop- und WebKit-/iPhone-Browser-Suite.
+- **Kompatibilität**: Keine Löschung von Spielständen, keine Änderung an der Touch-Steuerung und keine pauschale Erhöhung aller normalen Boss-LP.
+
+
 
 ## Alpha 0.16 – Loot, Builds und verzweigte Klassentalente
 

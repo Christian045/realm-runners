@@ -1,7 +1,7 @@
 import { TILE, clamp, distance } from './data.js';
 import { ROOM_W, ROOM_H } from './dungeon.js';
 import {drawWardenWarnings} from './warden.js?v=0.15.0';
-import {drawTowerBossWarnings} from './tower-boss.js?v=0.15.0';
+import {drawTowerBossWarnings} from './tower-boss.js?v=0.17.0';
 import {drawTowerEnvironment} from './tower-visuals.js';
 
 const THEMES={

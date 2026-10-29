@@ -1,4 +1,5 @@
 import {distance,normalized} from './data.js';
+import {towerFirstHazard} from './difficulty-director.js?v=0.17.0';
 
 // Enemy behaviours are state machines. Every dangerous action is preceded by a
 // visible marker; no move may teleport through a solid tile.
@@ -82,7 +83,7 @@ export function towerRoomHazard(game,dt){
  if(game.stageHazardClock>0)return;
  const floor=game.floorDepth,room=game.dungeon.roomAt(game.player.x,game.player.y);
  if(!room||room.type==='start'||room.type==='shrine'||room.type==='treasure')return;
- game.stageHazardClock=Math.max(5.7,10.5-floor*.35);
+ game.stageHazardClock=Math.max(4.5,8.8-floor*.42);
  const p=game.player,stage=game.currentTowerStage();
  const radius=floor===10?90:floor%3===0?80:67;
  const delay=floor>=8?1.1:1.4;
