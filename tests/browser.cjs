@@ -30,6 +30,28 @@ const assert=require('node:assert/strict');
   await page.locator('#overlay').waitFor({state:'hidden'});
   await page.waitForTimeout(800);
   assert.ok(await page.locator('#hud').isVisible());
+  // A versioned main module alone does not bust an imported ./game.js URL.
+  // Prevent an old cached combat engine from running after a release.
+  const currentCombat=await page.evaluate(()=>performance.getEntriesByType('resource')
+    .some(entry=>entry.name.includes('/src/game.js?v=0.12.2')));
+  assert.ok(currentCombat,'the browser must load the versioned combat engine');
+  const realBattle=await page.evaluate(async()=>{
+   const [{Game},{defaultProgress}]=await Promise.all([
+    import('./src/game.js?v=0.12.2'),import('./src/progression.js')]);
+   const input={movement:()=>({x:0,y:0}),aiming:()=>({x:1,y:0}),
+    attacking:()=>false,consumeDash:()=>false,consumeAbility:()=>false};
+   for(const seed of [5,71,150]){
+    const g=new Game(defaultProgress(),input);
+    g.start('warrior',seed);
+    const room=g.dungeon.rooms.find(r=>r.type==='combat');
+    g.player.x=room.cx;g.player.y=room.cy;g.entrance(room);
+    const hp=g.player.hp;
+    for(let frame=0;frame<720&&g.mode==='playing'&&g.player.hp===hp;frame++)g.update(1/60);
+    if(g.player.hp===hp)return {seed,passed:false};
+   }
+   return {passed:true};
+  });
+  assert.ok(realBattle.passed,'live browser combat must damage an idle player: '+JSON.stringify(realBattle));
   // Verify deployed dungeon format and essential room types in the real browser.
   const dungeonResult=await page.evaluate(async()=>{
    const {generateDungeon,ROOM_COUNT}=await import('./src/dungeon.js');

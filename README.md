@@ -1,4 +1,12 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.12.1)
+# Realm Runners – Dungeon Reborn (Alpha 0.12.2)
+
+## Alpha 0.12.2 – Live-Kampf & Browser-Cache
+
+- Gegenereignisse nun gegen echte, generierte Kampfräume mit stillstehendem Spieler getestet: sieben normale, sieben Turm- und ein Elite-Kampf.
+- Verhindert ein veraltetes, trotz neuer HTML-/Hauptscript-Version gecachtes Kampfmodul: `main.js?v=0.12.2` importiert nun explizit `game.js?v=0.12.2`.
+- Browser-Regression prüft die wirklich geladene Kampfmodul-URL sowie tatsächliche Treffer an einem stehenden Spieler. Bestehende Spielstände und Steuerung bleiben unverändert.
+
+
 
 ## Alpha 0.12.1 – Fehlerbehebung: Gegner greifen wieder an
 
