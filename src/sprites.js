@@ -2,7 +2,7 @@
 import {TOWER_STAGES} from './tower.js?v=0.15.0';
 // No CDN, raster downloads or third-party assets. Every frame is 32x36 source pixels.
 export const SPRITE_SIZE=Object.freeze({width:32,height:36});
-export const SPRITE_KINDS=Object.freeze(['warrior','hunter','mage','slime','mushroom','archer','goblin','slimeking','warden','wraith','sentinel','cultist','brute','assassin','scout','hexer','bulwark','sovereign',...Array.from({length:9},(_,i)=>'tower'+(i+1))]);
+export const SPRITE_KINDS=Object.freeze(['warrior','hunter','mage','glasscannon','summoner','alchemist','slime','mushroom','archer','goblin','slimeking','warden','wraith','sentinel','cultist','brute','assassin','scout','hexer','bulwark','sovereign',...Array.from({length:9},(_,i)=>'tower'+(i+1))]);
 export const ANIMATION_STATES=Object.freeze(['idle','walk','attack','cast','dash','hurt','death']);
 export function facing(direction={x:0,y:1}){
  const x=Number(direction.x)||0,y=Number(direction.y)||0;
@@ -26,6 +26,9 @@ const PAL={
  warrior:{outline:'#1c2b3a',shadow:'#24435c',base:'#4787bb',light:'#93d1ff',trim:'#d9ecf6',skin:'#efd4ad',dark:'#283c52',metal:'#dce8e9',gold:'#f6d589',eye:'#152b39'},
  hunter:{outline:'#172d2c',shadow:'#2a523f',base:'#418a5c',light:'#8dd99c',trim:'#c7ddb1',skin:'#edcfa9',dark:'#263f32',metal:'#d5b879',gold:'#e7ce88',eye:'#182d26'},
  mage:{outline:'#2b2547',shadow:'#423467',base:'#805eae',light:'#c2a7fa',trim:'#e0d3fb',skin:'#f3d5bd',dark:'#403356',metal:'#f3d8aa',gold:'#bdcaff',eye:'#1c284c'},
+ glasscannon:{outline:'#39203c',shadow:'#693e70',base:'#a46db9',light:'#eab9ff',trim:'#ffe0f5',skin:'#e9bdcf',dark:'#52335e',metal:'#e5c5f8',gold:'#fc8add',eye:'#32113f'},
+ summoner:{outline:'#173c3b',shadow:'#2a685f',base:'#52897d',light:'#9fe6d1',trim:'#c5f5e8',skin:'#ddcba9',dark:'#244b4c',metal:'#9de3cf',gold:'#f1ca83',eye:'#103b38'},
+ alchemist:{outline:'#293525',shadow:'#4a5932',base:'#7d9555',light:'#c6e9a3',trim:'#e3e7a0',skin:'#e8d2a3',dark:'#38482d',metal:'#c1c6ab',gold:'#efb66d',eye:'#1c3322'},
  archer:{outline:'#292343',shadow:'#413958',base:'#68568d',light:'#b5a2df',trim:'#eee0e6',skin:'#efd3b8',dark:'#3b3250',metal:'#cfc4e2',gold:'#d9cbff',eye:'#1c2736'},
  goblin:{outline:'#2f3223',shadow:'#4f5532',base:'#8c9850',light:'#d3d68a',trim:'#b5a76e',skin:'#bec77a',dark:'#535c32',metal:'#adb2ac',gold:'#e9b765',eye:'#332e29'},
  slime:{outline:'#203f39',shadow:'#3e7664',base:'#66b685',light:'#a4ecc1',trim:'#ceffe1',skin:'#92c4ae',dark:'#3e7562',metal:'#d6f2d5',gold:'#cdf2bd',eye:'#163932'},
@@ -312,6 +315,22 @@ export function drawSpritePixels(ctx,kind,state='idle',frame=0,dir='down',phase=
  }
  else if(['wraith','sentinel','cultist','brute'].includes(kind))frameTowerMob(ctx,p,kind,state,frame);
  else if(['assassin','scout','hexer','bulwark'].includes(kind))frameEncounterMob(ctx,p,kind,state,frame);
+ else if(['glasscannon','summoner','alchemist'].includes(kind)){
+  const basis=kind==='alchemist'?'hunter':'mage';
+  frameHero(ctx,p,basis,state,frame,facingRight);
+  if(kind==='glasscannon'){
+   stamp(ctx,p,[['gold',13,0,6,3],['light',14,2,4,4],['trim',5,14,4,10],
+     ['light',3,13,3,6],['gold',24,15,5,5],['dark',12,28,11,3]]);
+  }else if(kind==='summoner'){
+   stamp(ctx,p,[['gold',12,18,8,2],['trim',14,20,5,5],['light',14,17,3,3],
+     ['trim',2,20,5,7],['gold',26,18,4,8]]);
+   block(ctx,p.light,15,19+(frame%2),3,3);
+  }else{
+   stamp(ctx,p,[['gold',4,13,5,3],['trim',4,16,5,10],
+    ['light',5,17,3,5],['gold',23,12,6,4],['light',24,16,5,7],
+    ['shadow',8,27,16,4],['trim',13,2,7,3]]);
+  }
+ }
  else frameHero(ctx,p,kind,state,frame,facingRight);
  if(dir==='left')ctx.restore();
  if(state==='hurt'){
