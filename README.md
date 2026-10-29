@@ -1,4 +1,37 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.20.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.21.0)
+
+## Alpha 0.21.0 – Dungeon Reborn: Großes Roguelite-Update
+
+**Boss & Dungeon**
+- Besiegte Bosse öffnen ein sichtbares, animiertes violettes Portal. Der Raum bleibt offen und der gesamte Dungeon darf weiter erkundet werden. Erst bewusstes Zurückkehren zum Portal beendet die Etage/den Run.
+- Ein neuer Händlerraum bietet drei Items gegen Run-Gold. Einkäufe sind einmalig, behalten das Inventarlimit bei und sind optional.
+- Unterirdische Erdbohrer greifen nach sichtbarer Vorwarnung an, Nebelrufer stärken andere Monster. Weitere bestehende Gegnertypen sind vielfältiger auf die Räume verteilt.
+- Unterschiedliche, kollisionstreue Dekorationssets pro Dungeonbiom: Wasserlachen, Pilze, Wurzeln, Graburnen, Kisten und Runen.
+- Der Standardmodus ist anspruchsvoller: mehr Anfangsgegner, zügigere Angriffe und stärkere Skalierung. Explosive Elitegegner detonieren nach 0,48 Sekunden mit sichtbarer Vorwarnung.
+- Neue leise, original synthetisierte Ambienteffekte in Krypten, Wasserhallen und Pilzgebieten, dazu Portal-, Shop- und Warnsignale.
+
+**Helden & Builds**
+- Alle drei bisherigen Klassen beginnen mit 100 Basis-LP. Der Krieger behält seine klassische Dreierkombo; optionale Schwerter ändern Breite, Reichweite und Tempo.
+- Magier: Arkanmagier, Feuermagier und Eismagier mit Kettenmagie, Verbrennung und Verlangsamung.
+- Bogenschütze: Waldläufer, Schattenjäger mit Dolch-Nahkampf und Armbrustschütze mit durchschlagenden Bolzen.
+- Neue spielbare Klassen: Glaskanonier (Schaden steigt bei Verlust maximaler LP), Beschwörer (drei vor Runbeginn wählbare Diener) und Alchemist (wechselnde Feuer-, Gift- und Frosttränke sowie ein großer Kombinationszauber).
+- Eigens eingefärbte Pixel-Sprites, individuelle Startwaffen, Talente und Run-Powers für die neuen Klassen.
+- Neue Ausrüstungsplätze Amulett, Ring I und Ring II. Balancierte Seltenheitsmultiplikatoren mit seltener epischer und legendärer Beute. **Mythische Items droppen nur bei Bossen und dort mit 1,5 % Wahrscheinlichkeit**; Bosse lassen garantiert zusätzliche Ausrüstung fallen.
+- Verschiedene Schwertgattungen beeinflussen nun das Angriffsmuster, statt bloß den Schadenswert.
+
+**Status, Erfolge & Statistik**
+- Gift, Feuer, Betäubung, Verlangsamung, Fäulnis (blockiert Heilung) und Todesmarke mit Frist und neutralisierbarem Ursprung. Status-Timer erscheinen nur bei aktivem Effekt.
+- Neuer freier No-Hit-Modus: Der erste echte Treffer beendet den Run; ein erfolgreicher Versuch schaltet einen Erfolg frei.
+- Langzeiterfolge für 100/1000 Runs, 10.000 verursachten Schaden, 100 Bosssiege sowie einen No-Hit-Sieg, inklusive Goldbelohnung und kosmetischen Profil-Titeln in der Burghalle.
+- Nach einem abgeschlossenen Run erscheint ein zusätzlicher Bericht über Zeit, Gegnerkills und verursachten bzw. erlittenen Schaden.
+- Die langlebigen Statistiken erfassen jetzt auch die neuen Klassen und Gegnertypen.
+
+**Technik**
+- Existing Spielstände werden mit optionalen Feldern erweitert; sämtliche Aufzeichnungen bleiben im bisherigen lokalen Spielstand.
+- Desktop- und iPhone-Steuerung bleiben erhalten. Assets und JS-Module verwenden aktualisierte Cache-Versionen.
+- Umfangreichere Regressionstests für Bossportal, Händler, neuen Klassen, Ausrüstung, No-Hit, Item-Drops und Achievements.
+
+
 
 ## Alpha 0.20.0 – Statistik-Chronik
 
