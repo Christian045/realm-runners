@@ -134,7 +134,7 @@ function refreshPanel(){
      '<strong>'+m.name+(game.runMode===id?' ✓':'')+'</strong><small>'+(unlocked?m.description:m.unlock)+
      ' · '+Math.round(m.multiplier*100)+'% Gold</small></button>';
    }).join('')+'</div>'+
-   '</details><div class="section-label castle-mode-title">WÄHLE DEIN ABENTEUER</div><div class="castle-mode-list"><button data-action="normal" class="mode-toggle '+(!game.tower&&!game.endless?'selected':'')+'">⚔ NORMALER DUNGEON<small>13 Räume · Beute · Bosse · neue Ausrüstung</small></button>'+
+   '</details><div class="section-label castle-mode-title">WÄHLE DEIN ABENTEUER</div><div class="castle-mode-list"><button data-action="normal" class="mode-toggle '+(!game.tower&&!game.endless?'selected':'')+'">⚔ NORMALER DUNGEON<small>16 Räume · 4 Kampfkammern · Boss · Händler</small></button>'+
    '<button data-action="endless" class="mode-toggle '+(game.endless?'selected':'')+'" '+(progress.bossKills<1?'disabled':'')+'>'+
      (game.endless?'✓ ENDLOS-ABSTIEG AKTIV':'∞ ENDLOS-ABSTIEG')+
      '<small>'+(progress.bossKills<1?'Besiege zuerst einen Boss':'Etagen werden schwieriger · deine Ausrüstung bleibt erhalten')+'</small></button>'+
