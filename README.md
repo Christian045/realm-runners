@@ -11,6 +11,7 @@ Auf Basis einer 62 Sekunden langen iPhone-Aufnahme vom 29.10.2026: Turm-Etage 6 
 - **Frühere Raumgefahren**: Die erste markierte Gefahrenzone erscheint ab den höheren Etagen früher im Raum und die Folgeintervalle sind etwas kürzer; weiterhin mit sichtbarem Vorwarnkreis und Ausweichweg.
 - **Boss darf seine Angriffe ausführen**: Ab Etage 4 bekommt der normale Turmboss einen sichtbaren Runenschild, wenn sonst eine Phase oder der Tod vorzeitig durch extrem hohen Spielerschaden ausgelöst würde. Auf Etage 6 müssen vor Phase II mindestens drei und vor dem Sieg insgesamt sechs telegraphierte Bossaktionen ausgeführt worden sein. Der Schutz verschwindet nach den Aktionen; der Finale Herrscher mit seinem dreiphasigen System bleibt unverändert.
 - **Regressions-Tests** für Anzahl und Mischung der Raumgegner, Wellenfortschritt, begehbare Nachspawnpunkte, Etagenlänge, Bossschild-Freigabe und gerichtet schwingende Pixelschwerter, zusätzlich zur bestehenden Desktop- und WebKit-/iPhone-Browser-Suite.
+- **iPhone-Boss-HUD**: Im Hochformat wird die Minikarte während eines aktiven Bosskampfs ausgeblendet, damit sie weder die Boss-Lebensleiste noch die Angriffswarnung überdeckt. Anschließend erscheint sie wieder.
 - **Kompatibilität**: Keine Löschung von Spielständen, keine Änderung an der Touch-Steuerung und keine pauschale Erhöhung aller normalen Boss-LP.
 
 

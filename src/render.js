@@ -66,7 +66,9 @@ export class Renderer {
   for(const e of game.effects)this.effect(e);
   drawTowerVictory(c,game);
   drawVignette(c,game,canvas);
-  this.minimap(game);
+  // Portrait Safari: the map otherwise overlaps the boss HP / attack HUD.
+  // Restore it automatically when the boss is defeated or outside combat.
+  if(!(game.camera.w<700&&game.getActiveBoss?.()))this.minimap(game);
  }
  titleBackground(){
   const c=this.ctx,w=this.canvas.width,h=this.canvas.height;
