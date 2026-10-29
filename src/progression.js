@@ -14,7 +14,7 @@ export function normalizeProgress(value){
  }
  return {version:1,gold:num(p.gold),runs:num(p.runs),bestRooms:num(p.bestRooms,99),
   bossKills:num(p.bossKills),noHitWins:num(p.noHitWins),itemsFound:num(p.itemsFound),eliteKills:num(p.eliteKills),deepestFloor:Math.max(1,num(p.deepestFloor,999)),towerBest:num(p.towerBest,10),towerWins:num(p.towerWins),towerBestTime:num(p.towerBestTime,864000),towerLastTime:num(p.towerLastTime,864000),
-  towerStageRecords:Object.fromEntries(Object.entries(p.towerStageRecords||{}).filter(([k,v])=>/^(10|[1-9])$/.test(k)&&Number.isFinite(+v)&&+v>0).map(([k,v])=>[k,num(v,864000)])),achievements:Object.fromEntries(Object.entries(p.achievements||{}).filter(([k,v])=>/^[a-zA-Z]+$/.test(k)&&v===true)),selectedClass:CLASSES[p.selectedClass]?p.selectedClass:'warrior',
+  towerStageRecords:Object.fromEntries(Object.entries(p.towerStageRecords||{}).filter(([k,v])=>/^(10|[1-9])$/.test(k)&&Number.isFinite(+v)&&+v>0).map(([k,v])=>[k,num(v,864000)])),achievements:Object.fromEntries(Object.entries(p.achievements||{}).filter(([k,v])=>/^[a-zA-Z0-9]+$/.test(k)&&v===true)),selectedClass:CLASSES[p.selectedClass]?p.selectedClass:'warrior',
   upgrades:{vitality:num(p.upgrades?.vitality,5),strength:num(p.upgrades?.strength,5)},talents,
   statistics:normalizeStatistics(p.statistics)};
 }
