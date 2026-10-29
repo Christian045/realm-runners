@@ -1,4 +1,4 @@
-import {ENEMY_DATA} from './data.js';
+import {ENEMY_DATA} from './data.js?v=0.21.0';
 
 export const ENEMY_NAMES=Object.freeze({
  slime:'Schleim',mushroom:'Pilzling',archer:'Skelettschütze',
