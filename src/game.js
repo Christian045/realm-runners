@@ -471,9 +471,13 @@ export class Game {
   p.attackCooldown=p.attackDelay*(charged?1.22:1);p.attackTimer=charged?.3:.18;
   this.attackSequence++;this.playSound(p.kind==='warrior'?'slash':'shoot');
   if(kind==='warrior'){
+   const blade=p.equipment?.weapon?.baseId;
+   if(blade==='greatsword')p.attackCooldown*=1.25;
+   else if(blade==='duelist')p.attackCooldown*=.82;
+   else if(blade==='axe')p.attackCooldown*=1.10;
    p.comboStep=p.comboTime>0?(p.comboStep%3)+1:1;
    p.comboTime=.85;
-   const finisher=p.comboStep===3,reach=p.reach+(finisher?13:0);
+   const finisher=p.comboStep===3,reach=p.reach+(finisher?13:0)+(blade==='greatsword'?20:0);
    const angle=Math.atan2(aim.y,aim.x);
    this.createEffect('slash',p.x,p.y,finisher?'#ffe39c':'#e6f6ff',finisher?.34:.22,reach,angle);
    if(finisher){
@@ -483,8 +487,8 @@ export class Game {
    }
    for(const e of this.enemies){
     const delta=normalized(e.x-p.x,e.y-p.y);
-    if(e.hp>0&&distance(e,p)<reach+e.radius&&delta.x*aim.x+delta.y*aim.y>.45)
-     this.hitEnemy(e,p.damage*(finisher?1.27:p.comboStep===2?1.04:1),aim,{finisher,melee:true});
+    if(e.hp>0&&distance(e,p)<reach+e.radius&&delta.x*aim.x+delta.y*aim.y>(blade==='axe'?.19:blade==='duelist'?.68:.45))
+     this.hitEnemy(e,p.damage*(finisher?1.27:p.comboStep===2?1.04:1)*(blade==='duelist'?.88:blade==='greatsword'?1.12:1),aim,{finisher,melee:true});
    }
    if(finisher&&(hasRunPower(p,'shockwave')||p.masteries?.includes('juggernaut'))){
     const radius=hasRunPower(p,'shockwave')?145:110;
