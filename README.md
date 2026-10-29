@@ -1,4 +1,15 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.19.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.19.1)
+
+## Alpha 0.19.1 – Dialog- und Desktop-Layout korrigiert
+
+- **Spiel-Dialoge vom Menü getrennt:** Ereignisse, Schreine, Reliktwahl, Etagenwechsel, Pause, Ergebnisfenster und Inventar verwenden ein eigenes kompaktes Overlay, während die cineastische Burghalle dem Hauptmenü vorbehalten bleibt.
+- **Titel überlaufen nicht mehr:** Reduzierte Schriftgröße für Dialoge und besonders lange deutsche Überschriften, ausgewogener Zeilenumbruch und weniger Zeichenabstand.
+- **Keine horizontalen Scrollbalken:** Die Panels sind auf Viewportbreite begrenzt; Texte, Buttons und Ausrüstungskarten müssen innerhalb bleiben.
+- **Weniger unnötiges Scrollen:** Die zusätzliche Hauptmenü-Einleitung und Burghallen-Überschrift werden bei In-Game-Dialogen ausgeblendet. Kurze Entscheidungen wie „Versiegeltes Gewölbe“ sind auf normalen Desktopgrößen kompakt.
+- **Mobile + Inventar:** Kleine Fenster bleiben bedienbar; umfangreiche Inhalte können bei Platzmangel vertikal gescrollt werden, ohne seitlich zu verrutschen.
+- **Browser-Regressionen:** Neue Layout-Prüfungen für 742×706, 1280×800, 390×844 und 320×568 mit langen Eventtiteln, Schrein, Etagenabschluss und Inventar.
+
+
 
 ## Alpha 0.19 – Hauptmenü: Düstere Burghalle
 
