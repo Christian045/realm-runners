@@ -124,3 +124,29 @@ test('new enemy roles and large achievement goals are saved',()=>{
  for(const id of ['thousandRuns','damage10k','boss100','noHitWin'])
   assert.equal(loadProgress(storage).achievements[id],true);
 });
+
+
+test('normal runs feature four actual combat chambers alongside all curated rooms',()=>{
+ for(let seed=1;seed<=80;seed++){
+  const d=generateDungeon(seed);
+  assert.equal(d.rooms.length,16,'normal dungeon room count seed '+seed);
+  assert.equal(d.rooms.filter(room=>room.type==='combat').length,4,
+   'normal dungeon must not consist mostly of passive special rooms');
+  assert.equal(d.rooms.filter(room=>room.type==='shop').length,1);
+  assert.equal(d.rooms.filter(room=>room.type==='boss').length,1);
+  assert.equal(d.rooms.filter(room=>room.type==='start').length,1);
+ }
+ const tower=generateDungeon(51,{tower:true,biome:'crypt',floor:6});
+ assert.equal(tower.rooms.length,7,'ten-stage tower room density stays unchanged');
+});
+
+test('warden and slime-king boss kills appear under their distinct names in stats',()=>{
+ const g=fresh();
+ const root={hp:0,maxHp:100,type:'boss',x:g.player.x+30,y:g.player.y+30,
+  radius:38,homeRoom:0,elite:false};
+ g.killEnemy({...root,boss:{variant:'warden'}});
+ g.killEnemy({...root,boss:{variant:'slimeking'}});
+ assert.equal(g.progress.statistics.bosses['DER RUNENWÄCHTER'],1);
+ assert.equal(g.progress.statistics.bosses['DER SCHLEIMKÖNIG'],1);
+ assert.equal(g.progress.statistics.kills.boss,2);
+});
