@@ -98,7 +98,7 @@ function refreshPanel(){
  // Menu typography is intentionally cinematic; gameplay decisions use compact dialogs.
  overlay.classList.toggle('dialog-view',!playing&&!isMenu);
  overlay.classList.toggle('dialog-inventory',game.mode==='inventory');
- overlay.classList.toggle('dialog-choice',['event','shrine','upgrade','stageclear'].includes(game.mode));
+ overlay.classList.toggle('dialog-choice',['event','shrine','shop','upgrade','stageclear'].includes(game.mode));
  $('hud').classList.toggle('hidden',!game.player);
  $('pauseBtn').classList.toggle('hidden',!playing);
  $('inventoryBtn').classList.toggle('hidden',!playing);
@@ -176,6 +176,17 @@ function refreshPanel(){
      (relic?'<small class="relic-preview">NÄCHSTES RELIKT: '+relic.name+' · '+relic.description+'</small>':'')+
      '</span></button>';
    }).join('')+'</div>';
+ }else if(game.mode==='shop'){
+  title.textContent='DUNGEON-HÄNDLER';chapter.textContent='SELTENE WAREN · RUN-GOLD';
+  panel.innerHTML='<p>Der Händler verkauft Ausrüstung für diesen Durchgang. Dein Gold: <strong>'+game.runCoins+' ◆</strong></p>'+
+   '<div class="upgrade-grid">'+game.shopStock.map(offer=>
+    '<button class="upgrade-card" data-action="shop:'+offer.id+'" '+
+    (offer.sold||game.runCoins<offer.price||game.player.inventory.length>=18?'disabled':'')+'>'+
+    '<strong style="color:'+RARITIES[offer.item.rarity].color+'">'+
+    (offer.sold?'VERKAUFT · ':'')+safeText(offer.item.name)+'</strong>'+
+    '<span>'+RARITIES[offer.item.rarity].name+' · '+describeStats(offer.item)+'</span>'+
+    '<small>KAUFEN · '+offer.price+' ◆</small></button>').join('')+'</div>'+
+    btn('shop:leave','HÄNDLER VERLASSEN','primary');
  }else if(game.mode==='upgrade'){
   title.textContent='RELIKT';chapter.textContent='WÄHLE DEINE MACHT';
   panel.innerHTML='<p>Die Kammer ist gesäubert. Wähle eine Verbesserung für diesen Durchgang.</p><div class="upgrade-grid">'+
@@ -311,6 +322,7 @@ $('panelContent').addEventListener('click',e=>{
  if(action==='towerReward')game.chooseTowerReward(value);
  if(action==='sound'){audio.toggle();refreshPanel()}
  if(action==='event')game.chooseEvent(value);
+ if(action==='shop')game.chooseShop(value);
  if(action==='start'||action==='restart')game.start(selected);
  if(action==='buy')game.purchase(value);
  if(action==='talent')game.purchaseTalent(value,extra);
