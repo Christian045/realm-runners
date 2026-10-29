@@ -177,7 +177,7 @@ export class Game {
   this.runCoins=0;this.clearCount=0;this.time=0;this.bossDefeated=false;this.exitPortal=null;this.hitsTaken=0;this.shopStock=[];this.upgradeChoices=[];this.bossMessage='';
   this.runStatistics=newRunStatistics(kind,this.tower?'Turm':this.endless?'Endlos':'Dungeon');
   this.statisticsSaveClock=0;this.ambientClock=9;
-  this.servant=kind==='summoner'?{kind:this.servantChoice,x:this.player.x-30,y:this.player.y-30,cooldown:0}:null;
+  this.servant=kind==='summoner'?{kind:this.servantChoice,x:this.player.x-30,y:this.player.y-30,radius:10,cooldown:0}:null;
   this.camera.x=this.player.x-this.camera.w/2;this.camera.y=this.player.y-this.camera.h/2;
   this.playSound('start');
   this.notify();
