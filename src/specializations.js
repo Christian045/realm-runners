@@ -13,7 +13,10 @@ export const SPECIALIZATIONS=Object.freeze({
   {id:'standard',name:'Arkanmagier',description:'Magische Kettenkugeln und Arkanschlag'},
   {id:'pyromancer',name:'Feuermagier',description:'Verbrennung, Feuerfächer und Flammenexplosion',unlock:'boss'},
   {id:'cryomancer',name:'Eismagier',description:'Frostsplitter, Verlangsamung und Eisexplosion',unlock:'runs'}
- ]
+ ],
+ glasscannon:[{id:'standard',name:'Glaskanonier',description:'Jeder Treffer senkt maximale LP und verstärkt den Schaden'}],
+ summoner:[{id:'standard',name:'Beschwörer',description:'Wähle vor jedem Run einen von drei Dienern'}],
+ alchemist:[{id:'standard',name:'Alchemist',description:'Drei abwechselnde Trankmischungen und Flächenschaden'}]
 });
 export function specializationUnlocked(progress,id){
  if(id==='standard')return true;
