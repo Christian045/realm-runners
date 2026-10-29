@@ -1,4 +1,4 @@
-import {distance,normalized} from './data.js?v=0.15.0';
+import {distance,normalized} from './data.js?v=0.21.0';
 import {hasLineOfSight} from './navigation.js';
 
 // Enemy roles share warning, windup and cooldown contracts. All attacks are
