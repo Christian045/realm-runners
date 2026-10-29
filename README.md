@@ -1,4 +1,16 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.18.1)
+# Realm Runners – Dungeon Reborn (Alpha 0.19.0)
+
+## Alpha 0.19 – Hauptmenü: Düstere Burghalle
+
+- Neues responsives Hauptmenü als Burghalle mit gotischem Fenster, Steinpfeilern, Bannern, Bodenplatten und dezent animierten Fackeln (ohne zusätzliche Downloads).
+- Große zentrale Heldenvorschau, darunter die direkte Charakterauswahl mit vorhandenen Pixel-Sprites.
+- Die drei Spielmodi stehen direkt zur Auswahl; aktive Auswahl bleibt sichtbar. Der Startknopf trägt den passenden Modusnamen.
+- Spezialisierungen, Herausforderungen, permanente Verbesserungen, Talente und Erfolge sind in ausklappbaren Menüs untergebracht.
+- Smartphone-Layout: eine Spalte für die Spielmodi, kurze vertikale Wege, große Schaltflächen und sichere Bildschirmabstände.
+- Desktop: breitere und dreispaltige Spielmodus-Ansicht; Animationen respektieren die reduzierte Bewegungseinstellung.
+- Die Spielmechaniken, vorhandenen Spielstände, Mobil-Steuerung und Aktualisierungslogik bleiben erhalten.
+
+
 
 ## Alpha 0.18.1 – Grafische Überarbeitung nach iPhone-Screenshots
 
