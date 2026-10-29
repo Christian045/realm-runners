@@ -25,6 +25,10 @@ let selected=progress.selectedClass,menuTab='play';
 const icons={warrior:'⚔',hunter:'➶',mage:'✦',glasscannon:'◇',summoner:'♜',alchemist:'⚗'};
 const label=key=>({vitality:'Lebenskraft',strength:'Waffenschmiede'})[key];
 const upgradeDescription=key=>key==='vitality'?'+12 LP pro Stufe':'+8% Schaden pro Stufe';
+const achievementTitle=()=>progress.achievements?.noHitWin?'✦ UNBERÜHRBAR':
+ progress.achievements?.thousandRuns?'✦ EWIGER WANDERER':
+ progress.achievements?.boss100?'✦ BOSSJÄGER':
+ progress.achievements?.damage10k?'✦ MEISTER DER KLINGEN':'';
 const fmtTime=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/3600)?Math.floor(s/3600)+':'+String(Math.floor(s/60)%60).padStart(2,'0')+':'+String(s%60).padStart(2,'0'):Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 const btn=(action,text,cls='secondary',extra='')=>'<button type="button" class="'+cls+'" data-action="'+action+'" '+extra+'>'+text+'</button>';
 
@@ -111,7 +115,7 @@ function refreshPanel(){
  if(game.mode==='menu'){
   title.innerHTML='REALM<br><em>RUNNERS</em>';chapter.textContent=menuTab==='stats'?'DEINE CHRONIK':'DUNGEON REBORN';
   if(menuTab==='stats'){panel.innerHTML=renderStatistics()}else{
-  panel.innerHTML='<div class="castle-stage"><span class="castle-stage-caption">DIE HALLE DER HELDEN</span><div class="castle-hero"><canvas data-hero="'+selected+'" width="32" height="36" aria-label="Ausgewählter Charakter"></canvas></div><span class="castle-hero-name">'+CLASSES[selected].name+'</span><span class="castle-hero-sub">'+CLASSES[selected].subtitle+'</span></div><div class="section-label">WÄHLE DEINEN HELDEN</div><div class="class-grid">'+
+  panel.innerHTML='<div class="castle-stage"><span class="castle-stage-caption">DIE HALLE DER HELDEN</span><div class="castle-hero"><canvas data-hero="'+selected+'" width="32" height="36" aria-label="Ausgewählter Charakter"></canvas></div><span class="castle-hero-name">'+CLASSES[selected].name+'</span><span class="castle-hero-sub">'+CLASSES[selected].subtitle+'</span>'+(achievementTitle()?'<span class="castle-hero-title">'+achievementTitle()+'</span>':'')+'</div><div class="section-label">WÄHLE DEINEN HELDEN</div><div class="class-grid">'+
    Object.entries(CLASSES).map(([id,c])=>'<button class="class-card '+(selected===id?'active':'')+'" data-action="class:'+id+'"><canvas class="class-preview" data-hero="'+id+'" width="32" height="36" aria-hidden="true"></canvas><strong>'+c.name+'</strong><small>'+c.subtitle+'</small></button>').join('')+'</div>'+
    (selected==='summoner'?'<div class="section-label">DIENER FÜR DEN NÄCHSTEN RUN</div><div class="castle-servants">'+
     [['guardian','WÄCHTER','Nahkampf, Schild'],['ranger','SCHÜTZE','Fernkampf'],['spirit','GEIST','Heilung']].map(([id,name,role])=>
