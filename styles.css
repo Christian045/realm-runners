@@ -368,3 +368,78 @@ body:has(.boss-hud:not(.hidden)) .biome-label{display:none!important}
  .dialog-view .chapter{margin-bottom:7px}
  .dialog-view .panel p{margin:6px auto 9px}
 }
+
+
+/* Alpha 0.19.2 – Inventory has one intentional scroll region.
+   Header, equipment and exit button remain visible while items scroll. */
+.dialog-inventory .panel{
+ display:flex;
+ flex-direction:column;
+ height:min(850px,calc(100dvh - 2 * clamp(12px,2.4vw,28px)));
+ max-height:calc(100dvh - 2 * clamp(12px,2.4vw,28px));
+ overflow:hidden;
+ overflow-x:clip;
+}
+.dialog-inventory .panel>h1,
+.dialog-inventory .panel>.chapter{
+ flex:0 0 auto;
+}
+.dialog-inventory #panelContent{
+ display:flex;
+ flex:1 1 auto;
+ flex-direction:column;
+ min-height:0;
+ min-width:0;
+ overflow:hidden;
+}
+.dialog-inventory #panelContent>.equip-grid,
+.dialog-inventory #panelContent>.section-label,
+.dialog-inventory #panelContent>p,
+.dialog-inventory #panelContent>.primary{
+ flex:0 0 auto;
+}
+.dialog-inventory #panelContent>.equip-grid{
+ margin:6px 0;
+}
+.dialog-inventory #panelContent>.section-label{
+ margin:9px 0 5px;
+}
+.dialog-inventory #panelContent>p{
+ margin:3px auto 5px;
+ line-height:1.35;
+}
+.dialog-inventory #panelContent>.primary{
+ margin:10px 0 2px;
+ padding:10px 12px;
+}
+.dialog-inventory .inventory-list{
+ display:grid;
+ grid-auto-rows:max-content;
+ align-content:start;
+ flex:1 1 auto;
+ min-height:0;
+ max-height:none;
+ overflow-x:hidden;
+ overflow-y:auto;
+}
+.dialog-inventory .inventory-item{
+ min-width:0;
+ grid-template-columns:minmax(0,1fr) auto;
+}
+@media(max-width:700px){
+ .dialog-inventory .panel{height:calc(100dvh - 20px);max-height:calc(100dvh - 20px)}
+ .dialog-inventory #panelContent>.equip-grid{margin:4px 0}
+ .dialog-inventory #panelContent>.section-label{margin:7px 0 4px}
+ .dialog-inventory #panelContent>.primary{margin:7px 0 2px}
+ .dialog-inventory .equip-slot{padding:7px 4px;min-height:56px}
+ .dialog-inventory .equip-slot strong{font-size:9px;letter-spacing:.3px;margin-bottom:4px}
+ .dialog-inventory .equip-slot :is(span,small){font-size:9px;line-height:1.25}
+ .dialog-inventory .inventory-item{padding:8px 6px}
+ .dialog-inventory .inventory-item :is(strong,small){overflow-wrap:anywhere}
+}
+@media(max-height:620px){
+ /* On very short screens, use one outer scroll instead of nested scrollbars. */
+ .dialog-inventory .panel{height:calc(100dvh - 20px);overflow-x:hidden;overflow-y:auto}
+ .dialog-inventory #panelContent{flex:0 0 auto;overflow:visible}
+ .dialog-inventory .inventory-list{flex:0 0 auto;max-height:none;overflow:visible}
+}
