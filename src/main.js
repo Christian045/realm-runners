@@ -232,8 +232,8 @@ function refreshPanel(){
  }else if(game.mode==='inventory'){
   title.textContent='AUSRÜSTUNG';chapter.textContent='WAFFEN · RÜSTUNG · RELIKTE';
   const p=game.player;
-  const equipped=['weapon','armor','charm'].map(slot=>{
-   const k={weapon:'WAFFE',armor:'RÜSTUNG',charm:'RELIKT'}[slot],item=p.equipment[slot];
+  const equipped=['weapon','armor','charm','amulet','ring1','ring2'].map(slot=>{
+   const k={weapon:'WAFFE',armor:'RÜSTUNG',charm:'RELIKT',amulet:'AMULETT',ring1:'RING I',ring2:'RING II'}[slot],item=p.equipment[slot];
    return '<div class="equip-slot"><strong>'+k+'</strong><span style="color:'+(item?RARITIES[item.rarity].color:'#91ada8')+'">'+
     (item?item.name:'Nicht ausgerüstet')+'</span></div>';
   }).join('');
@@ -248,7 +248,7 @@ function refreshPanel(){
   const buildSummary='<div class="section-label">AKTIVER BUILD</div><p>'+
    (p.masteries?.map(id=>TALENTS[p.kind].find(t=>t.id===id)?.name||id).join(' · ')||'Noch keine Meisterschaft')+
    ' · '+(p.upgradeIds.filter(id=>RUN_POWERS[p.kind].some(t=>t.id===id)).map(id=>RUN_POWERS[p.kind].find(t=>t.id===id).name).join(' · ')||'Keine Run-Fähigkeit')+'</p>';
-  panel.innerHTML='<div class="equip-grid">'+equipped+'</div>'+setSummary+buildSummary+'<div class="section-label">GEFUNDENE AUSRÜSTUNG · '+p.inventory.length+'/18</div>'+
+  panel.innerHTML='<div class="equip-grid equip-grid-six">'+equipped+'</div>'+setSummary+buildSummary+'<div class="section-label">GEFUNDENE AUSRÜSTUNG · '+p.inventory.length+'/18</div>'+
    '<div class="inventory-list">'+(items||'<p>Du hast noch keine Gegenstände gefunden.</p>')+'</div>'+
    btn('closeInventory','ZUM SPIEL ZURÜCK','primary');
  }else if(game.mode==='paused'){
