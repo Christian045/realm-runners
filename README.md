@@ -1,4 +1,15 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.19.3)
+# Realm Runners – Dungeon Reborn (Alpha 0.19.4)
+
+## Alpha 0.19.4 – Cleanes Dungeon-HUD ohne Raumtitel
+
+- **Raumnamen entfernt:** Auf dem Dungeonboden erscheinen keine dekorativen Schriftzüge mehr, auch nicht „HEILIGTUM“ oder „KAMMER“. Die Raumgeometrie und interaktive Objekte bleiben unverändert.
+- **Minikarte:** Entferntes „KARTE“-Label; die Karte selbst bleibt mit allen Markierungen erhalten.
+- **Statusanzeigen reduziert:** Die separate Biom-Anzeige und das redundante Klassenlabel wurden entfernt. Erhalten bleiben Lebenspunkte, Dungeon-/Turmfortschritt, Beute, Inventar, Dash- und Fähigkeit-Abklingzeiten.
+- **Cooldowns:** Zwei kompakte Labels mit klar erkennbarem Bereitschaftsstatus und Restzeit. Auf schmalen iPhone-Bildschirmen passen sie sich an den verfügbaren Platz neben der Minikarte an.
+- **Boss:** Name, Lebensleiste und Phase bleiben sichtbar. Der zusätzliche Hinweistext erscheint nur bei tatsächlichen Angriffswarnungen oder Phasenwechseln, nicht dauerhaft im Leerlauf.
+- **Kompatibilität:** Keine Veränderungen an Schadenswerten, Gegnerverhalten, Inventar oder Spielständen. Neue Tests verhindern ein Zurückkehren der dekorativen Raumlabels.
+
+
 
 ## Alpha 0.19.3 – UI & Gameplay Quality Update
 
