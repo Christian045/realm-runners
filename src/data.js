@@ -30,7 +30,9 @@ export const ENEMY_DATA = Object.freeze({
   assassin: {hp:74,speed:158,damage:16,radius:15,color:'#ed98ad',reward:20},
   scout: {hp:70,speed:118,damage:14,radius:16,color:'#b4dc9c',reward:20},
   hexer: {hp:83,speed:79,damage:18,radius:18,color:'#cda5ed',reward:23},
-  bulwark: {hp:145,speed:67,damage:20,radius:23,color:'#aabfce',reward:25}
+  bulwark: {hp:145,speed:67,damage:20,radius:23,color:'#aabfce',reward:25},
+  burrower:{hp:96,speed:90,damage:18,radius:18,color:'#c6a46e',reward:24},
+  chanter:{hp:78,speed:74,damage:13,radius:17,color:'#8ecbb3',reward:26}
 });
 export const TILE = 48;
 export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
