@@ -105,3 +105,23 @@ test('endless mode unlocks on boss win, keeps gear and increases floor depth',()
  g.finish(false);assert.equal(g.mode,'dead');
  assert.ok(g.earnedGold>0);
 });
+
+test('class specializations unlock per run or first boss kill and change real stats',async()=>{
+ const {specializationUnlocked,SPECIALIZATIONS}=await import('../src/specializations.js');
+ const progress=defaultProgress();progress.runs=2;progress.bossKills=1;
+ assert.equal(SPECIALIZATIONS.warrior.length,3);
+ assert.ok(specializationUnlocked(progress,'berserker'));
+ const g=new Game(progress,input);
+ assert.ok(g.selectSpecialization('bulwark'));
+ g.start('warrior',7);
+ assert.equal(g.player.specialization,'bulwark');
+ assert.ok(g.player.maxHp>145);
+ assert.ok(g.player.guard>.05);
+});
+test('changing class clears a previously selected specialization',()=>{
+ const progress=defaultProgress();progress.runs=3;
+ const g=new Game(progress,input);
+ assert.ok(g.selectSpecialization('bulwark'));
+ g.chooseClass('hunter');
+ assert.equal(g.specialization,'standard');
+});

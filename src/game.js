@@ -6,6 +6,7 @@ import {createWardenState} from './warden.js';
 import {generateItem,equipItem,applyTalents,buyTalent} from './loot.js';
 import {hasAffix,onDash,beforeHit,afterHit,onHurt,onKill,statusTick} from './affixes.js';
 import {CHALLENGES,challengeUnlocked,applyRunChallenge,enemyExtraCount,challengeScale,challengeReward,awardAchievements} from './motivation.js';
+import {validSpecialization,specializationUnlocked,applySpecialization} from './specializations.js';
 
 export class Game {
  constructor(progress,input,onChange=()=>{}){
@@ -13,7 +14,7 @@ export class Game {
   this.dungeon=null;this.player=null;this.enemies=[];this.projectiles=[];this.effects=[];
   this.loot=[];this.runCoins=0;this.clearCount=0;this.time=0;this.camera={x:0,y:0,scale:1,w:960,h:540};
   this.attackSequence=0;this.upgradeChoices=[];this.bossDefeated=false;this.bossMessage='';
-  this.runMode='normal';this.endless=false;this.floorDepth=1;this.shake=0;this.hitstop=0;
+  this.runMode='normal';this.endless=false;this.specialization='standard';this.floorDepth=1;this.shake=0;this.hitstop=0;
   this.hazards=[];this.achievementsEarned=[];this.sound=null;
  }
  notify(){this.onChange(this)}
@@ -43,7 +44,8 @@ export class Game {
   this.mode='playing';this.activeEvent=null;this.notify();return true;
  }
 
- chooseClass(kind){if(CLASSES[kind]){this.progress.selectedClass=kind;saveProgress(this.progress);this.notify()}}
+ chooseClass(kind){if(CLASSES[kind]){if(this.progress.selectedClass!==kind)this.specialization='standard';this.progress.selectedClass=kind;saveProgress(this.progress);this.notify()}}
+ selectSpecialization(id){if(this.mode!=='menu'||!validSpecialization(this.progress.selectedClass,id)||!specializationUnlocked(this.progress,id))return false;this.specialization=id;this.notify();return true}
  purchase(stat){if(buyPermanent(this.progress,stat)){saveProgress(this.progress);this.notify();return true}return false}
  purchaseTalent(kind,id){if(buyTalent(this.progress,kind,id)){saveProgress(this.progress);this.notify();return true}return false}
  toggleInventory(){
@@ -88,6 +90,7 @@ export class Game {
    direction:{x:1,y:0},upgradeIds:[],hitCount:0,inventory:[],
    equipment:{weapon:null,armor:null,charm:null}};
   applyTalents(this.player,this.progress);
+  applySpecialization(this.player,specializationUnlocked(this.progress,this.specialization)?this.specialization:'standard');
   applyRunChallenge(this,this.runMode);
   this.mode='playing';this.enemies=[];this.projectiles=[];this.effects=[];this.loot=[];
   this.runCoins=0;this.clearCount=0;this.time=0;this.bossDefeated=false;this.upgradeChoices=[];this.bossMessage='';
@@ -181,7 +184,7 @@ export class Game {
   p.invulnerable=Math.max(0,p.invulnerable-dt);
   if(this.input.consumeDash()&&p.dashCooldown<=0){
    p.dashVector=Math.hypot(move.x,move.y)>.1?normalized(move.x,move.y):{...p.direction};
-   p.dashTimer=.18;p.dashCooldown=1.05;p.invulnerable=Math.max(p.invulnerable,.26);
+   p.dashTimer=.18;p.dashCooldown=p.specialization==='ranger'?.75:1.05;p.invulnerable=Math.max(p.invulnerable,.26);
    this.createEffect('burst',p.x,p.y,CLASSES[p.kind].color,.25,20);
    onDash(this);this.playSound('dash');
   }
@@ -249,7 +252,7 @@ export class Game {
   }
  }
  ability(){
-  const p=this.player,aim=p.direction;p.abilityCooldown=7;this.playSound('ability');
+  const p=this.player,aim=p.direction;p.abilityCooldown=p.specialization==='arcanist'?5:7;this.playSound('ability');
   if(p.kind==='warrior'){
    this.createEffect('ring',p.x,p.y,'#b6e5ff',.55,144);
    for(const e of this.enemies)if(e.hp>0&&distance(e,p)<145+e.radius)this.hitEnemy(e,p.damage*1.9,normalized(e.x-p.x,e.y-p.y));
@@ -412,7 +415,9 @@ export class Game {
     if(distance(b,p)<b.radius+p.radius){this.hurt(b.damage,normalized(b.vx,b.vy));b.life=0}
    }else{
     for(const e of this.enemies)if(e.hp>0&&distance(b,e)<b.radius+e.radius){
-     this.hitEnemy(e,b.damage,normalized(b.vx,b.vy));b.life=0;
+     this.hitEnemy(e,b.damage,normalized(b.vx,b.vy));
+     if(p.specialization==='pyromancer'&&b.magic&&e.hp>0)e.burn=Math.max(e.burn||0,2.5);
+     b.life=0;
      if(b.magic)for(const n of this.enemies)if(n!==e&&n.hp>0&&distance(n,e)<65)this.hitEnemy(n,b.damage*.48,normalized(n.x-e.x,n.y-e.y));
      break;
     }

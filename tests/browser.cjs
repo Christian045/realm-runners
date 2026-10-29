@@ -11,6 +11,7 @@ const assert=require('node:assert/strict');
   assert.match(await page.title(),/Realm Runners/);
   assert.ok(await page.locator('#bossHud').count(),'boss HUD structure must exist');
   assert.ok(await page.locator('#bossPhase').count(),'second-phase label must exist');
+  assert.ok(await page.locator('[data-action="specialization:standard"]').count());
   assert.ok(await page.locator('[data-action="challenge:normal"]').count());
   assert.ok(await page.locator('[data-action="endless"]').count());
   assert.ok(await page.locator('.achievement-list .achievement').count()>=7);

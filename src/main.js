@@ -7,6 +7,7 @@ import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js';
 import {installTouchGuard} from './touch-guard.js';
 import {CHALLENGES,ACHIEVEMENTS,challengeUnlocked} from './motivation.js';
 import {AudioFeedback} from './audio.js';
+import {SPECIALIZATIONS,specializationUnlocked} from './specializations.js';
 
 const $=id=>document.getElementById(id);
 const canvas=$('gameCanvas');
@@ -36,6 +37,13 @@ function refreshPanel(){
   title.innerHTML='REALM<br><em>RUNNERS</em>';chapter.textContent='DUNGEON REBORN';
   panel.innerHTML='<div class="section-label">WÄHLE DEINEN HELDEN</div><div class="class-grid">'+
    Object.entries(CLASSES).map(([id,c])=>'<button class="class-card '+(selected===id?'active':'')+'" data-action="class:'+id+'"><span class="class-icon">'+icons[id]+'</span><strong>'+c.name+'</strong><small>'+c.subtitle+'</small></button>').join('')+'</div>'+
+   '<div class="section-label">SPEZIALISIERUNG</div><div class="specialization-grid">'+
+   SPECIALIZATIONS[selected].map(spec=>{
+    const unlocked=specializationUnlocked(progress,spec.id);
+    return '<button class="specialization-card '+(game.specialization===spec.id?'active':'')+'" data-action="specialization:'+spec.id+'" '+
+     (!unlocked?'disabled':'')+'><strong>'+spec.name+(game.specialization===spec.id?' ✓':'')+'</strong>'+
+     '<small>'+(unlocked?spec.description:spec.unlock==='boss'?'Besiege einen Boss':'Spiele zwei Runs')+'</small></button>';
+   }).join('')+'</div>'+
    '<div class="section-label">HERAUSFORDERUNG</div><div class="challenge-grid">'+
    Object.entries(CHALLENGES).map(([id,m])=>{
     const unlocked=challengeUnlocked(progress,id);
@@ -118,6 +126,7 @@ $('panelContent').addEventListener('click',e=>{
  const [action,value,extra]=element.dataset.action.split(':');
  if(action==='class'){selected=value;game.chooseClass(value)}
  if(action==='challenge')game.setChallenge(value);
+ if(action==='specialization')game.selectSpecialization(value);
  if(action==='endless')game.setEndless(!game.endless);
  if(action==='sound'){audio.toggle();refreshPanel()}
  if(action==='event')game.chooseEvent(value);
