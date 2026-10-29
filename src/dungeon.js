@@ -7,7 +7,7 @@ export const ROOM_LAYOUTS=Object.freeze(['columns','ruins','open','alcoves','cro
  'longhall','pillared','vault','chambers','shattered','tombs','mirror','crescent',
  'bastion','switchback','trident','sanctum']);
 export const ROOM_SHAPES=Object.freeze(['great','compact','long','tall','cross','L','offset','zigzag','arc','hourglass','terrace']);
-export const SPECIAL_ROOMS=Object.freeze(['treasure','shrine','elite','secret','event','library','trap','camp','vault']);
+export const SPECIAL_ROOMS=Object.freeze(['treasure','shrine','elite','secret','event','library','trap','camp','vault','shop']);
 export function seeded(seed){let state=(seed>>>0)||1;return ()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296}}
 const key=(x,y)=>x+','+y;
 const manhattan=(a,b)=>Math.abs(a.gx-b.gx)+Math.abs(a.gy-b.gy);
@@ -122,12 +122,12 @@ export function generateDungeon(seed=1,options={}){
   room.runeAnswer=Math.floor(random()*3);
   room.theme=room.type==='start'||room.type==='shrine'||room.type==='camp'?'sanctuary':
    room.type==='boss'?'throne':
-   ['treasure','secret','vault','library'].includes(room.type)?'reliquary':room.biome;
+   ['treasure','secret','vault','library','shop'].includes(room.type)?'reliquary':room.biome;
   if(room.type==='boss')room.shape='great';
-  if(['shrine','camp','vault','library','treasure'].includes(room.type))room.shape='great';
+  if(['shrine','camp','vault','library','treasure','shop'].includes(room.type))room.shape='great';
   room.roomLabel=({start:'HEILIGTUM',combat:'KAMPFHALLE',elite:'ELITEKAMMER',
    boss:'THRON',treasure:'SCHATZKAMMER',shrine:'SCHREIN',secret:'GEHEIMNIS',
-   event:'EREIGNIS',library:'BIBLIOTHEK',trap:'FALLENHALLE',camp:'LAGER',vault:'GEWÖLBE'})[room.type];
+   event:'EREIGNIS',library:'BIBLIOTHEK',trap:'FALLENHALLE',camp:'LAGER',vault:'GEWÖLBE',shop:'HÄNDLER'})[room.type];
   if(room.type==='combat')room.roomLabel=({
    ambush:'HINTERHALT',ranged:'SCHÜTZENGALERIE',arcane:'RUNENKAMMER',
    fortified:'BASTION',mixed:'KAMPFHALLE'})[room.encounterStyle];
@@ -137,7 +137,7 @@ export function generateDungeon(seed=1,options={}){
   // Cover belongs to the side pockets, outside the central circulation spine.
   // Elite and boss fights remain completely unobstructed in the middle.
   for(const [x,y] of patterns[room.layout]){
-   if(['boss','library','camp','shrine','vault'].includes(room.type))continue;
+   if(['boss','library','camp','shrine','vault','shop'].includes(room.type))continue;
    if(Math.abs(x-7)<=3&&Math.abs(y-5)<=3)continue;
    if(tiles[index(ox+x,oy+y)]===0)set(ox+x,oy+y,2);
   }
