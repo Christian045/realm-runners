@@ -13,6 +13,7 @@ import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js?v=0.13.
 import {updateTowerEnemy,towerEnemyDamage,towerRoomHazard} from './tower-enemies.js';
 import {nextTowerRelic,grantTowerRelic,towerRelicDamage,afterTowerRelicHit,towerRelicKill,towerRelicSave,towerRelicFloor} from './tower-relics.js';
 import {cappedBossDamage,BOSS_BALANCE} from './combat-balance.js?v=0.13.0';
+import {impactStyle} from './visual-impact.js?v=0.14.0';
 
 export class Game {
  constructor(progress,input,onChange=()=>{}){
@@ -336,7 +337,7 @@ export class Game {
    for(const e of this.enemies){
     const delta=normalized(e.x-p.x,e.y-p.y);
     if(e.hp>0&&distance(e,p)<reach+e.radius&&delta.x*aim.x+delta.y*aim.y>.45)
-     this.hitEnemy(e,p.damage*(finisher?1.27:p.comboStep===2?1.04:1),aim);
+     this.hitEnemy(e,p.damage*(finisher?1.27:p.comboStep===2?1.04:1),aim,{finisher});
    }
   }else{
    const shotDamage=kind==='hunter'&&charged?p.damage*2.05:p.damage;
@@ -367,6 +368,8 @@ export class Game {
   }else{
    const center={x:p.x+aim.x*165,y:p.y+aim.y*165};
    this.createEffect('ring',center.x,center.y,'#d5a7ff',.65,133);
+   this.createEffect('ember',center.x-27,center.y-13,'#e7abff',.38,24);
+   this.createEffect('ember',center.x+39,center.y+17,'#f1ad77',.45,21);
    for(const e of this.enemies)if(e.hp>0&&distance(e,center)<133+e.radius)this.hitEnemy(e,p.damage*2.8,aim);
   }
  }
@@ -391,8 +394,9 @@ export class Game {
   }else if(e.type==='boss'&&e.boss.phase===1&&e.hp-d<=threshold){
    e.hp=threshold;startPhaseTwo(this,e);
   }else e.hp=Math.max(0,e.hp-d);
-  e.flash=.17;e.hurtTimer=.18;
-  e.knock={x:dir.x*(e.type==='boss'?30:critical?230:170),y:dir.y*(e.type==='boss'?30:critical?230:170)};
+  e.flash=critical||options.finisher?.23:.20;e.hurtTimer=.22;
+  const push=e.type==='boss'?30:options.finisher?280:critical?245:175;
+  e.knock={x:dir.x*push,y:dir.y*push};
   if(proc&&p.leech>0)p.hp=Math.min(p.maxHp,p.hp+d*p.leech);
   if(proc){
    this.hitstop=Math.max(this.hitstop,critical?.075:.035);
@@ -400,7 +404,13 @@ export class Game {
    this.playSound(critical?'crit':'hit');
   }
   this.createEffect('text',e.x,e.y-29,(critical?'KRIT ':'')+d,critical?'#ffde86':'#fff1bf',critical?.78:.52);
-  this.createEffect('burst',e.x,e.y,critical?'#ffd37b':e.type==='boss'?'#ffb2c0':'#ffdd9e',.3,critical?26:16);
+  if(proc){
+   const style=impactStyle(p.kind,critical,!!options.finisher);
+   this.effects.push({type:'impact',kind:p.kind,critical,finisher:!!options.finisher,
+    x:e.x,y:e.y,angle:Math.atan2(dir.y,dir.x),seed:this.attackSequence,
+    color:style.core,radius:style.radius,life:style.duration,maxLife:style.duration});
+   if(this.effects.length>110)this.effects.shift();
+  }
   if(proc&&e.hp>0){afterHit(this,e,d,critical,dir);afterTowerRelicHit(this,e,d)}
   if(e.hp<=0)this.killEnemy(e);
  }
@@ -443,6 +453,7 @@ export class Game {
   this.hitstop=Math.max(this.hitstop,actual?.07:.04);
   this.createEffect('text',p.x,p.y-32,actual?'-'+actual:'BLOCK','#ff9a91',.75);
   this.createEffect('burst',p.x,p.y,'#ff8397',.4,24);
+  this.createEffect('ring',p.x,p.y,'#ffb6aa',.26,34);
   if(actual>0)onHurt(this,actual);
   this.playSound(actual?'hurt':'block');
   if(p.hp<=0&&!towerRelicSave(this))this.finish(false);
@@ -553,16 +564,23 @@ export class Game {
    if(b.magic&&!b.hostile){
     b.trailClock=(b.trailClock||0)-dt;
     if(b.trailClock<=0){
-     this.createEffect('spark',b.x-b.vx*.025,b.y-b.vy*.025,'#d5a7ff',.2,8);
-     b.trailClock=.085;
+     this.createEffect('ember',b.x-b.vx*.025,b.y-b.vy*.025,'#efad7c',.26,10);
+     b.trailClock=.078;
     }
    }
-   if(this.dungeon.isBlocked(b.x,b.y,this.enemies.length>0)){b.life=0;continue}
+   if(this.dungeon.isBlocked(b.x,b.y,this.enemies.length>0)){
+    if(b.magic&&!b.hostile)this.createEffect('burst',b.x,b.y,'#e4b5ff',.28,22);
+    b.life=0;continue;
+   }
    if(b.hostile){
     if(distance(b,p)<b.radius+p.radius){this.hurt(b.damage,normalized(b.vx,b.vy));b.life=0}
    }else{
     for(const e of this.enemies)if(e.hp>0&&!b.hitIds?.has(e)&&distance(b,e)<b.radius+e.radius){
      this.hitEnemy(e,b.damage,normalized(b.vx,b.vy));
+     if(b.magic&&!b.hostile){
+      this.createEffect('ring',e.x,e.y,'#eac8ff',.24,31);
+      this.createEffect('ember',e.x+12,e.y-14,'#ffc18f',.30,13);
+     }
      if(p.specialization==='pyromancer'&&b.magic&&e.hp>0)e.burn=Math.max(e.burn||0,2.5);
      if(b.pierce>1){b.pierce--;b.hitIds.add(e);
       this.createEffect('burst',e.x,e.y,'#c5f19f',.24,16);

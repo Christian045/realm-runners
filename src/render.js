@@ -1,9 +1,11 @@
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.13.0';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js';
-import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js';
+import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js?v=0.14.0';
 import {drawTowerVictory} from './tower-visuals.js';
-import {PixelSpriteAtlas,spriteIdentity} from './sprites.js';
-import {PixelTileAtlas,tileTheme,tileVariant} from './tileset.js';
+import {PixelSpriteAtlas,spriteIdentity} from './sprites.js?v=0.14.0';
+import {PixelTileAtlas,tileTheme,tileVariant} from './tileset.js?v=0.14.0';
+import {drawArchitecturalDepth,drawAnchoredDressings,drawDynamicLighting} from './visual-world.js?v=0.14.0';
+import {drawImpact,drawMagicTrail} from './visual-impact.js?v=0.14.0';
 const hash=(x,y,seed=0)=>{let a=Math.imul(x+seed,374761393)+Math.imul(y,668265263);a=Math.imul(a^(a>>>13),1274126177);return (a^(a>>>16))>>>0};
 const fill=(ctx,color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h)};
 export class Renderer {
@@ -37,7 +39,10 @@ export class Renderer {
   const sy=shake?Math.cos(performance.now()*.11)*shake:0;
   c.setTransform(this.scale,0,0,this.scale,(-game.camera.x+sx)*this.scale,(-game.camera.y+sy)*this.scale);
   this.map(game);
+  drawArchitecturalDepth(c,game);
   drawDungeonAtmosphere(c,game);
+  drawAnchoredDressings(c,game);
+  drawDynamicLighting(c,game);
   this.fogOfWar(game);
   drawBossWarnings(c,game);
   for(const h of game.hazards||[]){
@@ -126,7 +131,12 @@ export class Renderer {
    c.fillStyle='#061016f2';c.fillRect(x,y,ROOM_W*TILE,ROOM_H*TILE);
   }
  }
- shadow(x,y,r){const c=this.ctx;c.fillStyle='#08141888';c.beginPath();c.ellipse(x,y+9,r*1.1,r*.48,0,0,Math.PI*2);c.fill()}
+ shadow(x,y,r){
+  const c=this.ctx;
+  c.save();c.fillStyle='#060e13a8';c.beginPath();c.ellipse(x+2,y+10,r*1.18,r*.49,0,0,Math.PI*2);c.fill();
+  c.fillStyle='#13252b70';c.beginPath();c.ellipse(x-3,y+5,r*.82,r*.27,0,0,Math.PI*2);c.fill();
+  c.restore();
+ }
  player(p,time){
   if(!p)return;
   const c=this.ctx,k=CLASSES[p.kind],f=p.direction;
@@ -217,6 +227,10 @@ export class Renderer {
    c.font='bold 9px monospace';c.textAlign='center';c.fillStyle='#f4d4a6';
    c.fillText(({swift:'FLINK',guardian:'PANZER',arcane:'ARKAN',volatile:'EXPLOSIV',vampiric:'VAMPIR'})[e.eliteMod]||'ELITE',e.x,e.y-r-34);
   }
+  if(e.flash>0){
+   c.save();c.globalAlpha=Math.min(.43,e.flash*1.75);c.strokeStyle='#fff5de';c.lineWidth=3;
+   c.beginPath();c.arc(e.x,e.y-r*.19,r+4+e.flash*19,0,Math.PI*2);c.stroke();c.restore();
+  }
   if(e.windup>0){
    c.strokeStyle=e.type==='boss'?'#ff7898':'#eed0ff';c.lineWidth=2;
    c.beginPath();c.arc(e.x,e.y,e.radius+9,-Math.PI/2,-Math.PI/2+Math.PI*2*(1-e.windup/.58));c.stroke();
@@ -258,11 +272,17 @@ export class Renderer {
    }
   }else if(e.type==='ring'){
    c.lineWidth=5;c.beginPath();c.arc(e.x,e.y,e.radius*(1-alpha*.2),0,Math.PI*2);c.stroke();
+  }else if(e.type==='impact'){
+   c.restore();drawImpact(c,e,alpha);return;
+  }else if(e.type==='ember'||e.type==='magic-trail'){
+   c.restore();drawMagicTrail(c,{...e,kind:e.type},alpha);return;
   }else if(e.type==='slash'){
    c.lineWidth=12;c.beginPath();c.arc(e.x,e.y,e.radius,e.angle-.8,e.angle+.8);c.stroke();
    c.lineWidth=3;c.strokeStyle='#fff8dd';c.stroke();
   }else if(e.type==='text'){
-   c.font=(e.text?.startsWith('KRIT')?'bold 22px monospace':'bold 17px monospace');c.textAlign='center';c.strokeStyle='#122a32';c.lineWidth=4;
+   c.font=(e.text?.startsWith('KRIT')?'900 24px monospace':'900 17px monospace');
+   c.textAlign='center';c.shadowColor='#040e16';c.shadowBlur=5;
+   c.strokeStyle='#0a1825';c.lineWidth=5;
    c.strokeText(e.text||'',e.x,e.y-(1-alpha)*22);
    c.fillText(e.text||'',e.x,e.y-(1-alpha)*22);
   }else if(e.type==='lightning'){

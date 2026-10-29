@@ -1,4 +1,17 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.13.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.14.0)
+
+## Alpha 0.14 – Dungeon Lighting & Combat Impact
+
+- **Raumtiefe**: Ein viewport-gebundener Zeichenpass fügt geometrische Wandkontaktschatten, erhabene Säulenschatten und kleine helle Steinkanten hinzu. Die Collision-Map bleibt unverändert, die Schattierung hängt von echten Wand-Nachbarn ab.
+- **Pixel-Art-Kacheln**: Verfeinerte Schichtungen, Meißelkanten, tiefe Fugen und differenzierte Kanten für Steinwände, Säulen und Boden in allen sechs vorhandenen Biomen.
+- **Beleuchtung**: Wandlaternen sitzen tatsächlich an blockierten Wandkacheln mit erreichbarem Boden daneben. Kleine, animierte Lichtpools und persönliches Orientierungsglühen; max. sieben Raumlichter bei mobiler Kamera, max. dreizehn auf Desktop. Der frühere zweite Satz unabhängiger Wandfackeln ist entfernt.
+- **Architektur und Details**: Deterministisch platzierte Wandbanner, Ketten, Ranken, Steinurnen, Knochen, Trümmer und Runen. Keine Kollision, keine bewegungsschädlichen Objekte in der zentralen Spielfläche, keine wechselnde Position pro Frame.
+- **Wuchtige Treffer**: Unterschiedliche, gerichtete Trefferbögen und Partikelfunken je Klasse, größere kritische Effekte, besonders markantes Finish der Krieger-3er-Kombo mit stärkerem Rückstoß. Trefferschlag, Flashes, Schatten und Schadenszahlen sind klarer sichtbar; Warnzonen von Gegnern und Bossen werden weiterhin über der Szene gezeichnet.
+- **Magie und Figuren**: Warme Glutfragmente hinter Magiegeschossen, neuer Einschlagring plus magische Funken bei Treffern, feinere Angriffsframes für die drei Heldenklassen; Pfeile bleiben gut erkennbar.
+- **Performance und Kompatibilität**: Alle neuen Kacheln und Charakterframes bleiben gecacht, dynamische Lichter und Deko werden auf den Kamerabereich begrenzt. Spielstände, vorhandene Boss-/Tower-Mechaniken, Etagenlängen und iPhone-Touch-Bedienung sind unverändert.
+- **Regressionstests**: Tests für Wandverankerung, Dekopositionen, nicht-mutierte Kollision, Mobillimit für Lichter, Effekttypen und echte Kampfereignisse sowie Chromium-/WebKit-Browserkontrollen.
+
+
 
 ## Alpha 0.13 – Combat & Boss Balancing
 
