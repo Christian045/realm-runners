@@ -1,11 +1,11 @@
-import { ENEMY_DATA, TILE, distance, normalized } from './data.js';
+import { ENEMY_DATA, TILE, distance, normalized } from './data.js?v=0.13.0';
 import { ROOM_W,ROOM_H } from './dungeon.js';
 export function createWardenState(){return {variant:'warden',phase:1,transition:0,attackIndex:0,telegraph:null,charge:null,invulnerable:false}}
 const first=['lances','triple','charge'],second=['lances','spiral','charge','triple','summon'];
 export function startWardenPhaseTwo(game,e){
  if(e.boss.phase!==1)return false;
- const s=e.boss;s.phase=2;s.transition=1.5;s.telegraph=null;s.charge=null;s.attackIndex=0;
- e.cooldown=2;game.projectiles=game.projectiles.filter(p=>!p.hostile);
+ const s=e.boss;s.phase=2;s.transition=1.05;s.telegraph=null;s.charge=null;s.attackIndex=0;
+ e.cooldown=.19;game.projectiles=game.projectiles.filter(p=>!p.hostile);
  game.createEffect('ring',e.x,e.y,'#8bd8ff',1.5,145);
  game.createEffect('text',e.x,e.y-95,'PHASE II · DER WÄCHTER ERWACHT','#97c5ff',1.5);
  game.notify();return true;
@@ -19,7 +19,7 @@ export function beginWardenAttack(game,e,forced=null){
  const room=game.dungeon.rooms[e.homeRoom];
  const x=Math.max(room.gx*ROOM_W*TILE+100,Math.min((room.gx+1)*ROOM_W*TILE-100,game.player.x));
  const y=Math.max(room.gy*ROOM_H*TILE+90,Math.min((room.gy+1)*ROOM_H*TILE-90,game.player.y));
- const duration=s.phase===2?.68:1;
+ const duration=s.phase===2?.60:.70;
  s.telegraph={type,time:duration,duration,dir,x:e.x,y:e.y,target:{x,y},angle:Math.atan2(dir.y,dir.x)};
  s.attackIndex++;e.cooldown=99;game.notify();return true;
 }
@@ -30,7 +30,7 @@ function hitLine(p,cx,cy,angle,width,length){
 }
 export function executeWardenAttack(game,e){
  const t=e.boss.telegraph;if(!t)return;
- const s=e.boss;s.telegraph=null;e.cooldown=s.phase===2?.95:1.45;
+ const s=e.boss;s.telegraph=null;e.cooldown=s.phase===2?.51:.65;
  const p=game.player;
  if(t.type==='lances'){
   // Four directions, anchored to the locked position displayed beforehand.

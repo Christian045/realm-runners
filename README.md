@@ -1,4 +1,16 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.12.2)
+# Realm Runners – Dungeon Reborn (Alpha 0.13.0)
+
+## Alpha 0.13 – Combat & Boss Balancing
+
+- **Bosskämpfe dauern mehrere Angriffsrunden:** Ein einzelner kritischer, sehr starker Treffer kann maximal 10 % der HP eines normalen Bosses, 8,5 % eines Turmbosses bzw. 5,5 % des Endbosses verursachen. Mehrere Treffer sind weiterhin möglich und Phasengrenzen bleiben wirksam, aber kein Boss lässt sich mehr durch vier übermächtige Schwerthiebe besiegen. Normaler Feindschaden bleibt unverändert.
+- **Schnellere und gefährlichere Bosse:** Die erste Warnung beginnt bereits etwa 0,12–0,16 Sekunden nach dem Betreten des Bossraums. Bisherige Warnungen und Erholungszeiten wurden verkürzt, ohne unvorhersehbare Soforttreffer einzubauen. Boss-Schaden steigt moderat; bei Turmbossen mit der Etage. Phasenwechsel sind kürzer, bieten jedoch weiterhin eine Verschnaufpause.
+- **Neue finale Mechanik:** Der Ewige Herrscher kann ab Phase III „Finsternisklingen“ einsetzen: zwei früh sichtbar markierte Angriffsbahnen mit einem sicheren Weg dazwischen. Das anschließende Auftreffen ist noch einmal verzögert, damit du reagieren kannst.
+- **Klassenkampf:** Der Krieger hat eine Dreier-Kombo, deren finaler Hieb mehr Schaden und stärkere Effekte verursacht. Jäger können bei länger gedrücktem Angriff (auch per Touch) in regelmäßigen Abständen einen durchdringenden Präzisionsschuss abgeben; normales Dauerfeuer bleibt erhalten. Magische Projektile hinterlassen sichtbare Partikelspuren und Pfeile sind als gerichtete Geschosse erkennbar.
+- **Weniger übermächtige Builds:** Wiederholbare Schadens-Upgrades geben zunächst +12 %, ab dem vierten Stapel +5 %; Fury-Upgrades sind bei 58 % der Klassen-Grundangriffszeit begrenzt. Turm-Stufenbelohnung Kraft gibt +6 % statt +9 %. Die ersten drei Turmetagen behalten ihre garantierte Schatzkammer, Etagen 4–10 tauschen sie gegen zusätzliche Kampfkammern.
+- **Etagenlänge unverändert:** Alle zehn Turmetagen haben weiter sieben Räume. Der normale Dungeon hat weiter 13 Räume. Die iPhone-Touch-Steuerung und vorhandenen Spielstände bleiben erhalten.
+- **Tests:** Hochgerüsteter Krieger kann keinen Boss mit vier Treffern besiegen, erste Bosswarnung in unter 0,3 s, alle Bossphasen schaffbar, realer Combo-Schaden, durchdringende Pfeile, begrenztes Stapeln und Platzierung von Schatzräumen. Chromium/WebKit laden die ausdrücklich versionierte Kampfdatei, um Cache-Probleme zu vermeiden.
+
+
 
 ## Alpha 0.12.2 – Live-Kampf & Browser-Cache
 

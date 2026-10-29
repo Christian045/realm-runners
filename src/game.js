@@ -1,17 +1,18 @@
-import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js';
-import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js';
+import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.13.0';
+import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.13.0';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js';
-import {createBossState, updateBoss, startPhaseTwo, isBossInvulnerable, PHASE_TWO_AT} from './boss.js';
-import {createWardenState} from './warden.js';
+import {createBossState, updateBoss, startPhaseTwo, isBossInvulnerable, PHASE_TWO_AT} from './boss.js?v=0.13.0';
+import {createWardenState} from './warden.js?v=0.13.0';
 import {generateItem,equipItem,applyTalents,buyTalent} from './loot.js';
 import {hasAffix,onDash,beforeHit,afterHit,onHurt,onKill,statusTick} from './affixes.js';
 import {CHALLENGES,challengeUnlocked,applyRunChallenge,enemyExtraCount,challengeScale,challengeReward,awardAchievements} from './motivation.js';
 import {validSpecialization,specializationUnlocked,applySpecialization} from './specializations.js';
 import {enemySteering,hasLineOfSight,findSpawnPosition} from './navigation.js';
-import {towerStage,towerFloorSeed,towerDifficulty,towerWinReward,TOWER_LENGTH} from './tower.js';
-import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js';
+import {towerStage,towerFloorSeed,towerDifficulty,towerWinReward,TOWER_LENGTH} from './tower.js?v=0.13.0';
+import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js?v=0.13.0';
 import {updateTowerEnemy,towerEnemyDamage,towerRoomHazard} from './tower-enemies.js';
 import {nextTowerRelic,grantTowerRelic,towerRelicDamage,afterTowerRelicHit,towerRelicKill,towerRelicSave,towerRelicFloor} from './tower-relics.js';
+import {cappedBossDamage,BOSS_BALANCE} from './combat-balance.js?v=0.13.0';
 
 export class Game {
  constructor(progress,input,onChange=()=>{}){
@@ -36,7 +37,7 @@ export class Game {
   if(this.mode!=='stageclear'||!['recover','relic','power','sigil'].includes(id)||!this.tower)return false;
   this.advanceFloor();
   if(id==='recover')this.player.hp=Math.min(this.player.maxHp,this.player.hp+Math.ceil(this.player.maxHp*.45));
-  if(id==='power')this.player.damage*=1.09;
+  if(id==='power')this.player.damage*=1.06;
   if(id==='relic')this.dropGear(this.player.x+24,this.player.y+12,true);
   if(id==='sigil')grantTowerRelic(this);
   this.createEffect('text',this.player.x,this.player.y-105,'ETAGE '+this.floorDepth+' · '+this.currentTowerStage().name,
@@ -130,7 +131,7 @@ export class Game {
   this.progress.selectedClass=kind;saveProgress(this.progress);
   this.floorDepth=1;this.runSeed=seed;this.shake=0;this.hitstop=0;this.hazards=[];this.achievementsEarned=[];this.libraryKey=false;
   this.towerRelics=[];this.towerRelicHits=0;this.towerRelicKills=0;this.towerPhoenixUsed=false;this.stageStartedAt=0;this.stageHazardClock=8;this.towerNewRecord=false;
-  this.dungeon=generateDungeon(seed,this.tower?{tower:true,biome:this.currentTowerStage().biome}:{});this.random=seeded(seed^0xa5b4c382);
+  this.dungeon=generateDungeon(seed,this.tower?{tower:true,biome:this.currentTowerStage().biome,floor:this.floorDepth}:{});this.random=seeded(seed^0xa5b4c382);
   for(const id of this.dungeon.rooms[0].links)if(this.dungeon.rooms[id].type!=='secret')this.dungeon.rooms[id].discovered=true;
   const base=CLASSES[kind],bonus=this.progress.upgrades;
   this.player={x:this.dungeon.start.x,y:this.dungeon.start.y,radius:14,kind,
@@ -140,6 +141,7 @@ export class Game {
    dashVector:{x:1,y:0},invulnerable:0,abilityCooldown:0,attackCooldown:0,
    direction:{x:1,y:0},upgradeIds:[],hitCount:0,inventory:[],
    moving:false,attackTimer:0,castTimer:0,hurtTimer:0,walkCycle:0,
+   comboStep:0,comboTime:0,hunterCharge:0,
    equipment:{weapon:null,armor:null,charm:null}};
   applyTalents(this.player,this.progress);
   applySpecialization(this.player,specializationUnlocked(this.progress,this.specialization)?this.specialization:'standard');
@@ -231,8 +233,8 @@ export class Game {
    this.enemies.push({x,y,homeRoom:room.id,type,radius:boss&&this.tower&&this.floorDepth===TOWER_LENGTH?44:elite?spec.radius*1.3:spec.radius,
     hp:Math.round(spec.hp*scale*hpScale*floorBossBonus),maxHp:Math.round(spec.hp*scale*hpScale*floorBossBonus),
     speed:spec.speed*(boss?1:1+this.clearCount*.025)*(elite?1.18:1)*speedScale*challengeScale(this),
-    damage:spec.damage*(elite?1.55:1)*challengeScale(this),elite,eliteMod,eliteShot:2,spawnIndex:i,
-    cooldown:.45+i*.2,windup:0,phase:0,flash:0,elapsed:0,knock:{x:0,y:0},
+    damage:spec.damage*(elite?1.55:1)*(boss?(this.tower?1.10+this.floorDepth*.085:1.18):1)*challengeScale(this),elite,eliteMod,eliteShot:2,spawnIndex:i,
+    cooldown:boss?(this.tower?BOSS_BALANCE.towerOpening:BOSS_BALANCE.normalOpening):.45+i*.2,windup:0,phase:0,flash:0,elapsed:0,knock:{x:0,y:0},
     ...(boss?{boss:this.tower?createTowerBossState(this.floorDepth):warden?createWardenState():createBossState()}: {})});
   }
   this.createEffect('text',room.cx,room.cy-110,
@@ -252,6 +254,7 @@ export class Game {
   p.attackTimer=Math.max(0,(p.attackTimer||0)-dt);
   p.castTimer=Math.max(0,(p.castTimer||0)-dt);
   p.hurtTimer=Math.max(0,(p.hurtTimer||0)-dt);
+  p.comboTime=Math.max(0,(p.comboTime||0)-dt);
   p.dashCooldown=Math.max(0,p.dashCooldown-dt);
   p.abilityCooldown=Math.max(0,p.abilityCooldown-dt);
   p.attackCooldown=Math.max(0,p.attackCooldown-dt);
@@ -267,7 +270,15 @@ export class Game {
    p.dashTimer=Math.max(0,p.dashTimer-dt);
    if(this.random()<.65)this.createEffect('spark',p.x,p.y,'#c1e9e4',.28,7);
   }else this.move(p,move.x*p.speed*dt,move.y*p.speed*dt);
-  if(this.input.attacking()&&p.attackCooldown<=0)this.attack();
+  const attacking=this.input.attacking();
+  if(p.kind==='hunter'){
+   p.hunterCharge=attacking?(p.hunterCharge||0)+dt:0;
+   if(attacking&&p.attackCooldown<=0){
+    const charged=p.hunterCharge>=.9;
+    this.attack(charged);
+    if(charged)p.hunterCharge=0;
+   }
+  }else if(attacking&&p.attackCooldown<=0)this.attack();
   if(this.input.consumeAbility()&&p.abilityCooldown<=0)this.ability();
   this.entrance(this.dungeon.roomAt(p.x,p.y));
   this.updateEnemies(dt);
@@ -307,23 +318,40 @@ export class Game {
   }
   if(room&&room.type==='boss'&&room.cleared&&!this.bossDefeated)this.finish(true);
  }
- attack(){
+ attack(charged=false){
   const p=this.player;const kind=p.kind,aim=p.direction;
-  p.attackCooldown=p.attackDelay;p.attackTimer=.18;this.attackSequence++;this.playSound(p.kind==='warrior'?'slash':'shoot');
+  p.attackCooldown=p.attackDelay*(charged?1.22:1);p.attackTimer=charged?.3:.18;
+  this.attackSequence++;this.playSound(p.kind==='warrior'?'slash':'shoot');
   if(kind==='warrior'){
-   const reach=p.reach;this.createEffect('slash',p.x,p.y,'#e6f6ff',.22,reach,Math.atan2(aim.y,aim.x));
+   p.comboStep=p.comboTime>0?(p.comboStep%3)+1:1;
+   p.comboTime=.85;
+   const finisher=p.comboStep===3,reach=p.reach+(finisher?13:0);
+   const angle=Math.atan2(aim.y,aim.x);
+   this.createEffect('slash',p.x,p.y,finisher?'#ffe39c':'#e6f6ff',finisher?.34:.22,reach,angle);
+   if(finisher){
+    p.attackCooldown*=1.26;
+    this.createEffect('ring',p.x+aim.x*45,p.y+aim.y*45,'#ffe29d',.35,45);
+    this.shake=Math.max(this.shake,4);
+   }
    for(const e of this.enemies){
     const delta=normalized(e.x-p.x,e.y-p.y);
     if(e.hp>0&&distance(e,p)<reach+e.radius&&delta.x*aim.x+delta.y*aim.y>.45)
-     this.hitEnemy(e,p.damage,aim);
+     this.hitEnemy(e,p.damage*(finisher?1.27:p.comboStep===2?1.04:1),aim);
    }
   }else{
-   this.spawnProjectile(p.x+aim.x*19,p.y+aim.y*19,aim,p.damage,kind==='mage',false);
+   const shotDamage=kind==='hunter'&&charged?p.damage*2.05:p.damage;
+   const shotSpeed=kind==='hunter'&&charged?840:null;
+   this.spawnProjectile(p.x+aim.x*19,p.y+aim.y*19,aim,shotDamage,kind==='mage',false,shotSpeed);
+   if(kind==='hunter'&&charged){
+    const arrow=this.projectiles[this.projectiles.length-1];
+    arrow.pierce=3;arrow.hitIds=new Set();arrow.charged=true;
+    this.createEffect('slash',p.x+aim.x*24,p.y+aim.y*24,'#d4f7a6',.28,70,Math.atan2(aim.y,aim.x));
+   }
    if(hasAffix(p,'triple'))for(const delta of [-.15,.15]){
     const a=Math.atan2(aim.y,aim.x)+delta;
     this.spawnProjectile(p.x,p.y,{x:Math.cos(a),y:Math.sin(a)},p.damage*.55,kind==='mage',false);
    }
-   this.createEffect('spark',p.x+aim.x*22,p.y+aim.y*22,CLASSES[kind].color,.19,13);
+   this.createEffect('spark',p.x+aim.x*22,p.y+aim.y*22,CLASSES[kind].color,charged?.3:.19,charged?25:13);
   }
  }
  ability(){
@@ -356,6 +384,7 @@ export class Game {
   if(critical)d*=1.7;
   if(proc){p.hitCount++;if(p.hitCount%4===0&&p.upgradeIds.includes('bolt'))d+=p.damage*.7}
   d=Math.max(1,Math.round(d));
+  if(e.type==='boss')d=cappedBossDamage(e,d);
   const threshold=Math.ceil(e.maxHp*PHASE_TWO_AT);
   if(e.type==='boss'&&['tower','sovereign'].includes(e.boss?.variant)){
    applyTowerBossDamage(this,e,d);
@@ -521,14 +550,23 @@ export class Game {
   for(const b of this.projectiles){
    b.life-=dt;if(b.life<=0)continue;
    b.x+=b.vx*dt;b.y+=b.vy*dt;
+   if(b.magic&&!b.hostile){
+    b.trailClock=(b.trailClock||0)-dt;
+    if(b.trailClock<=0){
+     this.createEffect('spark',b.x-b.vx*.025,b.y-b.vy*.025,'#d5a7ff',.2,8);
+     b.trailClock=.085;
+    }
+   }
    if(this.dungeon.isBlocked(b.x,b.y,this.enemies.length>0)){b.life=0;continue}
    if(b.hostile){
     if(distance(b,p)<b.radius+p.radius){this.hurt(b.damage,normalized(b.vx,b.vy));b.life=0}
    }else{
-    for(const e of this.enemies)if(e.hp>0&&distance(b,e)<b.radius+e.radius){
+    for(const e of this.enemies)if(e.hp>0&&!b.hitIds?.has(e)&&distance(b,e)<b.radius+e.radius){
      this.hitEnemy(e,b.damage,normalized(b.vx,b.vy));
      if(p.specialization==='pyromancer'&&b.magic&&e.hp>0)e.burn=Math.max(e.burn||0,2.5);
-     b.life=0;
+     if(b.pierce>1){b.pierce--;b.hitIds.add(e);
+      this.createEffect('burst',e.x,e.y,'#c5f19f',.24,16);
+     }else b.life=0;
      if(b.magic)for(const n of this.enemies)if(n!==e&&n.hp>0&&distance(n,e)<65)this.hitEnemy(n,b.damage*.48,normalized(n.x-e.x,n.y-e.y));
      break;
     }
@@ -543,7 +581,8 @@ export class Game {
   if(this.mode!=='upgrade'||!this.upgradeChoices.some(u=>u.id===id))return;
   const p=this.player;p.upgradeIds.push(id);
   switch(id){
-   case 'power':p.damage*=1.2;break;case 'fury':p.attackDelay*=.85;break;
+   case 'power':p.damage*=p.upgradeIds.filter(x=>x==='power').length<=3?1.12:1.05;break;
+   case 'fury':p.attackDelay=Math.max(CLASSES[p.kind].cooldown*.58,p.attackDelay*.92);break;
    case 'stride':p.speed*=1.12;break;case 'heart':p.maxHp+=30;p.hp=Math.min(p.maxHp,p.hp+35);break;
    case 'guard':p.guard=Math.min(.65,p.guard+.1);break;
    case 'reach':p.reach*=1.2;break;
@@ -564,7 +603,7 @@ export class Game {
   this.progress.bestRooms=Math.max(this.progress.bestRooms,this.clearCount);
   const seed=this.tower?towerFloorSeed(this.runSeed,this.floorDepth):
    (this.dungeon.seed^(this.floorDepth*0x9e3779b9))>>>0;
-  this.dungeon=generateDungeon(seed,this.tower?{tower:true,biome:this.currentTowerStage().biome}:{});
+  this.dungeon=generateDungeon(seed,this.tower?{tower:true,biome:this.currentTowerStage().biome,floor:this.floorDepth}:{});
   for(const id of this.dungeon.rooms[0].links)if(this.dungeon.rooms[id].type!=='secret')
    this.dungeon.rooms[id].discovered=true;
   this.player.x=this.dungeon.start.x;this.player.y=this.dungeon.start.y;

@@ -1,7 +1,8 @@
 import { ENEMY_DATA, TILE, distance, normalized } from './data.js';
 import { ROOM_W, ROOM_H } from './dungeon.js';
-import {startWardenPhaseTwo,beginWardenAttack,executeWardenAttack,updateWarden} from './warden.js';
-import {triggerTowerPhase,beginTowerAttack,executeTowerAttack,updateTowerBoss} from './tower-boss.js';
+import {startWardenPhaseTwo,beginWardenAttack,executeWardenAttack,updateWarden} from './warden.js?v=0.13.0';
+import {triggerTowerPhase,beginTowerAttack,executeTowerAttack,updateTowerBoss} from './tower-boss.js?v=0.13.0';
+import {normalBossWindup,normalBossRecovery} from './combat-balance.js?v=0.13.0';
 
 export const PHASE_TWO_AT = .55;
 const PHASE_ONE = Object.freeze(['volley','slam','charge']);
@@ -18,9 +19,9 @@ export function startPhaseTwo(game,enemy){
  if(['tower','sovereign'].includes(enemy.boss?.variant))return triggerTowerPhase(game,enemy,2);
  const state=enemy.boss;
  if(!state||state.phase!==1)return false;
- state.phase=2;state.transition=1.65;state.telegraph=null;state.charge=null;
+ state.phase=2;state.transition=1.06;state.telegraph=null;state.charge=null;
  state.attackIndex=0;state.recovery=.65;state.summoned=false;
- enemy.cooldown=2.3;enemy.knock={x:0,y:0};
+ enemy.cooldown=.2;enemy.knock={x:0,y:0};
  // The transformation is a breather, not a surprise attack.
  game.projectiles=game.projectiles.filter(p=>!p.hostile);
  game.createEffect('ring',enemy.x,enemy.y,'#f7a0bc',1.4,135);
@@ -38,10 +39,7 @@ export function beginBossAttack(game,enemy,forcedType=null){
  if(!['volley','slam','charge','nova','summon'].includes(type))return false;
  s.attackIndex++;
  const p=game.player,dir=normalized(p.x-enemy.x,p.y-enemy.y);
- const duration=type==='charge'?(s.phase===2?.66:.92)
-  :type==='slam'?(s.phase===2?.85:1.12)
-  :type==='volley'?(s.phase===2?.62:.85)
-  :type==='nova'?.92:.75;
+ const duration=normalBossWindup(s.phase,type);
  const room=game.dungeon.rooms[enemy.homeRoom];
  const target={
   x:Math.max(room.gx*ROOM_W*TILE+90,Math.min((room.gx+1)*ROOM_W*TILE-90,p.x)),
@@ -105,7 +103,7 @@ export function executeBossAttack(game,enemy){
  }else if(t.type==='summon'){
   summonAdds(game,enemy);
  }
- s.recovery=s.phase===2?.9:1.4;
+ s.recovery=normalBossRecovery(s.phase);
  enemy.cooldown=s.recovery;
 }
 export function updateBoss(game,enemy,dt){
@@ -117,7 +115,7 @@ export function updateBoss(game,enemy,dt){
  if(s.phase===1&&enemy.hp/enemy.maxHp<=PHASE_TWO_AT){startPhaseTwo(game,enemy)}
  if(s.transition>0){
   s.transition=Math.max(0,s.transition-dt);
-  enemy.cooldown=Math.max(.5,enemy.cooldown-dt);
+  enemy.cooldown=Math.max(.12,enemy.cooldown-dt);
   return;
  }
  if(s.telegraph){

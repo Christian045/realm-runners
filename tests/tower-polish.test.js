@@ -39,11 +39,11 @@ test('sovereign phase attacks differ substantially and include avoidable soulbea
  assert.equal(e.boss.phase,3);e.boss.transition=0;
  types=[];
  for(let i=0;i<6;i++){beginTowerAttack(g,e);types.push(e.boss.telegraph.type);e.boss.telegraph=null;}
- assert.deepEqual(types,['eclipse','spiralwall','soulbeam','dash','meteor','summon']);
+ assert.deepEqual(types,['eclipse','blades','spiralwall','soulbeam','dash','meteor']);
  for(const t of ['soulbeam','spiralwall']){
   assert.ok(beginTowerAttack(g,e,t));
   const before=g.player.hp,bullets=g.projectiles.length;
-  assert.ok(e.boss.telegraph.time>.6);
+  assert.ok(e.boss.telegraph.time>=.49,'late tower bosses must warn for at least 0.49 seconds');
   assert.equal(g.player.hp,before);
   executeTowerAttack(g,e);
   assert.ok(g.projectiles.length>bullets,'telegraphed attack fires projectiles');

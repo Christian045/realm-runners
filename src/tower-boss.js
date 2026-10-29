@@ -1,5 +1,6 @@
 import {distance,normalized} from './data.js';
-import {TOWER_LENGTH,towerStage} from './tower.js';
+import {TOWER_LENGTH,towerStage} from './tower.js?v=0.13.0';
+import {towerWindup,towerBossRecovery} from './combat-balance.js?v=0.13.0';
 
 export function createTowerBossState(floor){
  const stage=towerStage(floor);
@@ -10,8 +11,8 @@ export function createTowerBossState(floor){
 export function triggerTowerPhase(game,e,newPhase){
  const s=e.boss;
  if(!s||s.transition>0||newPhase<=s.phase)return false;
- s.phase=newPhase;s.transition=newPhase===3?2.15:1.6;s.telegraph=null;s.charge=null;
- s.attackIndex=0;e.cooldown=s.transition+.6;
+ s.phase=newPhase;s.transition=newPhase===3?1.35:1.10;s.telegraph=null;s.charge=null;
+ s.attackIndex=0;e.cooldown=.18;
  game.projectiles=game.projectiles.filter(p=>!p.hostile);
  game.hazards=game.hazards.filter(h=>h.source!=='tower');
  game.createEffect('ring',e.x,e.y,s.color,1.2,newPhase===3?175:135);
@@ -41,13 +42,12 @@ export function beginTowerAttack(game,e,forced=null){
  const pool=s.variant==='sovereign'?
   (s.phase===1?['mark','cross','dash','fan']:
    s.phase===2?['meteor','orbit','summon','lances','soulbeam']:
-    ['eclipse','spiralwall','soulbeam','dash','meteor','summon']):
+    ['eclipse','blades','spiralwall','soulbeam','dash','meteor','summon']):
   s.phase===1?base:[...base,'ring','cross'];
  const type=forced||pool[s.attackIndex%pool.length];
- if(!['fan','mark','ring','lances','dash','cross','meteor','orbit','summon','eclipse','soulbeam','spiralwall'].includes(type))return false;
+ if(!['fan','mark','ring','lances','dash','cross','meteor','orbit','summon','eclipse','soulbeam','spiralwall','blades'].includes(type))return false;
  const p=game.player,dir=aim(p.x-e.x,p.y-e.y);
- const duration=Math.max(.66,(s.phase===3?.89:s.phase===2?.98:1.12)*
-   (type==='meteor'||type==='eclipse'?1.25:1));
+ const duration=towerWindup(s.floor,s.phase,type);
  s.telegraph={type,time:duration,duration,dir,target:{x:p.x,y:p.y},
   angle:Math.atan2(dir.y,dir.x)};
  s.attackIndex++;e.cooldown=99;game.notify();return true;
@@ -109,13 +109,21 @@ export function executeTowerAttack(game,e){
   case 'spiralwall':
    for(let i=0;i<21;i++)if(i%7!==0)shoot(game,e,a+i*.30,.62*bonus,270+i*3);
    break;
+  case 'blades':{
+   // Two warned blade lanes, a wide safe corridor through the room center.
+   const room=game.dungeon.rooms[e.homeRoom];
+   for(const side of [-1,1])for(let j=-3;j<=3;j++)
+    mark(game,room.cx+j*85,room.cy+side*80,39,.53,Math.round(e.damage*1.16));
+   game.createEffect('ring',room.cx,room.cy,s.color,.5,160);
+   break;
+  }
   case 'eclipse':
    // Final boss signature: aimed meteor + spaced radial wave. Never instant damage.
    mark(game,t.target.x,t.target.y,85,.9,Math.round(e.damage*1.4));
    for(let i=0;i<18;i++)if(i%6!==0)shoot(game,e,a+i*Math.PI/9,.75,250);
    break;
  }
- s.recovery=Math.max(.64,1.60-phase*.20);
+ s.recovery=towerBossRecovery(s.floor,phase);
  e.cooldown=s.recovery;game.createEffect('ring',e.x,e.y,s.color,.32,66);
 }
 export function updateTowerBoss(game,e,dt){
@@ -168,6 +176,13 @@ export function drawTowerBossWarnings(ctx,game,e){
   const radius=t.type==='eclipse'?85:t.type==='mark'?74:78;
   ctx.beginPath();ctx.arc(t.target.x,t.target.y,radius,0,Math.PI*2);
   ctx.fill();ctx.stroke();
+ }else if(t.type==='blades'){
+  const room=game.dungeon.rooms[e.homeRoom];
+  ctx.globalAlpha=.18+.28*f;
+  ctx.fillRect(room.cx-294,room.cy-116,588,72);
+  ctx.fillRect(room.cx-294,room.cy+44,588,72);
+  ctx.strokeRect(room.cx-294,room.cy-116,588,72);
+  ctx.strokeRect(room.cx-294,room.cy+44,588,72);
  }else if(['ring','cross','orbit','summon','spiralwall'].includes(t.type)){
   ctx.beginPath();ctx.arc(e.x,e.y,t.type==='summon'?145:125,0,Math.PI*2);
   ctx.fill();ctx.stroke();
