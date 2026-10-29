@@ -2,7 +2,7 @@
 import {TOWER_STAGES} from './tower.js?v=0.15.0';
 // No CDN, raster downloads or third-party assets. Every frame is 32x36 source pixels.
 export const SPRITE_SIZE=Object.freeze({width:32,height:36});
-export const SPRITE_KINDS=Object.freeze(['warrior','hunter','mage','glasscannon','summoner','alchemist','slime','mushroom','archer','goblin','slimeking','warden','wraith','sentinel','cultist','brute','assassin','scout','hexer','bulwark','sovereign',...Array.from({length:9},(_,i)=>'tower'+(i+1))]);
+export const SPRITE_KINDS=Object.freeze(['warrior','hunter','mage','glasscannon','summoner','alchemist','slime','mushroom','archer','goblin','slimeking','warden','wraith','sentinel','cultist','brute','assassin','scout','hexer','bulwark','burrower','chanter','sovereign',...Array.from({length:9},(_,i)=>'tower'+(i+1))]);
 export const ANIMATION_STATES=Object.freeze(['idle','walk','attack','cast','dash','hurt','death']);
 export function facing(direction={x:0,y:1}){
  const x=Number(direction.x)||0,y=Number(direction.y)||0;
@@ -315,6 +315,15 @@ export function drawSpritePixels(ctx,kind,state='idle',frame=0,dir='down',phase=
  }
  else if(['wraith','sentinel','cultist','brute'].includes(kind))frameTowerMob(ctx,p,kind,state,frame);
  else if(['assassin','scout','hexer','bulwark'].includes(kind))frameEncounterMob(ctx,p,kind,state,frame);
+ else if(kind==='burrower'){
+  frameEncounterMob(ctx,p,'assassin',state,frame);
+  stamp(ctx,p,[['gold',4,8,6,6],['metal',1,13,6,13],['light',3,15,4,6],
+   ['gold',24,8,6,6],['metal',26,13,5,13],['light',27,15,3,6]]);
+ }else if(kind==='chanter'){
+  frameEncounterMob(ctx,p,'hexer',state,frame);
+  stamp(ctx,p,[['gold',10,0,5,8],['gold',22,0,5,8],['light',13,14,9,3],
+   ['trim',12,20,11,4],['gold',24,14,6,3]]);
+ }
  else if(['glasscannon','summoner','alchemist'].includes(kind)){
   const basis=kind==='alchemist'?'hunter':'mage';
   frameHero(ctx,p,basis,state,frame,facingRight);
