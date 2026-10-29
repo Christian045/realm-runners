@@ -1,4 +1,16 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.19.2)
+# Realm Runners – Dungeon Reborn (Alpha 0.19.3)
+
+## Alpha 0.19.3 – UI & Gameplay Quality Update
+
+- **Menü bedienbar statt zurückgesetzt:** Geöffnete Einstellungsbereiche, Fenster-Scrollposition und Tastaturfokus bleiben beim Wechsel von Klassen, Spezialisierung, Spielmodus oder beim Kauf von Talenten erhalten. Auch die Scrollposition innerhalb des Inventars bleibt bei Ausrüstungsänderungen bestehen.
+- **Eingaben zuverlässig zurücksetzen:** Tastendrücke, gedrückte Angriffsbuttons, Joystick-Auslenkung und wartende Dash-/Fähigkeitsbefehle werden beim Wechsel in Pause, Inventar und Menü beziehungsweise beim Wiederaufnehmen verworfen. So lösen Pausenaktionen keine verspäteten Attacken aus.
+- **Tastaturbedienung:** Escape öffnet/schließt Pause und schließt jetzt auch das Inventar; I schaltet das Inventar um; Enter auf einem fokussierten Menü-Button oder ausklappbaren Bereich startet nicht versehentlich das Spiel.
+- **Charaktervorschau:** Krieger, Magier und Jäger erhalten dezent animierte Idle-Sprites im Hauptmenü, maximal ein neues Sprite alle 380 ms. Bei reduzierter Bewegung bleibt die Vorschau statisch.
+- **Darstellung:** Besserer Textumbruch in Menü- und Dialogkarten, einheitliche Fokusmarkierungen für Tastaturbedienung sowie zusätzliche Absicherung gegen seitlichen Overflow auf kleinen Bildschirmen.
+- **Tests:** Erweiterte Browser-Regressionen für Menü-Auswahl, Scroll-/Fokusverhalten, Pause, Inventar und Eventdialoge auf Desktop und Smartphone, plus neue Input-Unit-Tests. Die bestehende GitHub-Actions-Pipeline führt weiterhin npm test und Browser-Smokes mit Chromium/WebKit aus.
+- **Unverändert:** Spielstände, KI, Kampfwerte, Klassenfähigkeiten, Gegnerwellen und iPhone-Touchsteuerung.
+
+
 
 ## Alpha 0.19.2 – Inventar-Layout ohne doppeltes Scrollen
 
