@@ -1,4 +1,4 @@
-import { TILE } from './data.js?v=0.15.0';
+import { TILE } from './data.js?v=0.21.0';
 
 // Thirteen rooms on a five-by-five grid: NOT the former filled 3x3 block.
 // Cells are only an address system: the playable outlines vary per chamber.
