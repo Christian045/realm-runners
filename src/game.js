@@ -53,6 +53,19 @@ export class Game {
   this.notify();return true;
  }
  playSound(id){try{this.sound?.(id)}catch{}}
+ chooseShop(choice){
+  if(this.mode!=='shop')return false;
+  if(choice==='leave'){this.mode='playing';this.shopStock=[];this.notify();return true}
+  const id=Number(choice);
+  if(!Number.isInteger(id)||id<0||id>=this.shopStock.length)return false;
+  const offer=this.shopStock[id];
+  if(!offer||offer.sold||this.runCoins<offer.price||this.player.inventory.length>=18)return false;
+  this.runCoins-=offer.price;offer.sold=true;
+  this.player.inventory.push(offer.item);
+  this.progress.itemsFound++;
+  if(!this.player.equipment[offer.item.slot])equipItem(this.player,offer.item);
+  this.playSound('loot');this.notify();return true;
+ }
  chooseEvent(choice){
   if(this.mode!=='event'||!this.activeEvent)return false;
   const p=this.player,room=this.activeEvent,kind=room.eventKind;
@@ -200,6 +213,14 @@ export class Game {
   if(room.type==='shrine'){
    room.cleared=true;this.clearCount++;
    this.mode='shrine';this.notify();return;
+  }
+  if(room.type==='shop'){
+   room.cleared=true;this.clearCount++;
+   this.shopStock=Array.from({length:3},(_,id)=>{
+    const item=generateItem(this.random,this.clearCount,this.player.kind,id===2,false);
+    return {id,item,price:35+Math.floor(this.clearCount*7)+(id===2?35:0),sold:false};
+   });
+   this.mode='shop';this.playSound('event');this.notify();return;
   }
   if(room.type==='secret'){
    room.cleared=true;this.clearCount++;
