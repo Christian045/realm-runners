@@ -1,7 +1,7 @@
 import {distance,normalized} from './data.js';
 import {TOWER_LENGTH,towerStage} from './tower.js?v=0.17.0';
 import {towerWindup,towerBossRecovery} from './combat-balance.js?v=0.15.0';
-import {canProgressTowerBoss} from './difficulty-director.js?v=0.17.0';
+import {canProgressTowerBoss} from './difficulty-director.js?v=0.18.0';
 
 export function createTowerBossState(floor){
  const stage=towerStage(floor);
@@ -26,7 +26,7 @@ export function applyTowerBossDamage(game,e,damage){
  const p3=s.variant==='sovereign'&&s.phase===2;
  const threshold=p3?.3:s.phase===1?.55:0;
  const limit=Math.ceil(e.maxHp*threshold);
- if(s.variant==='tower'&&s.floor>=4&&!canProgressTowerBoss(e)){
+ if(s.variant==='tower'&&s.floor>=2&&!canProgressTowerBoss(e)){
   const protectedHp=threshold>0?limit+1:1;
   if(e.hp-damage<=protectedHp){
    s.gateActive=true;
@@ -197,13 +197,13 @@ export function drawTowerBossWarnings(ctx,game,e){
   ctx.strokeStyle='#a9f3cf';ctx.lineWidth=5;
   ctx.beginPath();ctx.arc(e.x,e.y,e.radius+21,0,Math.PI*2);ctx.stroke();ctx.restore();
  }
- if(!t)return;
  if(s.gateActive){
   ctx.save();ctx.globalAlpha=.34+.15*Math.sin(game.time*8);
   ctx.strokeStyle='#c7a4ff';ctx.lineWidth=6;
   ctx.beginPath();ctx.arc(e.x,e.y,e.radius+21,0,Math.PI*2);ctx.stroke();
   ctx.restore();
  }
+ if(!t)return;
  const f=1-t.time/t.duration;
  ctx.save();ctx.strokeStyle=s.color;ctx.fillStyle=s.color;ctx.lineWidth=3;
  ctx.globalAlpha=.19+f*.29;

@@ -1,7 +1,7 @@
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.15.0';
 import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.15.0';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js';
-import {createBossState, updateBoss, startPhaseTwo, isBossInvulnerable, PHASE_TWO_AT} from './boss.js?v=0.17.0';
+import {createBossState, updateBoss, startPhaseTwo, isBossInvulnerable, PHASE_TWO_AT} from './boss.js?v=0.18.0';
 import {createWardenState} from './warden.js?v=0.15.0';
 import {generateItem,equipItem,applyTalents,buyTalent} from './loot.js?v=0.16.0';
 import {hasAffix,onDash,beforeHit,afterHit,onHurt,onKill,statusTick} from './affixes.js';
@@ -9,12 +9,12 @@ import {CHALLENGES,challengeUnlocked,applyRunChallenge,enemyExtraCount,challenge
 import {validSpecialization,specializationUnlocked,applySpecialization} from './specializations.js';
 import {enemySteering,hasLineOfSight,findSpawnPosition} from './navigation.js';
 import {towerStage,towerFloorSeed,towerDifficulty,towerWinReward,TOWER_LENGTH} from './tower.js?v=0.17.0';
-import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js?v=0.17.0';
-import {updateTowerEnemy,towerEnemyDamage,towerRoomHazard} from './tower-enemies.js';
+import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js?v=0.18.0';
+import {updateTowerEnemy,towerEnemyDamage,towerRoomHazard} from './tower-enemies.js?v=0.18.0';
 import {updateEncounterEnemy,encounterMitigation,rangedEncounterType} from './encounter-enemies.js?v=0.15.0';
 import {nextTowerRelic,grantTowerRelic,towerRelicDamage,afterTowerRelicHit,towerRelicKill,towerRelicSave,towerRelicFloor} from './tower-relics.js';
 import {cappedBossDamage,BOSS_BALANCE} from './combat-balance.js?v=0.15.0';
-import {towerEncounterPlan,towerRoomDamage,towerRoomSpeed,towerEnemyWindup,towerEnemyRecovery,towerFirstHazard} from './difficulty-director.js?v=0.17.0';
+import {towerFloorProfile,towerEncounterPlan,towerRoomDamage,towerRoomSpeed,towerEnemyWindup,towerEnemyRecovery,towerFirstHazard} from './difficulty-director.js?v=0.18.0';
 import {impactStyle} from './visual-impact.js?v=0.14.0';
 import {hasSet,hasRunPower,pickRunUpgrades,onBuildDash,onBuildHurt,onBuildHit,buildDamageFactor} from './buildcraft.js?v=0.16.0';
 
@@ -214,30 +214,31 @@ export class Game {
   const boss=room.type==='boss';
   const eliteRoom=room.type==='elite';
   const plan=this.tower?towerEncounterPlan(this.floorDepth,room.type,this.random()):null;
-  const amount=boss?1:this.tower?plan.initial+enemyExtraCount(this):
+  const floorProfile=this.tower?towerFloorProfile(this.floorDepth):null;
+  const amount=boss?1:this.tower?Math.min(8,plan.initial+enemyExtraCount(this)):
    eliteRoom?3:3+Math.floor(this.clearCount/2)+Math.floor(this.random()*2)+enemyExtraCount(this);
   // Keep late-floor rooms sealed through a clearly signalled second enemy wave.
   room.reinforcements=plan?.reinforcements||0;
   room.waveTimer=plan?.delay||0;
-  if(this.tower&&!boss&&this.floorDepth>=3)
-   this.stageHazardClock=towerFirstHazard(this.floorDepth);
+  if(this.tower)
+   this.stageHazardClock=towerFirstHazard(this.floorDepth)+(boss?1.2:0);
   const variants=room.biome==='fungal'?['mushroom','slime','hexer','assassin','cultist']:
    room.biome==='flooded'?['archer','scout','slime','assassin','wraith']:
    ['goblin','bulwark','scout','hexer','assassin'];
   const warden=boss&&!this.tower&&this.dungeon.seed%3===2;
   const offsets=[[ -145,-90],[145,90],[140,-90],[-140,90],[0,-100],[0,110],[-150,0],[150,0]];
   const roster=this.tower?this.currentTowerStage().roster:variants;
-  const backline=this.tower&&this.floorDepth>=5?
+  const backline=this.tower&&this.floorDepth>=2?
    roster.filter(type=>['archer','scout','hexer','cultist'].includes(type)):[];
   const preferred=room.encounterStyle==='ambush'?'assassin':
    room.encounterStyle==='ranged'?'scout':
    room.encounterStyle==='arcane'?'hexer':
    room.encounterStyle==='fortified'?'bulwark':null;
   for(let i=0;i<amount;i++){
-   const type=boss?'boss':(i===1&&backline.length?
-    backline[Math.floor(this.random()*backline.length)]:
-    i===0&&preferred&&room.type!=='elite'&&
-    (!this.tower||this.floorDepth>=2)?preferred:
+   const type=boss?'boss':(this.tower&&i===0?floorProfile.lead:
+    i===1&&backline.length?backline[Math.floor(this.random()*backline.length)]:
+    i===(this.tower?2:0)&&preferred&&room.type!=='elite'&&
+    (!this.tower||roster.includes(preferred))?preferred:
     roster[Math.floor(this.random()*
      (this.tower?roster.length:Math.min(roster.length,3+Math.floor(this.clearCount/2))))]);
    const spec=ENEMY_DATA[type];
@@ -258,8 +259,8 @@ export class Game {
     damage:spec.damage*(elite?1.55:1)*(boss?(this.tower?1.10+this.floorDepth*.085:1.18):
      this.tower?towerRoomDamage(this.floorDepth):1)*challengeScale(this),elite,eliteMod,eliteShot:2,spawnIndex:i,
     cooldown:boss?(this.tower?BOSS_BALANCE.towerOpening:BOSS_BALANCE.normalOpening):
-     this.tower&&this.floorDepth>=5?.27+i*.12:.45+i*.2,
-    specialCooldown:this.tower&&this.floorDepth>=5?.75+i*.13:null,
+     this.tower?Math.max(.20,.52-this.floorDepth*.036)+i*.12:.45+i*.2,
+    specialCooldown:this.tower?Math.max(.45,1.5-this.floorDepth*.11)+i*.13:null,
     windup:0,phase:0,flash:0,elapsed:0,knock:{x:0,y:0},
     ...(boss?{boss:this.tower?createTowerBossState(this.floorDepth):warden?createWardenState():createBossState()}: {})});
   }
