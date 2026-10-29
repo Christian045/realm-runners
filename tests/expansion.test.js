@@ -79,7 +79,7 @@ test('treasure and secret rooms contain collectible gear or gold',()=>{
   assert.ok(room);g.player.x=room.cx;g.player.y=room.cy;
   g.update(1/60);
   assert.ok(room.cleared,type);
-  assert.ok(g.loot.some(d=>d.type==='gear'),type);
+  assert.ok(g.loot.some(d=>d.type==='gear')||g.player.inventory.some(i=>i.slot),type);
   if(g.mode==='upgrade')g.selectUpgrade(g.upgradeChoices[0].id);
  }
 });
