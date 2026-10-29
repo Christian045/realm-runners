@@ -7,7 +7,7 @@ import {Game} from '../src/game.js';
 import {defaultProgress} from '../src/progression.js';
 
 const input={movement:()=>({x:0,y:0}),aiming:()=>({x:1,y:0}),attacking:()=>false,consumeDash:()=>false,consumeAbility:()=>false};
-test('irregular world distributes 13 rooms over 25 cells with distinct, repeatable footprints',()=>{
+test('irregular world distributes 16 rooms over 25 cells with distinct, repeatable footprints',()=>{
  const seenShapes=new Set(),signatures=new Set();
  for(let seed=1;seed<=125;seed++){
   const a=generateDungeon(seed),b=generateDungeon(seed);
