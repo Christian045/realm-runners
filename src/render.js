@@ -1,11 +1,12 @@
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.15.0';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js';
-import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js?v=0.15.0';
+import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js?v=0.17.0';
 import {drawTowerVictory} from './tower-visuals.js';
 import {PixelSpriteAtlas,spriteIdentity} from './sprites.js?v=0.15.0';
 import {PixelTileAtlas,tileTheme,tileVariant} from './tileset.js?v=0.14.0';
 import {drawArchitecturalDepth,drawAnchoredDressings,drawDynamicLighting} from './visual-world.js?v=0.14.0';
 import {drawImpact,drawMagicTrail} from './visual-impact.js?v=0.14.0';
+import {drawWarriorSword} from './weapon-visuals.js?v=0.17.0';
 const hash=(x,y,seed=0)=>{let a=Math.imul(x+seed,374761393)+Math.imul(y,668265263);a=Math.imul(a^(a>>>13),1274126177);return (a^(a>>>16))>>>0};
 const fill=(ctx,color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h)};
 export class Renderer {
@@ -65,7 +66,9 @@ export class Renderer {
   for(const e of game.effects)this.effect(e);
   drawTowerVictory(c,game);
   drawVignette(c,game,canvas);
-  this.minimap(game);
+  // Portrait Safari: the map otherwise overlaps the boss HP / attack HUD.
+  // Restore it automatically when the boss is defeated or outside combat.
+  if(!(game.camera.w<700&&game.getActiveBoss?.()))this.minimap(game);
  }
  titleBackground(){
   const c=this.ctx,w=this.canvas.width,h=this.canvas.height;
@@ -157,6 +160,8 @@ export class Renderer {
   else{fill(c,'#bb97f9',13,-11,6,6);fill(c,'#694cb0',15,-7,3,20)}
   c.restore();
   }
+  // A real full-size blade remains visible while running and animates with aim.
+  drawWarriorSword(c,p);
   if(p.shield>0){c.save();c.globalAlpha=.5+.12*Math.sin(time*8);c.strokeStyle='#a8e7ff';c.lineWidth=3;c.beginPath();c.arc(p.x,p.y,23,0,Math.PI*2);c.stroke();c.restore()}
   if(p.dashTimer>0){c.strokeStyle='#b1f1ee99';c.lineWidth=3;c.beginPath();c.arc(p.x,p.y,24,0,Math.PI*2);c.stroke()}
  }
@@ -277,8 +282,10 @@ export class Renderer {
   }else if(e.type==='ember'||e.type==='magic-trail'){
    c.restore();drawMagicTrail(c,{...e,kind:e.type},alpha);return;
   }else if(e.type==='slash'){
-   c.lineWidth=12;c.beginPath();c.arc(e.x,e.y,e.radius,e.angle-.8,e.angle+.8);c.stroke();
-   c.lineWidth=3;c.strokeStyle='#fff8dd';c.stroke();
+   // Thin directional trail supports the visible sword, not replaces it.
+   c.globalAlpha=alpha*.65;c.lineWidth=6;
+   c.beginPath();c.arc(e.x,e.y,e.radius,e.angle-.8,e.angle+.8);c.stroke();
+   c.lineWidth=2;c.strokeStyle='#fff8dd';c.stroke();
   }else if(e.type==='text'){
    c.font=(e.text?.startsWith('KRIT')?'900 24px monospace':'900 17px monospace');
    c.textAlign='center';c.shadowColor='#040e16';c.shadowBlur=5;

@@ -1,18 +1,19 @@
 import {distance,normalized} from './data.js';
-import {TOWER_LENGTH,towerStage} from './tower.js?v=0.15.0';
+import {TOWER_LENGTH,towerStage} from './tower.js?v=0.17.0';
 import {towerWindup,towerBossRecovery} from './combat-balance.js?v=0.15.0';
+import {canProgressTowerBoss} from './difficulty-director.js?v=0.17.0';
 
 export function createTowerBossState(floor){
  const stage=towerStage(floor);
  return {variant:floor===TOWER_LENGTH?'sovereign':'tower',name:stage.boss,
   floor,phase:1,transition:0,telegraph:null,charge:null,attackIndex:0,
-  signature:stage.signature,color:stage.color,recovery:1.2};
+  signature:stage.signature,color:stage.color,recovery:1.2,executedAttacks:0,gateActive:false,gateNotified:false};
 }
 export function triggerTowerPhase(game,e,newPhase){
  const s=e.boss;
  if(!s||s.transition>0||newPhase<=s.phase)return false;
  s.phase=newPhase;s.transition=newPhase===3?1.35:1.10;s.telegraph=null;s.charge=null;
- s.attackIndex=0;e.cooldown=.18;
+ s.attackIndex=0;s.gateActive=false;s.gateNotified=false;e.cooldown=.18;
  game.projectiles=game.projectiles.filter(p=>!p.hostile);
  game.hazards=game.hazards.filter(h=>h.source!=='tower');
  game.createEffect('ring',e.x,e.y,s.color,1.2,newPhase===3?175:135);
@@ -25,6 +26,20 @@ export function applyTowerBossDamage(game,e,damage){
  const p3=s.variant==='sovereign'&&s.phase===2;
  const threshold=p3?.3:s.phase===1?.55:0;
  const limit=Math.ceil(e.maxHp*threshold);
+ if(s.variant==='tower'&&s.floor>=4&&!canProgressTowerBoss(e)){
+  const protectedHp=threshold>0?limit+1:1;
+  if(e.hp-damage<=protectedHp){
+   s.gateActive=true;
+   if(!s.gateNotified){
+    s.gateNotified=true;
+    game.createEffect('ring',e.x,e.y,'#bba9ff',.5,e.radius+25);
+    game.createEffect('text',e.x,e.y-88,'RUNENSCHILD','#e2ceff',.85);
+   }
+  }
+  e.hp=Math.max(protectedHp,e.hp-damage);
+  return;
+ }
+ s.gateActive=false;s.gateNotified=false;
  if(threshold>0&&e.hp-damage<=limit){
   e.hp=limit;triggerTowerPhase(game,e,s.phase+1);
  }else e.hp=Math.max(0,e.hp-damage);
@@ -75,6 +90,8 @@ export function executeTowerAttack(game,e){
  const s=e.boss,t=s.telegraph;if(!t)return;
  s.telegraph=null;
  const a=t.angle,phase=s.phase,bonus=phase===3?1.18:1;
+ s.executedAttacks=(s.executedAttacks||0)+1;
+ if(canProgressTowerBoss(e))s.gateActive=false;
  switch(t.type){
   case 'fan':
    for(let k=-2;k<=2;k++)shoot(game,e,a+k*(phase>=2?.20:.24),.78*bonus,310);break;
@@ -181,6 +198,12 @@ export function drawTowerBossWarnings(ctx,game,e){
   ctx.beginPath();ctx.arc(e.x,e.y,e.radius+21,0,Math.PI*2);ctx.stroke();ctx.restore();
  }
  if(!t)return;
+ if(s.gateActive){
+  ctx.save();ctx.globalAlpha=.34+.15*Math.sin(game.time*8);
+  ctx.strokeStyle='#c7a4ff';ctx.lineWidth=6;
+  ctx.beginPath();ctx.arc(e.x,e.y,e.radius+21,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+ }
  const f=1-t.time/t.duration;
  ctx.save();ctx.strokeStyle=s.color;ctx.fillStyle=s.color;ctx.lineWidth=3;
  ctx.globalAlpha=.19+f*.29;

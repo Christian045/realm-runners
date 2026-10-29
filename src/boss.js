@@ -1,7 +1,7 @@
 import { ENEMY_DATA, TILE, distance, normalized } from './data.js';
 import { ROOM_W, ROOM_H } from './dungeon.js';
 import {startWardenPhaseTwo,beginWardenAttack,executeWardenAttack,updateWarden} from './warden.js?v=0.15.0';
-import {triggerTowerPhase,beginTowerAttack,executeTowerAttack,updateTowerBoss} from './tower-boss.js?v=0.15.0';
+import {triggerTowerPhase,beginTowerAttack,executeTowerAttack,updateTowerBoss} from './tower-boss.js?v=0.17.0';
 import {normalBossWindup,normalBossRecovery} from './combat-balance.js?v=0.15.0';
 
 export const PHASE_TWO_AT = .55;

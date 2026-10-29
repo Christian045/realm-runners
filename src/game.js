@@ -1,19 +1,20 @@
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.15.0';
 import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.15.0';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js';
-import {createBossState, updateBoss, startPhaseTwo, isBossInvulnerable, PHASE_TWO_AT} from './boss.js?v=0.15.0';
+import {createBossState, updateBoss, startPhaseTwo, isBossInvulnerable, PHASE_TWO_AT} from './boss.js?v=0.17.0';
 import {createWardenState} from './warden.js?v=0.15.0';
 import {generateItem,equipItem,applyTalents,buyTalent} from './loot.js?v=0.16.0';
 import {hasAffix,onDash,beforeHit,afterHit,onHurt,onKill,statusTick} from './affixes.js';
 import {CHALLENGES,challengeUnlocked,applyRunChallenge,enemyExtraCount,challengeScale,challengeReward,awardAchievements} from './motivation.js';
 import {validSpecialization,specializationUnlocked,applySpecialization} from './specializations.js';
 import {enemySteering,hasLineOfSight,findSpawnPosition} from './navigation.js';
-import {towerStage,towerFloorSeed,towerDifficulty,towerWinReward,TOWER_LENGTH} from './tower.js?v=0.15.0';
-import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js?v=0.15.0';
+import {towerStage,towerFloorSeed,towerDifficulty,towerWinReward,TOWER_LENGTH} from './tower.js?v=0.17.0';
+import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js?v=0.17.0';
 import {updateTowerEnemy,towerEnemyDamage,towerRoomHazard} from './tower-enemies.js';
 import {updateEncounterEnemy,encounterMitigation,rangedEncounterType} from './encounter-enemies.js?v=0.15.0';
 import {nextTowerRelic,grantTowerRelic,towerRelicDamage,afterTowerRelicHit,towerRelicKill,towerRelicSave,towerRelicFloor} from './tower-relics.js';
 import {cappedBossDamage,BOSS_BALANCE} from './combat-balance.js?v=0.15.0';
+import {towerEncounterPlan,towerRoomDamage,towerRoomSpeed,towerEnemyWindup,towerEnemyRecovery,towerFirstHazard} from './difficulty-director.js?v=0.17.0';
 import {impactStyle} from './visual-impact.js?v=0.14.0';
 import {hasSet,hasRunPower,pickRunUpgrades,onBuildDash,onBuildHurt,onBuildHit,buildDamageFactor} from './buildcraft.js?v=0.16.0';
 
@@ -212,19 +213,30 @@ export class Game {
  spawnRoom(room){
   const boss=room.type==='boss';
   const eliteRoom=room.type==='elite';
-  const amount=boss?1:eliteRoom?3:(this.tower?2+Math.floor(this.floorDepth/4):3+Math.floor(this.clearCount/2))+Math.floor(this.random()*2)+enemyExtraCount(this);
+  const plan=this.tower?towerEncounterPlan(this.floorDepth,room.type,this.random()):null;
+  const amount=boss?1:this.tower?plan.initial+enemyExtraCount(this):
+   eliteRoom?3:3+Math.floor(this.clearCount/2)+Math.floor(this.random()*2)+enemyExtraCount(this);
+  // Keep late-floor rooms sealed through a clearly signalled second enemy wave.
+  room.reinforcements=plan?.reinforcements||0;
+  room.waveTimer=plan?.delay||0;
+  if(this.tower&&!boss&&this.floorDepth>=3)
+   this.stageHazardClock=towerFirstHazard(this.floorDepth);
   const variants=room.biome==='fungal'?['mushroom','slime','hexer','assassin','cultist']:
    room.biome==='flooded'?['archer','scout','slime','assassin','wraith']:
    ['goblin','bulwark','scout','hexer','assassin'];
   const warden=boss&&!this.tower&&this.dungeon.seed%3===2;
   const offsets=[[ -145,-90],[145,90],[140,-90],[-140,90],[0,-100],[0,110],[-150,0],[150,0]];
   const roster=this.tower?this.currentTowerStage().roster:variants;
+  const backline=this.tower&&this.floorDepth>=5?
+   roster.filter(type=>['archer','scout','hexer','cultist'].includes(type)):[];
   const preferred=room.encounterStyle==='ambush'?'assassin':
    room.encounterStyle==='ranged'?'scout':
    room.encounterStyle==='arcane'?'hexer':
    room.encounterStyle==='fortified'?'bulwark':null;
   for(let i=0;i<amount;i++){
-   const type=boss?'boss':(i===0&&preferred&&room.type!=='elite'&&
+   const type=boss?'boss':(i===1&&backline.length?
+    backline[Math.floor(this.random()*backline.length)]:
+    i===0&&preferred&&room.type!=='elite'&&
     (!this.tower||this.floorDepth>=2)?preferred:
     roster[Math.floor(this.random()*
      (this.tower?roster.length:Math.min(roster.length,3+Math.floor(this.clearCount/2))))]);
@@ -241,14 +253,43 @@ export class Game {
    const floorBossBonus=boss&&this.tower?(this.floorDepth===TOWER_LENGTH?1.8:.88+this.floorDepth*.09):1;
    this.enemies.push({x,y,homeRoom:room.id,type,radius:boss&&this.tower&&this.floorDepth===TOWER_LENGTH?44:elite?spec.radius*1.3:spec.radius,
     hp:Math.round(spec.hp*scale*hpScale*floorBossBonus),maxHp:Math.round(spec.hp*scale*hpScale*floorBossBonus),
-    speed:spec.speed*(boss?1:1+this.clearCount*.025)*(elite?1.18:1)*speedScale*challengeScale(this),
-    damage:spec.damage*(elite?1.55:1)*(boss?(this.tower?1.10+this.floorDepth*.085:1.18):1)*challengeScale(this),elite,eliteMod,eliteShot:2,spawnIndex:i,
-    cooldown:boss?(this.tower?BOSS_BALANCE.towerOpening:BOSS_BALANCE.normalOpening):.45+i*.2,windup:0,phase:0,flash:0,elapsed:0,knock:{x:0,y:0},
+    speed:spec.speed*(boss?1:1+this.clearCount*.025)*(elite?1.18:1)*speedScale*
+     (this.tower&&!boss?towerRoomSpeed(this.floorDepth):1)*challengeScale(this),
+    damage:spec.damage*(elite?1.55:1)*(boss?(this.tower?1.10+this.floorDepth*.085:1.18):
+     this.tower?towerRoomDamage(this.floorDepth):1)*challengeScale(this),elite,eliteMod,eliteShot:2,spawnIndex:i,
+    cooldown:boss?(this.tower?BOSS_BALANCE.towerOpening:BOSS_BALANCE.normalOpening):
+     this.tower&&this.floorDepth>=5?.27+i*.12:.45+i*.2,
+    specialCooldown:this.tower&&this.floorDepth>=5?.75+i*.13:null,
+    windup:0,phase:0,flash:0,elapsed:0,knock:{x:0,y:0},
     ...(boss?{boss:this.tower?createTowerBossState(this.floorDepth):warden?createWardenState():createBossState()}: {})});
   }
   this.createEffect('text',room.cx,room.cy-110,
    boss?(this.tower?this.currentTowerStage().boss:warden?'DER RUNENWÄCHTER':'DER SCHLEIMKÖNIG'):eliteRoom?'ELITEKAMMER':'KAMMER VERSIEGELT',
    '#f8c78f',1.3);
+ }
+ spawnReinforcements(room){
+  const count=room.reinforcements||0;
+  if(!count||!this.tower)return;
+  room.reinforcements=0;
+  const roster=this.currentTowerStage().roster;
+  const backline=roster.filter(type=>['archer','scout','hexer','cultist'].includes(type));
+  const offsets=[[-165,115],[165,-115],[-175,-105],[175,105],[-180,0],[180,0]];
+  let spawned=0;
+  for(let i=0;i<count;i++){
+   const type=i===0&&backline.length?backline[Math.floor(this.random()*backline.length)]:
+    roster[Math.floor(this.random()*roster.length)];
+   const spec=ENEMY_DATA[type],offset=offsets[i%offsets.length];
+   const point=findSpawnPosition(this.dungeon,room,room.cx+offset[0],room.cy+offset[1],spec.radius,this.player);
+   if(distance(point,this.player)<spec.radius+this.player.radius+72)continue;
+   const hp=Math.round(spec.hp*(1+this.clearCount*.075+Math.max(0,this.floorDepth-1)*.115)*challengeScale(this));
+   this.enemies.push({x:point.x,y:point.y,homeRoom:room.id,type,radius:spec.radius,
+    hp,maxHp:hp,speed:spec.speed*(1+this.clearCount*.025)*towerRoomSpeed(this.floorDepth)*challengeScale(this),
+    damage:spec.damage*towerRoomDamage(this.floorDepth)*challengeScale(this),elite:false,eliteMod:null,
+    eliteShot:2,spawnIndex:8+i,cooldown:.45+i*.16,specialCooldown:.55+i*.2,
+    windup:0,phase:0,flash:0,elapsed:0,knock:{x:0,y:0}});
+   this.createEffect('ring',point.x,point.y,'#ffb486',.72,43);spawned++;
+  }
+  if(spawned)this.createEffect('text',room.cx,room.cy-119,'VERSTÄRKUNG!','#ffc29f',.95);
  }
  update(dt,camera=this.camera){
   if(this.mode!=='playing')return;
@@ -319,7 +360,15 @@ export class Game {
   // Progress is earned only after a sealed encounter is actually defeated.
   const room=this.dungeon.roomAt(p.x,p.y);
   const pending=this.dungeon.rooms.find(r=>r.visited&&!r.cleared&&r.type!=='start'&&r.type!=='treasure');
-  if(pending&&!this.enemies.some(e=>e.hp>0&&e.homeRoom===pending.id)){
+  if(pending&&pending.reinforcements>0){
+   // If the first wave disappears in a few swings, announce new enemies
+   // promptly instead of opening the door before the delayed wave arrives.
+   const alive=this.enemies.some(e=>e.hp>0&&e.homeRoom===pending.id);
+   pending.waveTimer=Math.max(0,(pending.waveTimer||0)-dt);
+   if(!alive)pending.waveTimer=Math.min(pending.waveTimer,.72);
+   if(pending.waveTimer<=0)this.spawnReinforcements(pending);
+  }
+  if(pending&&!pending.reinforcements&&!this.enemies.some(e=>e.hp>0&&e.homeRoom===pending.id)){
    pending.cleared=true;this.clearCount++;
    if(pending.type==='boss'){this.bossDefeated=true;this.finish(true);return}
    this.createEffect('text',pending.cx,pending.cy-110,'KAMMER GESÄUBERT','#a9f1b4',1.4);
@@ -562,7 +611,7 @@ export class Game {
       }
       e.attackTimer=.24;
       e.attackType=null;
-      e.cooldown=e.elite?1.0:1.15;
+      e.cooldown=e.elite?1.0:this.tower?towerEnemyRecovery(this.floorDepth):1.15;
      }else if(e.type==='boss'){
       for(let i=-2;i<=2;i++){
        const a=Math.atan2(dir.y,dir.x)+i*.18;
@@ -574,7 +623,7 @@ export class Game {
        this.spawnProjectile(e.x,e.y,dir,e.damage,false,true);e.attackTimer=.24;
       }
      }
-     e.cooldown=e.type==='boss'?2.3:1.75;
+     e.cooldown=e.type==='boss'?2.3:this.tower?towerEnemyRecovery(this.floorDepth,true):1.75;
     }
    }else{
     const ranged=['archer','cultist'].includes(e.type)||rangedEncounterType(e.type);
@@ -590,7 +639,7 @@ export class Game {
     }
     if(e.cooldown<=0){
      if(ranged&&dist<500&&steering.clear){
-      e.windup=e.type==='boss'?.8:.58;
+      e.windup=e.type==='boss'?.8:this.tower?towerEnemyWindup(this.floorDepth):.58;
       e.cooldown=99;
       this.createEffect('ring',e.x,e.y,e.type==='boss'?'#ff6f83':'#ecc5ff',e.windup,37);
      }else if(!ranged&&
@@ -599,7 +648,7 @@ export class Game {
       // Attack windup is independent of movement or player input.
       // Previously enemies stopped at +8px, but contact damage required +3px:
       // standing still made them wait forever without attacking.
-      e.attackType='melee';e.windup=.3;e.castTimer=.3;e.cooldown=99;
+      e.attackType='melee';e.windup=this.tower?Math.max(.26,.30-(this.floorDepth-1)*.004):.3;e.castTimer=e.windup;e.cooldown=99;
       this.createEffect('ring',e.x,e.y,'#ffb887',.32,e.radius+17);
      }
     }
