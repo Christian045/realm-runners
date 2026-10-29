@@ -38,7 +38,13 @@ export const ITEM_BASES=Object.freeze([
  {id:'ringFlint',name:'Funkenring',slot:'ring1',classes:null,damage:2,crit:.012},
  {id:'ringMist',name:'Nebelring',slot:'ring1',classes:null,speed:5,hp:6},
  {id:'ringOak',name:'Eichenring',slot:'ring2',classes:null,hp:9,guard:.018},
- {id:'ringDawn',name:'Morgenring',slot:'ring2',classes:null,leech:.009,damage:2}
+ {id:'ringDawn',name:'Morgenring',slot:'ring2',classes:null,leech:.009,damage:2},
+ {id:'glassShard',name:'Splitterstab',slot:'weapon',classes:['glasscannon'],damage:9,crit:.035},
+ {id:'glassFocus',name:'Kristallfokus',slot:'weapon',classes:['glasscannon'],damage:11,speed:-8},
+ {id:'summonTome',name:'Dienerbuch',slot:'weapon',classes:['summoner'],damage:4,hp:12},
+ {id:'summonBell',name:'Geisterglocke',slot:'weapon',classes:['summoner'],damage:6,crit:.03},
+ {id:'alchemyFlask',name:'Säurekolben',slot:'weapon',classes:['alchemist'],damage:7},
+ {id:'alchemyKit',name:'Destillierapparat',slot:'weapon',classes:['alchemist'],damage:5,speed:8}
 ]);
 export const TALENTS=Object.freeze({
  warrior:[{id:'steel',name:'Eisenhaut',description:'+8 maximale LP pro Stufe',stat:'hp',value:8},
@@ -55,7 +61,19 @@ export const TALENTS=Object.freeze({
   {id:'ward',name:'Schutzzauber',description:'+8 maximale LP pro Stufe',stat:'hp',value:8},
   {id:'siphon',name:'Seelenfluss',description:'+1.5% Lebensraub pro Stufe',stat:'leech',value:.015},
   {id:'ignite',name:'Glutmeister',description:'Magische Projektile entzünden Feinde',branch:true,requires:'arcana',requiredLevel:2},
-  {id:'warding',name:'Arkaner Schutz',description:'Spezialzauber verleiht 13 Schild',branch:true,requires:'ward',requiredLevel:2}]
+  {id:'warding',name:'Arkaner Schutz',description:'Spezialzauber verleiht 13 Schild',branch:true,requires:'ward',requiredLevel:2}],
+ glasscannon:[
+  {id:'fracture',name:'Kristallbruch',description:'+4 Schaden je Stufe',stat:'damage',value:4},
+  {id:'fragility',name:'Dünner Schleier',description:'+3 % Krit je Stufe',stat:'crit',value:.03},
+  {id:'escape',name:'Gläserner Schritt',description:'+8 Tempo je Stufe',stat:'speed',value:8}],
+ summoner:[
+  {id:'bond',name:'Gefährtenbund',description:'+3 Schaden je Stufe',stat:'damage',value:3},
+  {id:'spirit',name:'Seelenschutz',description:'+9 LP je Stufe',stat:'hp',value:9},
+  {id:'command',name:'Anführer',description:'+5 Tempo je Stufe',stat:'speed',value:5}],
+ alchemist:[
+  {id:'mixture',name:'Reaktionslehre',description:'+3 Schaden je Stufe',stat:'damage',value:3},
+  {id:'reflex',name:'Fluchtchemie',description:'+7 Tempo je Stufe',stat:'speed',value:7},
+  {id:'resilience',name:'Destillierte Haut',description:'+7 LP je Stufe',stat:'hp',value:7}]
 });
 const STATS=['damage','hp','speed','crit','guard','leech'];
 const zeros=()=>Object.fromEntries(STATS.map(k=>[k,0]));
