@@ -657,3 +657,10 @@ canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
 }
 @media(max-height:560px){.status-hud{top:62px}}
 @media(prefers-reduced-motion:reduce){.status-hud span.mark{animation:none}}
+
+
+/* Game-over run analytics (v0.21). */
+.run-report{border:1px solid #7c927a;background:#122b34;margin:13px auto;
+ padding:12px;display:grid;gap:7px;text-align:left;max-width:570px}
+.run-report strong{font-size:11px;letter-spacing:.11em;color:#ecd49c}
+.run-report span{display:block;font-size:11px;color:#c2ddd4;line-height:1.45}
