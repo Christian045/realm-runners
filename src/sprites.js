@@ -96,25 +96,26 @@ function frameHero(ctx,p,kind,state,frame,face){
   stamp(ctx,p,[['gold',27,11+armRaise,2,13],['trim',28,10+armRaise,2,3]]);
   // Bow string remains readable at a distance.
   block(ctx,p.trim,30,12+armRaise,1,10);
+ }else if(kind==='mage'){
+  // The mage holds a single staff drawn by weapon-visuals.js, no duplicate rod.
+  stamp(ctx,p,[['outline',25,17+armRaise,6,9],['base',26,18+armRaise,4,6],
+   ['trim',26,19+armRaise,3,2]]);
  }else{
   stamp(ctx,p,[['gold',27,11+armRaise,2,18],['trim',25,8+armRaise,6,4]]);
-  if(casting)stamp(ctx,p,[['light',25,4,6,3],['trim',27,2,3,3]]);
  }
  // Separate silhouettes for the three playable classes during their actions.
  if(kind==='warrior'&&attack){
-  const high=frame%3===0;
-  stamp(ctx,p,[['metal',high?22:25,high?2:4,7,3],
-   ['trim',high?18:26,high?5:9,5,2],
-   ['light',high?14:24,high?7:2,4,2]]);
+  // Raise armour/gauntlet without adding a second floating sword.
+  stamp(ctx,p,[['metal',25,11+armRaise,5,5],['light',26,12+armRaise,3,2]]);
  }else if(kind==='hunter'&&(attack||casting)){
   // Curved bow limb, taut string and a clearly nocked arrow.
   stamp(ctx,p,[['gold',29,5,2,23],['trim',27,4,3,3],['trim',27,25,3,3],
    ['light',19,14,12,2],['metal',29,12,3,6]]);
  }else if(kind==='mage'&&(attack||casting)){
-  // Two-frame spell buildup around the staff and free hand.
+  // Spell focus glows around the free hand; the real staff stays one piece.
   const pulse=frame%2?1:0;
-  stamp(ctx,p,[['trim',26-pulse,2,7+pulse,5],['light',27,2,3,2],
-   ['gold',23,6+pulse,3,3],['light',3,16,5,3]]);
+  stamp(ctx,p,[['light',3,15-pulse,5,4],['trim',4,14-pulse,3,2],
+   ['gold',7,17-pulse,2,2]]);
  }
  // Authored class silhouette accents, with different attack silhouettes.
  if(kind==='warrior'){
@@ -129,11 +130,16 @@ function frameHero(ctx,p,kind,state,frame,face){
   if(attack||casting)stamp(ctx,p,[['gold',28,4,2,25],
    ['trim',25,4,5,2],['trim',25,27,5,2],['light',22,15,8,2]]);
  }else if(kind==='mage'){
-  stamp(ctx,p,[['outline',6,23,6,8],['shadow',8,23,5,7],
-   ['outline',23,23,6,8],['base',24,24,4,6],['gold',15,3,5,3],
-   ['trim',25,11,4,3],['light',27,4,4,3]]);
-  if(attack||casting)stamp(ctx,p,[['gold',25,0,7,4],['light',27,1,3,2],
-   ['trim',4,12,4,4],['light',5,13,2,2]]);
+  // Distinct layered robes, embroidered hem, amulet, trimmed hood and sleeves.
+  stamp(ctx,p,[['outline',5,20,6,11],['shadow',7,21,6,9],
+   ['outline',23,20,6,11],['base',24,22,4,8],
+   ['trim',9,27,5,2],['trim',20,27,4,2],['shadow',12,23,10,4],
+   ['gold',15,3,5,3],['trim',12,6,11,2],
+   ['dark',11,8,3,5],['light',15,17,4,4],
+   ['gold',16,16,2,9],['trim',25,11,4,3],
+   ['light',7,16,4,2],['trim',25,18,4,2]]);
+  if(attack||casting)stamp(ctx,p,[['trim',4,12,4,4],
+   ['light',5,13,2,2],['gold',6,11,2,2]]);
  }
  if(state==='hurt')stamp(ctx,p,[['trim',10,18,13,3],['light',12,20,9,2]]);
  ctx.restore();
