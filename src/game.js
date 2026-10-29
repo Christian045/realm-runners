@@ -361,8 +361,9 @@ export class Game {
   this.time+=dt;
   if(this.exitPortal){
    this.exitPortal.arming=Math.max(0,this.exitPortal.arming-dt);
-   // The player decides when to leave: collecting loot or exploring stays possible.
-   if(this.exitPortal.arming===0&&distance(this.player,this.exitPortal)<36){
+   // Re-enter the portal deliberately; standing next to a fallen boss is not enough.
+   if(distance(this.player,this.exitPortal)>82)this.exitPortal.ready=true;
+   if(this.exitPortal.arming===0&&this.exitPortal.ready&&distance(this.player,this.exitPortal)<36){
     this.exitPortal=null;this.finish(true);return;
    }
   }
@@ -453,7 +454,7 @@ export class Game {
    pending.cleared=true;this.clearCount++;
    if(pending.type==='boss'){
     this.bossDefeated=true;
-    this.exitPortal={x:pending.cx,y:pending.cy,arming:2.1};
+    this.exitPortal={x:pending.cx,y:pending.cy,arming:1.1,ready:false};
     this.createEffect('ring',pending.cx,pending.cy,'#b7a9ff',1.4,85);
     this.createEffect('text',pending.cx,pending.cy-94,'PORTAL GEÖFFNET · WEITER ERKUNDEN ODER EINTRETEN','#d5c3ff',2.2);
     this.playSound('portal');this.notify();return;
