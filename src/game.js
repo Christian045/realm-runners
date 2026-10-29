@@ -454,9 +454,24 @@ export class Game {
    }
   }else{
    const shotDamage=kind==='hunter'&&charged?p.damage*2.05:p.damage;
+    // The rogue uses paired daggers whenever a target is within striking distance.
+    if(kind==='hunter'&&p.specialization==='ranger'){
+     const close=this.enemies.filter(e=>e.hp>0&&distance(e,p)<94+e.radius&&
+       normalized(e.x-p.x,e.y-p.y).x*aim.x+normalized(e.x-p.x,e.y-p.y).y*aim.y>.25);
+     if(close.length){
+      this.createEffect('slash',p.x,p.y,'#a9e8b8',.26,92,Math.atan2(aim.y,aim.x));
+      for(const e of close)this.hitEnemy(e,p.damage*1.45,aim,{melee:true});
+      return;
+     }
+    }
    const shotSpeed=kind==='hunter'&&charged?840:null;
    this.spawnProjectile(p.x+aim.x*19,p.y+aim.y*19,aim,shotDamage,kind==='mage',false,shotSpeed);
-   if(kind==='hunter'&&charged){
+   if(kind==='hunter'&&p.specialization==='marksman'){
+     const bolt=this.projectiles[this.projectiles.length-1];
+     bolt.pierce=2;bolt.hitIds=new Set();bolt.charged=true;
+     this.createEffect('spark',p.x+aim.x*18,p.y+aim.y*18,'#ffcf93',.18,23);
+    }
+    if(kind==='hunter'&&charged){
     const arrow=this.projectiles[this.projectiles.length-1];
     arrow.pierce=hasRunPower(p,'trueshot')?4:3;arrow.hitIds=new Set();arrow.charged=true;
     this.createEffect('slash',p.x+aim.x*24,p.y+aim.y*24,'#d4f7a6',.28,70,Math.atan2(aim.y,aim.x));
@@ -479,7 +494,7 @@ export class Game {
   }
  }
  ability(){
-  const p=this.player,aim=p.direction;p.abilityCooldown=p.specialization==='arcanist'?5:7;p.castTimer=.36;this.playSound('ability');
+  const p=this.player,aim=p.direction;p.abilityCooldown=p.specialization==='cryomancer'?6.5:7;p.castTimer=.36;this.playSound('ability');
   if(p.kind==='mage'&&p.masteries?.includes('warding')){
    p.shield=Math.max(p.shield||0,13);
    this.createEffect('ring',p.x,p.y,'#a9c7ff',.45,40);
@@ -494,11 +509,16 @@ export class Game {
    }
   }else{
    const center={x:p.x+aim.x*165,y:p.y+aim.y*165};
-   this.createEffect('ring',center.x,center.y,'#d5a7ff',.65,133);
+   const spellColor=p.specialization==='pyromancer'?'#ff9259':p.specialization==='cryomancer'?'#90e6f5':'#d5a7ff';
+    this.createEffect('ring',center.x,center.y,spellColor,.65,133);
    this.createEffect('ember',center.x-27,center.y-13,'#e7abff',.38,24);
    this.createEffect('ember',center.x+39,center.y+17,'#f1ad77',.45,21);
    for(const e of [...this.enemies])if(e.hp>0&&distance(e,center)<133+e.radius)
-    this.hitEnemy(e,p.damage*2.8,aim,{magic:true});
+    {
+     this.hitEnemy(e,p.damage*(p.specialization==='pyromancer'?2.45:p.specialization==='cryomancer'?2.20:2.8),aim,{magic:true});
+     if(p.specialization==='pyromancer')e.burn=Math.max(e.burn||0,4.6);
+     if(p.specialization==='cryomancer')e.slow=Math.max(e.slow||0,3.3);
+    }
    if(hasRunPower(p,'arcaneBloom')){
     this.createEffect('ring',center.x,center.y,'#f1a9f6',.72,175);
     for(const e of [...this.enemies])if(e.hp>0&&distance(e,center)>115&&distance(e,center)<190+e.radius)
@@ -556,7 +576,16 @@ export class Game {
     color:style.core,radius:style.radius,life:style.duration,maxLife:style.duration});
    if(this.effects.length>110)this.effects.shift();
   }
-  if(proc&&e.hp>0){afterHit(this,e,d,critical,dir);afterTowerRelicHit(this,e,d);onBuildHit(this,e,{proc,magic:options.magic})}
+  if(proc&&e.hp>0&&p.kind==='mage'){
+    if(p.specialization==='pyromancer')e.burn=Math.max(e.burn||0,4);
+    if(p.specialization==='cryomancer')e.slow=Math.max(e.slow||0,2.4);
+    if(p.specialization==='standard'&&p.hitCount%3===0){
+     const chain=this.enemies.find(n=>n!==e&&n.hp>0&&distance(n,e)<175);
+     if(chain){this.createEffect('lightning',e.x,e.y,'#bf9af5',.24,60,Math.atan2(chain.y-e.y,chain.x-e.x));
+      this.hitEnemy(chain,Math.max(1,d*.38),dir,{proc:false,magic:true});}
+    }
+   }
+   if(proc&&e.hp>0){afterHit(this,e,d,critical,dir);afterTowerRelicHit(this,e,d);onBuildHit(this,e,{proc,magic:options.magic})}
   if(e.hp<=0)this.killEnemy(e);
  }
  killEnemy(e){
