@@ -27,7 +27,10 @@ const assert=require('node:assert/strict');
      {name:'event',title:'VERGESSENE BIBLIOTHEK',chapter:'DAS RÄTSEL DER DREI RUNEN',choice:true},
      {name:'shrine',title:'ALTER SCHREIN',chapter:'DREI WEGE · EINE ENTSCHEIDUNG',choice:true},
      {name:'stageclear',title:'ETAGE 8 GESCHAFFT!',chapter:'WEITERER AUFSTIEG',choice:true},
-     {name:'inventory',title:'AUSRÜSTUNG',chapter:'WAFFEN · RÜSTUNG · RELIKTE',choice:false}
+     {name:'inventory',title:'AUSRÜSTUNG',chapter:'WAFFEN · RÜSTUNG · RELIKTE',choice:false},
+     {name:'upgrade',title:'RELIKT',chapter:'WÄHLE DEINE MACHT',choice:true},
+     {name:'paused',title:'PAUSE',chapter:'ZURÜCK ZUM SPIEL',choice:true},
+     {name:'victory',title:'TURM BEZWUNGEN!',chapter:'DER EWIGE HERRSCHER IST BESIEGT',choice:true}
     ]){
      const result=await preview.evaluate(({scene})=>{
       const overlay=document.querySelector('#overlay'),panel=overlay.querySelector('.panel');
@@ -62,6 +65,30 @@ const assert=require('node:assert/strict');
     }
    }finally{await preview.close()}
   }
+  // Preserve open panels and viewport position across menu rerenders.
+  const specializationPanel=page.locator('.castle-advanced').first();
+  await specializationPanel.locator('summary').click();
+  assert.ok(await specializationPanel.evaluate(n=>n.open),'specializations must expand');
+  await page.locator('[data-action="specialization:standard"]').click();
+  assert.ok(await specializationPanel.evaluate(n=>n.open),
+   'class selection / specialization must not close the details panel');
+  await page.locator('[data-action="class:warrior"]').click();
+  assert.ok(await specializationPanel.evaluate(n=>n.open),
+   'switching a hero must preserve the open settings panel');
+  const openedPanel=await page.locator('.castle-advanced').first().evaluate(n=>n.open);
+  assert.ok(openedPanel);
+  const menuOverflow=await page.evaluate(()=>{
+   const panel=document.querySelector('#overlay .panel');
+   const overlay=document.querySelector('#overlay');
+   return {panel:panel.scrollWidth>panel.clientWidth+2,overlay:overlay.scrollWidth>overlay.clientWidth+2};
+  });
+  assert.deepEqual(menuOverflow,{panel:false,overlay:false},
+   'desktop menu must not overflow horizontally');
+  // Keyboard Enter on a focused menu button or summary may not start a run.
+  await page.locator('.castle-advanced').first().locator('summary').focus();
+  await page.keyboard.press('Enter');
+  assert.ok(await page.locator('[data-action="start"]').isVisible(),
+   'Enter on a focused summary must not launch gameplay');
   const towerRuntime=await page.evaluate(async()=>{
     const [{TOWER_RELICS},{generateDungeon}]=await Promise.all([
      import('./src/tower-relics.js'),import('./src/dungeon.js')]);
@@ -160,8 +187,18 @@ const assert=require('node:assert/strict');
   await page.waitForTimeout(250);
   await page.keyboard.press('Escape');
   assert.ok(await page.locator('#overlay').isVisible(),'pause should open overlay');
+  // Inputs pressed during a dialog must not create deferred attacks/dashes.
+  await page.keyboard.press('Space');
+  await page.keyboard.press('KeyQ');
   await page.locator('[data-action="resume"]').click();
   assert.ok(await page.locator('#overlay').isHidden());
+  await page.waitForTimeout(180);
+  assert.match(await page.locator('#dashLabel').textContent(),/DASH BEREIT/,
+   'dash queued during pause must be discarded');
+  await page.keyboard.press('KeyI');
+  assert.ok(await page.locator('.dialog-inventory').isVisible(),'I opens inventory');
+  await page.keyboard.press('Escape');
+  assert.ok(await page.locator('#overlay').isHidden(),'Escape closes inventory');
   await page.close();
   const mobile=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true,deviceScaleFactor:2});
   mobile.on('pageerror',e=>errors.push(e.message));
