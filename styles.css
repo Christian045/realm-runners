@@ -626,3 +626,34 @@ canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
  .stats-row{min-height:34px;font-size:11px}
  .stats-run>div{gap:5px}
 }
+
+
+/* New hero servant selection and contextual enemy effects (v0.21). */
+.castle-servants{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:9px 0 13px}
+.servant-card{min-height:61px;background:#122c35;color:#d7e4db;border:1px solid #789488;padding:9px 5px}
+.servant-card.selected{background:#284e4a;border:2px solid #b9e1ad;color:#f2f3db}
+.servant-card strong,.servant-card small{display:block;line-height:1.4}
+.servant-card strong{font-size:11px}.servant-card small{font-size:9px;margin-top:5px;color:#b9cec3}
+.status-hud{position:fixed;z-index:4;left:50%;transform:translateX(-50%);
+ top:max(83px,calc(env(safe-area-inset-top) + 75px));
+ display:flex;flex-wrap:wrap;gap:4px;justify-content:center;
+ width:min(480px,80vw);pointer-events:none}
+.status-hud span{background:#201722e8;border:1px solid #b77d77;
+ color:#ffdbb0;font-size:9px;letter-spacing:.04em;font-weight:800;
+ border-radius:5px;padding:5px 7px;white-space:nowrap}
+.status-hud span.poison{border-color:#9ac87d;color:#d2ffb1}
+.status-hud span.burn{border-color:#e99b6c;color:#ffe0ac}
+.status-hud span.slow{border-color:#8ebce1;color:#cae5ff}
+.status-hud span.mark{border-color:#d080cf;color:#ffd0ff;animation:status-pulse .65s alternate infinite}
+.status-hud span.rot{border-color:#899a62;color:#d1d9b2}
+@keyframes status-pulse{from{opacity:.68}to{opacity:1}}
+@media(max-width:700px){
+ .status-hud{top:max(135px,calc(env(safe-area-inset-top) + 125px));width:80vw}
+ .status-hud span{font-size:8px;padding:4px 6px}
+ .castle-servants{gap:4px}.servant-card{min-height:55px}
+ .servant-card strong{font-size:9px}.servant-card small{font-size:8px}
+ .castle-menu .class-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .castle-menu .class-card{min-height:85px}
+}
+@media(max-height:560px){.status-hud{top:62px}}
+@media(prefers-reduced-motion:reduce){.status-hud span.mark{animation:none}}
