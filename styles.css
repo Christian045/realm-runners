@@ -176,3 +176,71 @@ body:has(.boss-hud:not(.hidden)) .biome-label{display:none!important}
 .build-summary{font-size:11px;line-height:1.55;color:#c0dcdb;text-align:center;margin:12px auto}
 .equip-slot small{display:block;font-size:10px;color:#b8cfc6;line-height:1.35;margin-top:5px}
 @media(max-width:700px){.talent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.talent-branch{min-height:126px}.equip-grid{gap:5px}.equip-slot small{font-size:9px}}
+
+
+/* Alpha 0.19: Pixel-art castle hall main menu. All effects are CSS-only. */
+.overlay.castle-menu{background:#080d18;padding:clamp(12px,2.5vw,36px);isolation:isolate}
+.castle-menu .castle-backdrop{display:block;position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:
+ radial-gradient(ellipse at 50% 29%,#5b576080 0,transparent 45%),
+ repeating-linear-gradient(0deg,transparent 0 47px,#060b14b0 47px 51px),
+ repeating-linear-gradient(90deg,#1d2836 0 88px,#253342 88px 92px,#111f2e 92px 96px);
+}
+.castle-backdrop{display:none}
+.castle-menu .castle-vault{position:absolute;left:15%;right:15%;top:-19%;height:79%;border:clamp(16px,4vw,48px) solid #111e2c;border-bottom:0;border-radius:48% 48% 0 0;box-shadow:inset 0 0 0 8px #44505a,0 0 0 12px #080f1b}
+.castle-menu .castle-window{position:absolute;left:50%;top:6%;transform:translateX(-50%);width:min(25vw,230px);height:42%;border:12px solid #0b1827;border-radius:49% 49% 6px 6px;background:linear-gradient(180deg,#283f52,#758087 56%,#d4a56f 57%,#2b3947 66%,#101923 90%);box-shadow:0 0 0 7px #65717a,0 0 95px #c7936f48}
+.castle-menu .castle-window:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 46%,#142335 46% 53%,transparent 53%),linear-gradient(0deg,transparent 52%,#142335 52% 56%,transparent 56%)}
+.castle-menu .castle-column{position:absolute;top:0;bottom:0;width:clamp(55px,9vw,150px);background:repeating-linear-gradient(0deg,#182534 0 42px,#51606a 43px 47px,#101926 48px 53px);box-shadow:inset 13px 0 #53606a,inset -14px 0 #0b1421,0 0 30px #060b12}
+.castle-menu .castle-column-left{left:4%}.castle-menu .castle-column-right{right:4%}
+.castle-menu .castle-banner{position:absolute;top:14%;height:37%;width:clamp(36px,6vw,95px);background:linear-gradient(90deg,#351f35,#6e3d4b 28% 70%,#301a32);border:5px solid #b59564;border-bottom:0;clip-path:polygon(0 0,100% 0,100% 100%,50% 86%,0 100%)}
+.castle-menu .castle-banner-left{left:17%}.castle-menu .castle-banner-right{right:17%}
+.castle-menu .castle-torch{position:absolute;top:32%;width:17px;height:55px;background:#8b7a5c;border:5px solid #202a2c;box-shadow:0 0 35px 16px #ffb65b36}
+.castle-menu .castle-torch:before{content:"";position:absolute;left:-6px;top:-31px;width:21px;height:33px;background:#f3b05c;clip-path:polygon(49% 0,80% 35%,100% 70%,69% 100%,18% 100%,0 55%);filter:drop-shadow(0 0 12px #fbb76e);animation:castle-flame 1.4s ease-in-out infinite alternate}
+.castle-menu .castle-torch-left{left:25%}.castle-menu .castle-torch-right{right:25%;animation-delay:.4s}
+.castle-menu .castle-floor{position:absolute;bottom:-10%;height:38%;left:-20%;right:-20%;transform:perspective(400px) rotateX(48deg);transform-origin:bottom;background:repeating-linear-gradient(0deg,transparent 0 52px,#0d1520 53px 59px),repeating-linear-gradient(90deg,#2a3841 0 110px,#111b28 111px 119px)}
+.castle-menu .panel{position:relative;width:min(730px,100%);max-height:min(92dvh,1050px);background:linear-gradient(180deg,#0c1823ee,#0d1c28f2);border:2px solid #967b56;outline:5px solid #0a111bc7;box-shadow:0 28px 90px #000c,inset 0 0 0 3px #2f3940;padding:21px clamp(14px,3vw,30px) 26px;scrollbar-width:thin;scrollbar-color:#9f8967 #192632}
+.castle-menu .panel h1{font-size:clamp(37px,6vw,62px);margin:8px 0 6px;color:#f7e5b8}
+.castle-menu .panel h1 em{color:#e4b979}
+.castle-menu .chapter{margin-bottom:8px;border-color:#ae85535c}
+.castle-menu .eyebrow{font-size:10px}
+.castle-menu .panel>p{font-size:12px;margin:7px auto 11px}
+.castle-stage{margin:8px auto 12px;display:flex;align-items:center;flex-direction:column;gap:3px;position:relative;padding:9px 5px 11px;background:radial-gradient(ellipse at 50% 77%,#bb895232,transparent 61%)}
+.castle-stage-caption{font-size:10px;letter-spacing:2px;color:#e6cb9b;font-weight:800}
+.castle-hero{display:grid;place-items:center;width:100px;height:112px;background:radial-gradient(ellipse at 50% 85%,#e5aa5d44,transparent 60%);border-bottom:4px solid #a28258}
+.castle-hero canvas{width:87px;height:99px;image-rendering:pixelated;filter:drop-shadow(0 7px 9px #000)}
+.castle-hero-name{font-weight:900;color:#f4dda7;font-size:14px;letter-spacing:2px}
+.castle-hero-sub{font-size:11px;color:#b5c9c2}
+.castle-menu .class-grid{gap:7px}
+.castle-menu .class-card{background:#152531;border-color:#65717b;min-height:95px}
+.castle-menu .class-card.active{background:#343b3e;border:2px solid #e6c18b;box-shadow:0 0 18px #c39d5933}
+.castle-menu .class-preview{height:41px;width:36px;image-rendering:pixelated}
+.castle-mode-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.castle-menu .castle-mode-list .mode-toggle{margin:0;min-width:0;min-height:89px;background:#172835;border:1px solid #687e83;color:#f2dfb9;padding:10px 8px;font-size:11px;line-height:1.4;font-weight:900}
+.castle-menu .castle-mode-list .mode-toggle.selected{border:2px solid #ecc788;background:#36403f;box-shadow:inset 0 0 20px #cda05817}
+.castle-menu .castle-mode-list small{display:block;margin-top:5px;font-size:9px;font-weight:500;color:#b7c7c2;line-height:1.4;overflow-wrap:anywhere}
+.castle-menu .primary{margin:13px 0 8px;background:linear-gradient(#f3d8a0,#c69751);color:#241d1c;border:2px solid #f7e8bc;box-shadow:0 4px 0 #543c2b}
+.castle-advanced{margin:9px 0;background:#101e29;border:1px solid #566b6d;text-align:left;padding:0 9px}
+.castle-advanced summary{cursor:pointer;list-style:none;min-height:43px;display:flex;align-items:center;justify-content:space-between;font-size:11px;letter-spacing:1px;color:#e3d4af;font-weight:900}
+.castle-advanced summary:after{content:"+";font-size:19px;color:#e9c489;padding:0 4px}
+.castle-advanced[open] summary:after{content:"−"}
+.castle-advanced summary::-webkit-details-marker{display:none}
+.castle-menu .footnote{font-size:10px!important}
+@keyframes castle-flame{from{transform:translateY(0) scaleX(.88);opacity:.8}to{transform:translateY(-3px) scaleX(1.05);opacity:1}}
+@media(min-width:980px){.castle-menu .panel{width:min(790px,85vw)}}
+@media(max-width:700px){
+ .overlay.castle-menu{padding:max(12px,env(safe-area-inset-top)) 10px max(12px,env(safe-area-inset-bottom))}
+ .castle-menu .panel{max-height:calc(100dvh - 24px);padding:13px 11px 20px}
+ .castle-menu .panel h1{font-size:42px;letter-spacing:3px}
+ .castle-menu .eyebrow{font-size:8px;letter-spacing:1.4px}
+ .castle-menu .chapter{font-size:10px}
+ .castle-stage{padding:4px 5px 8px}
+ .castle-hero{width:81px;height:91px}.castle-hero canvas{width:70px;height:79px}
+ .castle-menu .class-card{min-height:77px;padding:5px 2px}.castle-menu .class-card small{font-size:8px}
+ .castle-menu .castle-mode-list{grid-template-columns:1fr;gap:5px}
+ .castle-menu .castle-mode-list .mode-toggle{min-height:56px;padding:8px 10px;text-align:left;font-size:11px}
+ .castle-menu .castle-mode-list small{margin-top:2px}
+ .castle-menu .castle-window{width:45%;height:30%}
+ .castle-menu .castle-column-left{left:0}.castle-menu .castle-column-right{right:0}
+ .castle-menu .castle-banner-left{left:12%}.castle-menu .castle-banner-right{right:12%}
+ .castle-menu .castle-torch-left{left:15%}.castle-menu .castle-torch-right{right:15%}
+}
+@media(prefers-reduced-motion:reduce){.castle-menu .castle-torch:before{animation:none}}
