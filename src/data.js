@@ -1,7 +1,7 @@
 export const CLASSES = Object.freeze({
-  warrior: { name: 'Krieger', subtitle: 'Nahkampf · widerstandsfähig', hp: 145, speed: 210, damage: 24, cooldown: .32, range: 76, color: '#83c8ff', ability: 'Wirbelsturm' },
-  hunter: { name: 'Jäger', subtitle: 'Fernkampf · schnell', hp: 105, speed: 245, damage: 15, cooldown: .24, range: 510, color: '#a8e18f', ability: 'Pfeilhagel' },
-  mage: { name: 'Magier', subtitle: 'Magie · Flächenschaden', hp: 90, speed: 225, damage: 22, cooldown: .48, range: 490, color: '#c4a1ff', ability: 'Arkanschlag' }
+  warrior: { name: 'Krieger', subtitle: 'Nahkampf · widerstandsfähig', hp: 100, speed: 210, damage: 24, cooldown: .32, range: 76, color: '#83c8ff', ability: 'Wirbelsturm' },
+  hunter: { name: 'Jäger', subtitle: 'Fernkampf · schnell', hp: 100, speed: 245, damage: 15, cooldown: .24, range: 510, color: '#a8e18f', ability: 'Pfeilhagel' },
+  mage: { name: 'Magier', subtitle: 'Magie · Flächenschaden', hp: 100, speed: 225, damage: 22, cooldown: .48, range: 490, color: '#c4a1ff', ability: 'Arkanschlag' }
 });
 export const UPGRADES = Object.freeze([
   { id:'power', name:'Geschärfte Klinge', description:'+12% Angriffsschaden (ab Stufe 4: +5%)', rarity:'common' },
