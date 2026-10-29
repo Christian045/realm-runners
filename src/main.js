@@ -5,6 +5,9 @@ import {Game} from './game.js';
 import {Renderer} from './render.js';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js';
 import {installTouchGuard} from './touch-guard.js';
+import {CHALLENGES,ACHIEVEMENTS,challengeUnlocked} from './motivation.js';
+import {AudioFeedback} from './audio.js';
+import {SPECIALIZATIONS,specializationUnlocked} from './specializations.js';
 
 const $=id=>document.getElementById(id);
 const canvas=$('gameCanvas');
@@ -12,6 +15,7 @@ installTouchGuard(canvas);
 const renderer=new Renderer(canvas),input=new Input(canvas);
 const progress=loadProgress();
 const game=new Game(progress,input,()=>refreshPanel());
+const audio=new AudioFeedback();game.sound=id=>audio.play(id);
 let selected=progress.selectedClass;
 const icons={warrior:'⚔',hunter:'➶',mage:'✦'};
 const label=key=>({vitality:'Lebenskraft',strength:'Waffenschmiede'})[key];
@@ -33,6 +37,23 @@ function refreshPanel(){
   title.innerHTML='REALM<br><em>RUNNERS</em>';chapter.textContent='DUNGEON REBORN';
   panel.innerHTML='<div class="section-label">WÄHLE DEINEN HELDEN</div><div class="class-grid">'+
    Object.entries(CLASSES).map(([id,c])=>'<button class="class-card '+(selected===id?'active':'')+'" data-action="class:'+id+'"><span class="class-icon">'+icons[id]+'</span><strong>'+c.name+'</strong><small>'+c.subtitle+'</small></button>').join('')+'</div>'+
+   '<div class="section-label">SPEZIALISIERUNG</div><div class="specialization-grid">'+
+   SPECIALIZATIONS[selected].map(spec=>{
+    const unlocked=specializationUnlocked(progress,spec.id);
+    return '<button class="specialization-card '+(game.specialization===spec.id?'active':'')+'" data-action="specialization:'+spec.id+'" '+
+     (!unlocked?'disabled':'')+'><strong>'+spec.name+(game.specialization===spec.id?' ✓':'')+'</strong>'+
+     '<small>'+(unlocked?spec.description:spec.unlock==='boss'?'Besiege einen Boss':'Spiele zwei Runs')+'</small></button>';
+   }).join('')+'</div>'+
+   '<div class="section-label">HERAUSFORDERUNG</div><div class="challenge-grid">'+
+   Object.entries(CHALLENGES).map(([id,m])=>{
+    const unlocked=challengeUnlocked(progress,id);
+    return '<button data-action="challenge:'+id+'" class="challenge-card '+(game.runMode===id?'active':'')+'" '+(!unlocked?'disabled':'')+'>'+
+     '<strong>'+m.name+(game.runMode===id?' ✓':'')+'</strong><small>'+(unlocked?m.description:m.unlock)+
+     ' · '+Math.round(m.multiplier*100)+'% Gold</small></button>';
+   }).join('')+'</div>'+
+   '<button data-action="endless" class="mode-toggle '+(game.endless?'selected':'')+'" '+(progress.bossKills<1?'disabled':'')+'>'+
+     (game.endless?'✓ ENDLOS-ABSTIEG AKTIV':'∞ ENDLOS-ABSTIEG')+
+     '<small>'+(progress.bossKills<1?'Besiege zuerst einen Boss':'Etagen werden schwieriger · deine Ausrüstung bleibt erhalten')+'</small></button>'+
    btn('start','DUNGEON BETRETEN','primary')+
    '<div class="section-label">PERMANENTE VERBESSERUNGEN · '+progress.gold+' ◆</div><div class="meta-row">'+
    ['vitality','strength'].map(k=>'<div class="meta-card"><strong>'+label(k)+' · '+progress.upgrades[k]+'/5</strong>'+upgradeDescription(k)+
@@ -44,7 +65,11 @@ function refreshPanel(){
      '<button data-action="talent:'+selected+':'+t.id+'" '+(level>=3||progress.gold<price?'disabled':'')+'>'+
      (level>=3?'MAXIMAL':'FREISCHALTEN · '+price+' ◆')+'</button></div>';
    }).join('')+'</div>'+
-   '<p class="footnote">WASD bewegen · Maus zielen · Linksklick/F angreifen · Leertaste/Shift ausweichen · Q Spezialfähigkeit · I Inventar<br>Auf dem Handy: Stick und Aktionsknöpfe. Alte Spielstände bleiben erhalten.</p>';
+   '<div class="section-label">ERFOLGE · '+ACHIEVEMENTS.filter(a=>progress.achievements?.[a.id]).length+'/'+ACHIEVEMENTS.length+'</div>'+
+   '<div class="achievement-list">'+ACHIEVEMENTS.map(a=>'<div class="achievement '+(progress.achievements?.[a.id]?'unlocked':'')+'">'+
+     '<span>'+(progress.achievements?.[a.id]?'★':'◇')+'</span><div><strong>'+a.name+'</strong><small>'+a.description+' · '+Math.min(a.target,progress[a.metric]||0)+'/'+a.target+' · +'+a.reward+' ◆</small></div></div>').join('')+'</div>'+
+   '<button class="sound-toggle" data-action="sound">'+(audio.enabled?'♪ TON AN':'♪ TON AUS')+'</button>'+
+   '<p class="footnote">WASD bewegen · Maus zielen · Linksklick/F angreifen · Leertaste/Shift ausweichen · Q Spezialfähigkeit · I Inventar<br>Handy: Stick und Aktionsknöpfe. Dein bisheriger Spielstand bleibt erhalten.</p>';
  }else if(game.mode==='upgrade'){
   title.textContent='RELIKT';chapter.textContent='WÄHLE DEINE MACHT';
   panel.innerHTML='<p>Die Kammer ist gesäubert. Wähle eine Verbesserung für diesen Durchgang.</p><div class="upgrade-grid">'+
@@ -57,6 +82,17 @@ function refreshPanel(){
    btn('shrine:power','SEGEN · +12 % SCHADEN FÜR DIESEN RUN','secondary')+
    btn('shrine:risk','OPFER · 20 LP FÜR SELTENE AUSRÜSTUNG','secondary',game.player.hp<=25?'disabled':'')+
    '</div>';
+ }else if(game.mode==='event'){
+  const kind=game.activeEvent?.eventKind;
+  title.textContent=kind==='forge'?'VERGESSENE SCHMIEDE':'VERFLUCHTER ALTAR';
+  chapter.textContent=kind==='forge'?'EINE GABE DES FEUERS':'WAGEN ODER WEITERZIEHEN';
+  panel.innerHTML=kind==='forge'
+   ?'<p>Ein alter Amboss glüht zwischen den Ruinen. Wähle eine Belohnung.</p>'+
+    btn('event:reforge','SCHMIEDEFUND · SELTENE AUSRÜSTUNG + 12 GOLD','primary')+
+    btn('event:repair','RUHEPAUSE · +32 LP','secondary')
+   :'<p>Der Altar fordert einen Elitekampf. Besiegst du die Gegner, winken zusätzliche Belohnungen.</p>'+
+    btn('event:challenge','PRÜFUNG ANNEHMEN · STÄRKERE GEGNER','primary')+
+    btn('event:leave','WEITERZIEHEN · +15 GOLD','secondary');
  }else if(game.mode==='inventory'){
   title.textContent='AUSRÜSTUNG';chapter.textContent='WAFFEN · RÜSTUNG · RELIKTE';
   const p=game.player;
@@ -78,9 +114,10 @@ function refreshPanel(){
   panel.innerHTML='<p>Der Dungeon wartet auf dich.</p>'+btn('resume','WEITERSPIELEN','primary')+btn('menu','ZUM HAUPTMENÜ');
  }else if(game.mode==='dead'||game.mode==='victory'){
   const won=game.mode==='victory';
-  title.textContent=won?'SIEG!':'GEFALLEN';chapter.textContent=won?'DER SCHLEIMKÖNIG IST BESIEGT':'EIN NEUER RUN WARTET';
+  title.textContent=won?'SIEG!':'GEFALLEN';chapter.textContent=won?'DER BOSS IST BESIEGT':'EIN NEUER RUN WARTET';
   panel.innerHTML='<p>'+(won?'Du hast das Herz des Dungeons bezwungen.':'Deine Reise endet hier. Gesammeltes Gold und dauerhafte Verbesserungen bleiben erhalten.')+'</p>'+
-   '<div class="summary"><div>KAMMERN<strong>'+game.clearCount+'</strong></div><div>GOLD<strong>+'+game.earnedGold+'</strong></div><div>ZEIT<strong>'+Math.floor(game.time/60)+':'+String(Math.floor(game.time%60)).padStart(2,'0')+'</strong></div></div>'+
+   '<div class="summary"><div>KAMMERN<strong>'+game.clearCount+'</strong></div><div>GOLD<strong>+'+game.earnedGold+'</strong></div><div>ETAGE<strong>'+game.floorDepth+'</strong></div></div>'+
+   (game.achievementsEarned?.length?'<p class="earned-achievements">NEUE ERFOLGE: '+game.achievementsEarned.map(a=>a.name+' (+'+a.reward+' ◆)').join(' · ')+'</p>':'')+
    btn('restart','NOCH EIN RUN','primary')+btn('menu','ZUM HAUPTMENÜ');
  }
 }
@@ -88,6 +125,11 @@ $('panelContent').addEventListener('click',e=>{
  const element=e.target.closest('button[data-action]');if(!element)return;
  const [action,value,extra]=element.dataset.action.split(':');
  if(action==='class'){selected=value;game.chooseClass(value)}
+ if(action==='challenge')game.setChallenge(value);
+ if(action==='specialization')game.selectSpecialization(value);
+ if(action==='endless')game.setEndless(!game.endless);
+ if(action==='sound'){audio.toggle();refreshPanel()}
+ if(action==='event')game.chooseEvent(value);
  if(action==='start'||action==='restart')game.start(selected);
  if(action==='buy')game.purchase(value);
  if(action==='talent')game.purchaseTalent(value,extra);
@@ -112,7 +154,7 @@ function updateHud(){
  const hud=game.getHud();if(!hud)return;
  $('hpText').textContent=hud.hp+' / '+hud.maxHp;
  $('hpFill').style.width=Math.max(0,hud.hp/hud.maxHp*100)+'%';
- $('roomText').textContent=hud.rooms+' / 9';
+ $('roomText').textContent='E'+hud.floor+' · '+hud.rooms+' / 8';
  $('coinText').innerHTML=hud.coins+' <span class="coin">◆</span>';
  $('biomeText').textContent={crypt:'GRUFT',fungal:'PILZGROTTE',flooded:'ÜBERFLUTETE HALLEN'}[hud.biome]||'DUNGEON';
  $('inventoryBtn').textContent='RUCKSACK ('+hud.inventory+')';
