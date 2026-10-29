@@ -103,6 +103,7 @@ function refreshPanel(){
  $('pauseBtn').classList.toggle('hidden',!playing);
  $('inventoryBtn').classList.toggle('hidden',!playing);
  $('abilityHud').classList.toggle('hidden',!playing);
+ $('statusHud').classList.toggle('hidden',!playing);
  $('bossHud').classList.toggle('hidden',!playing||!game.getActiveBoss());
  $('mobileControls').style.display=playing?'':'none';
  if(playing)return;
@@ -364,6 +365,12 @@ function updateHud(){
  ability.textContent=hud.ability>0?'Q · '+hud.ability.toFixed(1)+'s':'Q · '+abilityName;
  ability.title=abilityName;
  ability.classList.toggle('ready',hud.ability<=0);
+ const states=game.player?.statuses||{};
+ const statusLabels={poison:'GIFT',burn:'FEUER',stun:'BETÄUBT',slow:'LANGSAM',rot:'FÄULNIS',mark:'TODESMARKE'};
+ const statuses=Object.entries(statusLabels).filter(([key])=>states[key]>0)
+  .map(([key,label])=>'<span class="'+key+'">'+label+' · '+states[key].toFixed(1)+'s</span>').join('');
+ $('statusHud').innerHTML=statuses;
+ $('statusHud').classList.toggle('hidden',!statuses||game.mode!=='playing');
  const boss=hud.boss;
  $('bossHud').classList.toggle('hidden',!boss||game.mode!=='playing');
  if(boss){
