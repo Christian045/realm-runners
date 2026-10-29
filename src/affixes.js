@@ -1,4 +1,4 @@
-import {distance,normalized} from './data.js';
+import {distance,normalized} from './data.js?v=0.21.0';
 
 // Passive powers are exclusive to the equipped item in each slot.
 // Proc damage always bypasses secondary procs to prevent infinite effect loops.
