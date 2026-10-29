@@ -1,4 +1,16 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.14.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.15.0)
+
+## Alpha 0.15 – Gegnervielfalt, Charakterdesigns, Bossmechaniken und taktische Räume
+
+- **Vier eigene Gegnerrollen:** Schattenläufer (angekündigter Dash), Knochenjäger (gerichtete Doppelsalve), Runenwirker (verzögerte Flächenrunen), Schildwache (Frontalblock und angekündigter Schildstoß). Alle Angriffe können ausgewichen werden, die Sonderfähigkeiten prüfen die Sichtlinie und verwenden vorhandene Kollisionsregeln.
+- **Normaler Dungeon und Turm:** Die neuen Gegner erscheinen in unterschiedlichen Biom- und Turmaufstellungen. Jeder Kampfraum bekommt eine Taktikausrichtung (Hinterhalt, Fernkampf, Runen, Bastion oder gemischt), die die Gegnerzusammenstellung und den Raumnamen beeinflusst.
+- **Neue echte Pixel-Sprites:** Die vier Gegner haben jeweils selbst gestaltete Silhouetten, Waffen, Haltungen und Attack-/Castframes. Auch alle drei Helden haben deutlichere Ausrüstungsdetails (Krieger mit schwerer Rüstung/Helm, Jäger mit Bogen und Kapuze, Magier mit Stab/Runen). Zusätzlich besitzen die neun Turmbosse jetzt individuellere Kopfbedeckungen und Schmuckformen.
+- **Bossmechaniken:** Schleimkönig bekommt „Bodenspalten“ in Phase II, Runenwächter „Kristallbarriere“ in Phase II, Turmbosse ab Phase II „Zangenangriff“. Die markierten Schadenszonen sind verzögert und bieten sichere Ausweichwege. Nach bestimmten Bossattacken wird ein kurzes, grün sichtbares Verwundbarkeitsfenster aktiv, in dem der verursachte Schaden etwas ansteigt (weiterhin durch die Boss-Schadensobergrenze begrenzt).
+- **Taktisch unterschiedliche Raumformen:** Vier zusätzliche Layouts (Bastion, Switchback, Trident, Sanctum) und zwei weitere Bodenformen (Sanduhr, Terrasse). Die Raumetiketten und dezenten Bodenornamente geben einen Hinweis auf die Begegnung. Türen, Navigation und zentrale Kampfkorridore bleiben erhalten.
+- **Kompatibilität:** Turmmodus bleibt bei exakt zehn Etagen und sieben Räumen pro Etage. Normale Dungeons behalten 13 Räume. iPhone-Touch, gespeicherte Charakterfortschritte und v0.14-Licht-/Impact-Look bleiben erhalten. Versionierte Browsermodule verhindern veraltete Engine-Dateien.
+- **Tests:** Neue Tests für gegnerspezifische Ankündigungen, verzögerte Treffer, Schildblock, Sprite-Frames, deterministische Raumlayouts und Erreichbarkeit sowie die neuen Bossmuster plus vorhandene Chromium-/WebKit-Smokes.
+
+
 
 ## Alpha 0.14 – Dungeon Lighting & Combat Impact
 

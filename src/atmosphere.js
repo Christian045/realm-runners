@@ -1,7 +1,7 @@
 import { TILE, clamp, distance } from './data.js';
 import { ROOM_W, ROOM_H } from './dungeon.js';
-import {drawWardenWarnings} from './warden.js';
-import {drawTowerBossWarnings} from './tower-boss.js';
+import {drawWardenWarnings} from './warden.js?v=0.15.0';
+import {drawTowerBossWarnings} from './tower-boss.js?v=0.15.0';
 import {drawTowerEnvironment} from './tower-visuals.js';
 
 const THEMES={
@@ -207,6 +207,26 @@ export function drawDungeonAtmosphere(ctx,game){
   if(room.theme==='reliquary')for(const dx of [-175,175])drawChest(ctx,cx+dx,cy-95,room.cleared);
   // The v0.14 wall lanterns are rendered by visual-world.js, anchored
   // to blocked masonry tiles. Do not paint an unrelated second set here.
+  // A room's floor glyph hints at the tactics inside without obscuring
+  // hazards. Decorative ink stays at room edges, not the dodge corridor.
+  if(room.type==='combat'){
+   const tone=room.encounterStyle==='ambush'?'#d98ba3':
+    room.encounterStyle==='ranged'?'#b3d49f':
+    room.encounterStyle==='arcane'?'#c1a6e7':
+    room.encounterStyle==='fortified'?'#9fc3d6':'#c5b59b';
+   ctx.save();ctx.globalAlpha=.31;ctx.strokeStyle=tone;ctx.lineWidth=3;
+   const span=room.encounterStyle==='ranged'?172:room.encounterStyle==='fortified'?130:92;
+   for(const sign of [-1,1]){
+    const y=cy+sign*155;
+    ctx.beginPath();ctx.moveTo(cx-span,y);ctx.lineTo(cx+span,y);ctx.stroke();
+    for(const offset of [-span,span])rect(ctx,tone,cx+offset-4,y-4,8,8);
+   }
+   if(room.encounterStyle==='arcane'){
+    ctx.beginPath();ctx.arc(cx-187,cy,29,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(cx+187,cy,29,0,Math.PI*2);ctx.stroke();
+   }
+   ctx.restore();
+  }
   ctx.font='bold 13px monospace';ctx.textAlign='center';
   ctx.fillStyle=th.accent+'8c';ctx.fillText(th.name,cx,top+TILE*1.8);
  }
@@ -235,6 +255,12 @@ export function drawBossWarnings(ctx,game){
  if(boss.boss?.variant==='warden'){drawWardenWarnings(ctx,game,boss);return}
  if(['tower','sovereign'].includes(boss.boss?.variant)){drawTowerBossWarnings(ctx,game,boss);return}
  const state=boss.boss;
+ if(state.exposed>0){
+  ctx.save();ctx.globalAlpha=Math.min(.7,state.exposed)*.55;
+  ctx.strokeStyle='#a6edc6';ctx.lineWidth=5;
+  ctx.beginPath();ctx.arc(boss.x,boss.y,boss.radius+20,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+ }
  if(state.transition>0){
   ctx.save();ctx.globalAlpha=.2+.15*Math.sin(game.time*18);
   circle(ctx,boss.x,boss.y,85+(1.65-state.transition)*45,'#ffc3d1',10);
@@ -250,6 +276,12 @@ export function drawBossWarnings(ctx,game){
   ctx.fillStyle='#fa5266';ctx.beginPath();ctx.arc(t.target.x,t.target.y,t.radius,0,Math.PI*2);ctx.fill();
   ctx.globalAlpha=1;circle(ctx,t.target.x,t.target.y,t.radius,'#ffd3c4',3);
   circle(ctx,t.target.x,t.target.y,Math.max(5,t.radius*fraction),'#ff748b',4);
+ }else if(t.type==='fracture'){
+  ctx.globalAlpha=.26+(1-fraction)*.22;
+  ctx.fillStyle='#f07aa2';ctx.strokeStyle='#ffd2db';
+  for(const dx of [-115,115]){
+   ctx.beginPath();ctx.arc(t.target.x+dx,t.target.y,56,0,Math.PI*2);ctx.fill();ctx.stroke();
+  }
  }else if(t.type==='charge'){
   const length=480;
   ctx.translate(t.x,t.y);ctx.rotate(Math.atan2(t.dir.y,t.dir.x));
