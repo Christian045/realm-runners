@@ -1,4 +1,14 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.19.1)
+# Realm Runners – Dungeon Reborn (Alpha 0.19.2)
+
+## Alpha 0.19.2 – Inventar-Layout ohne doppeltes Scrollen
+
+- Das Inventar nutzt bei normaler Desktop- und iPhone-Höhe einen festen, auf den Bildschirm begrenzten Dialog mit flexibler Gegenstandsliste. Nur die Liste scrollt, während Ausrüstungsplätze, Sets und Zurück-Button sichtbar bleiben.
+- Lange Itemnamen dürfen umbrechen, erzeugen aber keinen horizontalen Scrollbalken.
+- Auf besonders niedrigen Displays wechselt das Inventar auf **einen** vertikalen Scrollbereich für das ganze Fenster, statt zwei Scrollbereiche zu verschachteln.
+- Der Dialog-Fix von v0.19.1 bleibt aktiv: kurze Titel, kein Burghallen-Intro innerhalb des Inventars.
+- Zusätzliche Chromium- und Mobile-Regressionen mit 18 simulierten Inventargegenständen.
+
+
 
 ## Alpha 0.19.1 – Dialog- und Desktop-Layout korrigiert
 
