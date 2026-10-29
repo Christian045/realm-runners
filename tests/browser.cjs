@@ -133,6 +133,22 @@ const assert=require('node:assert/strict');
   await page.locator('#inventoryBtn').click();
   assert.ok(await page.locator('#overlay').isVisible(),'inventory overlay must be usable');
   assert.ok(await page.locator('[data-action="closeInventory"]').isVisible());
+  // 18 items must scroll inside the loot list, not in a second outer scrollbar.
+  const inventoryLayout=await page.evaluate(()=>{
+   const list=document.querySelector('.inventory-list');
+   for(let i=0;i<18;i++){
+    const item=document.createElement('button');item.className='inventory-item';
+    item.textContent='Gefundene Ausrüstung '+i+' · Rüstung / Relikt / Bonus';
+    list.appendChild(item);
+   }
+   const panel=document.querySelector('#overlay .panel'),overlay=document.querySelector('#overlay');
+   return {outerScroll:panel.scrollHeight>panel.clientHeight+2,
+    innerScroll:list.scrollHeight>list.clientHeight+2,
+    horizontal:panel.scrollWidth>panel.clientWidth+2||overlay.scrollWidth>overlay.clientWidth+2,
+    headingOverflow:panel.querySelector('h1').scrollWidth>panel.querySelector('h1').clientWidth+2};
+  });
+  assert.deepEqual(inventoryLayout,{outerScroll:false,innerScroll:true,horizontal:false,headingOverflow:false},
+   'inventory must have one internal scroll area: '+JSON.stringify(inventoryLayout));
   await page.locator('[data-action="closeInventory"]').click();
   assert.ok(await page.locator('#overlay').isHidden());
   const pixels=await page.locator('#gameCanvas').evaluate(canvas=>{
@@ -160,6 +176,20 @@ const assert=require('node:assert/strict');
   assert.match(await mobile.locator('#roomText').textContent(),/TURM 1\/10/);
   await mobile.locator('#inventoryBtn').tap();
   assert.ok(await mobile.locator('[data-action="closeInventory"]').isVisible());
+  const mobileInventoryLayout=await mobile.evaluate(()=>{
+   const list=document.querySelector('.inventory-list');
+   for(let i=0;i<18;i++){
+    const item=document.createElement('button');item.className='inventory-item';
+    item.textContent='Ausrüstung '+i+' · Lebenspunkte, Schaden und Bonus';
+    list.appendChild(item);
+   }
+   const panel=document.querySelector('#overlay .panel');
+   return {outerScroll:panel.scrollHeight>panel.clientHeight+2,
+    innerScroll:list.scrollHeight>list.clientHeight+2,
+    horizontal:panel.scrollWidth>panel.clientWidth+2};
+  });
+  assert.deepEqual(mobileInventoryLayout,{outerScroll:false,innerScroll:true,horizontal:false},
+   'mobile bag should scroll items only: '+JSON.stringify(mobileInventoryLayout));
   await mobile.locator('[data-action="closeInventory"]').tap();
   await mobile.locator('#attackTouch').tap();
   await mobile.locator('#dashTouch').tap();
