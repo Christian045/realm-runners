@@ -36,7 +36,7 @@ function refreshPanel(){
  if(game.mode==='menu'){
   title.innerHTML='REALM<br><em>RUNNERS</em>';chapter.textContent='DUNGEON REBORN';
   panel.innerHTML='<div class="section-label">WÄHLE DEINEN HELDEN</div><div class="class-grid">'+
-   Object.entries(CLASSES).map(([id,c])=>'<button class="class-card '+(selected===id?'active':'')+'" data-action="class:'+id+'"><span class="class-icon">'+icons[id]+'</span><strong>'+c.name+'</strong><small>'+c.subtitle+'</small></button>').join('')+'</div>'+
+   Object.entries(CLASSES).map(([id,c])=>'<button class="class-card '+(selected===id?'active':'')+'" data-action="class:'+id+'"><canvas class="class-preview" data-hero="'+id+'" width="32" height="36" aria-hidden="true"></canvas><strong>'+c.name+'</strong><small>'+c.subtitle+'</small></button>').join('')+'</div>'+
    '<div class="section-label">SPEZIALISIERUNG</div><div class="specialization-grid">'+
    SPECIALIZATIONS[selected].map(spec=>{
     const unlocked=specializationUnlocked(progress,spec.id);
@@ -119,6 +119,14 @@ function refreshPanel(){
    '<div class="summary"><div>KAMMERN<strong>'+game.clearCount+'</strong></div><div>GOLD<strong>+'+game.earnedGold+'</strong></div><div>ETAGE<strong>'+game.floorDepth+'</strong></div></div>'+
    (game.achievementsEarned?.length?'<p class="earned-achievements">NEUE ERFOLGE: '+game.achievementsEarned.map(a=>a.name+' (+'+a.reward+' ◆)').join(' · ')+'</p>':'')+
    btn('restart','NOCH EIN RUN','primary')+btn('menu','ZUM HAUPTMENÜ');
+ }
+ if(game.mode==='menu'){
+  for(const preview of panel.querySelectorAll('canvas[data-hero]')){
+   const frame=renderer.sprites.frame(preview.dataset.hero,'idle',0,'down');
+   if(!frame)continue;
+   const paint=preview.getContext('2d');if(!paint)continue;
+   paint.imageSmoothingEnabled=false;paint.clearRect(0,0,32,36);paint.drawImage(frame,0,0);
+  }
  }
 }
 $('panelContent').addEventListener('click',e=>{

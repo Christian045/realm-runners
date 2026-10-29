@@ -88,6 +88,7 @@ export class Game {
    reach:base.range,crit:0,leech:0,guard:0,dashTimer:0,dashCooldown:0,
    dashVector:{x:1,y:0},invulnerable:0,abilityCooldown:0,attackCooldown:0,
    direction:{x:1,y:0},upgradeIds:[],hitCount:0,inventory:[],
+   moving:false,attackTimer:0,castTimer:0,hurtTimer:0,walkCycle:0,
    equipment:{weapon:null,armor:null,charm:null}};
   applyTalents(this.player,this.progress);
   applySpecialization(this.player,specializationUnlocked(this.progress,this.specialization)?this.specialization:'standard');
@@ -99,6 +100,7 @@ export class Game {
   this.notify();
  }
  move(entity,dx,dy,r=entity.radius){
+  if(entity!==this.player&&Math.hypot(dx,dy)>.01){entity.moving=true;entity.moveX=dx;entity.moveY=dy}
   const seal=this.enemies.some(e=>e.hp>0);
   if(this.dungeon.canMove(entity.x+dx,entity.y,r,seal))entity.x+=dx;
   if(this.dungeon.canMove(entity.x,entity.y+dy,r,seal))entity.y+=dy;
@@ -178,6 +180,10 @@ export class Game {
   const p=this.player,move=this.input.movement(),aim=this.input.aiming(p,camera);
   if(Number.isFinite(aim.x)&&Number.isFinite(aim.y))p.direction=aim;
   p.walkCycle=(p.walkCycle||0)+Math.hypot(move.x,move.y)*dt*14;
+  p.moving=Math.hypot(move.x,move.y)>.12;
+  p.attackTimer=Math.max(0,(p.attackTimer||0)-dt);
+  p.castTimer=Math.max(0,(p.castTimer||0)-dt);
+  p.hurtTimer=Math.max(0,(p.hurtTimer||0)-dt);
   p.dashCooldown=Math.max(0,p.dashCooldown-dt);
   p.abilityCooldown=Math.max(0,p.abilityCooldown-dt);
   p.attackCooldown=Math.max(0,p.attackCooldown-dt);
@@ -234,7 +240,7 @@ export class Game {
  }
  attack(){
   const p=this.player;const kind=p.kind,aim=p.direction;
-  p.attackCooldown=p.attackDelay;this.attackSequence++;this.playSound(p.kind==='warrior'?'slash':'shoot');
+  p.attackCooldown=p.attackDelay;p.attackTimer=.18;this.attackSequence++;this.playSound(p.kind==='warrior'?'slash':'shoot');
   if(kind==='warrior'){
    const reach=p.reach;this.createEffect('slash',p.x,p.y,'#e6f6ff',.22,reach,Math.atan2(aim.y,aim.x));
    for(const e of this.enemies){
@@ -252,7 +258,7 @@ export class Game {
   }
  }
  ability(){
-  const p=this.player,aim=p.direction;p.abilityCooldown=p.specialization==='arcanist'?5:7;this.playSound('ability');
+  const p=this.player,aim=p.direction;p.abilityCooldown=p.specialization==='arcanist'?5:7;p.castTimer=.36;this.playSound('ability');
   if(p.kind==='warrior'){
    this.createEffect('ring',p.x,p.y,'#b6e5ff',.55,144);
    for(const e of this.enemies)if(e.hp>0&&distance(e,p)<145+e.radius)this.hitEnemy(e,p.damage*1.9,normalized(e.x-p.x,e.y-p.y));
@@ -284,7 +290,7 @@ export class Game {
   if(e.type==='boss'&&e.boss.phase===1&&e.hp-d<=threshold){
    e.hp=threshold;startPhaseTwo(this,e);
   }else e.hp=Math.max(0,e.hp-d);
-  e.flash=.17;
+  e.flash=.17;e.hurtTimer=.18;
   e.knock={x:dir.x*(e.type==='boss'?30:critical?230:170),y:dir.y*(e.type==='boss'?30:critical?230:170)};
   if(proc&&p.leech>0)p.hp=Math.min(p.maxHp,p.hp+d*p.leech);
   if(proc){
@@ -316,6 +322,9 @@ export class Game {
    this.createEffect('ring',e.x,e.y,'#efaa75',.85,85);
   }
   onKill(this,e);
+  this.effects.push({type:'death',kind:e.type==='boss'?(e.boss?.variant==='warden'?'warden':'slimeking'):e.type,
+   x:e.x,y:e.y,radius:e.radius,elite:e.elite,phaseTwo:e.boss?.phase===2,
+   color:'#d9e5e9',life:.4,maxLife:.4});
   this.createEffect('burst',e.x,e.y,e.elite?'#ffca8c':'#b6f2bf',.56,40);
   this.playSound(e.type==='boss'?'bossDown':'enemyDown');
  }
@@ -327,7 +336,7 @@ export class Game {
   p.shield=Math.max(0,(p.shield||0)-blocked);
   const actual=reduced-blocked;
   p.hp=Math.max(0,p.hp-actual);
-  p.invulnerable=.78;
+  p.invulnerable=.78;p.hurtTimer=.34;
   this.shake=Math.max(this.shake,actual?11:4);
   this.hitstop=Math.max(this.hitstop,actual?.07:.04);
   this.createEffect('text',p.x,p.y-32,actual?'-'+actual:'BLOCK','#ff9a91',.75);
@@ -352,6 +361,9 @@ export class Game {
   const p=this.player;
   for(const e of this.enemies){
    if(e.hp<=0)continue;
+   e.moving=false;e.attackTimer=Math.max(0,(e.attackTimer||0)-dt);
+   e.castTimer=Math.max(0,(e.castTimer||0)-dt);
+   e.hurtTimer=Math.max(0,(e.hurtTimer||0)-dt);
    statusTick(this,e,dt);if(e.hp<=0)continue;
    if(e.type==='boss'&&e.boss){updateBoss(this,e,dt);if(this.mode!=='playing')return;continue}
    e.elapsed+=dt;e.flash=Math.max(0,e.flash-dt);e.cooldown-=dt;
@@ -370,6 +382,7 @@ export class Game {
    const dx=p.x-e.x,dy=p.y-e.y,dist=Math.hypot(dx,dy)||1;
    const dir={x:dx/dist,y:dy/dist};
    if(e.windup>0){
+    e.castTimer=Math.max(e.castTimer,.18);
     e.windup-=dt;
     if(e.windup<=0){
      if(e.type==='boss'){
@@ -378,7 +391,7 @@ export class Game {
        this.spawnProjectile(e.x,e.y,{x:Math.cos(a),y:Math.sin(a)},e.damage,false,true);
       }
       this.createEffect('ring',e.x,e.y,'#ff789e',.55,95);
-     }else if(e.type==='archer')this.spawnProjectile(e.x,e.y,dir,e.damage,false,true);
+     }else if(e.type==='archer'){this.spawnProjectile(e.x,e.y,dir,e.damage,false,true);e.attackTimer=.24;}
      e.cooldown=e.type==='boss'?2.3:1.75;
     }
    }else{

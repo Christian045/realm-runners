@@ -1,4 +1,4 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.8.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.9.0)
 
 **Top-down-Roguelite / Hack-and-Slash** auf Basis der bisherigen JavaScript-/HTML5-Canvas-Technik.
 Das bisherige Jump-and-Run wurde technisch und spielerisch neu aufgebaut. Der alte Stand bleibt im `main`-Branch bis zum Merge der Umstellung erhalten.
@@ -12,6 +12,14 @@ python3 -m http.server 8000
 ```
 
 Danach **http://localhost:8000** im Browser öffnen. Kein Build erforderlich.
+
+## Alpha 0.9.0 – Pixel-Art & Animationssystem
+
+- **Eigenes Sprite-Atlas-System:** In `src/sprites.js` liegen handgezeichnete Pixelmuster für Krieger, Jäger, Magier, Schleim, Pilz, Bogenschütze, Goblin und beide Bosse. Alle Frames werden browserintern in transparenten, winzigen Canvas-Atlanten gerendert und wiederverwendet. Keine externen oder lizenzpflichtigen Assets.
+- **Animationen:** Idle, Laufen, Angriff, Zauber, Dash, Treffer und Tod. Animationszustände hängen an der Spielmechanik statt an rein zufälligen Effekten. Bildschirmrichtung und Pixelmaßstab werden berücksichtigt; Besiegte zeigen ein kurzes Verblassen statt sofort zu verschwinden.
+- **Kachel-Atlas:** `src/tileset.js` erzeugt 24×24-Pixel-Bausteine, scharf auf die 48×48-Weltkacheln hochskaliert. Sechs Farbthemen mit acht deterministischen Variationen, echten Mauerfugen, Bodenkacheln, Pilz-/Moosdetails, Wasserpfützen und Säulen.
+- **Performance / Touch:** Bereits gebaute Sprites und Tiles werden gecacht. Kollision, Kamera, iPhone-Touch-Gesten, Hitboxen, Speicherdaten und die Kampfmechanik bleiben unverändert. Falls ein Browser keine Atlas-Textur erstellen kann, bleibt ein einfacher Grafik-Fallback.
+- **Tests:** Eigene Node-Tests für Pixel-Atlas, State-Priorität, Blickrichtungen, alle Biome, Cache-Nutzung und Trefferanimationen plus bestehende Browser-/WebKit-Tests.
 
 ## Update Alpha 0.6–0.8 – Combat-Polish, Raumvielfalt und Endgame
 
