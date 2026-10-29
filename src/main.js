@@ -2,7 +2,7 @@ import {CLASSES} from './data.js?v=0.15.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.16.0';
 import {Input} from './input.js';
 import {Game} from './game.js?v=0.17.0';
-import {Renderer} from './render.js?v=0.17.0';
+import {Renderer} from './render.js?v=0.17.1';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.16.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.16.0';
 import {installTouchGuard} from './touch-guard.js';
