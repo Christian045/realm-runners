@@ -5,7 +5,10 @@ const SOUNDS={
  hit:[190,110,.065,'triangle'],crit:[680,150,.12,'sawtooth'],hurt:[190,95,.16,'sawtooth'],
  block:[590,450,.1,'sine'],dash:[350,690,.08,'triangle'],ability:[380,800,.21,'sine'],
  loot:[650,1030,.15,'sine'],event:[440,700,.23,'sine'],enemyDown:[240,90,.12,'triangle'],
- bossDown:[480,70,.38,'sawtooth']
+ bossDown:[480,70,.38,'sawtooth'],
+ portal:[290,690,.55,'sine'],shop:[540,820,.24,'triangle'],
+ drip:[690,280,.18,'sine'],wind:[110,65,.65,'triangle'],
+ cavern:[180,95,.48,'sine'],danger:[620,170,.30,'sawtooth']
 };
 export class AudioFeedback {
  constructor(){this.enabled=true;this.context=null;this.last=new Map()}
@@ -26,7 +29,7 @@ export class AudioFeedback {
    osc.type=type;osc.frequency.setValueAtTime(from,now);
    osc.frequency.exponentialRampToValueAtTime(Math.max(20,to),now+duration);
    gain.gain.setValueAtTime(.0001,now);
-   gain.gain.exponentialRampToValueAtTime(.045,now+.008);
+   gain.gain.exponentialRampToValueAtTime(['drip','wind','cavern'].includes(id)?.015:.045,now+.008);
    gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
    osc.connect(gain).connect(this.context.destination);
    osc.start(now);osc.stop(now+duration+.01);
