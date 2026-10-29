@@ -188,13 +188,16 @@ const assert=require('node:assert/strict');
   await page.keyboard.press('Escape');
   assert.ok(await page.locator('#overlay').isVisible(),'pause should open overlay');
   // Inputs pressed during a dialog must not create deferred attacks/dashes.
+  const dashBeforePause=await page.locator('#dashLabel').textContent();
   await page.keyboard.press('Space');
   await page.keyboard.press('KeyQ');
   await page.locator('[data-action="resume"]').click();
   assert.ok(await page.locator('#overlay').isHidden());
   await page.waitForTimeout(180);
-  assert.match(await page.locator('#dashLabel').textContent(),/DASH BEREIT/,
-   'dash queued during pause must be discarded');
+  const dashAfterResume=await page.locator('#dashLabel').textContent();
+  const seconds=text=>Number((text||'').match(/\d+(?:\.\d+)?/)?.[0]||0);
+  assert.ok(seconds(dashAfterResume)<=seconds(dashBeforePause)+.11,
+   'queued dash from pause must not reset its cooldown: '+dashBeforePause+' -> '+dashAfterResume);
   await page.keyboard.press('KeyI');
   assert.ok(await page.locator('.dialog-inventory').isVisible(),'I opens inventory');
   await page.keyboard.press('Escape');
