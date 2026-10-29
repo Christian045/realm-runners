@@ -22,7 +22,7 @@ const mob=(g,type,d=135)=>{
   cooldown:0,windup:0,guardTime:0,specialCooldown:0,spawnIndex:0,homeRoom:0};
 };
 test('four new roles have distinct stats and readable roles',()=>{
- assert.deepEqual(Object.keys(ENCOUNTER_ROLES),['assassin','scout','hexer','bulwark']);
+ assert.deepEqual(Object.keys(ENCOUNTER_ROLES),['assassin','scout','hexer','bulwark','burrower','chanter']);
  for(const type of Object.keys(ENCOUNTER_ROLES)){
   assert.ok(ENEMY_DATA[type].hp>0);
   assert.ok(ENEMY_DATA[type].damage>0);
