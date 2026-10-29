@@ -669,8 +669,10 @@ export class Game {
  killEnemy(e){
   if(e.deadHandled)return;
   e.deadHandled=true;e.hp=0;
-  recordEnemyKill(this.progress.statistics,this.runStatistics,e.type,
-   e.type==='boss'?(e.boss?.name||'Schleimkönig'):undefined);
+  // Track the actual boss variant, not every non-tower boss as "Schleimkönig".
+  const bossName=e.type!=='boss'?undefined:e.boss?.name||
+   (e.boss?.variant==='warden'?'DER RUNENWÄCHTER':'DER SCHLEIMKÖNIG');
+  recordEnemyKill(this.progress.statistics,this.runStatistics,e.type,bossName);
   if(e.type==='boss'){
    this.dropGear(e.x+38,e.y+18,true,true);
    for(const add of this.enemies)if(add!==e&&add.homeRoom===e.homeRoom)add.hp=0;
@@ -754,7 +756,8 @@ export class Game {
   this.createEffect('ring',p.x,p.y,'#ffb6aa',.26,34);
   if(actual>0){onHurt(this,actual);onBuildHurt(this,actual);}
   this.playSound(actual?'hurt':'block');
-  if(p.hp<=0&&!towerRelicSave(this))this.finish(false);
+  // No-hit is absolute: a resurrection relic cannot undo an actual hit.
+  if(p.hp<=0&&(this.runMode==='nohit'||!towerRelicSave(this)))this.finish(false);
  }
  updateHazards(dt){
   for(const h of this.hazards){
