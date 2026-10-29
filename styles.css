@@ -22,7 +22,7 @@ canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
 .mini-button{pointer-events:auto;border:1px solid #a8bf9b77;color:#eff4d5;background:#173137de;width:38px;height:38px;border-radius:6px;font-size:20px;font-weight:700}
 .ability-hud{position:fixed;z-index:4;bottom:max(18px,env(safe-area-inset-bottom));left:max(19px,env(safe-area-inset-left));display:flex;gap:10px;pointer-events:none}
 .ability-hud span{padding:8px 13px;background:#0b252ae8;border:1px solid #86a89077;border-radius:5px;box-shadow:0 4px 12px #0003;font-size:10px;letter-spacing:1px;font-weight:750}
-#classTag{color:#efd18f}#dashLabel{color:#a8e5dc}#abilityLabel{color:#d6b5ff}
+#dashLabel{color:#a8e5dc}#abilityLabel{color:#d6b5ff}
 .overlay{position:fixed;z-index:6;inset:0;display:flex;align-items:center;justify-content:center;overflow:auto;touch-action:pan-y;padding:25px 18px;background:radial-gradient(ellipse at center,#0a1d1de0,#07151bf2)}
 .panel{width:min(590px,100%);max-height:min(96dvh,920px);overflow-y:auto;touch-action:pan-y;text-align:center;background:linear-gradient(155deg,#14363bfa,#0a2027fb);border:2px solid #739782;outline:6px solid #07191bcc;box-shadow:0 20px 100px #0009,inset 0 0 40px #9fc29b0e;padding:24px 29px 27px}
 .eyebrow{color:#e0ca97;letter-spacing:3px;font-size:10px;font-weight:800}
@@ -88,7 +88,6 @@ canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
 
 /* Dungeon v0.5 interface: readable in portrait and on iPhone. */
 .inventory-button{width:auto;padding:0 13px;font-size:10px;letter-spacing:.3px;white-space:nowrap}
-.biome-label{position:fixed;z-index:3;top:max(134px,calc(126px + env(safe-area-inset-top)));left:50%;transform:translateX(-50%);font-weight:800;font-size:9px;letter-spacing:2px;color:#b9d6ca;background:#081d23b8;border:1px solid #6e918666;padding:5px 9px;pointer-events:none}
 .talent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .talent-card{background:#112e34;border:1px solid #678e80;min-height:107px;padding:10px 8px;text-align:left;display:flex;flex-direction:column;gap:7px}
 .talent-card strong{font-size:12px;color:#e9d7a1}
@@ -105,12 +104,11 @@ canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
 .inventory-item small{grid-row:2;grid-column:1;color:#b9d2c2;font-size:10px;line-height:1.4}
 .inventory-item span{align-self:center;grid-column:2;grid-row:1/3;color:#e6d39e;font-size:9px;font-weight:850}
 .inventory-item:disabled{opacity:.66;cursor:default}
-@media(max-width:700px){.talent-grid{gap:4px}.talent-card{padding:8px 5px;min-height:108px}.talent-card strong{font-size:10px}.talent-card small{font-size:9px}.talent-card button{font-size:8px}.inventory-button{padding:0 5px;font-size:8px}.biome-label{top:max(105px,calc(96px + env(safe-area-inset-top)));font-size:8px}}
-@media(max-height:540px){.biome-label{display:none!important}.inventory-list{max-height:30dvh}}
+@media(max-width:700px){.talent-grid{gap:4px}.talent-card{padding:8px 5px;min-height:108px}.talent-card strong{font-size:10px}.talent-card small{font-size:9px}.talent-card button{font-size:8px}.inventory-button{padding:0 5px;font-size:8px}}
+@media(max-height:540px){.inventory-list{max-height:30dvh}}
 
 /* Keep the iPhone HUD, bag, and pause controls on-screen side by side. */
 @media(max-width:700px){.game-top:has(.hud:not(.hidden)) .identity{display:none}.game-top{gap:4px}.hud{min-width:0}}
-body:has(.boss-hud:not(.hidden)) .biome-label{display:none!important}
 
 /* 0.8.0: challenge selection, unlocked achievements, one-thumb controls. */
 .challenge-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
@@ -476,4 +474,70 @@ body:has(.boss-hud:not(.hidden)) .biome-label{display:none!important}
  .castle-menu .section-label{letter-spacing:1px}
  .castle-menu .castle-advanced summary{line-height:1.3}
  .dialog-view .panel .summary{min-width:0}
+}
+
+
+/* Alpha 0.19.4 – Keep only actionable in-game HUD text.
+   Compact cooldowns; neither a character label nor a biome banner is needed. */
+.game-top .hud-stat{
+ border-color:#7a9e9566;
+ background:#081f26e8;
+ box-shadow:0 4px 14px #0005;
+}
+.ability-hud{
+ gap:6px;
+ max-width:min(500px,calc(100vw - 28px));
+}
+.ability-hud span{
+ min-width:0;
+ padding:7px 11px;
+ font-size:10px;
+ font-weight:750;
+ letter-spacing:.35px;
+ line-height:1.25;
+ white-space:nowrap;
+ border-radius:5px;
+ border:1px solid #87a89966;
+ background:#0a2229e8;
+ box-shadow:0 3px 12px #0005;
+}
+.ability-hud span.ready{
+ border-color:#a5c5a16f;
+ color:#c5edd0;
+}
+#dashLabel:not(.ready),#abilityLabel:not(.ready){
+ border-color:#67838588;
+ color:#b9c3c8;
+}
+.boss-hud .boss-hint:not(.hidden){
+ line-height:1.4;
+ letter-spacing:.3px;
+ padding-top:2px;
+}
+@media(hover:none),(pointer:coarse){
+ .ability-hud{
+  top:max(90px,calc(env(safe-area-inset-top) + 80px));
+  left:max(12px,env(safe-area-inset-left));
+  max-width:calc(100vw - 138px);
+  gap:4px;
+  flex-wrap:wrap;
+ }
+ .ability-hud span{
+  padding:5px 7px;
+  font-size:9px;
+  letter-spacing:0;
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:anywhere;
+ }
+}
+@media(max-width:400px){
+ .game-top .hud{gap:3px}
+ .game-top .hud-stat{padding:5px 4px}
+ .game-top .hp-stat{min-width:80px}
+ .game-top .inventory-button{font-size:8px;padding:0 4px}
+}
+@media(max-height:540px) and (pointer:coarse){
+ /* In landscape prioritize the combat controls and boss warning. */
+ .ability-hud{display:none!important}
 }
