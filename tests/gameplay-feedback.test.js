@@ -85,6 +85,8 @@ test('stage six tower boss performs real telegraphed attacks before both phases 
  for(let i=0;i<3;i++){
   assert.ok(beginTowerAttack(g,e));
   executeTowerAttack(g,e);e.cooldown=0;
+  // A charge is a full animation; finish it before the next forced test action.
+  e.boss.charge=null;
  }
  assert.ok(canProgressTowerBoss(e));
  applyTowerBossDamage(g,e,9000);
@@ -97,6 +99,8 @@ test('stage six tower boss performs real telegraphed attacks before both phases 
  for(let i=3;i<6;i++){
   assert.ok(beginTowerAttack(g,e));
   executeTowerAttack(g,e);e.cooldown=0;
+  // A charge is a full animation; finish it before the next forced test action.
+  e.boss.charge=null;
  }
  assert.ok(canProgressTowerBoss(e));
  applyTowerBossDamage(g,e,9000);
