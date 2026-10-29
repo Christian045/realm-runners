@@ -421,7 +421,7 @@ export class Game {
  hitEnemy(e,damage,dir,options={}){
   if(!e||e.hp<=0||isBossInvulnerable(e))return;
   const p=this.player,proc=options.proc!==false;
-  const critical=proc&&this.random()<Math.min(.8,p.crit+(p.evadeEmpower>0?.17:0));
+  const critical=proc&&this.random()<Math.min(1,p.crit+(p.evadeEmpower>0?.17:0));
   let d=proc?beforeHit(this,e,damage):damage;
   if(proc){
    d=towerRelicDamage(this,e,d);d=towerEnemyDamage(e,d,dir);d=encounterMitigation(e,d,dir);
