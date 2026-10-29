@@ -30,9 +30,14 @@ export class Game {
   this.hazards=[];this.achievementsEarned=[];this.sound=null;this.libraryKey=false;
   this.towerRelics=[];this.towerRelicHits=0;this.towerRelicKills=0;this.towerPhoenixUsed=false;this.stageStartedAt=0;this.stageHazardClock=9;this.towerNewRecord=false;
   this.runStatistics=null;this.statisticsSaveClock=0;this.exitPortal=null;this.hitsTaken=0;this.shopStock=[];
+  this.servantChoice='guardian';this.servant=null;
  }
  notify(){this.onChange(this)}
  saveStatistics(){return saveProgress(this.progress)}
+ setServant(id){
+  if(this.mode!=='menu'||!['guardian','ranger','spirit'].includes(id))return false;
+  this.servantChoice=id;this.notify();return true;
+ }
  setChallenge(id){if(this.mode==='menu'&&challengeUnlocked(this.progress,id)){this.runMode=id;this.notify();return true}return false}
  setEndless(enabled){if(this.mode==='menu'&&(!enabled||this.progress.bossKills>0)){
   this.endless=!!enabled;if(enabled)this.tower=false;this.notify();return true
@@ -171,6 +176,7 @@ export class Game {
   this.runCoins=0;this.clearCount=0;this.time=0;this.bossDefeated=false;this.exitPortal=null;this.hitsTaken=0;this.shopStock=[];this.upgradeChoices=[];this.bossMessage='';
   this.runStatistics=newRunStatistics(kind,this.tower?'Turm':this.endless?'Endlos':'Dungeon');
   this.statisticsSaveClock=0;
+  this.servant=kind==='summoner'?{kind:this.servantChoice,x:this.player.x-30,y:this.player.y-30,cooldown:0}:null;
   this.camera.x=this.player.x-this.camera.w/2;this.camera.y=this.player.y-this.camera.h/2;
   this.playSound('start');
   this.notify();
@@ -319,6 +325,33 @@ export class Game {
   }
   if(spawned)this.createEffect('text',room.cx,room.cy-119,'VERSTÄRKUNG!','#ffc29f',.95);
  }
+ updateServant(dt){
+  const s=this.servant,p=this.player;
+  if(!s||!p)return;
+  s.cooldown=Math.max(0,s.cooldown-dt);
+  const near=this.enemies.filter(e=>e.hp>0&&distance(e,p)<420)
+   .sort((a,b)=>distance(a,s)-distance(b,s))[0];
+  const destination=near&&s.kind!=='spirit'?near:p;
+  const d=distance(s,destination),ideal=s.kind==='guardian'?55:s.kind==='ranger'?165:65;
+  if(d>ideal){const n=normalized(destination.x-s.x,destination.y-s.y);
+   const step=Math.min(d-ideal,175*dt);this.move(s,n.x*step,n.y*step,10);}
+  if(s.cooldown>0)return;
+  if(s.kind==='spirit'){
+   p.hp=Math.min(p.maxHp,p.hp+9);
+   if(p.statuses)p.statuses.poison=0;
+   this.createEffect('ring',p.x,p.y,'#b2f9da',.5,46);
+   s.cooldown=9;return;
+  }
+  if(!near)return;
+  if(s.kind==='guardian'&&distance(s,near)<96){
+   this.hitEnemy(near,p.damage*.75,normalized(near.x-s.x,near.y-s.y),{proc:false});
+   p.shield=Math.min(30,(p.shield||0)+3);
+   this.createEffect('ring',s.x,s.y,'#a0bfd9',.22,32);s.cooldown=1.45;
+  }else if(s.kind==='ranger'&&distance(s,near)<370){
+   this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),p.damage*.66,false,false,480);
+   this.createEffect('spark',s.x,s.y,'#c5ed9a',.24,12);s.cooldown=1.18;
+  }
+ }
  update(dt,camera=this.camera){
   if(this.mode!=='playing')return;
   dt=Math.min(.034,Math.max(0,dt));
@@ -333,6 +366,7 @@ export class Game {
    }
   }
   this.progress.statistics.playTime+=dt;
+  this.updateServant(dt);
   this.statisticsSaveClock+=dt;
   if(this.statisticsSaveClock>=8){this.statisticsSaveClock=0;this.saveStatistics()}
   const p=this.player,move=this.input.movement(),aim=this.input.aiming(p,camera);
@@ -465,7 +499,12 @@ export class Game {
      }
     }
    const shotSpeed=kind==='hunter'&&charged?840:null;
-   this.spawnProjectile(p.x+aim.x*19,p.y+aim.y*19,aim,shotDamage,kind==='mage',false,shotSpeed);
+   this.spawnProjectile(p.x+aim.x*19,p.y+aim.y*19,aim,shotDamage,['mage','glasscannon','summoner','alchemist'].includes(kind),false,shotSpeed);
+    if(kind==='alchemist'){
+     const flask=this.projectiles[this.projectiles.length-1];
+     flask.alchemy=['burn','poison','frost'][(this.attackSequence-1)%3];
+     flask.radius=10;flask.life=1.7;
+    }
    if(kind==='hunter'&&p.specialization==='marksman'){
      const bolt=this.projectiles[this.projectiles.length-1];
      bolt.pierce=2;bolt.hitIds=new Set();bolt.charged=true;
@@ -626,6 +665,11 @@ export class Game {
   const actual=reduced-blocked;
   if(actual>0)this.hitsTaken++;
   if(actual>0&&this.runMode==='nohit')p.hp=0;
+  if(actual>0&&p.kind==='glasscannon'){
+   p.maxHp=Math.max(20,p.maxHp-7);p.hp=Math.min(p.hp,p.maxHp);
+   p.damage*=1.08;
+   this.createEffect('ring',p.x,p.y,'#e7abff',.33,51);
+  }
   recordDamage(this.progress.statistics,this.runStatistics,actual,'taken');
   p.hp=Math.max(0,p.hp-actual);
   p.invulnerable=.78;p.hurtTimer=.34;
@@ -762,6 +806,15 @@ export class Game {
    }else{
     for(const e of this.enemies)if(e.hp>0&&!b.hitIds?.has(e)&&distance(b,e)<b.radius+e.radius){
      this.hitEnemy(e,b.damage,normalized(b.vx,b.vy),{magic:b.magic,charged:b.charged});
+      if(b.alchemy){
+       this.createEffect('ring',e.x,e.y,b.alchemy==='burn'?'#ff9a61':b.alchemy==='poison'?'#a0e688':'#9fddff',.36,86);
+       for(const other of [...this.enemies])if(other.hp>0&&distance(other,e)<85){
+        if(other!==e)this.hitEnemy(other,b.damage*.55,normalized(b.vx,b.vy),{proc:false});
+        if(b.alchemy==='burn')other.burn=Math.max(other.burn||0,3.4);
+        else if(b.alchemy==='poison')other.poison=Math.max(other.poison||0,4);
+        else other.slow=Math.max(other.slow||0,2.7);
+       }
+      }
      if(b.magic&&!b.hostile){
       this.createEffect('ring',e.x,e.y,'#eac8ff',.24,31);
       this.createEffect('ember',e.x+12,e.y-14,'#ffc18f',.30,13);
@@ -815,6 +868,7 @@ export class Game {
   for(const id of this.dungeon.rooms[0].links)if(this.dungeon.rooms[id].type!=='secret')
    this.dungeon.rooms[id].discovered=true;
   this.player.x=this.dungeon.start.x;this.player.y=this.dungeon.start.y;
+  if(this.servant){this.servant.x=this.player.x-35;this.servant.y=this.player.y-25;}
   this.player.hp=Math.min(this.player.maxHp,this.player.hp+Math.round(this.player.maxHp*(this.tower?.15:.32)));
   this.player.invulnerable=1.5;this.player.dashCooldown=0;
   this.enemies=[];this.projectiles=[];this.loot=[];this.hazards=[];this.effects=[];this.libraryKey=false;
