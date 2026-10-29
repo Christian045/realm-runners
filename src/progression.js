@@ -1,5 +1,5 @@
 import { CLASSES } from './data.js';
-import { TALENTS } from './loot.js';
+import { TALENTS } from './loot.js?v=0.16.0';
 export const SAVE_KEY='realm-runners-roguelite-v1';
 export const OLD_SAVE_KEY='realm-runners-save-v2';
 export function defaultProgress(){return {version:1,gold:0,runs:0,bestRooms:0,bossKills:0,selectedClass:'warrior',upgrades:{vitality:0,strength:0},talents:{warrior:{},hunter:{},mage:{}},itemsFound:0,eliteKills:0,deepestFloor:1,towerBest:0,towerWins:0,towerBestTime:0,towerLastTime:0,towerStageRecords:{},achievements:{}}}
@@ -9,7 +9,7 @@ export function normalizeProgress(value){
  const talents={};
  for(const [kind,choices] of Object.entries(TALENTS)){
   talents[kind]={};
-  for(const choice of choices)talents[kind][choice.id]=num(p.talents?.[kind]?.[choice.id],3);
+  for(const choice of choices)talents[kind][choice.id]=num(p.talents?.[kind]?.[choice.id],choice.branch?1:3);
  }
  return {version:1,gold:num(p.gold),runs:num(p.runs),bestRooms:num(p.bestRooms,99),
   bossKills:num(p.bossKills),itemsFound:num(p.itemsFound),eliteKills:num(p.eliteKills),deepestFloor:Math.max(1,num(p.deepestFloor,999)),towerBest:num(p.towerBest,10),towerWins:num(p.towerWins),towerBestTime:num(p.towerBestTime,864000),towerLastTime:num(p.towerLastTime,864000),

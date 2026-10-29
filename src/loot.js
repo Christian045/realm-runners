@@ -1,5 +1,6 @@
 import { CLASSES, clamp } from './data.js';
 import {AFFIXES,rollAffix} from './affixes.js';
+import {ITEM_SETS,rollSet,setPieces} from './buildcraft.js?v=0.16.0';
 export const RARITIES=Object.freeze({
  common:{name:'Gewöhnlich',color:'#d8e1d4',weight:60},
  rare:{name:'Selten',color:'#8ed0ff',weight:29},
@@ -18,18 +19,36 @@ export const ITEM_BASES=Object.freeze([
  {id:'boots',name:'Windläufer',slot:'armor',classes:null,hp:10,speed:17},
  {id:'fang',name:'Vampirzahn',slot:'charm',classes:null,leech:.035,damage:2},
  {id:'eye',name:'Adlerauge',slot:'charm',classes:null,crit:.09},
- {id:'seal',name:'Wächtersiegel',slot:'charm',classes:null,guard:.045,hp:12}
+ {id:'seal',name:'Wächtersiegel',slot:'charm',classes:null,guard:.045,hp:12},
+ {id:'greatsword',name:'Sturmbrecher',slot:'weapon',classes:['warrior'],damage:11,speed:-9},
+ {id:'duelist',name:'Duellklinge',slot:'weapon',classes:['warrior'],damage:4,crit:.09},
+ {id:'longbow',name:'Eibenbogen',slot:'weapon',classes:['hunter'],damage:6,speed:8},
+ {id:'thornbow',name:'Dornenschnur',slot:'weapon',classes:['hunter'],damage:5,leech:.02},
+ {id:'grimoire',name:'Sternenfibel',slot:'weapon',classes:['mage'],damage:9,speed:-8},
+ {id:'flamestaff',name:'Flammenzepter',slot:'weapon',classes:['mage'],damage:5,crit:.06},
+ {id:'brigandine',name:'Plattenwams',slot:'armor',classes:null,hp:32,guard:.045,speed:-9},
+ {id:'silk',name:'Nebelgewand',slot:'armor',classes:null,hp:8,crit:.06,speed:10},
+ {id:'gloves',name:'Kampfhandschuhe',slot:'armor',classes:null,damage:4,hp:9},
+ {id:'hourglass',name:'Sanduhr',slot:'charm',classes:null,speed:15,crit:.03},
+ {id:'cinder',name:'Glutfunke',slot:'charm',classes:null,damage:5,leech:.014},
+ {id:'ironheart',name:'Eisenherz',slot:'charm',classes:null,guard:.06,hp:16}
 ]);
 export const TALENTS=Object.freeze({
  warrior:[{id:'steel',name:'Eisenhaut',description:'+8 maximale LP pro Stufe',stat:'hp',value:8},
   {id:'ferocity',name:'Zorn',description:'+3 Angriffsschaden pro Stufe',stat:'damage',value:3},
-  {id:'footwork',name:'Kampftritt',description:'+5 Tempo pro Stufe',stat:'speed',value:5}],
+  {id:'footwork',name:'Kampftritt',description:'+5 Tempo pro Stufe',stat:'speed',value:5},
+  {id:'counter',name:'Vergeltung',description:'Nach Schaden: nächster Schwerthieb +35 % (5 s)',branch:true,requires:'steel',requiredLevel:2},
+  {id:'juggernaut',name:'Beben',description:'Jeder dritte Schwerthieb löst einen Nachschlag aus',branch:true,requires:'ferocity',requiredLevel:2}],
  hunter:[{id:'focus',name:'Präzision',description:'+3% Krit-Chance pro Stufe',stat:'crit',value:.03},
   {id:'agility',name:'Beweglichkeit',description:'+7 Tempo pro Stufe',stat:'speed',value:7},
-  {id:'piercing',name:'Spitzenpfeile',description:'+2 Schaden pro Stufe',stat:'damage',value:2}],
+  {id:'piercing',name:'Spitzenpfeile',description:'+2 Schaden pro Stufe',stat:'damage',value:2},
+  {id:'sharpEye',name:'Adlerblick',description:'Aufgeladene Präzisionspfeile +22 % Schaden',branch:true,requires:'focus',requiredLevel:2},
+  {id:'evade',name:'Schattentritt',description:'Nach Dash: für 2,4 s erhöhte Krit-Chance',branch:true,requires:'agility',requiredLevel:2}],
  mage:[{id:'arcana',name:'Arkankunde',description:'+3 Schaden pro Stufe',stat:'damage',value:3},
   {id:'ward',name:'Schutzzauber',description:'+8 maximale LP pro Stufe',stat:'hp',value:8},
-  {id:'siphon',name:'Seelenfluss',description:'+1.5% Lebensraub pro Stufe',stat:'leech',value:.015}]
+  {id:'siphon',name:'Seelenfluss',description:'+1.5% Lebensraub pro Stufe',stat:'leech',value:.015},
+  {id:'ignite',name:'Glutmeister',description:'Magische Projektile entzünden Feinde',branch:true,requires:'arcana',requiredLevel:2},
+  {id:'warding',name:'Arkaner Schutz',description:'Spezialzauber verleiht 13 Schild',branch:true,requires:'ward',requiredLevel:2}]
 });
 const STATS=['damage','hp','speed','crit','guard','leech'];
 const zeros=()=>Object.fromEntries(STATS.map(k=>[k,0]));
@@ -53,11 +72,12 @@ export function generateItem(random,level=0,kind='warrior',guaranteedRare=false)
   stats[key]=['crit','guard','leech'].includes(key)?Math.round(n*1000)/1000:Math.round(n);
  }
  const affix=rollAffix(random,rarity);
+ const setId=rollSet(random,rarity);
  return {
   id:base.id+'-'+rarity+'-'+Math.floor(random()*1e9),
   baseId:base.id,slot:base.slot,kind,rarity,
-  name:(rarity==='legendary'?'Mythischer ':rarity==='epic'?'Verzauberter ':rarity==='rare'?'Alter ':'')+base.name,
-  classes:base.classes,stats,affix,
+  name:(setId?ITEM_SETS[setId].name+' · ':rarity==='legendary'?'Mythischer ':rarity==='epic'?'Verzauberter ':rarity==='rare'?'Alter ':'')+base.name,
+  classes:base.classes,stats,affix,setId,
   level:Math.max(1,level+1)
  };
 }
@@ -85,22 +105,29 @@ export function describeStats(item){
   const amount=['crit','guard','leech'].includes(key)?Math.round(value*1000)/10+'%':String(value);
   return (value>0?'+':'')+amount+' '+map[key];
  }).join(' · ');
- return raw+(item.affix&&AFFIXES[item.affix]?' · ✦ '+AFFIXES[item.affix].name+': '+AFFIXES[item.affix].description:'');
+ return raw+(item.affix&&AFFIXES[item.affix]?' · ✦ '+AFFIXES[item.affix].name+': '+AFFIXES[item.affix].description:'')+
+  (item.setId&&ITEM_SETS[item.setId]?' · ◈ '+ITEM_SETS[item.setId].name+' – '+ITEM_SETS[item.setId].description:'');
 }
-export function talentCost(level){return 65+level*65}
+export function talentCost(level,definition=null){return definition?.branch?240:65+level*65}
 export function buyTalent(progress,kind,id){
  const definition=TALENTS[kind]?.find(t=>t.id===id);
  if(!definition)return false;
  progress.talents??={};
  progress.talents[kind]??={};
  const level=progress.talents[kind][id]||0;
- if(level>=3||progress.gold<talentCost(level))return false;
- progress.gold-=talentCost(level);progress.talents[kind][id]=level+1;
+ const max=definition.branch?1:3;
+ if(level>=max||(definition.branch&&
+  (progress.talents[kind][definition.requires]||0)<definition.requiredLevel))return false;
+ const price=talentCost(level,definition);
+ if(progress.gold<price)return false;
+ progress.gold-=price;progress.talents[kind][id]=level+1;
  return true;
 }
 export function applyTalents(player,progress){
+ player.masteries=[];
  for(const talent of TALENTS[player.kind]||[]){
-  const level=Math.min(3,Math.max(0,progress.talents?.[player.kind]?.[talent.id]||0));
+  const level=Math.min(talent.branch?1:3,Math.max(0,progress.talents?.[player.kind]?.[talent.id]||0));
+  if(talent.branch){if(level>0)player.masteries.push(talent.id);continue;}
   const bonus=talent.value*level;
   if(talent.stat==='hp'){player.maxHp+=bonus;player.hp+=bonus}
   else if(talent.stat==='damage')player.damage+=bonus;

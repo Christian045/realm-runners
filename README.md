@@ -1,4 +1,16 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.15.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.16.0)
+
+## Alpha 0.16 – Loot, Builds und verzweigte Klassentalente
+
+- **Mehr Gegenstände:** Zwölf neue Waffen-, Rüstungs- und Talisman-Basen mit unterschiedlichen Offensiv- und Defensiveigenschaften; alle drei Klassen haben je vier eigene Waffen.
+- **Drei Ausrüstungssets**: Glutbund (zwei ausgerüstete Teile entzünden Gegner), Sturmpfad (jeder vierte Treffer verursacht zusätzlichen Schaden und Dash lädt schneller auf) und Eisenwacht (Dash erzeugt Schild). Seltene, epische und legendäre Items können Set-Teile sein. Ein Setbonus gilt nur für gleichzeitig ausgerüstete Teile in verschiedenen Slots, nicht für den Rucksack; beim Wechsel ist er sofort weg.
+- **Sechs echte permanente Meisterschaften:** Pro Klasse zwei verzweigte Talente mit einer Voraussetzung von Stufe 2 in einem bisherigen Talent. Krieger: Vergeltung und Beben; Jäger: Adlerblick und Schattentritt; Magier: Glutmeister und Arkaner Schutz. Jede Meisterschaft ist einmalig und kostet 240 Gold, sämtliche bisherigen Talentstufen bleiben erhalten.
+- **Sechs klassenbezogene Run-Fähigkeiten:** Krieger Zerschmetterer/Standhaft, Jäger Meisterschuss/Schnellköcher, Magier Flammenzeichen/Arkane Welle. Bei jedem Upgrade-Dialog ist eine noch fehlende Klassenoption unter den drei Entscheidungen, solange solche Fähigkeiten verfügbar sind. Bereits gewählte Klassenfähigkeiten werden nicht erneut angeboten.
+- **Klare Rückmeldung im Menü:** Freischaltvoraussetzungen der Meisterschaften, farblich markierte Build-Upgrades sowie Setfortschritt (0/2, 1/2, 2/2) und aktuell aktive Meisterschaften/Runfähigkeiten im Inventar. Mobile Zweispalten-Ansicht für Talente.
+- **Spielstände & Balance:** Save-Key und alte Fortschritte bleiben unverändert. Alte Items ohne Set-ID funktionieren weiterhin. Bossphasen, Bossschaden-Cap, 13 Räume im Normaldungeon, 10 Turmetagen zu 7 Räumen, mobile Touch-Buttons und die Pixelgrafik bleiben wie bisher.
+- **Tests:** Neue Regressionstests für die drei Sets und Wechsel der Ausrüstung, alle sechs Meisterschaften und ihre Freischaltbedingungen, Save/Load-Migration, aktive Bonuswirkungen im Kampf sowie Klassenwahl-Upgrades. Chromiums und WebKits Browser-Smokes prüfen Desktop und iPhone.
+
+
 
 ## Alpha 0.15 – Gegnervielfalt, Charakterdesigns, Bossmechaniken und taktische Räume
 
