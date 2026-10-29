@@ -20,6 +20,20 @@ const assert=require('node:assert/strict');
   await page.locator('#overlay').waitFor({state:'hidden'});
   await page.waitForTimeout(800);
   assert.ok(await page.locator('#hud').isVisible());
+  // Verify deployed dungeon format and essential room types in the real browser.
+  const dungeonResult=await page.evaluate(async()=>{
+   const {generateDungeon,ROOM_COUNT}=await import('./src/dungeon.js');
+   const d=generateDungeon(903);
+   return {rooms:d.rooms.length,expected:ROOM_COUNT,grid:d.columns*d.rows,
+    gateCount:d.gates.length,library:d.rooms.some(r=>r.type==='library'),
+    vault:d.rooms.some(r=>r.type==='vault'),camp:d.rooms.some(r=>r.type==='camp'),
+    traps:d.rooms.some(r=>r.type==='trap')};
+  });
+  assert.equal(dungeonResult.rooms,13);
+  assert.equal(dungeonResult.expected,13);
+  assert.equal(dungeonResult.grid,25);
+  assert.ok(dungeonResult.gateCount>=12);
+  assert.ok(dungeonResult.library&&dungeonResult.vault&&dungeonResult.camp&&dungeonResult.traps);
   // The actual browser must be able to paint cached authored pixel images.
   const pixelArt=await page.evaluate(async()=>{
    const {PixelSpriteAtlas}=await import('./src/sprites.js');

@@ -121,6 +121,49 @@ export function drawDungeonAtmosphere(ctx,game){
     rect(ctx,'#c6a6fa',cx-6,cy-44,12,18);
    }
   }
+  if(room.type==='library'){
+   // Shelves stay at the chamber sides; the center and door spines stay clear.
+   for(const dx of [-215,185])for(const dy of [-95,95]){
+    rect(ctx,'#221d20',cx+dx,cy+dy,30,72);
+    rect(ctx,'#7b5e46',cx+dx+2,cy+dy+3,26,65);
+    for(let k=0;k<5;k++){
+     rect(ctx,k%2?'#92a6bb':'#ae896a',cx+dx+4+k*5,cy+dy+8,3,19);
+     rect(ctx,k%2?'#a8c792':'#d4b077',cx+dx+4+k*5,cy+dy+40,3,19);
+    }
+   }
+   renderSigil(ctx,cx,cy,78,'#bcb1ed',time);
+   rect(ctx,'#6e5b4a',cx-35,cy+25,70,22);
+   rect(ctx,'#e2d1b1',cx-23,cy+14,46,27);
+   rect(ctx,'#9884b3',cx-3,cy+19,6,18);
+  }
+  if(room.type==='camp'){
+   renderSigil(ctx,cx,cy,84,'#acd9a1',time);
+   rect(ctx,'#5d5549',cx-64,cy+39,128,17);
+   rect(ctx,'#806f54',cx-60,cy+44,120,5);
+   rect(ctx,'#f0b96e',cx-11,cy+6,21,25);
+   rect(ctx,'#e7d08c',cx-5,cy-7,10,22);
+   for(const dx of [-100,100]){
+    rect(ctx,'#6b6052',cx+dx-25,cy-39,50,48);
+    rect(ctx,'#a58b72',cx+dx-20,cy-43,40,13);
+   }
+  }
+  if(room.type==='vault'){
+   renderSigil(ctx,cx,cy,110,'#f6d18d',time);
+   rect(ctx,'#312f37',cx-59,cy-43,118,86);
+   rect(ctx,'#a48967',cx-55,cy-40,110,80);
+   rect(ctx,'#dfc487',cx-48,cy-34,96,67);
+   rect(ctx,'#54463b',cx-32,cy-22,64,43);
+   rect(ctx,'#f1dca2',cx-8,cy-16,16,25);
+   rect(ctx,'#413f38',cx-4,cy-10,8,11);
+  }
+  if(room.type==='trap'){
+   for(const dx of [-104,104,0]){
+    const dy=dx===0?105:dx<0?15:-15;
+    ctx.strokeStyle='#f0a47a88';ctx.lineWidth=3;ctx.beginPath();
+    ctx.arc(cx+dx,cy+dy,45,0,Math.PI*2);ctx.stroke();
+    rect(ctx,'#e4b38466',cx+dx-5,cy+dy-5,10,10);
+   }
+  }
   if(room.type==='shrine'){
    renderSigil(ctx,cx,cy,92,'#8fe8d0',time);
    rect(ctx,'#456962',cx-24,cy-27,48,55);
@@ -161,10 +204,10 @@ export function drawDungeonAtmosphere(ctx,game){
   }
   if(room.theme==='reliquary')for(const dx of [-175,175])drawChest(ctx,cx+dx,cy-95,room.cleared);
   // Wall torches are decoration only, not extra collision obstacles.
-  const warm=room.type==='boss'||room.theme==='reliquary'||room.type==='elite';
+  const warm=room.type==='boss'||room.theme==='reliquary'||room.type==='elite'||room.type==='vault';
   for(let i=0;i<4;i++){
    const tx=cx+(i%2?198:-198),ty=cy+(i<2?-148:148);
-   torch(ctx,tx,ty,time,i+room.id*8,warm);
+   if(d.isBlocked(tx,ty))torch(ctx,tx,ty,time,i+room.id*8,warm);
   }
   ctx.font='bold 13px monospace';ctx.textAlign='center';
   ctx.fillStyle=th.accent+'8c';ctx.fillText(th.name,cx,top+TILE*1.8);
@@ -175,11 +218,11 @@ export function drawDungeonAtmosphere(ctx,game){
  for(const room of d.rooms){
   const left=room.gx*ROOM_W*TILE,top=room.gy*ROOM_H*TILE;
   if(left+ROOM_W*TILE<cam.x-180||left>cam.x+cw+180||top+ROOM_H*TILE<cam.y-180||top>cam.y+ch+180)continue;
-  const warm=room.type==='boss'||room.theme==='reliquary'||room.type==='elite';
+  const warm=room.type==='boss'||room.theme==='reliquary'||room.type==='elite'||room.type==='vault';
   for(let i=0;i<4;i++){
    const x=room.cx+(i%2?198:-198),y=room.cy+(i<2?-148:148);
    const flicker=.91+.09*Math.sin(time*11+i*5+room.id);
-   light(ctx,x,y,155,warm?'#f5a457':'#6bc8b1',flicker*.75);
+   if(d.isBlocked(x,y))light(ctx,x,y,155,warm?'#f5a457':'#6bc8b1',flicker*.75);
   }
  }
  light(ctx,game.player.x,game.player.y,230,'#82b4ba',.65);

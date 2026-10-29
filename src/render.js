@@ -79,28 +79,40 @@ export class Renderer {
   const minX=Math.max(0,Math.floor(cam.x/TILE)-1),maxX=Math.min(d.width,Math.ceil((cam.x+cam.w)/TILE)+1);
   const minY=Math.max(0,Math.floor(cam.y/TILE)-1),maxY=Math.min(d.height,Math.ceil((cam.y+cam.h)/TILE)+1);
   for(let y=minY;y<maxY;y++)for(let x=minX;x<maxX;x++){
-   const tile=d.tileAt(x,y),room=d.rooms[Math.floor(y/ROOM_H)*ROOM_COLS+Math.floor(x/ROOM_W)];
-   const biome=tileTheme(room),variant=tileVariant(d.seed,x,y),px=x*TILE,py=y*TILE;
+   const tile=d.tileAt(x,y),room=d.roomAt((x+.5)*TILE,(y+.5)*TILE);
+   const px=x*TILE,py=y*TILE;
+   if(!room){fill(c,'#06141b',px,py,TILE,TILE);continue}
+   const biome=tileTheme(room),variant=tileVariant(d.seed,x,y);
    if(!this.tiles.draw(c,biome,tile,variant,px,py,TILE)){
     // Canvas creation can be blocked by restrictive browsers; collision stays unchanged.
     fill(c,tile===0?'#284440':tile===2?'#526c68':'#243d43',px,py,TILE,TILE);
    }
   }
-  // Blocking door runes appear only during live combat.
-  if(game.enemies.length){
-   c.strokeStyle='#fd657d';c.lineWidth=3;
-   for(const key of d.doors){
-    const [x,y]=key.split(',').map(Number),px=x*TILE,py=y*TILE;
-    if(px<cam.x-50||py<cam.y-50||px>cam.x+cam.w+50||py>cam.y+cam.h+50)continue;
-    fill(c,'#8b334c88',px,py,TILE,TILE);
-    c.beginPath();c.moveTo(px+5,py+7);c.lineTo(px+43,py+41);c.moveTo(px+43,py+7);c.lineTo(px+5,py+41);c.stroke();
+  // Carved archways and engraved thresholds; red seals only in combat.
+  const sealed=game.enemies.some(e=>e.hp>0);
+  for(const gate of d.gates){
+   const x=gate.x,y=gate.y,v=gate.orientation==='vertical';
+   if(x<cam.x-145||y<cam.y-145||x>cam.x+cam.w+145||y>cam.y+cam.h+145)continue;
+   c.save();
+   if(v){
+    fill(c,'#17292b',x-11,y-73,22,146);fill(c,'#668376',x-9,y-73,18,10);
+    fill(c,'#82998a',x-9,y+63,18,9);fill(c,'#b4bba1',x-3,y-63,6,126);
+   }else{
+    fill(c,'#17292b',x-73,y-11,146,22);fill(c,'#668376',x-73,y-9,10,18);
+    fill(c,'#82998a',x+63,y-9,10,18);fill(c,'#b4bba1',x-63,y-3,126,6);
    }
+   if(sealed){
+    c.strokeStyle='#ff748a';c.globalAlpha=.65+.3*Math.sin(game.time*8);c.lineWidth=6;
+    c.beginPath();
+    if(v){c.moveTo(x,y-64);c.lineTo(x,y+64)}
+    else{c.moveTo(x-64,y);c.lineTo(x+64,y)}
+    c.stroke();
+   }
+   c.restore();
   }
   for(const room of d.rooms)if(room.visited||room.type==='start'){
    c.textAlign='center';c.font='11px monospace';c.fillStyle='#9ab5a177';
-   c.fillText(room.type==='boss'?'THRON':room.type==='treasure'?'SCHATZ':
-    room.type==='shrine'?'SCHREIN':room.type==='elite'?'ELITE':
-    room.type==='secret'?'GEHEIMNIS':room.type==='event'?'EREIGNIS':'KAMMER '+(room.id+1),
+   c.fillText(room.roomLabel||'KAMMER '+(room.id+1),
     room.cx,room.cy-ROOM_H*TILE*.34);
   }
  }
@@ -243,20 +255,35 @@ export class Renderer {
  }
  minimap(game){
   const c=this.ctx,d=game.dungeon,dp=Math.min(2,window.devicePixelRatio||1);
-  const size=19*dp,gap=4*dp;
-  const px=this.canvas.width-ROOM_COLS*(size+gap)-26*dp,py=81*dp;
+  const size=15*dp,gap=3*dp,pitch=size+gap;
+  const w=ROOM_COLS*pitch,h=ROOM_ROWS*pitch;
+  const px=this.canvas.width-w-24*dp,py=76*dp;
   c.setTransform(1,0,0,1,0,0);
-  fill(c,'#091a20cc',px-11*dp,py-11*dp,ROOM_COLS*(size+gap)+16*dp,ROOM_ROWS*(size+gap)+16*dp);
-  const active=d.roomAt(game.player.x,game.player.y);
+  fill(c,'#081820dd',px-9*dp,py-9*dp,w+15*dp,h+15*dp);
+  const current=d.roomAt(game.player.x,game.player.y);
   for(const room of d.rooms){
-   const x=px+room.gx*(size+gap),y=py+room.gy*(size+gap);
-   fill(c,room.visited?'#5d8273':room.discovered?'#1d3940':'#0c2027',x,y,size,size);
-   if(room.type==='boss'&&room.visited)fill(c,'#e47c91',x+size*.25,y+size*.25,size*.5,size*.5);
-   if(room.type==='treasure'&&room.visited)fill(c,'#f5d28d',x+size*.25,y+size*.25,size*.5,size*.5);
-   if(room.type==='shrine'&&room.visited)fill(c,'#7bd6c2',x+size*.3,y+size*.3,size*.4,size*.4);
-   if(room.type==='elite'&&room.visited)fill(c,'#fc975a',x+size*.3,y+size*.3,size*.4,size*.4);
-   if(room.type==='event'&&room.visited)fill(c,'#c5a1ff',x+size*.3,y+size*.3,size*.4,size*.4);
-   if(active?.id===room.id){c.strokeStyle='#fff0cf';c.lineWidth=2*dp;c.strokeRect(x,y,size,size)}
+   if(!room.discovered&&!room.visited)continue;
+   for(const id of room.links){
+    if(id<room.id)continue;
+    const other=d.rooms[id];
+    if(!other.discovered&&!other.visited)continue;
+    c.strokeStyle='#8ab5a4';c.lineWidth=3*dp;c.beginPath();
+    c.moveTo(px+room.gx*pitch+size/2,py+room.gy*pitch+size/2);
+    c.lineTo(px+other.gx*pitch+size/2,py+other.gy*pitch+size/2);c.stroke();
+   }
   }
+  for(const room of d.rooms){
+   if(room.type==='secret'&&!room.visited)continue;
+   if(!room.discovered&&!room.visited)continue;
+   const x=px+room.gx*pitch,y=py+room.gy*pitch;
+   fill(c,room.visited?'#6c9981':'#2b4b51',x,y,size,size);
+   const flags={boss:'#ed788a',treasure:'#f1ce84',shrine:'#93e4c6',elite:'#eab36f',
+    event:'#b6a3ea',library:'#a9b0e9',trap:'#e7977e',camp:'#9edbb7',vault:'#ffd38c',secret:'#efcda1'};
+   if(room.visited&&flags[room.type])fill(c,flags[room.type],x+size*.28,y+size*.28,size*.44,size*.44);
+   if(current?.id===room.id){c.strokeStyle='#fff3d5';c.lineWidth=2*dp;c.strokeRect(x-dp,y-dp,size+2*dp,size+2*dp)}
+  }
+  c.fillStyle='#bbd4c8';c.textAlign='left';c.font=8*dp+'px monospace';
+  c.fillText('KARTE',px,py-12*dp);
  }
+
 }

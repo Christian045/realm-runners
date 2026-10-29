@@ -11,7 +11,7 @@ export function normalizeProgress(value){
   talents[kind]={};
   for(const choice of choices)talents[kind][choice.id]=num(p.talents?.[kind]?.[choice.id],3);
  }
- return {version:1,gold:num(p.gold),runs:num(p.runs),bestRooms:num(p.bestRooms,9),
+ return {version:1,gold:num(p.gold),runs:num(p.runs),bestRooms:num(p.bestRooms,99),
   bossKills:num(p.bossKills),itemsFound:num(p.itemsFound),eliteKills:num(p.eliteKills),deepestFloor:Math.max(1,num(p.deepestFloor,999)),achievements:Object.fromEntries(Object.entries(p.achievements||{}).filter(([k,v])=>/^[a-zA-Z]+$/.test(k)&&v===true)),selectedClass:CLASSES[p.selectedClass]?p.selectedClass:'warrior',
   upgrades:{vitality:num(p.upgrades?.vitality,5),strength:num(p.upgrades?.strength,5)},talents};
 }

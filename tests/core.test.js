@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {generateDungeon,seeded,ROOM_COLS,ROOM_ROWS} from '../src/dungeon.js';
+import {generateDungeon,seeded,ROOM_COLS,ROOM_ROWS,ROOM_COUNT} from '../src/dungeon.js';
 import {CLASSES,chooseUpgrades,normalized} from '../src/data.js';
 import {defaultProgress,normalizeProgress,loadProgress,saveProgress,buyPermanent,upgradeCost,SAVE_KEY,OLD_SAVE_KEY} from '../src/progression.js';
 import {Game} from '../src/game.js';
@@ -8,11 +8,11 @@ import {Game} from '../src/game.js';
 test('all dungeon rooms are reachable and boss is not the starting room',()=>{
  for(let seed=1;seed<150;seed++){
   const d=generateDungeon(seed);
-  assert.equal(d.rooms.length,ROOM_COLS*ROOM_ROWS);
+  assert.equal(d.rooms.length,ROOM_COUNT);
   assert.notEqual(d.bossId,0);
   const queue=[0],seen=new Set(queue);
   while(queue.length)for(const next of d.rooms[queue.shift()].links)if(!seen.has(next)){seen.add(next);queue.push(next)}
-  assert.equal(seen.size,9,'seed '+seed);
+  assert.equal(seen.size,ROOM_COUNT,'seed '+seed);
   for(const r of d.rooms){
    assert.equal(d.tileAt(Math.floor(r.cx/48),Math.floor(r.cy/48)),0);
    assert.ok(d.canMove(r.cx,r.cy,14),'room center must be walkable');

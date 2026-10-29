@@ -1,4 +1,15 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.9.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.10.0)
+
+## Alpha 0.10 – Dungeon Overhaul
+
+- **Unregelmäßige Dungeons:** 13 logisch verknüpfte Räume auf einem 5×5-Adressraster statt einer gefüllten 3×3-Matrix. Neun geometrische Raumformen (groß, kompakt, lang, hoch, Kreuz, L-Form, versetzt, Zickzack, Bogen), 14 Cover-Layouts und garantierte drei Kacheln breite Verbindungen mit Torbögen.
+- **Erkundung und Abzweigungen:** Dynamische Minimap zeigt nur bereits bekannte Räume und deren Verbindung, inklusive Verzweigungen. Geheimkammern bleiben bis zum Betreten versteckt. Jeder Seed liefert einen zusammenhängenden begehbaren Pfad bis zum Boss.
+- **Neue Raummechaniken:** Bibliothek mit Runenrätsel und einem Schlüssel für das Gewölbe, Fallenräume mit angekündigten verzögerten Explosionen, Lager mit Heilung/Erkundung/Handel, versiegeltes Gewölbe mit Schlüssel-/Gold-/Lebenspunkte-Optionen. Schmiede, Prüfung, Schrein und bestehende Lootkammern bleiben erhalten.
+- **Taktische Gegner-KI:** Spawnpositionen beachten wirkliche Kollisionen und Abstand zum Helden. Gegner navigieren bei Hindernissen mit begrenzter BFS-Wegsuche. Bogenschützen prüfen Sichtlinien, weichen in Nahdistanz zurück und nutzen seitliches Positionieren – ohne durch Mauern zu schießen.
+- **Visuelles Design:** Thematische Torbögen, Räume mit eigener Möblierung (Regale, Lagerfeuer, Truhen, Gewölbe, Fallenwarnung); Wandfackeln nur auf Hindernisflächen. iPhone-Touch-Bedienung, Klassensystem, Boss-Phasen, Loot und Speicherstände bleiben erhalten.
+- **Tests:** Seed-basierte Flood-Fill-Erreichbarkeit, Szenarioprüfungen für besondere Räume, Pfad- und Sichtlinien sowie Chromium-/WebKit-Smoke-Tests.
+
+
 
 **Top-down-Roguelite / Hack-and-Slash** auf Basis der bisherigen JavaScript-/HTML5-Canvas-Technik.
 Das bisherige Jump-and-Run wurde technisch und spielerisch neu aufgebaut. Der alte Stand bleibt im `main`-Branch bis zum Merge der Umstellung erhalten.
