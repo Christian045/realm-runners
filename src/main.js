@@ -29,6 +29,7 @@ const btn=(action,text,cls='secondary',extra='')=>'<button type="button" class="
 function refreshPanel(){
  const overlay=$('overlay'),panel=$('panelContent'),playing=game.mode==='playing';
  overlay.classList.toggle('hidden',playing);
+ overlay.classList.toggle('castle-menu',game.mode==='menu');
  $('hud').classList.toggle('hidden',!game.player);
  $('pauseBtn').classList.toggle('hidden',!playing);
  $('inventoryBtn').classList.toggle('hidden',!playing);
@@ -40,22 +41,23 @@ function refreshPanel(){
  const title=$('overlay').querySelector('h1'),chapter=$('overlay').querySelector('.chapter');
  if(game.mode==='menu'){
   title.innerHTML='REALM<br><em>RUNNERS</em>';chapter.textContent='DUNGEON REBORN';
-  panel.innerHTML='<div class="section-label">WÄHLE DEINEN HELDEN</div><div class="class-grid">'+
+  panel.innerHTML='<div class="castle-stage"><span class="castle-stage-caption">DIE HALLE DER HELDEN</span><div class="castle-hero"><canvas data-hero="'+selected+'" width="32" height="36" aria-label="Ausgewählter Charakter"></canvas></div><span class="castle-hero-name">'+CLASSES[selected].name+'</span><span class="castle-hero-sub">'+CLASSES[selected].subtitle+'</span></div><div class="section-label">WÄHLE DEINEN HELDEN</div><div class="class-grid">'+
    Object.entries(CLASSES).map(([id,c])=>'<button class="class-card '+(selected===id?'active':'')+'" data-action="class:'+id+'"><canvas class="class-preview" data-hero="'+id+'" width="32" height="36" aria-hidden="true"></canvas><strong>'+c.name+'</strong><small>'+c.subtitle+'</small></button>').join('')+'</div>'+
-   '<div class="section-label">SPEZIALISIERUNG</div><div class="specialization-grid">'+
+   '<details class="castle-advanced"><summary>KLASSE ANPASSEN · SPEZIALISIERUNG</summary><div class="section-label">SPEZIALISIERUNG</div><div class="specialization-grid">'+
    SPECIALIZATIONS[selected].map(spec=>{
     const unlocked=specializationUnlocked(progress,spec.id);
     return '<button class="specialization-card '+(game.specialization===spec.id?'active':'')+'" data-action="specialization:'+spec.id+'" '+
      (!unlocked?'disabled':'')+'><strong>'+spec.name+(game.specialization===spec.id?' ✓':'')+'</strong>'+
      '<small>'+(unlocked?spec.description:spec.unlock==='boss'?'Besiege einen Boss':'Spiele zwei Runs')+'</small></button>';
    }).join('')+'</div>'+
-   '<div class="section-label">HERAUSFORDERUNG</div><div class="challenge-grid">'+
+   '</details><details class="castle-advanced"><summary>HERAUSFORDERUNG EINSTELLEN</summary><div class="section-label">HERAUSFORDERUNG</div><div class="challenge-grid">'+
    Object.entries(CHALLENGES).map(([id,m])=>{
     const unlocked=challengeUnlocked(progress,id);
     return '<button data-action="challenge:'+id+'" class="challenge-card '+(game.runMode===id?'active':'')+'" '+(!unlocked?'disabled':'')+'>'+
      '<strong>'+m.name+(game.runMode===id?' ✓':'')+'</strong><small>'+(unlocked?m.description:m.unlock)+
      ' · '+Math.round(m.multiplier*100)+'% Gold</small></button>';
    }).join('')+'</div>'+
+   '</details><div class="section-label castle-mode-title">WÄHLE DEIN ABENTEUER</div><div class="castle-mode-list"><button data-action="normal" class="mode-toggle '+(!game.tower&&!game.endless?'selected':'')+'">⚔ NORMALER DUNGEON<small>13 Räume · Beute · Bosse · neue Ausrüstung</small></button>'+
    '<button data-action="endless" class="mode-toggle '+(game.endless?'selected':'')+'" '+(progress.bossKills<1?'disabled':'')+'>'+
      (game.endless?'✓ ENDLOS-ABSTIEG AKTIV':'∞ ENDLOS-ABSTIEG')+
      '<small>'+(progress.bossKills<1?'Besiege zuerst einen Boss':'Etagen werden schwieriger · deine Ausrüstung bleibt erhalten')+'</small></button>'+
@@ -63,12 +65,12 @@ function refreshPanel(){
     (game.tower?'✓ TURM DER ZEHN PRÜFUNGEN AKTIV':'♛ TURM DER ZEHN PRÜFUNGEN')+
     '<small>10 Etagen · auf jeder Etage andere Feinde und ein Boss · der ewige Herrscher als Endgegner</small>'+
     '<small>Bestleistung: '+(progress.towerBest||0)+'/10 · Siege: '+(progress.towerWins||0)+
-    (progress.towerBestTime?' · Rekord: '+fmtTime(progress.towerBestTime):'')+'</small></button>'+
+    (progress.towerBestTime?' · Rekord: '+fmtTime(progress.towerBestTime):'')+'</small></button></div>'+
    btn('start',game.tower?'TURM BESTEIGEN':game.endless?'ENDLOS-ABSTIEG STARTEN':'DUNGEON BETRETEN','primary')+
-   '<div class="section-label">PERMANENTE VERBESSERUNGEN · '+progress.gold+' ◆</div><div class="meta-row">'+
+   '<details class="castle-advanced"><summary>VERBESSERUNGEN · '+progress.gold+' ◆</summary><div class="section-label">PERMANENTE VERBESSERUNGEN · '+progress.gold+' ◆</div><div class="meta-row">'+
    ['vitality','strength'].map(k=>'<div class="meta-card"><strong>'+label(k)+' · '+progress.upgrades[k]+'/5</strong>'+upgradeDescription(k)+
     '<button data-action="buy:'+k+'" '+(progress.gold<upgradeCost(progress,k)||progress.upgrades[k]>=5?'disabled':'')+'>'+(progress.upgrades[k]>=5?'MAXIMUM':'KAUFEN · '+upgradeCost(progress,k)+' ◆')+'</button></div>').join('')+'</div>'+
-   '<div class="section-label">KLASSENTALENTE · '+CLASSES[selected].name.toUpperCase()+'</div><div class="talent-grid">'+
+   '</details><details class="castle-advanced"><summary>KLASSENTALENTE · '+CLASSES[selected].name.toUpperCase()+'</summary><div class="section-label">KLASSENTALENTE · '+CLASSES[selected].name.toUpperCase()+'</div><div class="talent-grid">'+
    TALENTS[selected].map(t=>{
     const level=progress.talents?.[selected]?.[t.id]||0,price=talentCost(level,t),max=t.branch?1:3;
     const required=t.branch&&(progress.talents?.[selected]?.[t.requires]||0)<t.requiredLevel;
@@ -79,10 +81,10 @@ function refreshPanel(){
      '<button data-action="talent:'+selected+':'+t.id+'" '+(level>=max||required||progress.gold<price?'disabled':'')+'>'+ 
      (level>=max?'MAXIMAL':'FREISCHALTEN · '+price+' ◆')+'</button></div>';
    }).join('')+'</div>'+
-   '<div class="section-label">ERFOLGE · '+ACHIEVEMENTS.filter(a=>progress.achievements?.[a.id]).length+'/'+ACHIEVEMENTS.length+'</div>'+
+   '</details><details class="castle-advanced"><summary>ERFOLGE</summary><div class="section-label">ERFOLGE · '+ACHIEVEMENTS.filter(a=>progress.achievements?.[a.id]).length+'/'+ACHIEVEMENTS.length+'</div>'+
    '<div class="achievement-list">'+ACHIEVEMENTS.map(a=>'<div class="achievement '+(progress.achievements?.[a.id]?'unlocked':'')+'">'+
      '<span>'+(progress.achievements?.[a.id]?'★':'◇')+'</span><div><strong>'+a.name+'</strong><small>'+a.description+' · '+Math.min(a.target,progress[a.metric]||0)+'/'+a.target+' · +'+a.reward+' ◆</small></div></div>').join('')+'</div>'+
-   '<button class="sound-toggle" data-action="sound">'+(audio.enabled?'♪ TON AN':'♪ TON AUS')+'</button>'+
+   '</details><button class="sound-toggle" data-action="sound">'+(audio.enabled?'♪ TON AN':'♪ TON AUS')+'</button>'+
    '<p class="footnote">WASD bewegen · Maus zielen · Linksklick/F angreifen · Leertaste/Shift ausweichen · Q Spezialfähigkeit · I Inventar<br>Handy: Stick und Aktionsknöpfe. Dein bisheriger Spielstand bleibt erhalten.</p>';
  }else if(game.mode==='stageclear'){
   const stage=game.currentTowerStage();
@@ -212,6 +214,7 @@ $('panelContent').addEventListener('click',e=>{
  if(action==='class'){selected=value;game.chooseClass(value)}
  if(action==='challenge')game.setChallenge(value);
  if(action==='specialization')game.selectSpecialization(value);
+ if(action==='normal'){game.setTower(false);game.setEndless(false)}
  if(action==='endless')game.setEndless(!game.endless);
  if(action==='tower')game.setTower(!game.tower);
  if(action==='towerReward')game.chooseTowerReward(value);
