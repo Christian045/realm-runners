@@ -110,7 +110,7 @@ export class Game {
   this.progress.selectedClass=kind;saveProgress(this.progress);
   this.floorDepth=1;this.shake=0;this.hitstop=0;this.hazards=[];this.achievementsEarned=[];this.libraryKey=false;
   this.dungeon=generateDungeon(seed);this.random=seeded(seed^0xa5b4c382);
-  for(const id of this.dungeon.rooms[0].links)this.dungeon.rooms[id].discovered=true;
+  for(const id of this.dungeon.rooms[0].links)if(this.dungeon.rooms[id].type!=='secret')this.dungeon.rooms[id].discovered=true;
   const base=CLASSES[kind],bonus=this.progress.upgrades;
   this.player={x:this.dungeon.start.x,y:this.dungeon.start.y,radius:14,kind,
    maxHp:base.hp+bonus.vitality*12,hp:base.hp+bonus.vitality*12,
@@ -141,7 +141,7 @@ export class Game {
   const localY=this.player.y/TILE-room.gy*ROOM_H;
   if(localX<2.8||localX>ROOM_W-2.8||localY<2.8||localY>ROOM_H-2.8)return;
   room.visited=true;room.discovered=true;
-  for(const linked of room.links)this.dungeon.rooms[linked].discovered=true;
+  for(const linked of room.links)if(this.dungeon.rooms[linked].type!=='secret')this.dungeon.rooms[linked].discovered=true;
   if(room.type==='start')return;
   if(room.type==='trap'){
    room.cleared=true;this.clearCount++;this.runCoins+=12;
@@ -516,7 +516,7 @@ export class Game {
   this.progress.deepestFloor=Math.max(this.progress.deepestFloor||1,this.floorDepth);
   this.progress.bestRooms=Math.max(this.progress.bestRooms,this.clearCount);
   this.dungeon=generateDungeon((this.dungeon.seed^(this.floorDepth*0x9e3779b9))>>>0);
-  for(const id of this.dungeon.rooms[0].links)this.dungeon.rooms[id].discovered=true;
+  for(const id of this.dungeon.rooms[0].links)if(this.dungeon.rooms[id].type!=='secret')this.dungeon.rooms[id].discovered=true;
   this.player.x=this.dungeon.start.x;this.player.y=this.dungeon.start.y;
   this.player.hp=Math.min(this.player.maxHp,this.player.hp+Math.round(this.player.maxHp*.32));
   this.player.invulnerable=1.5;this.player.dashCooldown=0;

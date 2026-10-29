@@ -115,3 +115,14 @@ test('spawn placement stays on valid tiles and away from players for every speci
   }
  }
 });
+
+test('secret rooms remain hidden until their entrance is actually crossed',()=>{
+ const g=new Game(defaultProgress(),input);g.start('warrior',83);
+ const hidden=g.dungeon.rooms.find(r=>r.type==='secret');
+ assert.equal(hidden.visited,false);assert.equal(hidden.discovered,false);
+ // Ordinary rooms may be discovered while exploring the connected graph.
+ for(const r of g.dungeon.rooms)if(r.type!=='secret')r.discovered=true;
+ assert.equal(hidden.discovered,false);
+ g.player.x=hidden.cx;g.player.y=hidden.cy;g.entrance(hidden);
+ assert.ok(hidden.visited&&hidden.discovered);
+});
