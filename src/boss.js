@@ -1,6 +1,7 @@
 import { ENEMY_DATA, TILE, distance, normalized } from './data.js';
 import { ROOM_W, ROOM_H } from './dungeon.js';
 import {startWardenPhaseTwo,beginWardenAttack,executeWardenAttack,updateWarden} from './warden.js';
+import {triggerTowerPhase,beginTowerAttack,executeTowerAttack,updateTowerBoss} from './tower-boss.js';
 
 export const PHASE_TWO_AT = .55;
 const PHASE_ONE = Object.freeze(['volley','slam','charge']);
@@ -14,6 +15,7 @@ export function createBossState(){
 export function isBossInvulnerable(boss){return boss.type==='boss'&&boss.boss?.transition>0}
 export function startPhaseTwo(game,enemy){
  if(enemy.boss?.variant==='warden')return startWardenPhaseTwo(game,enemy);
+ if(['tower','sovereign'].includes(enemy.boss?.variant))return triggerTowerPhase(game,enemy,2);
  const state=enemy.boss;
  if(!state||state.phase!==1)return false;
  state.phase=2;state.transition=1.65;state.telegraph=null;state.charge=null;
@@ -28,6 +30,7 @@ export function startPhaseTwo(game,enemy){
 }
 export function beginBossAttack(game,enemy,forcedType=null){
  if(enemy.boss?.variant==='warden')return beginWardenAttack(game,enemy,forcedType);
+ if(['tower','sovereign'].includes(enemy.boss?.variant))return beginTowerAttack(game,enemy,forcedType);
  const s=enemy.boss;
  if(!s||s.transition>0||s.telegraph||s.charge)return false;
  const order=s.phase===2?PHASE_TWO:PHASE_ONE;
@@ -77,6 +80,7 @@ function summonAdds(game,boss){
 }
 export function executeBossAttack(game,enemy){
  if(enemy.boss?.variant==='warden')return executeWardenAttack(game,enemy);
+ if(['tower','sovereign'].includes(enemy.boss?.variant))return executeTowerAttack(game,enemy);
  const s=enemy.boss,t=s.telegraph;
  if(!t)return;
  s.telegraph=null;
@@ -106,6 +110,7 @@ export function executeBossAttack(game,enemy){
 }
 export function updateBoss(game,enemy,dt){
  if(enemy.boss?.variant==='warden')return updateWarden(game,enemy,dt);
+ if(['tower','sovereign'].includes(enemy.boss?.variant))return updateTowerBoss(game,enemy,dt);
  const s=enemy.boss;
  if(!s)return;
  enemy.elapsed+=dt;enemy.flash=Math.max(0,enemy.flash-dt);

@@ -19,7 +19,11 @@ export const ENEMY_DATA = Object.freeze({
   mushroom: { hp:69, speed:58, damage:14, radius:19, color:'#ffac8c', reward:12 },
   archer: { hp:52, speed:94, damage:12, radius:16, color:'#e0b6ff', reward:14 },
   goblin: { hp:84, speed:112, damage:15, radius:18, color:'#e9d180', reward:17 },
-  boss: { hp:730, speed:93, damage:23, radius:38, color:'#f97e99', reward:140 }
+  boss: { hp:730, speed:93, damage:23, radius:38, color:'#f97e99', reward:140 },
+  wraith: { hp:62, speed:143, damage:12, radius:15, color:'#9caeed', reward:17 },
+  sentinel: { hp:115, speed:75, damage:17, radius:20, color:'#aebdc4', reward:20 },
+  cultist: { hp:66, speed:87, damage:15, radius:17, color:'#b69ae4', reward:19 },
+  brute: { hp:151, speed:66, damage:22, radius:22, color:'#db9476', reward:23 }
 });
 export const TILE = 48;
 export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));

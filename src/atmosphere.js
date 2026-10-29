@@ -1,6 +1,7 @@
 import { TILE, clamp, distance } from './data.js';
 import { ROOM_W, ROOM_H } from './dungeon.js';
 import {drawWardenWarnings} from './warden.js';
+import {drawTowerBossWarnings} from './tower-boss.js';
 
 const THEMES={
  sanctuary:{floor:'#3f6853',accent:'#afd9a3',glow:'#98e8b1',name:'HEILIGTUM'},
@@ -246,6 +247,7 @@ export function drawBossWarnings(ctx,game){
  const boss=game.getActiveBoss?.();
  if(!boss)return;
  if(boss.boss?.variant==='warden'){drawWardenWarnings(ctx,game,boss);return}
+ if(['tower','sovereign'].includes(boss.boss?.variant)){drawTowerBossWarnings(ctx,game,boss);return}
  const state=boss.boss;
  if(state.transition>0){
   ctx.save();ctx.globalAlpha=.2+.15*Math.sin(game.time*18);

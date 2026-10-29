@@ -1,7 +1,8 @@
 // Authored, resolution-independent pixel sprites rendered to a tiny cached atlas.
+import {TOWER_STAGES} from './tower.js';
 // No CDN, raster downloads or third-party assets. Every frame is 32x36 source pixels.
 export const SPRITE_SIZE=Object.freeze({width:32,height:36});
-export const SPRITE_KINDS=Object.freeze(['warrior','hunter','mage','slime','mushroom','archer','goblin','slimeking','warden']);
+export const SPRITE_KINDS=Object.freeze(['warrior','hunter','mage','slime','mushroom','archer','goblin','slimeking','warden','wraith','sentinel','cultist','brute','sovereign',...Array.from({length:9},(_,i)=>'tower'+(i+1))]);
 export const ANIMATION_STATES=Object.freeze(['idle','walk','attack','cast','dash','hurt','death']);
 export function facing(direction={x:0,y:1}){
  const x=Number(direction.x)||0,y=Number(direction.y)||0;
@@ -18,7 +19,7 @@ export function animationState(actor,player=false){
 }
 export function spriteIdentity(entity,player=false){
  if(player)return SPRITE_KINDS.includes(entity?.kind)?entity.kind:'warrior';
- if(entity?.type==='boss')return entity.boss?.variant==='warden'?'warden':'slimeking';
+ if(entity?.type==='boss')return entity.boss?.variant==='sovereign'?'sovereign':entity.boss?.variant==='tower'?'tower'+entity.boss.floor:entity.boss?.variant==='warden'?'warden':'slimeking';
  return SPRITE_KINDS.includes(entity?.type)?entity.type:'slime';
 }
 const PAL={
@@ -30,8 +31,16 @@ const PAL={
  slime:{outline:'#203f39',shadow:'#3e7664',base:'#66b685',light:'#a4ecc1',trim:'#ceffe1',skin:'#92c4ae',dark:'#3e7562',metal:'#d6f2d5',gold:'#cdf2bd',eye:'#163932'},
  mushroom:{outline:'#4f3244',shadow:'#754b5b',base:'#b87777',light:'#f4a7a1',trim:'#ffdbbb',skin:'#edcfac',dark:'#7a4e62',metal:'#e9ba98',gold:'#ffd7b2',eye:'#3b2b3c'},
  slimeking:{outline:'#4c2445',shadow:'#973e73',base:'#d45b88',light:'#ff9fb3',trim:'#ffe5d7',skin:'#ffb4c4',dark:'#812f5c',metal:'#efd7f2',gold:'#ffe28b',eye:'#351d3c'},
- warden:{outline:'#1d3044',shadow:'#314d6c',base:'#587ba2',light:'#a4bfda',trim:'#e1edf4',skin:'#9fb4c9',dark:'#29445f',metal:'#a8cbe0',gold:'#81ecf2',eye:'#092e46'}
+ warden:{outline:'#1d3044',shadow:'#314d6c',base:'#587ba2',light:'#a4bfda',trim:'#e1edf4',skin:'#9fb4c9',dark:'#29445f',metal:'#a8cbe0',gold:'#81ecf2',eye:'#092e46'},
+ wraith:{outline:'#262d4b',shadow:'#495078',base:'#7585b7',light:'#bfcef7',trim:'#e9eeff',skin:'#d2d5ef',dark:'#343a61',metal:'#9fafcf',gold:'#dcf2ff',eye:'#9bf5ee'},
+ sentinel:{outline:'#25333a',shadow:'#586971',base:'#8b9fa8',light:'#d0dfe1',trim:'#f4f2dc',skin:'#bbc6c8',dark:'#374651',metal:'#e1eced',gold:'#f4d18d',eye:'#4ef1de'},
+ cultist:{outline:'#312443',shadow:'#533868',base:'#83659b',light:'#c4aadf',trim:'#e9def6',skin:'#d0aec6',dark:'#422e55',metal:'#a691b8',gold:'#d0a1ff',eye:'#ed9af4'},
+ brute:{outline:'#4a302f',shadow:'#765044',base:'#a76d57',light:'#ecad84',trim:'#f5d7b4',skin:'#d39477',dark:'#684439',metal:'#ccab92',gold:'#f4d18d',eye:'#ffcf8b'},
+ sovereign:{outline:'#170f2b',shadow:'#412463',base:'#663c89',light:'#b88cde',trim:'#e7c8ff',skin:'#8b4bb0',dark:'#291b49',metal:'#c99ae4',gold:'#f6ce7b',eye:'#99f9fb'}
 };
+const towerPal=Object.fromEntries(TOWER_STAGES.slice(0,9).map((stage,i)=>[
+ 'tower'+(i+1),{...PAL.warden,base:stage.color,light:'#f3e5da',trim:stage.color,
+  gold:i%2?'#c9f4ec':'#f9d68e',eye:'#142236'}]));
 function block(ctx,color,x,y,w=1,h=1){ctx.fillStyle=color;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
 function stamp(ctx,pal,parts){
  for(const [shade,x,y,w,h] of parts)block(ctx,pal[shade]||shade,x,y,w,h);
@@ -126,14 +135,57 @@ function frameWarden(ctx,p,state,frame,phase){
   ['gold',16,0,3,5],['trim',16,18,2,4]]);
  if(phase)stamp(ctx,p,[['gold',5,7,3,7],['gold',26,7,3,7],['trim',13,4,8,2]]);
 }
+function frameTowerMob(ctx,p,kind,state,frame){
+ const bob=state==='walk'&&frame%2?-2:0;
+ if(kind==='wraith'){
+  stamp(ctx,p,[['outline',10,4+bob,14,9],['base',9,6+bob,16,12],
+    ['light',12,8+bob,8,3],['shadow',6,17+bob,22,12],
+    ['base',8,15+bob,17,13],['light',9,18+bob,5,9],
+    ['base',10,28+bob,4,6],['shadow',16,27+bob,5,5],['base',23,27+bob,3,6],
+    ['eye',12,13+bob,4,3],['eye',20,13+bob,4,3]]);
+ }else if(kind==='sentinel'){
+  stamp(ctx,p,[['outline',9,4+bob,17,25],['shadow',10,6+bob,15,21],
+    ['metal',12,5+bob,12,9],['dark',12,12+bob,12,6],
+    ['eye',14,13+bob,3,2],['eye',20,13+bob,3,2],
+    ['base',12,19+bob,13,11],['gold',18,21+bob,2,8],
+    ['outline',4,15+bob,9,15],['metal',5,16+bob,7,12],
+    ['trim',7,18+bob,3,6],['outline',25,11+bob,4,18],
+    ['metal',26,7+bob,2,19],['gold',25,8+bob,4,3]]);
+ }else if(kind==='cultist'){
+  stamp(ctx,p,[['outline',9,3+bob,17,28],['shadow',10,5+bob,15,23],
+    ['base',11,6+bob,13,21],['light',13,7+bob,10,3],
+    ['dark',11,10+bob,14,10],['eye',13,13+bob,3,3],['eye',21,13+bob,3,3],
+    ['base',8,21+bob,19,11],['shadow',11,22+bob,5,9],
+    ['gold',27,8+bob,2,23],['trim',25,5+bob,6,6]]);
+ }else{
+  stamp(ctx,p,[['outline',6,3+bob,23,26],['base',8,5+bob,19,22],
+    ['light',10,7+bob,14,5],['shadow',8,15+bob,20,15],
+    ['outline',2,13+bob,8,15],['base',3,14+bob,7,12],
+    ['outline',26,13+bob,6,15],['base',27,14+bob,5,12],
+    ['dark',12,14+bob,12,6],['eye',13,13+bob,3,3],['eye',21,13+bob,3,3],
+    ['gold',15,20+bob,3,3],['outline',8,29+bob,7,4],['outline',20,29+bob,7,4]]);
+ }
+}
 export function drawSpritePixels(ctx,kind,state='idle',frame=0,dir='down',phase=false){
- const p=PAL[kind]||PAL.warrior;
+ const p=PAL[kind]||towerPal[kind]||PAL.warrior;
  ctx.imageSmoothingEnabled=false;
  if(dir==='left'){ctx.save();ctx.translate(SPRITE_SIZE.width,0);ctx.scale(-1,1)}
  const facingRight=dir==='left'?'right':dir;
  if(kind==='slime'||kind==='slimeking')frameSlime(ctx,p,state,frame,kind==='slimeking',phase);
  else if(kind==='mushroom')frameMushroom(ctx,p,state,frame);
- else if(kind==='warden')frameWarden(ctx,p,state,frame,phase);
+ else if(kind==='warden'||kind==='sovereign'||kind.startsWith('tower')) {
+  frameWarden(ctx,p,state,frame,phase);
+  if(kind==='sovereign'){
+   stamp(ctx,p,[['gold',5,4,5,10],['gold',22,4,5,10],['trim',10,0,15,4],
+     ['eye',15,9,5,4],['eye',21,9,3,3],['dark',13,16,13,8]]);
+  }else if(kind.startsWith('tower')){
+   const stage=Number(kind.slice(5));
+   if(stage%3===0)stamp(ctx,p,[['gold',3,4,5,10],['gold',25,4,5,10]]);
+   if(stage%3===1)stamp(ctx,p,[['metal',7,1,7,8],['metal',20,1,7,8]]);
+   if(stage%3===2)stamp(ctx,p,[['trim',14,0,6,7],['dark',12,14,15,5]]);
+  }
+ }
+ else if(['wraith','sentinel','cultist','brute'].includes(kind))frameTowerMob(ctx,p,kind,state,frame);
  else frameHero(ctx,p,kind,state,frame,facingRight);
  if(dir==='left')ctx.restore();
  if(state==='hurt'){
@@ -168,7 +220,7 @@ export class PixelSpriteAtlas{
    state==='hurt'?0:Math.floor(time*13);
   const sprite=this.frame(kind,state,step,dir,actor.boss?.phase===2);
   if(!sprite)return false;
-  const scale=kind==='slimeking'||kind==='warden'?3.1:actor.elite?1.85:1.62;
+  const scale=kind==='sovereign'?3.85:kind==='slimeking'||kind==='warden'||kind.startsWith('tower')?3.1:actor.elite?1.85:1.62;
   const w=SPRITE_SIZE.width*scale,h=SPRITE_SIZE.height*scale;
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(state==='hurt')ctx.globalAlpha=.78;

@@ -11,7 +11,9 @@ export const ACHIEVEMENTS=Object.freeze([
  {id:'hunter',name:'Dungeonmeister',description:'Besiege drei Bosse',reward:150,metric:'bossKills',target:3},
  {id:'relics',name:'Sammler',description:'Finde zehn Ausrüstungsstücke',reward:90,metric:'itemsFound',target:10},
  {id:'elites',name:'Elitejäger',description:'Besiege fünf Elitegegner',reward:100,metric:'eliteKills',target:5},
- {id:'deep',name:'Tiefenwanderer',description:'Erreiche im Endlosmodus Etage 3',reward:170,metric:'deepestFloor',target:3}
+ {id:'deep',name:'Tiefenwanderer',description:'Erreiche im Endlosmodus Etage 3',reward:170,metric:'deepestFloor',target:3},
+ {id:'towerFirst',name:'Turmbezwinger',description:'Schaffe Etage 5 im Zehn-Etagen-Turm',reward:175,metric:'towerBest',target:5},
+ {id:'towerConqueror',name:'Herrscherbezwinger',description:'Besiege den Endboss auf Etage 10',reward:500,metric:'towerWins',target:1}
 ]);
 export function challengeUnlocked(progress,id){
  if(id==='normal')return true;
