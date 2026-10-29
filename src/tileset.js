@@ -27,44 +27,62 @@ function crack(ctx,p,x,y,reverse=false){
  put(ctx,p[3],x+sign,y+1,2,1);
 }
 function floor(ctx,p,variation,theme){
+ // Irregular large flagstones. Four distinct layouts break up the old
+ // repeating 3-row brick grid while retaining a restrained pixel aesthetic.
  put(ctx,p[1],0,0,24,24);
- // Staggered carved flagstones; deliberate bevel and mortar gaps.
- put(ctx,p[0],0,0,24,2);put(ctx,p[0],0,12,24,2);
- put(ctx,p[2],1,2,12,9);put(ctx,p[2],14,2,10,9);
- put(ctx,p[1],1,3,10,7);put(ctx,p[1],15,3,8,7);
- put(ctx,p[0],8,14,2,10);put(ctx,p[2],0,14,8,10);put(ctx,p[2],10,14,14,10);
- put(ctx,p[1],1,15,6,8);put(ctx,p[1],11,15,12,8);
- put(ctx,p[3],1,2,11,1);put(ctx,p[3],14,2,9,1);
- put(ctx,p[3],1,14,6,1);put(ctx,p[3],11,14,12,1);
- if(variation&1){crack(ctx,p,15,6,true);put(ctx,p[4],19,7,2,1)}
- if(variation&2){put(ctx,p[0],4,19,3,1);put(ctx,p[3],3,20,3,1)}
- if(theme==='fungal'){
+ const style=variation&3;
+ if(style===0){
+  // Broad intact slab with only occasional recessed corner seams.
+  put(ctx,p[2],1,1,22,21);put(ctx,p[1],2,3,19,18);
+  put(ctx,p[3],2,2,13,1);put(ctx,p[0],1,17,1,6);
+  put(ctx,p[0],16,22,8,1);
+ }else if(style===1){
+  // One weathered central join; no repeated horizontal brick bands.
+  put(ctx,p[2],0,0,23,10);put(ctx,p[1],2,2,20,7);
+  put(ctx,p[0],0,11,19,1);put(ctx,p[3],2,12,17,1);
+  put(ctx,p[2],3,14,21,9);put(ctx,p[1],5,16,18,6);
+  put(ctx,p[3],4,15,11,1);
+ }else if(style===2){
+  // Offset vertical slab joints give the chamber direction.
+  put(ctx,p[2],1,1,13,21);put(ctx,p[1],2,3,10,18);
+  put(ctx,p[0],14,0,1,19);put(ctx,p[3],15,2,1,12);
+  put(ctx,p[2],17,4,7,19);put(ctx,p[1],18,6,6,16);
+  put(ctx,p[3],2,2,9,1);
+ }else{
+  // Smooth worn stone, only a partial broken edge.
+  put(ctx,p[2],0,0,24,24);put(ctx,p[1],2,2,20,20);
+  put(ctx,p[0],0,20,10,1);put(ctx,p[3],3,3,12,1);
+  put(ctx,p[0],20,12,3,6);
+ }
+ // Restrained weathering is seeded, static and never changes collision.
+ if(variation&4){
+  put(ctx,p[0],6,18,3,1);put(ctx,p[3],7,17,2,1);
+  if(style===0||style===3)crack(ctx,p,13,9,style===3);
+ }else if(style===2){
+  put(ctx,p[3],18,17,3,1);
+ }
+ if(theme==='fungal'||theme==='sanctuary'){
   if(variation%3===0){
-   put(ctx,'#3f784d',3,7,5,3);put(ctx,'#75a970',4,7,3,1);
-   put(ctx,'#bca5a0',5,5,1,2);put(ctx,'#c7a7b2',4,4,3,1);
+   put(ctx,'#315943',3,18,5,3);put(ctx,'#507d57',4,18,3,1);
+   put(ctx,'#71975e',7,20,2,1);
   }
-  if(variation&4){put(ctx,'#4f9462',19,18,3,2);put(ctx,'#94cc80',20,17,1,1)}
- }
- if(theme==='flooded'){
-  // Thin, broken turquoise pools rather than disconnected floating decorations.
-  if(variation%3!==1){
-   put(ctx,'#1a5065',2,18,10,4);put(ctx,'#367c8b',3,19,8,2);put(ctx,'#84b8bf',5,19,4,1);
+  if(theme==='fungal'&&style===2){
+   put(ctx,'#5b8355',20,7,3,2);
+   put(ctx,'#9cbe80',21,7,1,1);
   }
-  put(ctx,'#6095a5',19,7,3,1);
+ }else if(theme==='flooded'){
+  if(style===1||style===3){
+   put(ctx,'#205365',3,19,10,3);
+   put(ctx,'#3f8090',4,20,7,1);
+   put(ctx,'#7db0ba',6,20,3,1);
+  }
+ }else if(theme==='crypt'&&style===3){
+  put(ctx,'#365b4e',5,19,4,2);put(ctx,'#5e8273',6,18,2,1);
+ }else if(theme==='reliquary'&&variation%3===0){
+  put(ctx,'#ad966a',19,19,3,2);
+ }else if(theme==='throne'&&style===2){
+  put(ctx,'#815168',1,13,6,2);
  }
- if(theme==='crypt'&&variation%4===0){
-  put(ctx,'#446a55',3,20,3,2);put(ctx,'#78977c',4,18,1,3);
- }
- if(theme==='reliquary'&&variation%3===0){
-  put(ctx,'#d3b875',19,18,2,2);put(ctx,p[5],19,19,1,1);
- }
- if(theme==='throne'){
-  if(variation%3===1){put(ctx,'#944d63',0,9,24,4);put(ctx,'#ba7085',0,9,24,1)}
- }
- // Directional pixel highlights across carved flagstone edges.
- put(ctx,p[5],0,11,24,1);put(ctx,p[4],1,3,9,1);
- put(ctx,p[5],10,15,1,7);put(ctx,p[3],11,16,9,1);
- if(variation&4){put(ctx,p[4],4,5,2,1);put(ctx,p[0],5,6,1,1)}
 }
 function wall(ctx,p,variation,theme){
  put(ctx,p[5],0,0,24,24);
