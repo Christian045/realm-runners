@@ -596,6 +596,7 @@ export class Game {
   p.shield=Math.max(0,(p.shield||0)-blocked);
   const actual=reduced-blocked;
   if(actual>0)this.hitsTaken++;
+  if(actual>0&&this.runMode==='nohit')p.hp=0;
   recordDamage(this.progress.statistics,this.runStatistics,actual,'taken');
   p.hp=Math.max(0,p.hp-actual);
   p.invulnerable=.78;p.hurtTimer=.34;
@@ -824,6 +825,7 @@ export class Game {
   }else if(won&&this.endless){this.advanceFloor();return}
   this.mode=won?'victory':'dead';
   this.progress.runs++;
+  if(won&&this.runMode==='nohit'&&this.hitsTaken===0)this.progress.noHitWins=(this.progress.noHitWins||0)+1;
   finishRunStatistics(this.progress.statistics,this.runStatistics,won,this.time,this.floorDepth,this.clearCount);
   this.runStatistics=null;
   if(won&&!this.tower)this.progress.bossKills++;
