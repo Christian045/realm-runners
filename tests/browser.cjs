@@ -15,6 +15,53 @@ const assert=require('node:assert/strict');
   assert.ok(await page.locator('[data-action="challenge:normal"]').count());
   assert.ok(await page.locator('[data-action="endless"]').count());
   assert.ok(await page.locator('[data-action="tower"]').count());
+  // Layout regression: a long German event title must never create
+  // horizontal scrolling, and a short choice dialog fits on desktop.
+  for(const viewport of [{width:742,height:706},{width:1280,height:800},
+   {width:390,height:844},{width:320,height:568}]){
+   const preview=await browser.newPage({viewport});
+   try{
+    await preview.goto('http://127.0.0.1:8000/',{waitUntil:'load'});
+    for(const scene of [
+     {name:'event',title:'VERSIEGELTES GEWÖLBE',chapter:'DER GOLDENE SCHLÜSSEL',choice:true},
+     {name:'event',title:'VERGESSENE BIBLIOTHEK',chapter:'DAS RÄTSEL DER DREI RUNEN',choice:true},
+     {name:'shrine',title:'ALTER SCHREIN',chapter:'DREI WEGE · EINE ENTSCHEIDUNG',choice:true},
+     {name:'stageclear',title:'ETAGE 8 GESCHAFFT!',chapter:'WEITERER AUFSTIEG',choice:true},
+     {name:'inventory',title:'AUSRÜSTUNG',chapter:'WAFFEN · RÜSTUNG · RELIKTE',choice:false}
+    ]){
+     const result=await preview.evaluate(({scene})=>{
+      const overlay=document.querySelector('#overlay'),panel=overlay.querySelector('.panel');
+      overlay.classList.remove('castle-menu');
+      overlay.classList.add('dialog-view');
+      overlay.classList.toggle('dialog-choice',scene.choice);
+      overlay.classList.toggle('dialog-inventory',!scene.choice);
+      const title=panel.querySelector('h1');
+      title.textContent=scene.title;
+      title.classList.toggle('long-title',scene.title.length>17);
+      panel.querySelector('.chapter').textContent=scene.chapter;
+      panel.querySelector('#panelContent').innerHTML=scene.choice
+       ?'<p>Hinter dem Tor liegt hochwertige Ausrüstung. Du kannst einen Runenschlüssel benutzen, das Schloss bezahlen oder die Tür gewaltsam öffnen.</p><div class="upgrade-grid">'+
+        ['RUNENSCHLÜSSEL EINSETZEN','60 GOLD ZAHLEN','AUFBRECHEN · 25 LP OPFERN','GEWÖLBE VERLASSEN'].map(x=>'<button class="secondary">'+x+'</button>').join('')+'</div>'
+       :'<div class="equip-grid"><div class="equip-slot">WAFFE</div><div class="equip-slot">RÜSTUNG</div><div class="equip-slot">RELIKT</div></div><div class="inventory-list">Noch keine Ausrüstung.</div>';
+      const titleRange=document.createRange();titleRange.selectNodeContents(title);
+      const container=panel.getBoundingClientRect();
+      const rects=[...titleRange.getClientRects()];
+      return {
+       scrollX:panel.scrollWidth>panel.clientWidth+2||overlay.scrollWidth>overlay.clientWidth+2,
+       titleOverflows:rects.some(r=>r.left<container.left-2||r.right>container.right+2),
+       scrollY:panel.scrollHeight>panel.clientHeight+2,
+       menuIntroHidden:getComputedStyle(panel.querySelector('.menu-intro')).display==='none',
+       menuEyebrowHidden:getComputedStyle(panel.querySelector('.menu-eyebrow')).display==='none'
+      };
+     },{scene});
+     assert.ok(!result.scrollX,JSON.stringify({viewport,scene,result}));
+     assert.ok(!result.titleOverflows,'title overflow: '+JSON.stringify({viewport,scene,result}));
+     assert.ok(result.menuIntroHidden&&result.menuEyebrowHidden,'menu copy should not appear in dialog');
+     if(viewport.width>=742&&scene.name==='event')
+      assert.ok(!result.scrollY,'desktop event should fit without a scrollbar: '+JSON.stringify({viewport,scene,result}));
+    }
+   }finally{await preview.close()}
+  }
   const towerRuntime=await page.evaluate(async()=>{
     const [{TOWER_RELICS},{generateDungeon}]=await Promise.all([
      import('./src/tower-relics.js'),import('./src/dungeon.js')]);
