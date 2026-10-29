@@ -20,6 +20,23 @@ const assert=require('node:assert/strict');
   await page.locator('#overlay').waitFor({state:'hidden'});
   await page.waitForTimeout(800);
   assert.ok(await page.locator('#hud').isVisible());
+  // The actual browser must be able to paint cached authored pixel images.
+  const pixelArt=await page.evaluate(async()=>{
+   const {PixelSpriteAtlas}=await import('./src/sprites.js');
+   const {PixelTileAtlas}=await import('./src/tileset.js');
+   const sprites=new PixelSpriteAtlas(),tiles=new PixelTileAtlas();
+   const warrior=sprites.frame('warrior','idle',0,'down');
+   const mage=sprites.frame('mage','cast',1,'right');
+   const floor=tiles.tile('fungal',0,4),wall=tiles.tile('crypt',1,7);
+   const painted=canvas=>{
+    const d=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+    for(let i=3;i<d.length;i+=4)if(d[i]>0)return true;
+    return false;
+   };
+   return {warrior:painted(warrior),mage:painted(mage),floor:painted(floor),
+    wall:painted(wall),cached:warrior===sprites.frame('warrior','idle',0,'down')};
+  });
+  assert.deepEqual(pixelArt,{warrior:true,mage:true,floor:true,wall:true,cached:true});
   await page.locator('#inventoryBtn').click();
   assert.ok(await page.locator('#overlay').isVisible(),'inventory overlay must be usable');
   assert.ok(await page.locator('[data-action="closeInventory"]').isVisible());

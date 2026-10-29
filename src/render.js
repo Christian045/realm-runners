@@ -1,11 +1,14 @@
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js';
 import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js';
+import {PixelSpriteAtlas,spriteIdentity} from './sprites.js';
+import {PixelTileAtlas,tileTheme,tileVariant} from './tileset.js';
 const hash=(x,y,seed=0)=>{let a=Math.imul(x+seed,374761393)+Math.imul(y,668265263);a=Math.imul(a^(a>>>13),1274126177);return (a^(a>>>16))>>>0};
 const fill=(ctx,color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h)};
 export class Renderer {
  constructor(canvas){
   this.canvas=canvas;this.ctx=canvas.getContext('2d',{alpha:false});this.ctx.imageSmoothingEnabled=false;
+  this.sprites=new PixelSpriteAtlas();this.tiles=new PixelTileAtlas();
   this.resize();window.addEventListener('resize',()=>this.resize());
  }
  resize(){
@@ -76,31 +79,11 @@ export class Renderer {
   const minX=Math.max(0,Math.floor(cam.x/TILE)-1),maxX=Math.min(d.width,Math.ceil((cam.x+cam.w)/TILE)+1);
   const minY=Math.max(0,Math.floor(cam.y/TILE)-1),maxY=Math.min(d.height,Math.ceil((cam.y+cam.h)/TILE)+1);
   for(let y=minY;y<maxY;y++)for(let x=minX;x<maxX;x++){
-   const tile=d.tileAt(x,y),px=x*TILE,py=y*TILE,n=hash(x,y,d.seed);
-   const room=d.rooms[Math.floor(y/ROOM_H)*ROOM_COLS+Math.floor(x/ROOM_W)];
-   const biome=room?.biome||'crypt';
-   if(tile===0){
-    const floors=biome==='fungal'?['#254b3e','#2d5542']:biome==='flooded'?['#1d4658','#295164']:['#233b3a','#284440'];
-    fill(c,floors[n%5===0?1:0],px,py,TILE,TILE);
-    fill(c,'#294340',px+2,py+2,44,1);
-    if(n%4===0)fill(c,'#3d5550',px+(n%31)+4,py+21,8,2);
-    if(n%8===0){fill(c,'#385d4a',px+11,py+32,2,7);fill(c,'#5c8460',px+13,py+29,3,6)}
-    if(n%23===0){fill(c,'#c5a56c',px+27,py+25,3,3);fill(c,'#b7bf8c',px+31,py+29,2,2)}
-   }else if(tile===2){
-    fill(c,'#202f34',px,py,TILE,TILE);
-    fill(c,'#0b2228',px+7,py+14,36,33);
-    fill(c,'#526c68',px+5,py+5,34,32);
-    fill(c,'#64756f',px+7,py+6,26,7);
-    fill(c,'#334f51',px+10,py+20,23,13);
-    fill(c,'#738a75',px+7,py+3,30,4);
-   }else{
-    fill(c,'#0c2229',px,py,TILE,TILE);
-    fill(c,'#2d4b4d',px+1,py+1,TILE-2,TILE-2);
-    fill(c,'#425e5c',px+3,py+3,42,7);
-    fill(c,'#1e373e',px+3,py+14,42,30);
-    fill(c,'#152c33',px+2,py+37,43,8);
-    if(n%3===0)fill(c,'#59736b',px+14,py+8,15,2);
-    if(n%7===0)fill(c,'#436b58',px+4,py+32,13,3);
+   const tile=d.tileAt(x,y),room=d.rooms[Math.floor(y/ROOM_H)*ROOM_COLS+Math.floor(x/ROOM_W)];
+   const biome=tileTheme(room),variant=tileVariant(d.seed,x,y),px=x*TILE,py=y*TILE;
+   if(!this.tiles.draw(c,biome,tile,variant,px,py,TILE)){
+    // Canvas creation can be blocked by restrictive browsers; collision stays unchanged.
+    fill(c,tile===0?'#284440':tile===2?'#526c68':'#243d43',px,py,TILE,TILE);
    }
   }
   // Blocking door runes appear only during live combat.
@@ -134,6 +117,7 @@ export class Renderer {
   if(!p)return;
   const c=this.ctx,k=CLASSES[p.kind],f=p.direction;
   this.shadow(p.x,p.y,p.radius+5);
+  if(!this.sprites.draw(c,p,spriteIdentity(p,true),time,true)){
   c.save();c.translate(p.x,p.y);
   c.translate(0,p.dashTimer>0?-3:Math.sin(p.walkCycle||0)*2);
   if(p.invulnerable>0&&Math.floor(time*20)%3===0)c.globalAlpha=.55;
@@ -148,12 +132,14 @@ export class Renderer {
   else if(p.kind==='hunter'){c.strokeStyle='#e7c184';c.lineWidth=4;c.beginPath();c.arc(12,0,13,-1.6,1.6);c.stroke()}
   else{fill(c,'#bb97f9',13,-11,6,6);fill(c,'#694cb0',15,-7,3,20)}
   c.restore();
+  }
   if(p.shield>0){c.save();c.globalAlpha=.5+.12*Math.sin(time*8);c.strokeStyle='#a8e7ff';c.lineWidth=3;c.beginPath();c.arc(p.x,p.y,23,0,Math.PI*2);c.stroke();c.restore()}
   if(p.dashTimer>0){c.strokeStyle='#b1f1ee99';c.lineWidth=3;c.beginPath();c.arc(p.x,p.y,24,0,Math.PI*2);c.stroke()}
  }
  enemy(e,time){
   const c=this.ctx,s=ENEMY_DATA[e.type],r=e.radius;
   this.shadow(e.x,e.y,r+4);
+  if(!this.sprites.draw(c,e,spriteIdentity(e),time,false)){
   c.save();c.translate(e.x,e.y);
   const bob=Math.sin(time*4+e.x*.15)*2;
   c.translate(0,bob);
@@ -186,6 +172,7 @@ export class Renderer {
    fill(c,'#fff0e1',-13,-3,4,4);fill(c,'#fff0e1',9,-3,4,4);
   }
   c.restore();
+  }
   if(e.burn>0||e.poison>0||e.slow>0){
    const col=e.burn>0?'#ffc078':e.poison>0?'#9add7f':'#9edbff';
    c.save();c.globalAlpha=.5+.25*Math.sin(time*11);c.strokeStyle=col;c.lineWidth=3;
@@ -227,7 +214,14 @@ export class Renderer {
  effect(e){
   const c=this.ctx,alpha=clamp(e.life/e.maxLife,0,1);
   c.save();c.globalAlpha=alpha;c.strokeStyle=e.color;c.fillStyle=e.color;
-  if(e.type==='ring'){
+  if(e.type==='death'){
+   const sprite=this.sprites.frame(e.kind,'death',0,'down',e.phaseTwo);
+   if(sprite){
+    const scale=e.kind==='slimeking'||e.kind==='warden'?3.1:e.elite?1.85:1.62;
+    const w=sprite.width*scale,h=sprite.height*scale;
+    c.drawImage(sprite,Math.round(e.x-w/2),Math.round(e.y-h*.76-(1-alpha)*10),Math.round(w),Math.round(h));
+   }
+  }else if(e.type==='ring'){
    c.lineWidth=5;c.beginPath();c.arc(e.x,e.y,e.radius*(1-alpha*.2),0,Math.PI*2);c.stroke();
   }else if(e.type==='slash'){
    c.lineWidth=12;c.beginPath();c.arc(e.x,e.y,e.radius,e.angle-.8,e.angle+.8);c.stroke();
