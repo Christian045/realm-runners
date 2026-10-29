@@ -16,6 +16,11 @@ const assert=require('node:assert/strict');
   await page.locator('#overlay').waitFor({state:'hidden'});
   await page.waitForTimeout(800);
   assert.ok(await page.locator('#hud').isVisible());
+  await page.locator('#inventoryBtn').click();
+  assert.ok(await page.locator('#overlay').isVisible(),'inventory overlay must be usable');
+  assert.ok(await page.locator('[data-action="closeInventory"]').isVisible());
+  await page.locator('[data-action="closeInventory"]').click();
+  assert.ok(await page.locator('#overlay').isHidden());
   const pixels=await page.locator('#gameCanvas').evaluate(canvas=>{
    const c=canvas.getContext('2d');return Array.from(c.getImageData(canvas.width/2,canvas.height/2,1,1).data);
   });
@@ -33,6 +38,9 @@ const assert=require('node:assert/strict');
   await mobile.goto('http://127.0.0.1:8000/',{waitUntil:'load'});
   await mobile.locator('[data-action="start"]').click();
   assert.ok(await mobile.locator('#mobileControls').isVisible());
+  await mobile.locator('#inventoryBtn').tap();
+  assert.ok(await mobile.locator('[data-action="closeInventory"]').isVisible());
+  await mobile.locator('[data-action="closeInventory"]').tap();
   await mobile.locator('#attackTouch').tap();
   await mobile.locator('#dashTouch').tap();
   await mobile.locator('#abilityTouch').tap();
@@ -78,6 +86,9 @@ const assert=require('node:assert/strict');
     assert.ok(Math.abs(zoom-1)<.015,'zoomed in at '+x+','+y+': '+zoom);
    }
    // Verify the gesture guard did not swallow essential mobile actions.
+   await ios.locator('#inventoryBtn').tap();
+   assert.ok(await ios.locator('#overlay').isVisible());
+   await ios.locator('[data-action="closeInventory"]').tap();
    await ios.locator('#attackTouch').tap();
    await ios.locator('#dashTouch').tap();
    await ios.locator('#abilityTouch').tap();

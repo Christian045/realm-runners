@@ -31,6 +31,7 @@ export class Renderer {
   c.setTransform(this.scale,0,0,this.scale,-game.camera.x*this.scale,-game.camera.y*this.scale);
   this.map(game);
   drawDungeonAtmosphere(c,game);
+  this.fogOfWar(game);
   drawBossWarnings(c,game);
   const entities=[
    ...game.loot.map(e=>({kind:'loot',e,y:e.y})),
@@ -67,8 +68,11 @@ export class Renderer {
   const minY=Math.max(0,Math.floor(cam.y/TILE)-1),maxY=Math.min(d.height,Math.ceil((cam.y+cam.h)/TILE)+1);
   for(let y=minY;y<maxY;y++)for(let x=minX;x<maxX;x++){
    const tile=d.tileAt(x,y),px=x*TILE,py=y*TILE,n=hash(x,y,d.seed);
+   const room=d.rooms[Math.floor(y/ROOM_H)*ROOM_COLS+Math.floor(x/ROOM_W)];
+   const biome=room?.biome||'crypt';
    if(tile===0){
-    fill(c,n%5?'#233b3a':'#284440',px,py,TILE,TILE);
+    const floors=biome==='fungal'?['#254b3e','#2d5542']:biome==='flooded'?['#1d4658','#295164']:['#233b3a','#284440'];
+    fill(c,floors[n%5===0?1:0],px,py,TILE,TILE);
     fill(c,'#294340',px+2,py+2,44,1);
     if(n%4===0)fill(c,'#3d5550',px+(n%31)+4,py+21,8,2);
     if(n%8===0){fill(c,'#385d4a',px+11,py+32,2,7);fill(c,'#5c8460',px+13,py+29,3,6)}
@@ -102,7 +106,18 @@ export class Renderer {
   }
   for(const room of d.rooms)if(room.visited||room.type==='start'){
    c.textAlign='center';c.font='11px monospace';c.fillStyle='#9ab5a177';
-   c.fillText(room.type==='boss'?'THRON':room.type==='treasure'?'SCHATZ':'KAMMER '+(room.id+1),room.cx,room.cy-ROOM_H*TILE*.34);
+   c.fillText(room.type==='boss'?'THRON':room.type==='treasure'?'SCHATZ':
+    room.type==='shrine'?'SCHREIN':room.type==='elite'?'ELITE':
+    room.type==='secret'?'GEHEIMNIS':'KAMMER '+(room.id+1),
+    room.cx,room.cy-ROOM_H*TILE*.34);
+  }
+ }
+ fogOfWar(game){
+  const c=this.ctx,d=game.dungeon;
+  for(const room of d.rooms){
+   if(room.visited||room.discovered)continue;
+   const x=room.gx*ROOM_W*TILE,y=room.gy*ROOM_H*TILE;
+   c.fillStyle='#061016f2';c.fillRect(x,y,ROOM_W*TILE,ROOM_H*TILE);
   }
  }
  shadow(x,y,r){const c=this.ctx;c.fillStyle='#08141888';c.beginPath();c.ellipse(x,y+9,r*1.1,r*.48,0,0,Math.PI*2);c.fill()}
@@ -145,6 +160,13 @@ export class Renderer {
   }else if(e.type==='goblin'){
    c.beginPath();c.moveTo(-r,4);c.lineTo(-r-7,-8);c.lineTo(-6,-r);c.lineTo(7,-r);c.lineTo(r+7,-8);c.lineTo(r,4);c.closePath();c.fill();
    fill(c,'#3a3730',-9,-2,6,5);fill(c,'#3a3730',4,-2,6,5);
+  }else if(e.type==='boss'&&e.boss?.variant==='warden'){
+   c.fillStyle='#243849';c.beginPath();c.ellipse(0,5,r+5,r*.87,0,0,Math.PI*2);c.fill();
+   c.fillStyle=e.flash>0?'#f5ffff':'#6a91b3';c.beginPath();c.moveTo(-r,-18);c.lineTo(-r+4,24);c.lineTo(r-4,24);c.lineTo(r,-18);c.closePath();c.fill();
+   fill(c,'#263d57',-28,-19,56,15);fill(c,'#b5d9ef',-22,-16,44,6);
+   fill(c,'#102631',-17,-4,34,15);fill(c,'#8ff4e9',-10,0,7,5);fill(c,'#8ff4e9',5,0,7,5);
+   fill(c,'#7bafff',-4,-29,8,20);
+   for(const xx of [-27,19])fill(c,'#7dd6d8',xx,11,8,12);
   }else{
    c.fillStyle='#633950';c.beginPath();c.ellipse(0,5,r+4,r*.94,0,0,Math.PI*2);c.fill();
    c.fillStyle=e.flash>0?'#ffebdf':e.boss?.phase===2?'#d55883':'#f97e99';c.beginPath();c.ellipse(0,-5,r,r*.82,0,0,Math.PI*2);c.fill();
@@ -153,6 +175,8 @@ export class Renderer {
    fill(c,'#fff0e1',-13,-3,4,4);fill(c,'#fff0e1',9,-3,4,4);
   }
   c.restore();
+  if(e.elite){c.save();c.strokeStyle='#f9cf82';c.globalAlpha=.65+.25*Math.sin(time*7);
+   c.lineWidth=3;c.beginPath();c.arc(e.x,e.y,r+7,0,2*Math.PI);c.stroke();c.restore()}
   const ratio=clamp(e.hp/e.maxHp,0,1);
   if(e.hp<e.maxHp||e.type==='boss'){
    const width=e.type==='boss'?94:36;
@@ -171,7 +195,7 @@ export class Renderer {
  drop(d,t){
   const c=this.ctx,pulse=Math.sin(t*5+d.x)*2;this.shadow(d.x,d.y,8);
   c.save();c.translate(d.x,d.y-5+pulse);
-  c.fillStyle=d.type==='coin'?'#f5d38b':'#8ee4bd';
+  c.fillStyle=d.type==='gear'?({common:'#d9e6d2',rare:'#88cfff',epic:'#cf9aff',legendary:'#ffd075'}[d.item?.rarity]||'#d6cbeb'):d.type==='coin'?'#f5d38b':'#8ee4bd';
   c.beginPath();c.moveTo(0,-11);c.lineTo(10,0);c.lineTo(0,11);c.lineTo(-10,0);c.closePath();c.fill();
   c.fillStyle='#ffffff88';c.fillRect(-3,-5,4,7);c.restore();
  }
@@ -209,9 +233,11 @@ export class Renderer {
   const active=d.roomAt(game.player.x,game.player.y);
   for(const room of d.rooms){
    const x=px+room.gx*(size+gap),y=py+room.gy*(size+gap);
-   fill(c,room.visited?'#5d8273':'#1d3940',x,y,size,size);
+   fill(c,room.visited?'#5d8273':room.discovered?'#1d3940':'#0c2027',x,y,size,size);
    if(room.type==='boss'&&room.visited)fill(c,'#e47c91',x+size*.25,y+size*.25,size*.5,size*.5);
    if(room.type==='treasure'&&room.visited)fill(c,'#f5d28d',x+size*.25,y+size*.25,size*.5,size*.5);
+   if(room.type==='shrine'&&room.visited)fill(c,'#7bd6c2',x+size*.3,y+size*.3,size*.4,size*.4);
+   if(room.type==='elite'&&room.visited)fill(c,'#fc975a',x+size*.3,y+size*.3,size*.4,size*.4);
    if(active?.id===room.id){c.strokeStyle='#fff0cf';c.lineWidth=2*dp;c.strokeRect(x,y,size,size)}
   }
  }
