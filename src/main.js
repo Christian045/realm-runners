@@ -1,9 +1,10 @@
 import {CLASSES} from './data.js?v=0.15.0';
-import {loadProgress,upgradeCost} from './progression.js';
+import {loadProgress,upgradeCost} from './progression.js?v=0.16.0';
 import {Input} from './input.js';
-import {Game} from './game.js?v=0.15.0';
+import {Game} from './game.js?v=0.16.0';
 import {Renderer} from './render.js?v=0.15.0';
-import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js';
+import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.16.0';
+import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.16.0';
 import {installTouchGuard} from './touch-guard.js';
 import {CHALLENGES,ACHIEVEMENTS,challengeUnlocked} from './motivation.js';
 import {AudioFeedback} from './audio.js';
@@ -68,10 +69,14 @@ function refreshPanel(){
     '<button data-action="buy:'+k+'" '+(progress.gold<upgradeCost(progress,k)||progress.upgrades[k]>=5?'disabled':'')+'>'+(progress.upgrades[k]>=5?'MAXIMUM':'KAUFEN · '+upgradeCost(progress,k)+' ◆')+'</button></div>').join('')+'</div>'+
    '<div class="section-label">KLASSENTALENTE · '+CLASSES[selected].name.toUpperCase()+'</div><div class="talent-grid">'+
    TALENTS[selected].map(t=>{
-    const level=progress.talents?.[selected]?.[t.id]||0,price=talentCost(level);
-    return '<div class="talent-card"><strong>'+t.name+' · '+level+'/3</strong><small>'+t.description+'</small>'+
-     '<button data-action="talent:'+selected+':'+t.id+'" '+(level>=3||progress.gold<price?'disabled':'')+'>'+
-     (level>=3?'MAXIMAL':'FREISCHALTEN · '+price+' ◆')+'</button></div>';
+    const level=progress.talents?.[selected]?.[t.id]||0,price=talentCost(level,t),max=t.branch?1:3;
+    const required=t.branch&&(progress.talents?.[selected]?.[t.requires]||0)<t.requiredLevel;
+    const source=TALENTS[selected].find(x=>x.id===t.requires);
+    return '<div class="talent-card '+(t.branch?'talent-branch':'')+'"><strong>'+
+     (t.branch?'◆ ':'')+t.name+' · '+level+'/'+max+'</strong><small>'+t.description+'</small>'+
+     (t.branch?'<small>'+(required?'BENÖTIGT: '+source?.name+' STUFE '+t.requiredLevel:'KLASSENMEISTERSCHAFT ✓')+'</small>':'')+
+     '<button data-action="talent:'+selected+':'+t.id+'" '+(level>=max||required||progress.gold<price?'disabled':'')+'>'+ 
+     (level>=max?'MAXIMAL':'FREISCHALTEN · '+price+' ◆')+'</button></div>';
    }).join('')+'</div>'+
    '<div class="section-label">ERFOLGE · '+ACHIEVEMENTS.filter(a=>progress.achievements?.[a.id]).length+'/'+ACHIEVEMENTS.length+'</div>'+
    '<div class="achievement-list">'+ACHIEVEMENTS.map(a=>'<div class="achievement '+(progress.achievements?.[a.id]?'unlocked':'')+'">'+
@@ -99,7 +104,8 @@ function refreshPanel(){
  }else if(game.mode==='upgrade'){
   title.textContent='RELIKT';chapter.textContent='WÄHLE DEINE MACHT';
   panel.innerHTML='<p>Die Kammer ist gesäubert. Wähle eine Verbesserung für diesen Durchgang.</p><div class="upgrade-grid">'+
-   game.upgradeChoices.map(u=>'<button class="upgrade-card" data-action="upgrade:'+u.id+'"><strong>✦ '+u.name+'</strong><span>'+u.description+'</span></button>').join('')+'</div>';
+   game.upgradeChoices.map(u=>'<button class="upgrade-card '+(RUN_POWERS[game.player.kind].some(r=>r.id===u.id)?'build-choice':'')+'" data-action="upgrade:'+u.id+'"><strong>✦ '+u.name+'</strong><span>'+u.description+'</span></button>').join('')+'</div>'+
+   '<p class="build-summary">DEIN BUILD: '+(game.player.upgradeIds.filter(id=>RUN_POWERS[game.player.kind].some(r=>r.id===id)).map(id=>RUN_POWERS[game.player.kind].find(r=>r.id===id).name).join(' · ')||'Noch keine Klassenfähigkeit')+'</p>';
  }else if(game.mode==='shrine'){
   title.textContent='ALTER SCHREIN';chapter.textContent='DREI WEGE · EINE ENTSCHEIDUNG';
   panel.innerHTML='<p>In dieser stillen Kammer kannst du eine Gabe wählen.</p>'+
@@ -161,7 +167,13 @@ function refreshPanel(){
    '<strong style="color:'+RARITIES[item.rarity].color+'">'+item.name+'</strong>'+
    '<small>'+RARITIES[item.rarity].name+' · '+item.slot.toUpperCase()+' · '+describeStats(item)+'</small>'+
    '<span>'+(p.equipment[item.slot]?.id===item.id?'AUSGERÜSTET':'AUSRÜSTEN')+'</span></button>').join('');
-  panel.innerHTML='<div class="equip-grid">'+equipped+'</div><div class="section-label">GEFUNDENE AUSRÜSTUNG · '+p.inventory.length+'/18</div>'+
+  const setSummary='<div class="section-label">AUSRÜSTUNGSSETS · BONI AB ZWEI TEILEN</div><div class="equip-grid">'+
+   Object.entries(ITEM_SETS).map(([id,set])=>'<div class="equip-slot"><strong style="color:'+set.color+'">'+
+    set.name+' · '+setPieces(p,id)+'/2'+(setPieces(p,id)>=2?' ✓':'')+'</strong><small>'+set.description+'</small></div>').join('')+'</div>';
+  const buildSummary='<div class="section-label">AKTIVER BUILD</div><p>'+
+   (p.masteries?.map(id=>TALENTS[p.kind].find(t=>t.id===id)?.name||id).join(' · ')||'Noch keine Meisterschaft')+
+   ' · '+(p.upgradeIds.filter(id=>RUN_POWERS[p.kind].some(t=>t.id===id)).map(id=>RUN_POWERS[p.kind].find(t=>t.id===id).name).join(' · ')||'Keine Run-Fähigkeit')+'</p>';
+  panel.innerHTML='<div class="equip-grid">'+equipped+'</div>'+setSummary+buildSummary+'<div class="section-label">GEFUNDENE AUSRÜSTUNG · '+p.inventory.length+'/18</div>'+
    '<div class="inventory-list">'+(items||'<p>Du hast noch keine Gegenstände gefunden.</p>')+'</div>'+
    btn('closeInventory','ZUM SPIEL ZURÜCK','primary');
  }else if(game.mode==='paused'){

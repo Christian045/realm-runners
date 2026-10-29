@@ -3,7 +3,7 @@ import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.15.0';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js';
 import {createBossState, updateBoss, startPhaseTwo, isBossInvulnerable, PHASE_TWO_AT} from './boss.js?v=0.15.0';
 import {createWardenState} from './warden.js?v=0.15.0';
-import {generateItem,equipItem,applyTalents,buyTalent} from './loot.js';
+import {generateItem,equipItem,applyTalents,buyTalent} from './loot.js?v=0.16.0';
 import {hasAffix,onDash,beforeHit,afterHit,onHurt,onKill,statusTick} from './affixes.js';
 import {CHALLENGES,challengeUnlocked,applyRunChallenge,enemyExtraCount,challengeScale,challengeReward,awardAchievements} from './motivation.js';
 import {validSpecialization,specializationUnlocked,applySpecialization} from './specializations.js';
@@ -15,6 +15,7 @@ import {updateEncounterEnemy,encounterMitigation,rangedEncounterType} from './en
 import {nextTowerRelic,grantTowerRelic,towerRelicDamage,afterTowerRelicHit,towerRelicKill,towerRelicSave,towerRelicFloor} from './tower-relics.js';
 import {cappedBossDamage,BOSS_BALANCE} from './combat-balance.js?v=0.15.0';
 import {impactStyle} from './visual-impact.js?v=0.14.0';
+import {hasSet,hasRunPower,pickRunUpgrades,onBuildDash,onBuildHurt,onBuildHit,buildDamageFactor} from './buildcraft.js?v=0.16.0';
 
 export class Game {
  constructor(progress,input,onChange=()=>{}){
@@ -267,11 +268,13 @@ export class Game {
   p.abilityCooldown=Math.max(0,p.abilityCooldown-dt);
   p.attackCooldown=Math.max(0,p.attackCooldown-dt);
   p.invulnerable=Math.max(0,p.invulnerable-dt);
+  p.counterReady=Math.max(0,(p.counterReady||0)-dt);
+  p.evadeEmpower=Math.max(0,(p.evadeEmpower||0)-dt);
   if(this.input.consumeDash()&&p.dashCooldown<=0){
    p.dashVector=Math.hypot(move.x,move.y)>.1?normalized(move.x,move.y):{...p.direction};
-   p.dashTimer=.18;p.dashCooldown=p.specialization==='ranger'?.75:1.05;p.invulnerable=Math.max(p.invulnerable,.26);
+   p.dashTimer=.18;p.dashCooldown=(p.specialization==='ranger'?.75:1.05)*(hasSet(p,'tempest')?.84:1);p.invulnerable=Math.max(p.invulnerable,.26);
    this.createEffect('burst',p.x,p.y,CLASSES[p.kind].color,.25,20);
-   onDash(this);this.playSound('dash');
+   onDash(this);onBuildDash(this);this.playSound('dash');
   }
   if(p.dashTimer>0){
    this.move(p,p.dashVector.x*690*dt,p.dashVector.y*690*dt);
@@ -344,7 +347,17 @@ export class Game {
    for(const e of this.enemies){
     const delta=normalized(e.x-p.x,e.y-p.y);
     if(e.hp>0&&distance(e,p)<reach+e.radius&&delta.x*aim.x+delta.y*aim.y>.45)
-     this.hitEnemy(e,p.damage*(finisher?1.27:p.comboStep===2?1.04:1),aim,{finisher});
+     this.hitEnemy(e,p.damage*(finisher?1.27:p.comboStep===2?1.04:1),aim,{finisher,melee:true});
+   }
+   if(finisher&&(hasRunPower(p,'shockwave')||p.masteries?.includes('juggernaut'))){
+    const radius=hasRunPower(p,'shockwave')?145:110;
+    const bonus=hasRunPower(p,'shockwave')?.45:.30;
+    for(const e of [...this.enemies]){
+     const delta=normalized(e.x-p.x,e.y-p.y);
+     if(e.hp>0&&distance(e,p)<radius+e.radius&&delta.x*aim.x+delta.y*aim.y>.2)
+      this.hitEnemy(e,p.damage*bonus,aim,{proc:false});
+    }
+    this.createEffect('ring',p.x+aim.x*45,p.y+aim.y*45,'#ffd58d',.30,radius);
    }
   }else{
    const shotDamage=kind==='hunter'&&charged?p.damage*2.05:p.damage;
@@ -352,8 +365,18 @@ export class Game {
    this.spawnProjectile(p.x+aim.x*19,p.y+aim.y*19,aim,shotDamage,kind==='mage',false,shotSpeed);
    if(kind==='hunter'&&charged){
     const arrow=this.projectiles[this.projectiles.length-1];
-    arrow.pierce=3;arrow.hitIds=new Set();arrow.charged=true;
+    arrow.pierce=hasRunPower(p,'trueshot')?4:3;arrow.hitIds=new Set();arrow.charged=true;
     this.createEffect('slash',p.x+aim.x*24,p.y+aim.y*24,'#d4f7a6',.28,70,Math.atan2(aim.y,aim.x));
+   }
+   if(kind==='hunter'&&!charged&&hasRunPower(p,'multishot')){
+    p.volleyCount=(p.volleyCount||0)+1;
+    if(p.volleyCount%4===0){
+     for(const spread of [-.12,.12]){
+      const a=Math.atan2(aim.y,aim.x)+spread;
+      this.spawnProjectile(p.x,p.y,{x:Math.cos(a),y:Math.sin(a)},p.damage*.62,false,false);
+     }
+     this.createEffect('ring',p.x,p.y,'#bceea7',.20,27);
+    }
    }
    if(hasAffix(p,'triple'))for(const delta of [-.15,.15]){
     const a=Math.atan2(aim.y,aim.x)+delta;
@@ -364,6 +387,10 @@ export class Game {
  }
  ability(){
   const p=this.player,aim=p.direction;p.abilityCooldown=p.specialization==='arcanist'?5:7;p.castTimer=.36;this.playSound('ability');
+  if(p.kind==='mage'&&p.masteries?.includes('warding')){
+   p.shield=Math.max(p.shield||0,13);
+   this.createEffect('ring',p.x,p.y,'#a9c7ff',.45,40);
+  }
   if(p.kind==='warrior'){
    this.createEffect('ring',p.x,p.y,'#b6e5ff',.55,144);
    for(const e of this.enemies)if(e.hp>0&&distance(e,p)<145+e.radius)this.hitEnemy(e,p.damage*1.9,normalized(e.x-p.x,e.y-p.y));
@@ -377,7 +404,13 @@ export class Game {
    this.createEffect('ring',center.x,center.y,'#d5a7ff',.65,133);
    this.createEffect('ember',center.x-27,center.y-13,'#e7abff',.38,24);
    this.createEffect('ember',center.x+39,center.y+17,'#f1ad77',.45,21);
-   for(const e of this.enemies)if(e.hp>0&&distance(e,center)<133+e.radius)this.hitEnemy(e,p.damage*2.8,aim);
+   for(const e of [...this.enemies])if(e.hp>0&&distance(e,center)<133+e.radius)
+    this.hitEnemy(e,p.damage*2.8,aim,{magic:true});
+   if(hasRunPower(p,'arcaneBloom')){
+    this.createEffect('ring',center.x,center.y,'#f1a9f6',.72,175);
+    for(const e of [...this.enemies])if(e.hp>0&&distance(e,center)>115&&distance(e,center)<190+e.radius)
+     this.hitEnemy(e,p.damage*.95,aim,{proc:false});
+   }
   }
  }
  spawnProjectile(x,y,dir,damage,magic=false,hostile=false,speedOverride=null){
@@ -388,13 +421,21 @@ export class Game {
  hitEnemy(e,damage,dir,options={}){
   if(!e||e.hp<=0||isBossInvulnerable(e))return;
   const p=this.player,proc=options.proc!==false;
-  const critical=proc&&this.random()<p.crit;
+  const critical=proc&&this.random()<Math.min(.8,p.crit+(p.evadeEmpower>0?.17:0));
   let d=proc?beforeHit(this,e,damage):damage;
-  if(proc){d=towerRelicDamage(this,e,d);d=towerEnemyDamage(e,d,dir);d=encounterMitigation(e,d,dir)}
+  if(proc){
+   d=towerRelicDamage(this,e,d);d=towerEnemyDamage(e,d,dir);d=encounterMitigation(e,d,dir);
+   d*=buildDamageFactor(p,options);
+  }
   if(critical)d*=1.7;
   // A short, visible post-attack opening rewards learning the boss pattern.
   if(e.type==='boss'&&e.boss?.exposed>0)d*=1.18;
-  if(proc){p.hitCount++;if(p.hitCount%4===0&&p.upgradeIds.includes('bolt'))d+=p.damage*.7}
+  if(proc){
+   if(options.melee&&p.counterReady>0)p.counterReady=0;
+   p.hitCount++;
+   if(p.hitCount%4===0&&p.upgradeIds.includes('bolt'))d+=p.damage*.7;
+   if(p.evadeEmpower>0)p.evadeEmpower=0;
+  }
   d=Math.max(1,Math.round(d));
   if(e.type==='boss')d=cappedBossDamage(e,d);
   const threshold=Math.ceil(e.maxHp*PHASE_TWO_AT);
@@ -420,7 +461,7 @@ export class Game {
     color:style.core,radius:style.radius,life:style.duration,maxLife:style.duration});
    if(this.effects.length>110)this.effects.shift();
   }
-  if(proc&&e.hp>0){afterHit(this,e,d,critical,dir);afterTowerRelicHit(this,e,d)}
+  if(proc&&e.hp>0){afterHit(this,e,d,critical,dir);afterTowerRelicHit(this,e,d);onBuildHit(this,e,{proc,magic:options.magic})}
   if(e.hp<=0)this.killEnemy(e);
  }
  killEnemy(e){
@@ -463,7 +504,7 @@ export class Game {
   this.createEffect('text',p.x,p.y-32,actual?'-'+actual:'BLOCK','#ff9a91',.75);
   this.createEffect('burst',p.x,p.y,'#ff8397',.4,24);
   this.createEffect('ring',p.x,p.y,'#ffb6aa',.26,34);
-  if(actual>0)onHurt(this,actual);
+  if(actual>0){onHurt(this,actual);onBuildHurt(this,actual);}
   this.playSound(actual?'hurt':'block');
   if(p.hp<=0&&!towerRelicSave(this))this.finish(false);
  }
@@ -587,7 +628,7 @@ export class Game {
     if(distance(b,p)<b.radius+p.radius){this.hurt(b.damage,normalized(b.vx,b.vy));b.life=0}
    }else{
     for(const e of this.enemies)if(e.hp>0&&!b.hitIds?.has(e)&&distance(b,e)<b.radius+e.radius){
-     this.hitEnemy(e,b.damage,normalized(b.vx,b.vy));
+     this.hitEnemy(e,b.damage,normalized(b.vx,b.vy),{magic:b.magic,charged:b.charged});
      if(b.magic&&!b.hostile){
       this.createEffect('ring',e.x,e.y,'#eac8ff',.24,31);
       this.createEffect('ember',e.x+12,e.y-14,'#ffc18f',.30,13);
@@ -604,7 +645,10 @@ export class Game {
   this.projectiles=this.projectiles.filter(b=>b.life>0);
  }
  offerUpgrades(){
-  this.upgradeChoices=chooseUpgrades(this.random,3);this.mode='upgrade';this.notify();
+  this.upgradeChoices=chooseUpgrades(this.random,3);
+  const classOptions=pickRunUpgrades(this.random,this.player.kind,this.player.upgradeIds);
+  if(classOptions.length)this.upgradeChoices[0]=classOptions[0];
+  this.mode='upgrade';this.notify();
  }
  selectUpgrade(id){
   if(this.mode!=='upgrade'||!this.upgradeChoices.some(u=>u.id===id))return;
@@ -618,6 +662,8 @@ export class Game {
    case 'leech':p.leech+=.06;break;
    case 'crit':p.crit=Math.min(.8,p.crit+.12);break;
    case 'bolt':break;
+   case 'shockwave':case 'fortress':case 'trueshot':case 'multishot':
+   case 'wildfire':case 'arcaneBloom':break;
   }
   this.mode='playing';this.upgradeChoices=[];this.notify();
  }

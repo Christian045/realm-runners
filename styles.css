@@ -167,3 +167,12 @@ body:has(.boss-hud:not(.hidden)) .biome-label{display:none!important}
 .tower-victory small{display:block;margin-top:10px;font-size:11px;line-height:1.65;color:#d5e4d9;font-weight:500;text-shadow:none}
 .tower-toggle.selected{box-shadow:0 0 21px #a88fd560}
 @media(max-width:700px){.tower-victory{padding:12px 8px;font-size:14px}.tower-victory small{font-size:10px}.stage-time{font-size:10px}}
+
+/* v0.16 – readable branch talents, set synergy and class-defining upgrade cards. */
+.talent-branch{border-color:#c5a1ef;background:linear-gradient(150deg,#2a2446,#153c40);}
+.talent-branch strong{color:#ebcdff}.talent-branch small:last-of-type{color:#d7c0ff;font-weight:700}
+.upgrade-card.build-choice{border:2px solid #d6ba80;background:linear-gradient(135deg,#3c3553,#21544e)}
+.upgrade-card.build-choice strong{color:#ffe3a4}
+.build-summary{font-size:11px;line-height:1.55;color:#c0dcdb;text-align:center;margin:12px auto}
+.equip-slot small{display:block;font-size:10px;color:#b8cfc6;line-height:1.35;margin-top:5px}
+@media(max-width:700px){.talent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.talent-branch{min-height:126px}.equip-grid{gap:5px}.equip-slot small{font-size:9px}}
