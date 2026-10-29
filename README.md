@@ -1,4 +1,4 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.2)
+# Realm Runners – Dungeon Reborn (Alpha 0.2.1)
 
 **Top-down-Roguelite / Hack-and-Slash** auf Basis der bisherigen JavaScript-/HTML5-Canvas-Technik.
 Das bisherige Jump-and-Run wurde technisch und spielerisch neu aufgebaut. Der alte Stand bleibt im `main`-Branch bis zum Merge der Umstellung erhalten.
@@ -12,6 +12,13 @@ python3 -m http.server 8000
 ```
 
 Danach **http://localhost:8000** im Browser öffnen. Kein Build erforderlich.
+
+## Fix in Alpha 0.2.1 – Safari Doppeltipp-Zoom
+
+- Verhindert, dass iOS Safari durch Doppeltippen in Canvas-Ecken die Webseite vergrößert.
+- Unterdrückt native Pinch-/Zoom-Gesten auf dem Spielfeld; die Touch-Aktionsknöpfe bleiben unabhängig bedienbar.
+- Verhindert Doppeltipp-Zoom auf nicht-interaktiven Menü-Hintergründen, während Menübuttons weiterhin funktionieren und Menübereiche vertikal scrollen.
+- Testet Doppeltipp-Ecken und Touch-Interaktionen zusätzlich mit WebKit. Ein echter iPhone-Test ist trotzdem erforderlich.
 
 ## Neu in Alpha 0.2 – Schleimkönig und Dungeon-Atmosphäre
 
@@ -62,6 +69,7 @@ Die Räume verwenden zufällige Verbindungen, garantieren aber einen begehbaren 
 | `src/boss.js` | Zwei-Phasen-Boss-KI, Angriffswarnungen, Bossfähigkeiten |
 | `src/atmosphere.js` | Visuelle Raumthemen, Fackeln, Lichteffekte und Boss-Warnzonen |
 | `src/input.js` | Keyboard, Maus und Touch |
+| `src/touch-guard.js` | iOS-Safari-Gestenschutz ohne Eingriff in die Spielsteuerung |
 | `src/data.js` | Klassen, Gegnertypen, Upgrade-Definitionen |
 | `src/progression.js` | Save-Schema, Legacy-Import, persistente Käufe |
 | `styles.css` | Menü, HUD, responsive Touch-UI |
