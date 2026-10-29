@@ -29,6 +29,8 @@ const PAL={
  glasscannon:{outline:'#39203c',shadow:'#693e70',base:'#a46db9',light:'#eab9ff',trim:'#ffe0f5',skin:'#e9bdcf',dark:'#52335e',metal:'#e5c5f8',gold:'#fc8add',eye:'#32113f'},
  summoner:{outline:'#173c3b',shadow:'#2a685f',base:'#52897d',light:'#9fe6d1',trim:'#c5f5e8',skin:'#ddcba9',dark:'#244b4c',metal:'#9de3cf',gold:'#f1ca83',eye:'#103b38'},
  alchemist:{outline:'#293525',shadow:'#4a5932',base:'#7d9555',light:'#c6e9a3',trim:'#e3e7a0',skin:'#e8d2a3',dark:'#38482d',metal:'#c1c6ab',gold:'#efb66d',eye:'#1c3322'},
+ burrower:{outline:'#42372a',shadow:'#796048',base:'#b39269',light:'#ebd1a4',trim:'#e4ba76',skin:'#d4ac72',dark:'#5c4a34',metal:'#be9970',gold:'#d9b472',eye:'#312519'},
+ chanter:{outline:'#1e3b37',shadow:'#367c6c',base:'#5fa395',light:'#b2efd8',trim:'#d3eac4',skin:'#c4dfba',dark:'#345853',metal:'#99c4b4',gold:'#eac38e',eye:'#17322c'},
  archer:{outline:'#292343',shadow:'#413958',base:'#68568d',light:'#b5a2df',trim:'#eee0e6',skin:'#efd3b8',dark:'#3b3250',metal:'#cfc4e2',gold:'#d9cbff',eye:'#1c2736'},
  goblin:{outline:'#2f3223',shadow:'#4f5532',base:'#8c9850',light:'#d3d68a',trim:'#b5a76e',skin:'#bec77a',dark:'#535c32',metal:'#adb2ac',gold:'#e9b765',eye:'#332e29'},
  slime:{outline:'#203f39',shadow:'#3e7664',base:'#66b685',light:'#a4ecc1',trim:'#ceffe1',skin:'#92c4ae',dark:'#3e7562',metal:'#d6f2d5',gold:'#cdf2bd',eye:'#163932'},
