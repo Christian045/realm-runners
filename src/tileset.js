@@ -61,6 +61,10 @@ function floor(ctx,p,variation,theme){
  if(theme==='throne'){
   if(variation%3===1){put(ctx,'#944d63',0,9,24,4);put(ctx,'#ba7085',0,9,24,1)}
  }
+ // Directional pixel highlights across carved flagstone edges.
+ put(ctx,p[5],0,11,24,1);put(ctx,p[4],1,3,9,1);
+ put(ctx,p[5],10,15,1,7);put(ctx,p[3],11,16,9,1);
+ if(variation&4){put(ctx,p[4],4,5,2,1);put(ctx,p[0],5,6,1,1)}
 }
 function wall(ctx,p,variation,theme){
  put(ctx,p[5],0,0,24,24);
@@ -80,6 +84,10 @@ function wall(ctx,p,variation,theme){
  }else if(theme==='flooded'){
   put(ctx,'#356a7b',1,21,22,2);put(ctx,'#6cb8b7',3,21,13,1);
  }else if(theme==='throne')put(ctx,'#a14a66',0,6,24,1);
+ // Layered stone bevel. Bottom surfaces read as walls instead of floor slabs.
+ put(ctx,p[5],0,21,24,3);put(ctx,p[3],1,0,22,2);
+ put(ctx,p[4],2,2,10,1);put(ctx,p[0],21,2,3,19);
+ put(ctx,p[4],2,14,3,1);
 }
 function pillar(ctx,p,variation,theme){
  floor(ctx,p,variation,theme);
@@ -95,6 +103,9 @@ function pillar(ctx,p,variation,theme){
  put(ctx,p[5],7,7,2,10);
  put(ctx,p[4],19,6,1,10);
  if(variation&2){put(ctx,p[5],10,12,5,1);put(ctx,p[0],12,13,2,3)}
+ put(ctx,p[5],4,19,19,4);put(ctx,p[4],8,3,11,2);
+ put(ctx,p[3],7,7,2,10);put(ctx,p[4],18,7,2,3);
+ put(ctx,p[0],20,11,2,9);
 }
 export class PixelTileAtlas{
  constructor(canvasFactory=()=>document.createElement('canvas')){this.canvasFactory=canvasFactory;this.cache=new Map()}

@@ -93,6 +93,23 @@ function frameHero(ctx,p,kind,state,frame,face){
   stamp(ctx,p,[['gold',27,11+armRaise,2,18],['trim',25,8+armRaise,6,4]]);
   if(casting)stamp(ctx,p,[['light',25,4,6,3],['trim',27,2,3,3]]);
  }
+ // Separate silhouettes for the three playable classes during their actions.
+ if(kind==='warrior'&&attack){
+  const high=frame%3===0;
+  stamp(ctx,p,[['metal',high?22:25,high?2:4,7,3],
+   ['trim',high?18:26,high?5:9,5,2],
+   ['light',high?14:24,high?7:2,4,2]]);
+ }else if(kind==='hunter'&&(attack||casting)){
+  // Curved bow limb, taut string and a clearly nocked arrow.
+  stamp(ctx,p,[['gold',29,5,2,23],['trim',27,4,3,3],['trim',27,25,3,3],
+   ['light',19,14,12,2],['metal',29,12,3,6]]);
+ }else if(kind==='mage'&&(attack||casting)){
+  // Two-frame spell buildup around the staff and free hand.
+  const pulse=frame%2?1:0;
+  stamp(ctx,p,[['trim',26-pulse,2,7+pulse,5],['light',27,2,3,2],
+   ['gold',23,6+pulse,3,3],['light',3,16,5,3]]);
+ }
+ if(state==='hurt')stamp(ctx,p,[['trim',10,18,13,3],['light',12,20,9,2]]);
  ctx.restore();
 }
 function frameSlime(ctx,p,state,frame,king=false,phase=false){

@@ -205,30 +205,14 @@ export function drawDungeonAtmosphere(ctx,game){
    }
   }
   if(room.theme==='reliquary')for(const dx of [-175,175])drawChest(ctx,cx+dx,cy-95,room.cleared);
-  // Wall torches are decoration only, not extra collision obstacles.
-  const warm=room.type==='boss'||room.theme==='reliquary'||room.type==='elite'||room.type==='vault';
-  for(let i=0;i<4;i++){
-   const tx=cx+(i%2?198:-198),ty=cy+(i<2?-148:148);
-   if(d.isBlocked(tx,ty))torch(ctx,tx,ty,time,i+room.id*8,warm);
-  }
+  // The v0.14 wall lanterns are rendered by visual-world.js, anchored
+  // to blocked masonry tiles. Do not paint an unrelated second set here.
   ctx.font='bold 13px monospace';ctx.textAlign='center';
   ctx.fillStyle=th.accent+'8c';ctx.fillText(th.name,cx,top+TILE*1.8);
  }
- // Subtle tint over the stone, then additive pools of warm/cold light.
- ctx.fillStyle='#06161b2e';ctx.fillRect(cam.x,cam.y,cw,ch);
- ctx.save();ctx.globalCompositeOperation='screen';
- for(const room of d.rooms){
-  const left=room.gx*ROOM_W*TILE,top=room.gy*ROOM_H*TILE;
-  if(left+ROOM_W*TILE<cam.x-180||left>cam.x+cw+180||top+ROOM_H*TILE<cam.y-180||top>cam.y+ch+180)continue;
-  const warm=room.type==='boss'||room.theme==='reliquary'||room.type==='elite'||room.type==='vault';
-  for(let i=0;i<4;i++){
-   const x=room.cx+(i%2?198:-198),y=room.cy+(i<2?-148:148);
-   const flicker=.91+.09*Math.sin(time*11+i*5+room.id);
-   if(d.isBlocked(x,y))light(ctx,x,y,155,warm?'#f5a457':'#6bc8b1',flicker*.75);
-  }
- }
- light(ctx,game.player.x,game.player.y,230,'#82b4ba',.65);
- ctx.restore();
+ // Gentle ambient falloff; dynamic torches and character bounce light are
+ // drawn separately by the viewport-capped v0.14 lighting pass.
+ ctx.fillStyle='#06111b20';ctx.fillRect(cam.x,cam.y,cw,ch);
  // Low-density motes, bounded and reproducible, do not affect collisions.
  for(const room of d.rooms){
   if(Math.abs(room.cx-(cam.x+cw/2))>cw/2+300||Math.abs(room.cy-(cam.y+ch/2))>ch/2+300)continue;
