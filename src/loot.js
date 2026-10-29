@@ -5,7 +5,8 @@ export const RARITIES=Object.freeze({
  common:{name:'Gewöhnlich',color:'#d8e1d4',weight:60},
  rare:{name:'Selten',color:'#8ed0ff',weight:29},
  epic:{name:'Episch',color:'#d2a0ff',weight:10},
- legendary:{name:'Legendär',color:'#f8cb78',weight:1}
+ legendary:{name:'Legendär',color:'#f8cb78',weight:1},
+ mythic:{name:'Mythisch',color:'#ff94dd',weight:0}
 });
 export const ITEM_BASES=Object.freeze([
  {id:'sword',name:'Runenklinge',slot:'weapon',classes:['warrior'],damage:5,crit:.03},
@@ -31,7 +32,13 @@ export const ITEM_BASES=Object.freeze([
  {id:'gloves',name:'Kampfhandschuhe',slot:'armor',classes:null,damage:4,hp:9},
  {id:'hourglass',name:'Sanduhr',slot:'charm',classes:null,speed:15,crit:.03},
  {id:'cinder',name:'Glutfunke',slot:'charm',classes:null,damage:5,leech:.014},
- {id:'ironheart',name:'Eisenherz',slot:'charm',classes:null,guard:.06,hp:16}
+ {id:'ironheart',name:'Eisenherz',slot:'charm',classes:null,guard:.06,hp:16},
+ {id:'amuletMoon',name:'Mondamulett',slot:'amulet',classes:null,leech:.012,hp:9},
+ {id:'amuletSun',name:'Sonnenamulett',slot:'amulet',classes:null,damage:2,guard:.015},
+ {id:'ringFlint',name:'Funkenring',slot:'ring1',classes:null,damage:2,crit:.012},
+ {id:'ringMist',name:'Nebelring',slot:'ring1',classes:null,speed:5,hp:6},
+ {id:'ringOak',name:'Eichenring',slot:'ring2',classes:null,hp:9,guard:.018},
+ {id:'ringDawn',name:'Morgenring',slot:'ring2',classes:null,leech:.009,damage:2}
 ]);
 export const TALENTS=Object.freeze({
  warrior:[{id:'steel',name:'Eisenhaut',description:'+8 maximale LP pro Stufe',stat:'hp',value:8},
@@ -57,34 +64,35 @@ export function itemStats(item){
  for(const key of STATS)output[key]=(Number(item.stats?.[key])||0);
  return output;
 }
-export function generateItem(random,level=0,kind='warrior',guaranteedRare=false){
+export function generateItem(random,level=0,kind='warrior',guaranteedRare=false,bossLoot=false){
  const pool=ITEM_BASES.filter(i=>!i.classes||i.classes.includes(kind));
  const base=pool[Math.floor(random()*pool.length)];
  const roll=random()*100;
- const rarity=guaranteedRare?(roll<14?'legendary':roll<48?'epic':'rare'):
-  roll<1?'legendary':roll<11?'epic':roll<40?'rare':'common';
- const multiplier={common:1,rare:1.45,epic:1.9,legendary:2.55}[rarity];
- const bonus=1+Math.min(10,Math.max(0,level))*.11;
+ const rarity=bossLoot?(roll<1.5?'mythic':roll<22?'legendary':roll<68?'epic':'rare'):
+  guaranteedRare?(roll<14?'epic':'rare'):
+  roll<6?'epic':roll<31?'rare':'common';
+ const multiplier={common:1,rare:1.18,epic:1.38,legendary:1.55,mythic:1.72}[rarity];
+ const bonus=1+Math.min(10,Math.max(0,level))*.045;
  const stats={};
  for(const key of STATS){
   if(base[key]===undefined)continue;
   const n=base[key]*multiplier*bonus;
   stats[key]=['crit','guard','leech'].includes(key)?Math.round(n*1000)/1000:Math.round(n);
  }
- const affix=rollAffix(random,rarity);
+ const affix=rarity==='mythic'?['chain','dashNova','splash','shield','critHeal'][Math.floor(random()*5)]:rollAffix(random,rarity);
  const setId=rollSet(random,rarity);
  return {
   id:base.id+'-'+rarity+'-'+Math.floor(random()*1e9),
   baseId:base.id,slot:base.slot,kind,rarity,
-  name:(setId?ITEM_SETS[setId].name+' · ':rarity==='legendary'?'Mythischer ':rarity==='epic'?'Verzauberter ':rarity==='rare'?'Alter ':'')+base.name,
+  name:(rarity==='mythic'?'Mythischer ':setId?ITEM_SETS[setId].name+' · ':rarity==='legendary'?'Legendärer ':rarity==='epic'?'Verzauberter ':rarity==='rare'?'Alter ':'')+base.name,
   classes:base.classes,stats,affix,setId,
   level:Math.max(1,level+1)
  };
 }
 export function canEquip(item,kind){return !!item&&(!item.classes||item.classes.includes(kind))}
 export function equipItem(player,item){
- if(!canEquip(item,player.kind)||!['weapon','armor','charm'].includes(item.slot))return false;
- if(!player.equipment)player.equipment={weapon:null,armor:null,charm:null};
+ if(!canEquip(item,player.kind)||!['weapon','armor','charm','amulet','ring1','ring2'].includes(item.slot))return false;
+ if(!player.equipment)player.equipment={weapon:null,armor:null,charm:null,amulet:null,ring1:null,ring2:null};
  if(!player.inventory)player.inventory=[];
  if(!player.inventory.some(i=>i.id===item.id))return false;
  const old=player.equipment[item.slot],before=itemStats(old),after=itemStats(item);
