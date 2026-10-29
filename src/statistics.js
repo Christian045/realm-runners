@@ -5,6 +5,7 @@ export const ENEMY_NAMES=Object.freeze({
  goblin:'Goblin',wraith:'Geist',sentinel:'Wächter',
  cultist:'Kultist',brute:'Schläger',assassin:'Schattenläufer',
  scout:'Knochenjäger',hexer:'Runenwirker',bulwark:'Schildwache',
+ burrower:'Erdbohrer',chanter:'Nebelrufer',
  boss:'Boss'
 });
 const finite=(value,max=1e12)=>{
