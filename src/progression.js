@@ -1,6 +1,6 @@
-import { CLASSES } from './data.js';
-import { TALENTS } from './loot.js?v=0.16.0';
-import {defaultStatistics,normalizeStatistics} from './statistics.js?v=0.20.0';
+import { CLASSES } from './data.js?v=0.21.0';
+import { TALENTS } from './loot.js?v=0.21.0';
+import {defaultStatistics,normalizeStatistics} from './statistics.js?v=0.21.0';
 export const SAVE_KEY='realm-runners-roguelite-v1';
 export const OLD_SAVE_KEY='realm-runners-save-v2';
 export function defaultProgress(){return {version:1,gold:0,runs:0,bestRooms:0,bossKills:0,noHitWins:0,selectedClass:'warrior',upgrades:{vitality:0,strength:0},talents:{warrior:{},hunter:{},mage:{}},itemsFound:0,eliteKills:0,deepestFloor:1,towerBest:0,towerWins:0,towerBestTime:0,towerLastTime:0,towerStageRecords:{},achievements:{},statistics:defaultStatistics()}}
