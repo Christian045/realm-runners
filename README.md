@@ -1,4 +1,13 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.12.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.12.1)
+
+## Alpha 0.12.1 – Fehlerbehebung: Gegner greifen wieder an
+
+- Nahkampfgegner stoppen wie bisher kurz vor dem Helden, lösen jetzt aber in dieser Reichweite einen echten, kurzen, angekündigten Nahkampfangriff aus. Zuvor stoppten sie bei +8 Pixeln Abstand und trafen nur bei +3 Pixeln: Wer stillstand, wurde nie angegriffen.
+- Gegnerschläge haben eine 0,3-Sekunden-Vorwarnung und eigene Abklingzeit. Verlässt der Held währenddessen die Reichweite oder deckt eine Wand die Sicht, geht der Angriff fehl; keine unsichtbaren Treffer durch Wände.
+- Funktioniert in normalem Dungeon, Endlosmodus und Zehn-Etagen-Turm. Bossmechaniken, fernkämpfende Gegner, Etagenlänge, Spielstände und die iPhone-Steuerung bleiben erhalten.
+- Regressionstests: stationärer Held, wiederholte Treffer, Turmgegner, Ausweichen, Wände und Bogenschützen.
+
+
 
 ## Alpha 0.12 – Tower & Boss Overhaul
 

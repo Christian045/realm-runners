@@ -460,7 +460,19 @@ export class Game {
     e.castTimer=Math.max(e.castTimer,.18);
     e.windup-=dt;
     if(e.windup<=0){
-     if(e.type==='boss'){
+     if(e.attackType==='melee'){
+      // The enemy deliberately stops just outside physical collision distance.
+      // A short, visible swing must still connect with a stationary player.
+      const reach=e.radius+p.radius+18;
+      if(distance(e,p)<=reach&&hasLineOfSight(this.dungeon,e.x,e.y,p.x,p.y,true)){
+       const before=p.hp;
+       this.hurt(e.damage,normalized(p.x-e.x,p.y-e.y));
+       if(e.eliteMod==='vampiric'&&p.hp<before)e.hp=Math.min(e.maxHp,e.hp+8);
+      }
+      e.attackTimer=.24;
+      e.attackType=null;
+      e.cooldown=e.elite?1.0:1.15;
+     }else if(e.type==='boss'){
       for(let i=-2;i<=2;i++){
        const a=Math.atan2(dir.y,dir.x)+i*.18;
        this.spawnProjectile(e.x,e.y,{x:Math.cos(a),y:Math.sin(a)},e.damage,false,true);
@@ -489,11 +501,15 @@ export class Game {
       e.windup=e.type==='boss'?.8:.58;
       e.cooldown=99;
       this.createEffect('ring',e.x,e.y,e.type==='boss'?'#ff6f83':'#ecc5ff',e.windup,37);
-     }else if(dist<e.radius+p.radius+12)e.cooldown=.8;
-    }
-    if(dist<e.radius+p.radius+3){
-     const prev=p.hp;this.hurt(e.damage,dir);
-     if(e.eliteMod==='vampiric'&&p.hp<prev)e.hp=Math.min(e.maxHp,e.hp+8);
+     }else if(!['archer','cultist'].includes(e.type)&&
+      dist<=e.radius+p.radius+18&&
+      hasLineOfSight(this.dungeon,e.x,e.y,p.x,p.y,true)){
+      // Attack windup is independent of movement or player input.
+      // Previously enemies stopped at +8px, but contact damage required +3px:
+      // standing still made them wait forever without attacking.
+      e.attackType='melee';e.windup=.3;e.castTimer=.3;e.cooldown=99;
+      this.createEffect('ring',e.x,e.y,'#ffb887',.32,e.radius+17);
+     }
     }
    }
    e.knock.x*=Math.pow(.025,dt);e.knock.y*=Math.pow(.025,dt);
