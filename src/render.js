@@ -68,11 +68,13 @@ export class Renderer {
   const entities=[
    ...game.loot.map(e=>({kind:'loot',e,y:e.y})),
    ...game.enemies.map(e=>({kind:'enemy',e,y:e.y})),
+   ...(game.servant?[{kind:'servant',e:game.servant,y:game.servant.y}]:[]),
    {kind:'player',e:game.player,y:game.player.y}
   ].sort((a,b)=>a.y-b.y);
   for(const v of entities){
    if(v.kind==='player')this.player(v.e,game.time);
    else if(v.kind==='enemy')this.enemy(v.e,game.time);
+   else if(v.kind==='servant')this.servant(v.e,game.time);
    else this.drop(v.e,game.time);
   }
   for(const b of game.projectiles)this.projectile(b);
@@ -150,11 +152,28 @@ export class Renderer {
   c.fillStyle='#13252b70';c.beginPath();c.ellipse(x-3,y+5,r*.82,r*.27,0,0,Math.PI*2);c.fill();
   c.restore();
  }
+ servant(s,time){
+  const c=this.ctx;
+  const color=s.kind==='guardian'?'#a6c9e9':s.kind==='ranger'?'#c5efa5':'#b4f4e0';
+  c.save();c.translate(Math.round(s.x),Math.round(s.y));
+  c.globalAlpha=.92;c.fillStyle='#081b24b0';
+  c.beginPath();c.ellipse(1,12,13,5,0,0,Math.PI*2);c.fill();
+  c.translate(0,Math.sin(time*5)*2);
+  c.fillStyle='#182d38';c.fillRect(-10,-16,20,25);
+  c.fillStyle=color;c.fillRect(-7,-12,14,17);
+  c.fillStyle='#e9f6e2';c.fillRect(-4,-8,8,5);
+  if(s.kind==='guardian'){c.fillStyle='#8697bb';c.fillRect(-15,-10,6,20);}
+  if(s.kind==='ranger'){c.fillStyle='#dfbf7e';c.fillRect(10,-11,4,20);}
+  if(s.kind==='spirit'){
+   c.globalAlpha=.25;c.fillStyle='#99f4df';c.beginPath();c.arc(0,-4,18,0,Math.PI*2);c.fill();
+  }
+  c.restore();
+ }
  player(p,time){
   if(!p)return;
   const c=this.ctx,k=CLASSES[p.kind],f=p.direction||{x:0,y:1};
   const face=weaponFacing(f);
-  const drawWeapon=()=>{if(p.kind==='warrior')drawWarriorSword(c,p);else if(p.kind==='mage')drawMageStaff(c,p)};
+  const drawWeapon=()=>{if(p.kind==='warrior')drawWarriorSword(c,p);else if(['mage','glasscannon','summoner'].includes(p.kind))drawMageStaff(c,{...p,kind:'mage'})};
   this.shadow(p.x,p.y,p.radius+5);
   // Looking north places the weapon behind the body; other facings show it in front.
   if(face==='up')drawWeapon();
