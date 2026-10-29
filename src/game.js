@@ -591,7 +591,10 @@ export class Game {
    e.moving=false;e.attackTimer=Math.max(0,(e.attackTimer||0)-dt);
    e.castTimer=Math.max(0,(e.castTimer||0)-dt);
    e.hurtTimer=Math.max(0,(e.hurtTimer||0)-dt);
-   statusTick(this,e,dt);if(e.hp<=0)continue;
+   const hpBeforeStatus=e.hp;
+   statusTick(this,e,dt);
+   recordDamage(this.progress.statistics,this.runStatistics,Math.max(0,hpBeforeStatus-e.hp),'dealt');
+   if(e.hp<=0)continue;
    if(e.type==='boss'&&e.boss){updateBoss(this,e,dt);if(this.mode!=='playing')return;continue}
    e.elapsed+=dt;e.flash=Math.max(0,e.flash-dt);e.cooldown-=dt;
    e.guardTime=Math.max(0,(e.guardTime||0)-dt);
