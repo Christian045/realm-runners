@@ -120,11 +120,8 @@ export class Renderer {
    }
    c.restore();
   }
-  for(const room of d.rooms)if(room.visited||room.type==='start'){
-   c.textAlign='center';c.font='11px monospace';c.fillStyle='#9ab5a177';
-   c.fillText(room.roomLabel||'KAMMER '+(room.id+1),
-    room.cx,room.cy-ROOM_H*TILE*.34);
-  }
+  // Keep the playable floor free of room-name labels. Room identity
+  // remains visible through architecture, lighting and the minimap.
  }
  fogOfWar(game){
   const c=this.ctx,d=game.dungeon;
@@ -335,8 +332,7 @@ export class Renderer {
    if(room.visited&&flags[room.type])fill(c,flags[room.type],x+size*.28,y+size*.28,size*.44,size*.44);
    if(current?.id===room.id){c.strokeStyle='#fff3d5';c.lineWidth=2*dp;c.strokeRect(x-dp,y-dp,size+2*dp,size+2*dp)}
   }
-  c.fillStyle='#bbd4c8';c.textAlign='left';c.font=8*dp+'px monospace';
-  c.fillText('KARTE',px,py-12*dp);
+  // The minimap is recognisable without an additional text caption.
  }
 
 }
