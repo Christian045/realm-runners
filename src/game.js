@@ -128,8 +128,8 @@ export class Game {
   else return false;
   this.mode='playing';this.notify();return true;
  }
- dropGear(x,y,rare=false){
-  const item=generateItem(this.random,this.clearCount,this.player.kind,rare);
+ dropGear(x,y,rare=false,bossLoot=false){
+  const item=generateItem(this.random,this.clearCount,this.player.kind,rare,bossLoot);
   this.loot.push({x,y,type:'gear',item,picked:false});
   this.createEffect('ring',x,y,'#bfa3ff',.7,31);
   return item;
@@ -150,7 +150,7 @@ export class Game {
    direction:{x:1,y:0},upgradeIds:[],hitCount:0,inventory:[],
    moving:false,attackTimer:0,castTimer:0,hurtTimer:0,walkCycle:0,
    comboStep:0,comboTime:0,hunterCharge:0,
-   equipment:{weapon:null,armor:null,charm:null}};
+   equipment:{weapon:null,armor:null,charm:null,amulet:null,ring1:null,ring2:null}};
   applyTalents(this.player,this.progress);
   applySpecialization(this.player,specializationUnlocked(this.progress,this.specialization)?this.specialization:'standard');
   applyRunChallenge(this,this.runMode);
@@ -544,6 +544,7 @@ export class Game {
   recordEnemyKill(this.progress.statistics,this.runStatistics,e.type,
    e.type==='boss'?(e.boss?.name||'Schleimkönig'):undefined);
   if(e.type==='boss'){
+   this.dropGear(e.x+38,e.y+18,true,true);
    for(const add of this.enemies)if(add!==e&&add.homeRoom===e.homeRoom)add.hp=0;
    this.projectiles=this.projectiles.filter(p=>!p.hostile);
   }
