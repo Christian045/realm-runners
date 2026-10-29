@@ -1,7 +1,8 @@
 import {CLASSES} from './data.js?v=0.15.0';
-import {loadProgress,upgradeCost} from './progression.js?v=0.16.0';
+import {loadProgress,upgradeCost} from './progression.js?v=0.20.0';
+import {ENEMY_NAMES,totalKills,formatPlayTime} from './statistics.js?v=0.20.0';
 import {Input} from './input.js?v=0.19.3';
-import {Game} from './game.js?v=0.18.0';
+import {Game} from './game.js?v=0.20.0';
 import {Renderer} from './render.js?v=0.19.4';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.16.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.16.0';
@@ -20,12 +21,63 @@ const renderer=new Renderer(canvas),input=new Input(canvas);
 const progress=loadProgress();
 const game=new Game(progress,input,()=>refreshPanel());
 const audio=new AudioFeedback();game.sound=id=>audio.play(id);
-let selected=progress.selectedClass;
+let selected=progress.selectedClass,menuTab='play';
 const icons={warrior:'⚔',hunter:'➶',mage:'✦'};
 const label=key=>({vitality:'Lebenskraft',strength:'Waffenschmiede'})[key];
 const upgradeDescription=key=>key==='vitality'?'+12 LP pro Stufe':'+8% Schaden pro Stufe';
 const fmtTime=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/3600)?Math.floor(s/3600)+':'+String(Math.floor(s/60)%60).padStart(2,'0')+':'+String(s%60).padStart(2,'0'):Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 const btn=(action,text,cls='secondary',extra='')=>'<button type="button" class="'+cls+'" data-action="'+action+'" '+extra+'>'+text+'</button>';
+
+const safeText=value=>String(value).replace(/[&<>"']/g,char=>({
+ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+})[char]);
+const numberText=value=>Math.floor(Number(value)||0).toLocaleString('de-DE');
+function statisticsNavigation(){
+ return '<nav class="castle-tabs" aria-label="Menübereiche">'+
+  '<button type="button" data-action="menuTab:play" aria-pressed="'+(menuTab==='play')+'" class="'+(menuTab==='play'?'selected':'')+'">⚔ SPIELEN</button>'+
+  '<button type="button" data-action="menuTab:stats" aria-pressed="'+(menuTab==='stats')+'" class="'+(menuTab==='stats'?'selected':'')+'">▤ STATISTIKEN</button></nav>';
+}
+function renderStatistics(){
+ const stats=progress.statistics;
+ const cards=[
+  ['Gesamtspielzeit',formatPlayTime(stats.playTime)],
+  ['Runs abgeschlossen',numberText(progress.runs)],
+  ['Erfolgreiche Runs',numberText(stats.victories)],
+  ['Tode',numberText(stats.deaths)],
+  ['Boss-Siege',numberText(progress.bossKills)],
+  ['Gegner besiegt',numberText(totalKills(stats))],
+  ['Schaden verursacht',numberText(stats.damageDealt)],
+  ['Schaden erlitten',numberText(stats.damageTaken)]
+ ];
+ const monsterList=Object.entries(ENEMY_NAMES).filter(([type])=>type!=='boss')
+  .sort((a,b)=>(stats.kills[b[0]]||0)-(stats.kills[a[0]]||0)||a[1].localeCompare(b[1]))
+  .map(([type,label])=>'<div class="stats-row"><span>'+safeText(label)+'</span><strong>'+
+   numberText(stats.kills[type]||0)+'</strong></div>').join('');
+ const bosses=Object.entries(stats.bosses).sort((a,b)=>b[1]-a[1])
+  .map(([name,count])=>'<div class="stats-row"><span>'+safeText(name)+'</span><strong>'+
+   numberText(count)+'</strong></div>').join('')||
+   '<p class="stats-empty">Noch keine Boss-Siege seit Einführung der Statistik.</p>';
+ const runList=stats.recentRuns.map(run=>{
+  const className=CLASSES[run.classKind]?.name||'Krieger';
+  const date=run.date?new Date(run.date).toLocaleDateString('de-DE'):'';
+  return '<div class="stats-run"><div><strong class="'+(run.won?'won':'lost')+'">'+
+   (run.won?'SIEG':'NIEDERLAGE')+'</strong><span>'+safeText(run.mode)+' · '+
+   safeText(className)+' · '+date+'</span></div><small>Etage '+run.floor+
+   ' · '+formatPlayTime(run.seconds)+' · '+numberText(run.kills)+' Kills · '+
+   numberText(run.damageDealt)+' Schaden</small></div>';
+ }).join('')||'<p class="stats-empty">Noch keine abgeschlossenen Runs seit dem Statistik-Update.</p>';
+ return '<section class="stats-dashboard" aria-label="Spielstatistiken">'+
+  '<div class="section-label">DEINE SPIELERCHRONIK</div>'+
+  '<div class="stats-metrics">'+cards.map(([label,value])=>
+   '<div class="stats-metric"><span>'+label+'</span><strong>'+value+'</strong></div>').join('')+'</div>'+
+  '<div class="stats-columns"><section><h2>GEGNER BESIEGT</h2><div class="stats-row boss-total"><span>Alle Bosse</span><strong>'+
+    numberText(stats.kills.boss||0)+'</strong></div>'+monsterList+'</section>'+
+  '<section><h2>BOSSE NACH NAME</h2>'+bosses+
+    '<h2 class="stats-recent-heading">LETZTE RUNS</h2><div class="stats-runs">'+runList+'</div></section></div>'+
+  '<p class="stats-footnote">Bereits vorhandene Runs und Boss-Siege wurden aus deinem bisherigen Spielstand übernommen. Spielzeit, Tode, einzelne Gegnerkills und Run-Ergebnisse werden ab Version 0.20.0 gezählt. Angefangene oder abgebrochene Runs werden nicht als Sieg oder Tod gewertet.</p>'+
+  '</section>';
+}
+
 function refreshPanel(){
  const overlay=$('overlay'),panel=$('panelContent'),playing=game.mode==='playing';
  const panelShell=overlay.querySelector('.panel'),isMenu=game.mode==='menu';
@@ -42,6 +94,7 @@ function refreshPanel(){
  overlay.dataset.renderMode=game.mode;
  overlay.classList.toggle('hidden',playing);
  overlay.classList.toggle('castle-menu',isMenu);
+ overlay.classList.toggle('stats-tab',isMenu&&menuTab==='stats');
  // Menu typography is intentionally cinematic; gameplay decisions use compact dialogs.
  overlay.classList.toggle('dialog-view',!playing&&!isMenu);
  overlay.classList.toggle('dialog-inventory',game.mode==='inventory');
@@ -55,7 +108,8 @@ function refreshPanel(){
  if(playing)return;
  const title=$('overlay').querySelector('h1'),chapter=$('overlay').querySelector('.chapter');
  if(game.mode==='menu'){
-  title.innerHTML='REALM<br><em>RUNNERS</em>';chapter.textContent='DUNGEON REBORN';
+  title.innerHTML='REALM<br><em>RUNNERS</em>';chapter.textContent=menuTab==='stats'?'DEINE CHRONIK':'DUNGEON REBORN';
+  if(menuTab==='stats'){panel.innerHTML=renderStatistics()}else{
   panel.innerHTML='<div class="castle-stage"><span class="castle-stage-caption">DIE HALLE DER HELDEN</span><div class="castle-hero"><canvas data-hero="'+selected+'" width="32" height="36" aria-label="Ausgewählter Charakter"></canvas></div><span class="castle-hero-name">'+CLASSES[selected].name+'</span><span class="castle-hero-sub">'+CLASSES[selected].subtitle+'</span></div><div class="section-label">WÄHLE DEINEN HELDEN</div><div class="class-grid">'+
    Object.entries(CLASSES).map(([id,c])=>'<button class="class-card '+(selected===id?'active':'')+'" data-action="class:'+id+'"><canvas class="class-preview" data-hero="'+id+'" width="32" height="36" aria-hidden="true"></canvas><strong>'+c.name+'</strong><small>'+c.subtitle+'</small></button>').join('')+'</div>'+
    '<details class="castle-advanced"><summary>KLASSE ANPASSEN · SPEZIALISIERUNG</summary><div class="section-label">SPEZIALISIERUNG</div><div class="specialization-grid">'+
@@ -101,6 +155,8 @@ function refreshPanel(){
      '<span>'+(progress.achievements?.[a.id]?'★':'◇')+'</span><div><strong>'+a.name+'</strong><small>'+a.description+' · '+Math.min(a.target,progress[a.metric]||0)+'/'+a.target+' · +'+a.reward+' ◆</small></div></div>').join('')+'</div>'+
    '</details><button class="sound-toggle" data-action="sound">'+(audio.enabled?'♪ TON AN':'♪ TON AUS')+'</button>'+
    '<p class="footnote">WASD bewegen · Maus zielen · Linksklick/F angreifen · Leertaste/Shift ausweichen · Q Spezialfähigkeit · I Inventar<br>Handy: Stick und Aktionsknöpfe. Dein bisheriger Spielstand bleibt erhalten.</p>';
+  }
+  panel.innerHTML=statisticsNavigation()+panel.innerHTML;
  }else if(game.mode==='stageclear'){
   const stage=game.currentTowerStage();
   title.textContent='ETAGE '+game.floorDepth+' GESCHAFFT!';
@@ -238,6 +294,14 @@ function refreshPanel(){
 $('panelContent').addEventListener('click',e=>{
  const element=e.target.closest('button[data-action]');if(!element)return;
  const [action,value,extra]=element.dataset.action.split(':');
+ if(action==='menuTab'){
+  if(game.mode==='menu'&&['play','stats'].includes(value)){
+   menuTab=value;
+   $('overlay').querySelector('.panel').scrollTop=0;
+   refreshPanel();
+  }
+  return;
+ }
  if(action==='class'){selected=value;game.chooseClass(value)}
  if(action==='challenge')game.setChallenge(value);
  if(action==='specialization')game.selectSpecialization(value);
@@ -267,7 +331,7 @@ window.addEventListener('keydown',e=>{
  }
  if(e.code==='KeyI'&&!e.repeat&&['playing','inventory'].includes(game.mode))game.toggleInventory();
  // Enter on a focused menu control should activate that control, not start a run.
- if(e.code==='Enter'&&!e.repeat&&game.mode==='menu'&&
+ if(e.code==='Enter'&&!e.repeat&&game.mode==='menu'&&menuTab==='play'&&
   !e.target?.closest?.('button,summary,input,select,textarea,a,[role="button"]'))game.start(selected);
 });
 function updateHud(){
@@ -327,4 +391,6 @@ function frame(now){
  if(now-hudTime>90){updateHud();hudTime=now}
  requestAnimationFrame(frame);
 }
+window.addEventListener('pagehide',()=>game.saveStatistics());
+document.addEventListener('visibilitychange',()=>{if(document.hidden)game.saveStatistics()});
 refreshPanel();requestAnimationFrame(frame);
