@@ -244,3 +244,127 @@ body:has(.boss-hud:not(.hidden)) .biome-label{display:none!important}
  .castle-menu .castle-torch-left{left:15%}.castle-menu .castle-torch-right{right:15%}
 }
 @media(prefers-reduced-motion:reduce){.castle-menu .castle-torch:before{animation:none}}
+
+
+/* Alpha 0.19.1 – Gameplay overlays are dialogs, not the cinematic main menu.
+   Prevent horizontal overflow at every breakpoint; short choices fit without scroll. */
+.overlay.dialog-view{
+ overflow:hidden;
+ overflow-x:clip;
+ padding:clamp(12px,2.4vw,28px);
+ align-items:center;
+ justify-content:center;
+}
+.dialog-view .menu-eyebrow,
+.dialog-view .menu-intro{display:none!important}
+.dialog-view .panel{
+ box-sizing:border-box;
+ flex:0 1 auto;
+ min-width:0;
+ width:min(660px,100%);
+ max-height:calc(100dvh - 2 * clamp(12px,2.4vw,28px));
+ padding:clamp(15px,2.5vw,25px) clamp(14px,3vw,30px);
+ overflow-x:hidden;
+ overflow-y:auto;
+ overscroll-behavior:contain;
+ scrollbar-width:thin;
+ scrollbar-color:#67817b #10252b;
+}
+.dialog-view .panel h1{
+ box-sizing:border-box;
+ display:block;
+ width:100%;
+ max-width:100%;
+ font-size:clamp(27px,3.4vw,44px);
+ font-weight:900;
+ letter-spacing:.025em;
+ line-height:1.12;
+ margin:3px auto 11px;
+ padding:0 1px;
+ overflow-wrap:break-word;
+ word-break:normal;
+ hyphens:auto;
+ text-wrap:balance;
+}
+.dialog-view .panel h1.long-title{
+ font-size:clamp(25px,3vw,38px);
+ letter-spacing:.014em;
+ line-height:1.14;
+}
+.dialog-view .chapter{
+ font-size:clamp(10px,1.1vw,12px);
+ letter-spacing:.13em;
+ line-height:1.4;
+ margin:0 0 13px;
+ padding-top:10px;
+ overflow-wrap:anywhere;
+}
+.dialog-view .panel p{
+ max-width:100%;
+ font-size:13px;
+ line-height:1.5;
+ margin:8px auto 13px;
+ text-wrap:pretty;
+ overflow-wrap:break-word;
+}
+.dialog-view #panelContent,
+.dialog-view .upgrade-grid,
+.dialog-view .inventory-list,
+.dialog-view .meta-row,
+.dialog-view .summary,
+.dialog-view .equip-grid,
+.dialog-view .talent-grid{min-width:0;max-width:100%}
+.dialog-view #panelContent button{
+ max-width:100%;
+ min-width:0;
+ white-space:normal;
+ overflow-wrap:break-word;
+ word-break:normal;
+}
+.dialog-view .upgrade-grid{gap:8px}
+.dialog-view .upgrade-grid>.secondary,
+.dialog-view .upgrade-grid>.primary{
+ min-height:43px;
+ margin:0;
+ padding:10px 12px;
+ line-height:1.3;
+}
+.dialog-view .upgrade-card{padding:11px 13px}
+.dialog-choice .panel{width:min(620px,100%)}
+.dialog-choice .panel h1{margin-top:0}
+.dialog-inventory .panel{width:min(730px,100%)}
+.dialog-inventory .inventory-list{max-height:min(40dvh,370px);overflow-x:hidden}
+.dialog-view .rune-riddle{max-width:100%}
+.dialog-view :is(.upgrade-card,.inventory-item,.equip-slot,.talent-card,.meta-card){
+ min-width:0;
+ overflow-wrap:break-word;
+}
+@media(max-width:700px){
+ .overlay.dialog-view{padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom))}
+ .dialog-view .panel{
+  width:100%;
+  max-height:calc(100dvh - 20px);
+  padding:16px 13px 19px;
+ }
+ .dialog-view .panel h1{
+  font-size:clamp(24px,7.5vw,34px);
+  letter-spacing:.015em;
+  line-height:1.13;
+ }
+ .dialog-view .panel h1.long-title{
+  font-size:clamp(22px,6.7vw,30px);
+  letter-spacing:0;
+ }
+ .dialog-view .chapter{font-size:10px;letter-spacing:.08em;margin-bottom:11px}
+ .dialog-view .panel p{font-size:12px;line-height:1.45;margin:7px auto 11px}
+ .dialog-view .upgrade-grid{gap:6px}
+ .dialog-view .upgrade-grid>.secondary{min-height:42px;padding:9px 8px}
+ .dialog-view .summary{gap:4px}
+}
+@media(max-height:540px){
+ .dialog-view .panel{padding-top:11px;padding-bottom:12px}
+ .dialog-view .panel h1{font-size:clamp(23px,3vw,31px)}
+ .dialog-view .panel h1.long-title{font-size:clamp(21px,2.7vw,29px)}
+ .dialog-view .chapter{margin-bottom:7px}
+ .dialog-view .panel p{margin:6px auto 9px}
+}
