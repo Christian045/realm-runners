@@ -74,7 +74,11 @@ export function roomDressings(d,room){
  // Real fixture brackets are only attached to blocked tiles with a reachable
  // floor next to them. Thus they cannot hover in a cleared combat corridor.
  const tileX=room.gx*ROOM_W,tileY=room.gy*ROOM_H;
- const candidates=[[1,1],[13,1],[1,9],[13,9],[7,1],[7,9],[1,5],[13,5]];
+ const candidates=[[0,5],[14,5],[7,0],[7,10],[0,3],[14,7],[3,0],[11,10]];
+ // Irregular L-/compact-shaped rooms may not expose an outer wall adjacent
+ // to floor, so discover interior wall edges as a deterministic fallback.
+ for(let y=1;y<10;y+=2)for(let x=1;x<14;x+=2)
+  if(Math.abs(x-7)+Math.abs(y-5)>3)candidates.push([x,y]);
  let torches=0;
  for(const [cx,cy] of candidates){
   const x=tileX+cx,y=tileY+cy;
