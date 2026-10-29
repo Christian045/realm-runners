@@ -14,7 +14,7 @@ export function cappedBossDamage(enemy,raw){
  const variant=enemy.boss?.variant;
  const fraction=variant==='sovereign'?BOSS_BALANCE.sovereignHitFraction:
   variant==='tower'?BOSS_BALANCE.towerHitFraction:BOSS_BALANCE.normalHitFraction;
- return Math.min(raw,Math.max(1,Math.ceil(enemy.maxHp*fraction)));
+ return Math.min(raw,Math.max(1,Math.round(enemy.maxHp*fraction)));
 }
 export function towerWindup(floor,phase,type){
  // A minimum 0.49–0.70s reaction window remains even for the final floor.
