@@ -1,6 +1,6 @@
-import { CLASSES, clamp } from './data.js';
-import {AFFIXES,rollAffix} from './affixes.js';
-import {ITEM_SETS,rollSet,setPieces} from './buildcraft.js?v=0.16.0';
+import { CLASSES, clamp } from './data.js?v=0.21.0';
+import {AFFIXES,rollAffix} from './affixes.js?v=0.21.0';
+import {ITEM_SETS,rollSet,setPieces} from './buildcraft.js?v=0.21.0';
 export const RARITIES=Object.freeze({
  common:{name:'Gewöhnlich',color:'#d8e1d4',weight:60},
  rare:{name:'Selten',color:'#8ed0ff',weight:29},
