@@ -544,6 +544,30 @@ export class Game {
   if(p.kind==='warrior'){
    this.createEffect('ring',p.x,p.y,'#b6e5ff',.55,144);
    for(const e of this.enemies)if(e.hp>0&&distance(e,p)<145+e.radius)this.hitEnemy(e,p.damage*1.9,normalized(e.x-p.x,e.y-p.y));
+  }else if(p.kind==='glasscannon'){
+   const center={x:p.x+aim.x*130,y:p.y+aim.y*130};
+   this.createEffect('ring',center.x,center.y,'#eec1ff',.65,150);
+   for(const e of [...this.enemies])if(e.hp>0&&distance(e,center)<150+e.radius)
+    this.hitEnemy(e,p.damage*2.1,aim,{magic:true});
+   p.shield=Math.max(p.shield||0,5);
+  }else if(p.kind==='summoner'){
+   const companion=this.servant;
+   this.createEffect('ring',p.x,p.y,'#b8f5ce',.6,145);
+   if(companion){companion.cooldown=0;
+    if(companion.kind==='guardian')p.shield=Math.min(40,(p.shield||0)+18);
+    if(companion.kind==='spirit')p.hp=Math.min(p.maxHp,p.hp+22);
+    if(companion.kind==='ranger')for(const e of [...this.enemies])
+     if(e.hp>0&&distance(e,p)<230)this.hitEnemy(e,p.damage*.85,aim,{proc:false});
+   }
+  }else if(p.kind==='alchemist'){
+   const center={x:p.x+aim.x*155,y:p.y+aim.y*155};
+   this.createEffect('ring',center.x,center.y,'#e9d57d',.72,152);
+   for(const e of [...this.enemies])if(e.hp>0&&distance(e,center)<152+e.radius){
+    this.hitEnemy(e,p.damage*1.85,aim,{magic:true});
+    e.poison=Math.max(e.poison||0,5);
+    e.burn=Math.max(e.burn||0,3.5);
+    e.slow=Math.max(e.slow||0,2.2);
+   }
   }else if(p.kind==='hunter'){
    for(let i=-3;i<=3;i++){
     const angle=Math.atan2(aim.y,aim.x)+i*.14;
