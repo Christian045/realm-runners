@@ -1,6 +1,7 @@
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.15.0';
 import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.15.0';
-import {saveProgress, buyPermanent, upgradeCost} from './progression.js';
+import {saveProgress, buyPermanent, upgradeCost} from './progression.js?v=0.20.0';
+import {newRunStatistics,recordEnemyKill,recordDamage,finishRunStatistics} from './statistics.js?v=0.20.0';
 import {createBossState, updateBoss, startPhaseTwo, isBossInvulnerable, PHASE_TWO_AT} from './boss.js?v=0.18.0';
 import {createWardenState} from './warden.js?v=0.15.0';
 import {generateItem,equipItem,applyTalents,buyTalent} from './loot.js?v=0.16.0';
@@ -27,8 +28,10 @@ export class Game {
   this.runMode='normal';this.endless=false;this.tower=false;this.runSeed=0;this.specialization='standard';this.floorDepth=1;this.shake=0;this.hitstop=0;
   this.hazards=[];this.achievementsEarned=[];this.sound=null;this.libraryKey=false;
   this.towerRelics=[];this.towerRelicHits=0;this.towerRelicKills=0;this.towerPhoenixUsed=false;this.stageStartedAt=0;this.stageHazardClock=9;this.towerNewRecord=false;
+  this.runStatistics=null;this.statisticsSaveClock=0;
  }
  notify(){this.onChange(this)}
+ saveStatistics(){return saveProgress(this.progress)}
  setChallenge(id){if(this.mode==='menu'&&challengeUnlocked(this.progress,id)){this.runMode=id;this.notify();return true}return false}
  setEndless(enabled){if(this.mode==='menu'&&(!enabled||this.progress.bossKills>0)){
   this.endless=!!enabled;if(enabled)this.tower=false;this.notify();return true
@@ -152,6 +155,8 @@ export class Game {
   applyRunChallenge(this,this.runMode);
   this.mode='playing';this.enemies=[];this.projectiles=[];this.effects=[];this.loot=[];
   this.runCoins=0;this.clearCount=0;this.time=0;this.bossDefeated=false;this.upgradeChoices=[];this.bossMessage='';
+  this.runStatistics=newRunStatistics(kind,this.tower?'Turm':this.endless?'Endlos':'Dungeon');
+  this.statisticsSaveClock=0;
   this.camera.x=this.player.x-this.camera.w/2;this.camera.y=this.player.y-this.camera.h/2;
   this.playSound('start');
   this.notify();
@@ -298,6 +303,9 @@ export class Game {
   this.shake=Math.max(0,this.shake-dt*19);
   if(this.hitstop>0){this.hitstop=Math.max(0,this.hitstop-dt);if(this.enemies.some(e=>e.hp>0))return}
   this.time+=dt;
+  this.progress.statistics.playTime+=dt;
+  this.statisticsSaveClock+=dt;
+  if(this.statisticsSaveClock>=8){this.statisticsSaveClock=0;this.saveStatistics()}
   const p=this.player,move=this.input.movement(),aim=this.input.aiming(p,camera);
   if(Number.isFinite(aim.x)&&Number.isFinite(aim.y))p.direction=aim;
   p.walkCycle=(p.walkCycle||0)+Math.hypot(move.x,move.y)*dt*14;
@@ -488,12 +496,14 @@ export class Game {
   }
   d=Math.max(1,Math.round(d));
   if(e.type==='boss')d=cappedBossDamage(e,d);
+  const hpBefore=e.hp;
   const threshold=Math.ceil(e.maxHp*PHASE_TWO_AT);
   if(e.type==='boss'&&['tower','sovereign'].includes(e.boss?.variant)){
    applyTowerBossDamage(this,e,d);
   }else if(e.type==='boss'&&e.boss.phase===1&&e.hp-d<=threshold){
    e.hp=threshold;startPhaseTwo(this,e);
   }else e.hp=Math.max(0,e.hp-d);
+  recordDamage(this.progress.statistics,this.runStatistics,Math.max(0,hpBefore-e.hp),'dealt');
   e.flash=critical||options.finisher?.23:.20;e.hurtTimer=.22;
   const push=e.type==='boss'?30:options.finisher?280:critical?245:175;
   e.knock={x:dir.x*push,y:dir.y*push};
@@ -517,6 +527,8 @@ export class Game {
  killEnemy(e){
   if(e.deadHandled)return;
   e.deadHandled=true;e.hp=0;
+  recordEnemyKill(this.progress.statistics,this.runStatistics,e.type,
+   e.type==='boss'?(e.boss?.name||'Schleimkönig'):undefined);
   if(e.type==='boss'){
    for(const add of this.enemies)if(add!==e&&add.homeRoom===e.homeRoom)add.hp=0;
    this.projectiles=this.projectiles.filter(p=>!p.hostile);
@@ -547,6 +559,7 @@ export class Game {
   const blocked=Math.min(reduced,p.shield||0);
   p.shield=Math.max(0,(p.shield||0)-blocked);
   const actual=reduced-blocked;
+  recordDamage(this.progress.statistics,this.runStatistics,actual,'taken');
   p.hp=Math.max(0,p.hp-actual);
   p.invulnerable=.78;p.hurtTimer=.34;
   this.shake=Math.max(this.shake,actual?11:4);
@@ -771,6 +784,8 @@ export class Game {
   }else if(won&&this.endless){this.advanceFloor();return}
   this.mode=won?'victory':'dead';
   this.progress.runs++;
+  finishRunStatistics(this.progress.statistics,this.runStatistics,won,this.time,this.floorDepth,this.clearCount);
+  this.runStatistics=null;
   if(won&&!this.tower)this.progress.bossKills++;
   if(this.tower)this.progress.towerBest=Math.max(this.progress.towerBest||0,won?TOWER_LENGTH:this.floorDepth-1);
   this.progress.deepestFloor=Math.max(this.progress.deepestFloor||1,this.floorDepth);
