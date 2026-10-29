@@ -103,5 +103,6 @@ test('room upgrades apply to the run without modifying permanent stats',()=>{
 test('losing a run awards persistent gold and preserves the old save key',()=>{
  const progress=defaultProgress(),game=new Game(progress,fakeInput);
  game.start('warrior',7);game.runCoins=100;game.finish(false);
- assert.equal(game.mode,'dead');assert.equal(progress.gold,65);assert.equal(progress.runs,1);
+ assert.equal(game.mode,'dead');assert.equal(progress.gold,95);assert.equal(progress.runs,1);
+ assert.equal(progress.achievements.firstRun,true,'first run grants 30 gold once');
 });
