@@ -1,4 +1,4 @@
-import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js';
+import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.13.0';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js';
 import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js';
 import {drawTowerVictory} from './tower-visuals.js';
@@ -230,9 +230,21 @@ export class Renderer {
   c.fillStyle='#ffffff88';c.fillRect(-3,-5,4,7);c.restore();
  }
  projectile(b){
-  const c=this.ctx;c.fillStyle=b.hostile?'#ff8198':b.magic?'#c2a1ff':'#e3d89e';
-  c.shadowColor=c.fillStyle;c.shadowBlur=10;
-  c.beginPath();c.arc(b.x,b.y,b.radius,0,Math.PI*2);c.fill();c.shadowBlur=0;
+  const c=this.ctx;
+  const color=b.hostile?'#ff8198':b.magic?'#c2a1ff':b.charged?'#c6fba1':'#e3d89e';
+  c.save();c.shadowColor=color;c.shadowBlur=b.magic||b.charged?15:7;c.fillStyle=color;
+  if(!b.hostile&&!b.magic){
+   // Razor-sharp arrowheads make direction and charged penetration visible.
+   const a=Math.atan2(b.vy,b.vx);c.translate(b.x,b.y);c.rotate(a);
+   c.fillRect(b.charged?-21:-12,-2,b.charged?30:20,b.charged?4:3);
+   c.beginPath();c.moveTo(b.charged?21:15,0);c.lineTo(4,b.charged?-9:-5);
+   c.lineTo(4,b.charged?9:5);c.closePath();c.fill();
+   if(b.charged){c.strokeStyle='#eaffd7';c.lineWidth=2;c.strokeRect(-15,-5,17,10)}
+  }else{
+   c.beginPath();c.arc(b.x,b.y,b.radius,0,Math.PI*2);c.fill();
+   if(b.magic){c.strokeStyle='#f2e1ff';c.lineWidth=2;c.stroke()}
+  }
+  c.restore();
  }
  effect(e){
   const c=this.ctx,alpha=clamp(e.life/e.maxLife,0,1);

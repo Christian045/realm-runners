@@ -4,8 +4,8 @@ export const CLASSES = Object.freeze({
   mage: { name: 'Magier', subtitle: 'Magie · Flächenschaden', hp: 90, speed: 225, damage: 22, cooldown: .48, range: 490, color: '#c4a1ff', ability: 'Arkanschlag' }
 });
 export const UPGRADES = Object.freeze([
-  { id:'power', name:'Geschärfte Klinge', description:'+20% Angriffsschaden', rarity:'common' },
-  { id:'fury', name:'Rasender Angriff', description:'+15% Angriffsgeschwindigkeit', rarity:'common' },
+  { id:'power', name:'Geschärfte Klinge', description:'+12% Angriffsschaden (ab Stufe 4: +5%)', rarity:'common' },
+  { id:'fury', name:'Rasender Angriff', description:'+8% Angriffsgeschwindigkeit (begrenzt)', rarity:'common' },
   { id:'stride', name:'Windschritt', description:'+12% Bewegungstempo', rarity:'common' },
   { id:'heart', name:'Lebenskraft', description:'+30 maximale LP, heilt 35 LP', rarity:'common' },
   { id:'guard', name:'Eisernes Herz', description:'10% weniger eingehender Schaden', rarity:'rare' },

@@ -41,7 +41,8 @@ test('boss phase one cycles telegraphed attacks without instant damage',()=>{
 test('boss enters invulnerable phase two at exactly 55 percent and exposes warning',()=>{
  const {game,boss}=setup();
  const threshold=Math.ceil(boss.maxHp*PHASE_TWO_AT);
- game.hitEnemy(boss,boss.hp-threshold+20,{x:1,y:0});
+ for(let i=0;i<12&&boss.boss.phase===1;i++)
+  game.hitEnemy(boss,boss.maxHp,{x:1,y:0});
  assert.equal(boss.hp,threshold);
  assert.equal(boss.boss.phase,2);
  assert.ok(isBossInvulnerable(boss));

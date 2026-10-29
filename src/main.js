@@ -1,13 +1,13 @@
-import {CLASSES} from './data.js';
+import {CLASSES} from './data.js?v=0.13.0';
 import {loadProgress,upgradeCost} from './progression.js';
 import {Input} from './input.js';
-import {Game} from './game.js?v=0.12.2';
-import {Renderer} from './render.js';
+import {Game} from './game.js?v=0.13.0';
+import {Renderer} from './render.js?v=0.13.0';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js';
 import {installTouchGuard} from './touch-guard.js';
 import {CHALLENGES,ACHIEVEMENTS,challengeUnlocked} from './motivation.js';
 import {AudioFeedback} from './audio.js';
-import {TOWER_LENGTH,towerTransitionOptions} from './tower.js';
+import {TOWER_LENGTH,towerTransitionOptions} from './tower.js?v=0.13.0';
 import {nextTowerRelic} from './tower-relics.js';
 import {SPECIALIZATIONS,specializationUnlocked} from './specializations.js';
 
@@ -241,7 +241,7 @@ function updateHud(){
   $('bossFill').style.width=(100*boss.hp/boss.maxHp)+'%';
   $('bossPhase').textContent=boss.phase===3?'PHASE III · LETZTER ZORN':boss.phase===2?'PHASE II · ENTFESSELT':'PHASE I';
   $('bossHud').classList.toggle('enraged',boss.phase===2);
-  const names={volley:'GIFT-SALVE',slam:'SCHLAG AUS DEM HIMMEL',charge:'ANSTURM',nova:'SPORENSTURM',summon:'VERSTÄRKUNG',lances:'RUNENLANZEN',triple:'DREIFACH-SCHLAG',spiral:'ARKANER WIRBEL',soulbeam:'SEELENSTRAHLEN',spiralwall:'SPIRALWELLE',fan:'GESCHOSSFÄCHER',mark:'MARKIERTER EINSCHLAG',ring:'RUNDUM-WELLE',dash:'STURMANGRIFF',cross:'KREUZFEUER',meteor:'METEORITEN',orbit:'SPIRALSALVE',eclipse:'FINSTERNIS-NOVA'};
+  const names={volley:'GIFT-SALVE',slam:'SCHLAG AUS DEM HIMMEL',charge:'ANSTURM',nova:'SPORENSTURM',summon:'VERSTÄRKUNG',lances:'RUNENLANZEN',triple:'DREIFACH-SCHLAG',spiral:'ARKANER WIRBEL',soulbeam:'SEELENSTRAHLEN',spiralwall:'SPIRALWELLE',blades:'FINSTERNISKLINGEN',fan:'GESCHOSSFÄCHER',mark:'MARKIERTER EINSCHLAG',ring:'RUNDUM-WELLE',dash:'STURMANGRIFF',cross:'KREUZFEUER',meteor:'METEORITEN',orbit:'SPIRALSALVE',eclipse:'FINSTERNIS-NOVA'};
   $('bossHint').textContent=boss.transitioning?'PHASENWECHSEL · KURZE VERSCHNAUFPAUSE':boss.attack?'WARNUNG · '+names[boss.attack]:'BEOBACHTE SEINE BEWEGUNGEN';
  }
 }

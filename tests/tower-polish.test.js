@@ -39,7 +39,7 @@ test('sovereign phase attacks differ substantially and include avoidable soulbea
  assert.equal(e.boss.phase,3);e.boss.transition=0;
  types=[];
  for(let i=0;i<6;i++){beginTowerAttack(g,e);types.push(e.boss.telegraph.type);e.boss.telegraph=null;}
- assert.deepEqual(types,['eclipse','spiralwall','soulbeam','dash','meteor','summon']);
+ assert.deepEqual(types,['eclipse','blades','spiralwall','soulbeam','dash','meteor']);
  for(const t of ['soulbeam','spiralwall']){
   assert.ok(beginTowerAttack(g,e,t));
   const before=g.player.hp,bullets=g.projectiles.length;

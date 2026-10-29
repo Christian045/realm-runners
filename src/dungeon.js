@@ -1,4 +1,4 @@
-import { TILE } from './data.js';
+import { TILE } from './data.js?v=0.13.0';
 
 // Thirteen rooms on a five-by-five grid: NOT the former filled 3x3 block.
 // Cells are only an address system: the playable outlines vary per chamber.
@@ -96,7 +96,9 @@ export function generateDungeon(seed=1,options={}){
  const bossId=dist.indexOf(Math.max(...dist));
  const rest=rooms.filter(r=>r.id!==0&&r.id!==bossId).sort((a,b)=>dist[b.id]-dist[a.id]||a.id-b.id);
  rooms[bossId].type='boss';
- const specials=options.tower?['shrine','treasure','elite']:SPECIAL_ROOMS;
+ // Later tower floors trade the guaranteed treasure chamber for another fight.
+ // The seven-room floor length stays unchanged.
+ const specials=options.tower?(options.floor>=4?['shrine','elite']:['shrine','treasure','elite']):SPECIAL_ROOMS;
  for(let i=0;i<specials.length;i++)rest[i].type=specials[i];
  const biomes=['crypt','fungal','flooded'];
  for(const room of rooms){
