@@ -541,3 +541,88 @@ canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
  /* In landscape prioritize the combat controls and boss warning. */
  .ability-hud{display:none!important}
 }
+
+
+/* Alpha 0.20.0 – Statistics tab in the castle hall. */
+.castle-tabs{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+ margin:10px 0 15px;
+}
+.castle-tabs button{
+ min-width:0;min-height:42px;padding:10px 12px;
+ border:1px solid #6c8585;background:#112934;color:#c2d5cf;
+ font-size:11px;font-weight:900;letter-spacing:.09em;
+}
+.castle-tabs button.selected{
+ background:#354037;border:2px solid #e6c28a;color:#f8deb0;
+ box-shadow:inset 0 0 20px #d8b06d25;
+}
+.castle-menu.stats-tab .panel h1{
+ font-size:clamp(30px,4.8vw,48px);
+ letter-spacing:.065em;
+ line-height:1.04;
+}
+.castle-menu.stats-tab .menu-intro{display:none}
+.castle-menu.stats-tab .panel{width:min(910px,96vw)}
+.stats-dashboard{text-align:left;min-width:0}
+.stats-dashboard .section-label{margin:10px 0}
+.stats-metrics{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;
+ margin-bottom:19px;
+}
+.stats-metric{
+ min-width:0;display:flex;flex-direction:column;gap:8px;
+ border:1px solid #54716d;background:#132935;
+ padding:12px 9px;min-height:76px;
+}
+.stats-metric span{font-size:10px;color:#b2cac4;line-height:1.35}
+.stats-metric strong{
+ font-size:clamp(15px,2vw,21px);color:#f5dca5;letter-spacing:-.01em;
+ line-height:1.2;overflow-wrap:anywhere;
+}
+.stats-columns{
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+ gap:17px;align-items:start;
+}
+.stats-columns>section{
+ min-width:0;border:1px solid #3f585b;background:#102430;
+ padding:13px 11px;
+}
+.stats-columns h2{
+ font-size:11px;letter-spacing:.11em;color:#e7c892;
+ font-weight:900;margin:3px 0 12px;line-height:1.4;
+}
+.stats-columns .stats-recent-heading{
+ margin-top:22px;padding-top:14px;border-top:1px solid #53675e;
+}
+.stats-row{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ border-bottom:1px solid #3a5255;padding:8px 1px;
+ font-size:11px;line-height:1.3;
+}
+.stats-row span{min-width:0;overflow-wrap:anywhere;color:#c1d3cb}
+.stats-row strong{color:#f5dfb4;white-space:nowrap;font-size:13px;font-variant-numeric:tabular-nums}
+.stats-row.boss-total{color:#e7c892;border-color:#7f6952;margin-bottom:3px}
+.stats-runs{display:grid;gap:7px}
+.stats-run{padding:9px;border:1px solid #4b686c;background:#142e39;min-width:0}
+.stats-run>div{display:flex;align-items:baseline;justify-content:space-between;gap:5px;flex-wrap:wrap}
+.stats-run strong{font-size:10px;letter-spacing:.08em}
+.stats-run strong.won{color:#a7e8b3}
+.stats-run strong.lost{color:#f0aaa2}
+.stats-run span{font-size:10px;color:#b8c6bf;overflow-wrap:anywhere}
+.stats-run small{display:block;margin-top:6px;font-size:10px;color:#c4d9cf;line-height:1.5}
+.castle-menu .stats-empty{font-size:11px!important;color:#aabfba;margin:8px 0 15px!important}
+.castle-menu .stats-footnote{font-size:10px!important;color:#afc1b9;line-height:1.5;margin:18px 0 3px!important}
+@media(max-width:700px){
+ .castle-menu.stats-tab .panel{width:100%;max-height:calc(100dvh - 24px)}
+ .castle-tabs{gap:5px;margin:9px 0 12px}
+ .castle-tabs button{min-height:43px;padding:9px 5px;font-size:10px}
+ .stats-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:14px}
+ .stats-metric{min-height:66px;padding:9px 7px;gap:5px}
+ .stats-metric span{font-size:10px}
+ .stats-metric strong{font-size:17px}
+ .stats-columns{grid-template-columns:minmax(0,1fr);gap:10px}
+ .stats-columns>section{padding:11px 10px}
+ .stats-row{min-height:34px;font-size:11px}
+ .stats-run>div{gap:5px}
+}
