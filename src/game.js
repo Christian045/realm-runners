@@ -1,7 +1,7 @@
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.15.0';
 import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.15.0';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js?v=0.20.0';
-import {newRunStatistics,recordEnemyKill,recordDamage,finishRunStatistics} from './statistics.js?v=0.20.0';
+import {defaultStatistics,newRunStatistics,recordEnemyKill,recordDamage,finishRunStatistics} from './statistics.js?v=0.20.0';
 import {createBossState, updateBoss, startPhaseTwo, isBossInvulnerable, PHASE_TWO_AT} from './boss.js?v=0.18.0';
 import {createWardenState} from './warden.js?v=0.15.0';
 import {generateItem,equipItem,applyTalents,buyTalent} from './loot.js?v=0.16.0';
@@ -22,6 +22,7 @@ import {hasSet,hasRunPower,pickRunUpgrades,onBuildDash,onBuildHurt,onBuildHit,bu
 export class Game {
  constructor(progress,input,onChange=()=>{}){
   this.progress=progress;this.input=input;this.onChange=onChange;this.mode='menu';
+  this.progress.statistics??=defaultStatistics();
   this.dungeon=null;this.player=null;this.enemies=[];this.projectiles=[];this.effects=[];
   this.loot=[];this.runCoins=0;this.clearCount=0;this.time=0;this.camera={x:0,y:0,scale:1,w:960,h:540};
   this.attackSequence=0;this.upgradeChoices=[];this.bossDefeated=false;this.bossMessage='';
