@@ -1,8 +1,8 @@
 import { TILE } from './data.js?v=0.21.0';
 
-// Thirteen rooms on a five-by-five grid: NOT the former filled 3x3 block.
+// Sixteen rooms on a five-by-five grid: four normal combats plus curated special chambers.
 // Cells are only an address system: the playable outlines vary per chamber.
-export const ROOM_W=15, ROOM_H=11, ROOM_COLS=5, ROOM_ROWS=5, ROOM_COUNT=13;
+export const ROOM_W=15, ROOM_H=11, ROOM_COLS=5, ROOM_ROWS=5, ROOM_COUNT=16;
 export const ROOM_LAYOUTS=Object.freeze(['columns','ruins','open','alcoves','crossroads','arcade',
  'longhall','pillared','vault','chambers','shattered','tombs','mirror','crescent',
  'bastion','switchback','trident','sanctum']);
