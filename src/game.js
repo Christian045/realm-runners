@@ -514,6 +514,7 @@ export class Game {
     }
    const shotSpeed=kind==='hunter'&&charged?840:null;
    this.spawnProjectile(p.x+aim.x*19,p.y+aim.y*19,aim,shotDamage,['mage','glasscannon','summoner','alchemist'].includes(kind),false,shotSpeed);
+    this.projectiles[this.projectiles.length-1].magicSplash=kind==='mage';
     if(kind==='alchemist'){
      const flask=this.projectiles[this.projectiles.length-1];
      flask.alchemy=['burn','poison','frost'][(this.attackSequence-1)%3];
@@ -897,7 +898,7 @@ export class Game {
      if(b.pierce>1){b.pierce--;b.hitIds.add(e);
       this.createEffect('burst',e.x,e.y,'#c5f19f',.24,16);
      }else b.life=0;
-     if(b.magic)for(const n of this.enemies)if(n!==e&&n.hp>0&&distance(n,e)<65)this.hitEnemy(n,b.damage*.48,normalized(n.x-e.x,n.y-e.y));
+     if(b.magicSplash)for(const n of this.enemies)if(n!==e&&n.hp>0&&distance(n,e)<65)this.hitEnemy(n,b.damage*.48,normalized(n.x-e.x,n.y-e.y));
      break;
     }
    }
