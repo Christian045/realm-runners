@@ -1,4 +1,15 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.21.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.21.1)
+
+## Alpha 0.21.1 – Nachprüfung und Gameplay-Korrekturen
+
+- Im normalen Dungeon gibt es jetzt **16 Räume mit vier echten Kampfkammern**, während Händler, Schatzkammer, Schrein und die übrigen zehn einzigartigen Spezialräume erhalten bleiben. Bisher waren es bei 13 Räumen nur eine reguläre Kampfkammer, ein Bossraum und zehn Spezialräume. Im Zehn-Etagen-Turm bleiben weiterhin sieben Räume pro Etage bestehen.
+- In den Statistikdaten erscheinen nun der **Runenwächter** und der **Schleimkönig** unter ihren richtigen Bossnamen, statt beide als Schleimkönig zu zählen. Bereits falsch gespeicherte historische Namen werden nicht geraten oder rückwirkend verändert.
+- Der No-Hit-Modus endet jetzt auch mit einer Phönixfeder bei einem echten Treffer, statt das Verbot durch Wiederbelebung zu umgehen.
+- Neue Regressionstests für 80 Dungeon-Seeds, verschiedene Bossnamen und das Phönix-/No-Hit-Zusammenspiel. Die Dungeon-Generierung wurde zusätzlich mit 160 Seeds tatsächlich ausgeführt.
+- Versionsverweise für Hauptskript, Gameplay-Modul und Dungeon-Generator wurden aktualisiert, damit der Browser nicht den alten Code lädt.
+- **Prüfgrenze:** Die vollständige Chromium-/WebKit-Browser-Suite und tatsächliche Gameplay-Balance auf iPhone/Desktop sind noch nicht abschließend bestätigt.
+
+
 
 ## Alpha 0.21.0 – Dungeon Reborn: Großes Roguelite-Update
 
