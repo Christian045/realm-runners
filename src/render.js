@@ -46,6 +46,19 @@ export class Renderer {
   drawDynamicLighting(c,game);
   this.fogOfWar(game);
   drawBossWarnings(c,game);
+  if(game.exitPortal){
+   const p=game.exitPortal,t=game.time;
+   c.save();c.translate(p.x,p.y);
+   c.shadowColor='#a990ff';c.shadowBlur=24;
+   c.fillStyle='#171638';c.strokeStyle='#cbbaff';c.lineWidth=5;
+   c.beginPath();c.ellipse(0,-8,28,38,0,0,Math.PI*2);c.fill();c.stroke();
+   c.shadowBlur=0;c.fillStyle='#6f57ca';
+   c.beginPath();c.ellipse(0,-8,20,30,0,0,Math.PI*2);c.fill();
+   c.strokeStyle='#eee2ff';c.lineWidth=2;
+   for(let i=0;i<3;i++){const a=t*1.6+i*2.1;
+    c.beginPath();c.arc(Math.cos(a)*10,-8+Math.sin(a)*17,3+i,0,Math.PI*2);c.stroke();}
+   c.restore();
+  }
   for(const h of game.hazards||[]){
    c.save();c.globalAlpha=.14+.25*(1-Math.max(0,h.time)/h.maxTime);
    c.fillStyle=h.color||'#ff895a';c.strokeStyle=h.color||'#ffd5a1';c.lineWidth=3;
