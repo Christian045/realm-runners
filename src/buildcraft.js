@@ -17,6 +17,18 @@ export const RUN_POWERS=Object.freeze({
  mage:[
   {id:'wildfire',name:'Flammenzeichen',description:'Magische Treffer entzünden Feinde für 3,5 Sekunden'},
   {id:'arcaneBloom',name:'Arkane Welle',description:'Der Spezialzauber verursacht einen zusätzlichen äußeren Treffer'}
+ ],
+ glasscannon:[
+  {id:'shatter',name:'Kritischer Splitter',description:'Jeder dritte Kristalltreffer springt auf einen weiteren Gegner'},
+  {id:'glassstep',name:'Spiegelschritt',description:'Ausweichen lädt den nächsten Treffer zusätzlich auf'}
+ ],
+ summoner:[
+  {id:'companionForce',name:'Gefährtenmacht',description:'Dein beschworener Diener verursacht 30 % mehr Schaden'},
+  {id:'servantAegis',name:'Schutzpakt',description:'Schutz und Heilung durch Diener sind stärker'}
+ ],
+ alchemist:[
+  {id:'longBrew',name:'Langlebige Mixtur',description:'Trankeffekte halten länger an'},
+  {id:'catalyst',name:'Katalysator',description:'Trankexplosionen treffen eine größere Fläche'}
  ]
 });
 export function setPieces(player,setId){
@@ -24,7 +36,7 @@ export function setPieces(player,setId){
 }
 export const hasSet=(player,id)=>setPieces(player,id)>=2;
 export function rollSet(random,rarity){
- const chance={common:0,rare:.30,epic:.60,legendary:1}[rarity]||0;
+ const chance={common:0,rare:.16,epic:.35,legendary:.65,mythic:1}[rarity]||0;
  if(random()>=chance)return null;
  const ids=Object.keys(ITEM_SETS);
  return ids[Math.floor(random()*ids.length)];
@@ -43,7 +55,7 @@ export function onBuildDash(game){
   p.shield=Math.max(p.shield||0,Math.min(30,shield));
   game.createEffect('ring',p.x,p.y,'#a7d9ff',.36,36);
  }
- if(p.masteries?.includes('evade'))p.evadeEmpower=2.4;
+ if(p.masteries?.includes('evade')||hasRunPower(p,'glassstep'))p.evadeEmpower=2.4;
 }
 export function onBuildHurt(game,actual){
  const p=game.player;
@@ -53,6 +65,9 @@ export function onBuildHit(game,e,opts={}){
  if(!opts.proc)return;
  const p=game.player;
  if(hasSet(p,'ember'))e.burn=Math.max(e.burn||0,2.5);
+ if(hasRunPower(p,'longBrew')&&p.kind==='alchemist'){
+  e.burn=Math.max(e.burn||0,4);e.poison=Math.max(e.poison||0,4);
+ }
  if((hasRunPower(p,'wildfire')||p.masteries?.includes('ignite'))&&opts.magic)
   e.burn=Math.max(e.burn||0,hasRunPower(p,'wildfire')?3.5:3);
 }
@@ -60,6 +75,7 @@ export function buildDamageFactor(player,opts={}){
  let result=1;
  if(hasSet(player,'tempest')&&(player.hitCount||0)%4===3)result*=1.25;
  if(player.kind==='warrior'&&(player.counterReady||0)>0&&opts.melee)result*=1.35;
+ if(player.kind==='glasscannon'&&hasRunPower(player,'glassstep')&&player.evadeEmpower>0)result*=1.22;
  if(player.kind==='hunter'&&opts.charged){
   if(hasRunPower(player,'trueshot'))result*=1.30;
   if(player.masteries?.includes('sharpEye'))result*=1.22;
