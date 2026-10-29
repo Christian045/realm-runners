@@ -185,6 +185,15 @@ export class Renderer {
   }
   c.restore();
   }
+  if(['tower','sovereign'].includes(e.boss?.variant)){
+   const pulse=.7+.22*Math.sin(time*5);
+   c.save();c.strokeStyle=e.boss.color;c.globalAlpha=pulse;c.lineWidth=e.boss.phase===3?7:4;
+   c.beginPath();c.arc(e.x,e.y,r+(e.boss.phase===3?23:13),0,Math.PI*2);c.stroke();
+   if(e.boss.phase===3){
+    c.beginPath();c.arc(e.x,e.y,r+33,0,Math.PI*2);c.stroke();
+   }
+   c.restore();
+  }
   if(e.burn>0||e.poison>0||e.slow>0){
    const col=e.burn>0?'#ffc078':e.poison>0?'#9add7f':'#9edbff';
    c.save();c.globalAlpha=.5+.25*Math.sin(time*11);c.strokeStyle=col;c.lineWidth=3;
@@ -229,7 +238,7 @@ export class Renderer {
   if(e.type==='death'){
    const sprite=this.sprites.frame(e.kind,'death',0,'down',e.phaseTwo);
    if(sprite){
-    const scale=e.kind==='slimeking'||e.kind==='warden'?3.1:e.elite?1.85:1.62;
+    const scale=e.kind==='sovereign'?3.85:e.kind==='slimeking'||e.kind==='warden'||e.kind?.startsWith('tower')?3.1:e.elite?1.85:1.62;
     const w=sprite.width*scale,h=sprite.height*scale;
     c.drawImage(sprite,Math.round(e.x-w/2),Math.round(e.y-h*.76-(1-alpha)*10),Math.round(w),Math.round(h));
    }

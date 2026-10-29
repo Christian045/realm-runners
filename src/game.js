@@ -8,6 +8,8 @@ import {hasAffix,onDash,beforeHit,afterHit,onHurt,onKill,statusTick} from './aff
 import {CHALLENGES,challengeUnlocked,applyRunChallenge,enemyExtraCount,challengeScale,challengeReward,awardAchievements} from './motivation.js';
 import {validSpecialization,specializationUnlocked,applySpecialization} from './specializations.js';
 import {enemySteering,hasLineOfSight,findSpawnPosition} from './navigation.js';
+import {towerStage,towerFloorSeed,towerDifficulty,towerWinReward,TOWER_LENGTH} from './tower.js';
+import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js';
 
 export class Game {
  constructor(progress,input,onChange=()=>{}){
@@ -15,14 +17,28 @@ export class Game {
   this.dungeon=null;this.player=null;this.enemies=[];this.projectiles=[];this.effects=[];
   this.loot=[];this.runCoins=0;this.clearCount=0;this.time=0;this.camera={x:0,y:0,scale:1,w:960,h:540};
   this.attackSequence=0;this.upgradeChoices=[];this.bossDefeated=false;this.bossMessage='';
-  this.runMode='normal';this.endless=false;this.specialization='standard';this.floorDepth=1;this.shake=0;this.hitstop=0;
+  this.runMode='normal';this.endless=false;this.tower=false;this.runSeed=0;this.specialization='standard';this.floorDepth=1;this.shake=0;this.hitstop=0;
   this.hazards=[];this.achievementsEarned=[];this.sound=null;this.libraryKey=false;
  }
  notify(){this.onChange(this)}
  setChallenge(id){if(this.mode==='menu'&&challengeUnlocked(this.progress,id)){this.runMode=id;this.notify();return true}return false}
  setEndless(enabled){if(this.mode==='menu'&&(!enabled||this.progress.bossKills>0)){
-  this.endless=!!enabled;this.notify();return true
+  this.endless=!!enabled;if(enabled)this.tower=false;this.notify();return true
  }return false}
+ setTower(enabled){if(this.mode!=='menu')return false;
+  this.tower=!!enabled;if(enabled)this.endless=false;this.notify();return true}
+ currentTowerStage(){return towerStage(this.floorDepth)}
+ enemySpec(type){return ENEMY_DATA[type]}
+ chooseTowerReward(id){
+  if(this.mode!=='stageclear'||!['recover','relic','power'].includes(id)||!this.tower)return false;
+  this.advanceFloor();
+  if(id==='recover')this.player.hp=Math.min(this.player.maxHp,this.player.hp+Math.ceil(this.player.maxHp*.45));
+  if(id==='power')this.player.damage*=1.09;
+  if(id==='relic')this.dropGear(this.player.x+24,this.player.y+12,true);
+  this.createEffect('text',this.player.x,this.player.y-105,'ETAGE '+this.floorDepth+' · '+this.currentTowerStage().name,
+   this.currentTowerStage().color,1.7);
+  this.notify();return true;
+ }
  playSound(id){try{this.sound?.(id)}catch{}}
  chooseEvent(choice){
   if(this.mode!=='event'||!this.activeEvent)return false;
@@ -108,8 +124,8 @@ export class Game {
  start(kind=this.progress.selectedClass,seed=(Date.now()>>>0)){
   if(!CLASSES[kind])kind='warrior';
   this.progress.selectedClass=kind;saveProgress(this.progress);
-  this.floorDepth=1;this.shake=0;this.hitstop=0;this.hazards=[];this.achievementsEarned=[];this.libraryKey=false;
-  this.dungeon=generateDungeon(seed);this.random=seeded(seed^0xa5b4c382);
+  this.floorDepth=1;this.runSeed=seed;this.shake=0;this.hitstop=0;this.hazards=[];this.achievementsEarned=[];this.libraryKey=false;
+  this.dungeon=generateDungeon(seed,this.tower?{tower:true,biome:this.currentTowerStage().biome}:{});this.random=seeded(seed^0xa5b4c382);
   for(const id of this.dungeon.rooms[0].links)if(this.dungeon.rooms[id].type!=='secret')this.dungeon.rooms[id].discovered=true;
   const base=CLASSES[kind],bonus=this.progress.upgrades;
   this.player={x:this.dungeon.start.x,y:this.dungeon.start.y,radius:14,kind,
@@ -186,14 +202,16 @@ export class Game {
  spawnRoom(room){
   const boss=room.type==='boss';
   const eliteRoom=room.type==='elite';
-  const amount=boss?1:eliteRoom?3:3+Math.floor(this.clearCount/2)+Math.floor(this.random()*2)+enemyExtraCount(this);
+  const amount=boss?1:eliteRoom?3:(this.tower?2+Math.floor(this.floorDepth/4):3+Math.floor(this.clearCount/2))+Math.floor(this.random()*2)+enemyExtraCount(this);
   const variants=room.biome==='fungal'?['mushroom','slime','mushroom','archer']:
    room.biome==='flooded'?['archer','slime','goblin','archer']:
    ['goblin','mushroom','archer','slime'];
-  const warden=boss&&this.dungeon.seed%3===2;
+  const warden=boss&&!this.tower&&this.dungeon.seed%3===2;
   const offsets=[[ -145,-90],[145,90],[140,-90],[-140,90],[0,-100],[0,110],[-150,0],[150,0]];
+  const roster=this.tower?this.currentTowerStage().roster:variants;
   for(let i=0;i<amount;i++){
-   const type=boss?'boss':variants[Math.floor(this.random()*Math.min(4,2+Math.floor(this.clearCount/2)))];
+   const type=boss?'boss':roster[Math.floor(this.random()*
+    (this.tower?roster.length:Math.min(4,2+Math.floor(this.clearCount/2))))];
    const spec=ENEMY_DATA[type];
    const [ox,oy]=offsets[i%offsets.length];
    const point=findSpawnPosition(this.dungeon,room,room.cx+ox,room.cy+oy,spec.radius,this.player);
@@ -201,18 +219,19 @@ export class Game {
    const elite=eliteRoom&&i===0;
    const eliteMods=['swift','guardian','arcane','volatile','vampiric'];
    const eliteMod=elite?eliteMods[Math.floor(this.random()*eliteMods.length)]:null;
-   const scale=(1+this.clearCount*.12+Math.max(0,this.floorDepth-1)*.26)*(elite?2.25:1)*challengeScale(this);
+   const scale=(1+this.clearCount*(this.tower?.075:.12)+Math.max(0,this.floorDepth-1)*(this.tower?.115:.26))*(elite?2.25:1)*challengeScale(this);
    const hpScale=eliteMod==='guardian'?1.35:1;
    const speedScale=eliteMod==='swift'?1.3:1;
-   this.enemies.push({x,y,homeRoom:room.id,type,radius:elite?spec.radius*1.3:spec.radius,
-    hp:Math.round(spec.hp*scale*hpScale),maxHp:Math.round(spec.hp*scale*hpScale),
+   const floorBossBonus=boss&&this.tower?(this.floorDepth===TOWER_LENGTH?1.8:.88+this.floorDepth*.09):1;
+   this.enemies.push({x,y,homeRoom:room.id,type,radius:boss&&this.tower&&this.floorDepth===TOWER_LENGTH?44:elite?spec.radius*1.3:spec.radius,
+    hp:Math.round(spec.hp*scale*hpScale*floorBossBonus),maxHp:Math.round(spec.hp*scale*hpScale*floorBossBonus),
     speed:spec.speed*(boss?1:1+this.clearCount*.025)*(elite?1.18:1)*speedScale*challengeScale(this),
     damage:spec.damage*(elite?1.55:1)*challengeScale(this),elite,eliteMod,eliteShot:2,spawnIndex:i,
     cooldown:.45+i*.2,windup:0,phase:0,flash:0,elapsed:0,knock:{x:0,y:0},
-    ...(boss?{boss:warden?createWardenState():createBossState()}: {})});
+    ...(boss?{boss:this.tower?createTowerBossState(this.floorDepth):warden?createWardenState():createBossState()}: {})});
   }
   this.createEffect('text',room.cx,room.cy-110,
-   boss?(warden?'DER RUNENWÄCHTER':'DER SCHLEIMKÖNIG'):eliteRoom?'ELITEKAMMER':'KAMMER VERSIEGELT',
+   boss?(this.tower?this.currentTowerStage().boss:warden?'DER RUNENWÄCHTER':'DER SCHLEIMKÖNIG'):eliteRoom?'ELITEKAMMER':'KAMMER VERSIEGELT',
    '#f8c78f',1.3);
  }
  update(dt,camera=this.camera){
@@ -331,7 +350,9 @@ export class Game {
   if(proc){p.hitCount++;if(p.hitCount%4===0&&p.upgradeIds.includes('bolt'))d+=p.damage*.7}
   d=Math.max(1,Math.round(d));
   const threshold=Math.ceil(e.maxHp*PHASE_TWO_AT);
-  if(e.type==='boss'&&e.boss.phase===1&&e.hp-d<=threshold){
+  if(e.type==='boss'&&['tower','sovereign'].includes(e.boss?.variant)){
+   applyTowerBossDamage(this,e,d);
+  }else if(e.type==='boss'&&e.boss.phase===1&&e.hp-d<=threshold){
    e.hp=threshold;startPhaseTwo(this,e);
   }else e.hp=Math.max(0,e.hp-d);
   e.flash=.17;e.hurtTimer=.18;
@@ -366,7 +387,7 @@ export class Game {
    this.createEffect('ring',e.x,e.y,'#efaa75',.85,85);
   }
   onKill(this,e);
-  this.effects.push({type:'death',kind:e.type==='boss'?(e.boss?.variant==='warden'?'warden':'slimeking'):e.type,
+  this.effects.push({type:'death',kind:e.type==='boss'?(e.boss?.variant==='sovereign'?'sovereign':e.boss?.variant==='tower'?'tower'+e.boss.floor:e.boss?.variant==='warden'?'warden':'slimeking'):e.type,
    x:e.x,y:e.y,radius:e.radius,elite:e.elite,phaseTwo:e.boss?.phase===2,
    color:'#d9e5e9',life:.4,maxLife:.4});
   this.createEffect('burst',e.x,e.y,e.elite?'#ffca8c':'#b6f2bf',.56,40);
@@ -435,7 +456,7 @@ export class Game {
        this.spawnProjectile(e.x,e.y,{x:Math.cos(a),y:Math.sin(a)},e.damage,false,true);
       }
       this.createEffect('ring',e.x,e.y,'#ff789e',.55,95);
-     }else if(e.type==='archer'){
+     }else if(e.type==='archer'||e.type==='cultist'){
       if(hasLineOfSight(this.dungeon,e.x,e.y,p.x,p.y,true)){
        this.spawnProjectile(e.x,e.y,dir,e.damage,false,true);e.attackTimer=.24;
       }
@@ -443,8 +464,8 @@ export class Game {
      e.cooldown=e.type==='boss'?2.3:1.75;
     }
    }else{
-    const steering=enemySteering(this,e,p,dt,e.type==='archer');
-    const reposition=e.type==='archer'?(!steering.clear||dist<165||dist>300||e.elapsed%2.8<1.35):
+    const steering=enemySteering(this,e,p,dt,['archer','cultist'].includes(e.type));
+    const reposition=['archer','cultist'].includes(e.type)?(!steering.clear||dist<165||dist>300||e.elapsed%2.8<1.35):
      dist>e.radius+p.radius+8;
     if(reposition){
      const amount=e.speed*dt;
@@ -454,7 +475,7 @@ export class Game {
      this.move(e,nx,ny);
     }
     if(e.cooldown<=0){
-     if(e.type==='archer'&&dist<500&&steering.clear){
+     if(['archer','cultist'].includes(e.type)&&dist<500&&steering.clear){
       e.windup=e.type==='boss'?.8:.58;
       e.cooldown=99;
       this.createEffect('ring',e.x,e.y,e.type==='boss'?'#ff6f83':'#ecc5ff',e.windup,37);
@@ -511,29 +532,45 @@ export class Game {
   this.effects.push(effect);if(this.effects.length>110)this.effects.shift();
  }
  advanceFloor(){
-  this.progress.bossKills++;
+  if(!this.tower)this.progress.bossKills++;
   this.floorDepth++;
   this.progress.deepestFloor=Math.max(this.progress.deepestFloor||1,this.floorDepth);
   this.progress.bestRooms=Math.max(this.progress.bestRooms,this.clearCount);
-  this.dungeon=generateDungeon((this.dungeon.seed^(this.floorDepth*0x9e3779b9))>>>0);
-  for(const id of this.dungeon.rooms[0].links)if(this.dungeon.rooms[id].type!=='secret')this.dungeon.rooms[id].discovered=true;
+  const seed=this.tower?towerFloorSeed(this.runSeed,this.floorDepth):
+   (this.dungeon.seed^(this.floorDepth*0x9e3779b9))>>>0;
+  this.dungeon=generateDungeon(seed,this.tower?{tower:true,biome:this.currentTowerStage().biome}:{});
+  for(const id of this.dungeon.rooms[0].links)if(this.dungeon.rooms[id].type!=='secret')
+   this.dungeon.rooms[id].discovered=true;
   this.player.x=this.dungeon.start.x;this.player.y=this.dungeon.start.y;
-  this.player.hp=Math.min(this.player.maxHp,this.player.hp+Math.round(this.player.maxHp*.32));
+  this.player.hp=Math.min(this.player.maxHp,this.player.hp+Math.round(this.player.maxHp*(this.tower?.15:.32)));
   this.player.invulnerable=1.5;this.player.dashCooldown=0;
   this.enemies=[];this.projectiles=[];this.loot=[];this.hazards=[];this.effects=[];this.libraryKey=false;
-  this.clearCount=0;this.bossDefeated=false;this.hitstop=0;
+  this.clearCount=0;this.bossDefeated=false;this.hitstop=0;this.mode='playing';
   this.camera.x=this.player.x-this.camera.w/2;this.camera.y=this.player.y-this.camera.h/2;
-  this.createEffect('text',this.player.x,this.player.y-70,'ETAGE '+this.floorDepth,'#b5dfc7',1.5);
+  this.createEffect('text',this.player.x,this.player.y-70,'ETAGE '+this.floorDepth,
+   this.tower?this.currentTowerStage().color:'#b5dfc7',1.5);
   saveProgress(this.progress);this.notify();
  }
  finish(won){
   if(this.mode!=='playing')return;
-  if(won&&this.endless){this.advanceFloor();return}
+  if(won&&this.tower){
+   this.runCoins+=towerWinReward(this.floorDepth);
+   this.progress.towerBest=Math.max(this.progress.towerBest||0,this.floorDepth);
+   this.progress.bossKills++;
+   if(this.floorDepth<TOWER_LENGTH){
+    this.achievementsEarned=[];
+    this.mode='stageclear';
+    saveProgress(this.progress);this.notify();return;
+   }
+   this.progress.towerWins=(this.progress.towerWins||0)+1;
+  }else if(won&&this.endless){this.advanceFloor();return}
   this.mode=won?'victory':'dead';
   this.progress.runs++;
-  if(won)this.progress.bossKills++;
+  if(won&&!this.tower)this.progress.bossKills++;
+  if(this.tower)this.progress.towerBest=Math.max(this.progress.towerBest||0,won?TOWER_LENGTH:this.floorDepth-1);
   this.progress.deepestFloor=Math.max(this.progress.deepestFloor||1,this.floorDepth);
-  const earned=challengeReward(won?this.runCoins+120:Math.floor(this.runCoins*.65),this.runMode);
+  const reward=this.tower&&won?550:won?120:0;
+  const earned=challengeReward(won?this.runCoins+reward:Math.floor(this.runCoins*.65),this.runMode);
   this.progress.gold+=earned;
   this.progress.bestRooms=Math.max(this.progress.bestRooms,this.clearCount);
   this.achievementsEarned=awardAchievements(this.progress);
@@ -546,10 +583,10 @@ export class Game {
   return {className:CLASSES[this.player.kind].name,hp:Math.ceil(this.player.hp),maxHp:this.player.maxHp,
    inventory:this.player.inventory.length,biome:this.dungeon.roomAt(this.player.x,this.player.y)?.biome||'crypt',
    totalRooms:this.dungeon.rooms.length,
-   floor:this.floorDepth,challenge:this.runMode,endless:this.endless,shield:this.player.shield||0,
+   floor:this.floorDepth,challenge:this.runMode,endless:this.endless,tower:this.tower,stageName:this.tower?this.currentTowerStage().name:null,shield:this.player.shield||0,
    rooms:this.clearCount,remaining:this.dungeon.rooms.length-1-this.clearCount,coins:this.runCoins,ability:this.player.abilityCooldown,
    dash:this.player.dashCooldown,time:this.time,seed:this.dungeon.seed,
-   boss:(()=>{const e=this.getActiveBoss();return e?{name:e.boss.variant==='warden'?'DER RUNENWÄCHTER':'DER SCHLEIMKÖNIG',
+   boss:(()=>{const e=this.getActiveBoss();return e?{name:e.boss.name|| (e.boss.variant==='warden'?'DER RUNENWÄCHTER':'DER SCHLEIMKÖNIG'),
     hp:Math.ceil(e.hp),maxHp:e.maxHp,phase:e.boss.phase,
     transitioning:e.boss.transition>0,attack:e.boss.telegraph?.type|| (e.boss.charge?'charge':null)}:null})()};
  }

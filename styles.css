@@ -149,3 +149,13 @@ body:has(.boss-hud:not(.hidden)) .biome-label{display:none!important}
 /* v0.10 interactive rooms: compact, legible rune puzzle on phones. */
 .rune-riddle{border-left:3px solid #c5ac78;padding:12px 13px;background:#17343a;color:#f1dcad;font-size:14px;line-height:1.65;font-style:italic;text-align:left;margin:12px 0}
 @media(max-width:700px){.rune-riddle{font-size:12px;padding:9px;line-height:1.45}}
+
+/* v0.11: clear mode selection and between-floor rest choice on narrow phones. */
+.tower-toggle{border:2px solid #a78dd0;background:linear-gradient(135deg,#342e50,#203d48);color:#f0e6fc}
+.tower-toggle.selected{border-color:#f6d78d;background:linear-gradient(135deg,#5a4678,#365a57);box-shadow:0 0 16px #ba9ade33}
+.tower-toggle small{line-height:1.48}
+.tower-progress{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;margin:18px 0 20px}
+.tower-progress span{display:grid;place-items:center;min-height:30px;color:#a8bac1;background:#152b36;border:1px solid #355262;border-radius:4px;font-size:11px;font-weight:800}
+.tower-progress span.cleared{background:#397164;color:#f1ddac;border-color:#bdcfad}
+.tower-progress span.next{border:2px solid #f0b875;color:#ffdfb2}
+@media(max-width:700px){.tower-progress{gap:2px}.tower-progress span{font-size:9px;min-height:26px}.tower-toggle{padding:11px 6px}}

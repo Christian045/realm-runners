@@ -42,7 +42,8 @@ function roomFloor(shape,x,y){
   (ax<=4&&ay<=3)||(ay<=2&&ax<=6);
  return central||spine||special;
 }
-export function generateDungeon(seed=1){
+export function generateDungeon(seed=1,options={}){
+ const roomCount=options.tower?7:ROOM_COUNT;
  const random=seeded(seed),width=ROOM_W*ROOM_COLS,height=ROOM_H*ROOM_ROWS;
  const tiles=new Uint8Array(width*height).fill(1),doors=new Set(),gates=[];
  const index=(x,y)=>y*width+x;
@@ -53,7 +54,7 @@ export function generateDungeon(seed=1){
   .filter(([x,y])=>x>=0&&y>=0&&x<ROOM_COLS&&y<ROOM_ROWS);
  // Grow a branched, connected polyomino with long excursions and side routes.
  // The score favours spread without forcing the same geometric silhouette.
- while(cells.length<ROOM_COUNT){
+ while(cells.length<roomCount){
   const frontier=[];
   for(let id=0;id<cells.length;id++){
    for(const [gx,gy] of neighbors(cells[id])){
@@ -95,11 +96,12 @@ export function generateDungeon(seed=1){
  const bossId=dist.indexOf(Math.max(...dist));
  const rest=rooms.filter(r=>r.id!==0&&r.id!==bossId).sort((a,b)=>dist[b.id]-dist[a.id]||a.id-b.id);
  rooms[bossId].type='boss';
- for(let i=0;i<SPECIAL_ROOMS.length;i++)rest[i].type=SPECIAL_ROOMS[i];
+ const specials=options.tower?['shrine','treasure','elite']:SPECIAL_ROOMS;
+ for(let i=0;i<specials.length;i++)rest[i].type=specials[i];
  const biomes=['crypt','fungal','flooded'];
  for(const room of rooms){
   const tier=dist[room.id]/Math.max(1,dist[bossId]);
-  room.biome=biomes[Math.min(2,Math.floor(tier*2.9))];
+  room.biome=options.tower&&['crypt','fungal','flooded'].includes(options.biome)?options.biome:biomes[Math.min(2,Math.floor(tier*2.9))];
   room.eventKind=room.type==='event'?(random()<.5?'forge':'trial'):null;
   room.runeAnswer=Math.floor(random()*3);
   room.theme=room.type==='start'||room.type==='shrine'||room.type==='camp'?'sanctuary':
@@ -141,7 +143,7 @@ export function generateDungeon(seed=1){
   }
  }
  return {
-  seed,width,height,tiles,doors,gates,rooms,bossId,random,
+  seed,width,height,tiles,doors,gates,rooms,bossId,random,tower:!!options.tower,
   columns:ROOM_COLS,rows:ROOM_ROWS,start:{x:rooms[0].cx,y:rooms[0].cy},
   tileAt(x,y){if(x<0||y<0||x>=width||y>=height)return 1;return tiles[index(x,y)]},
   roomAt(x,y){

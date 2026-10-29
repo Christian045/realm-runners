@@ -1,4 +1,16 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.10.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.11.0)
+
+## Alpha 0.11 – Turm der zehn Prüfungen
+
+- **Neuer eigenständiger Spielmodus** direkt im Hauptmenü: 10 Etagen mit eigenen Gegnergruppen und je einem Etagenboss, zuletzt der **Ewige Herrscher** als Superboss mit **drei Phasen**. Der normale Dungeon und der Endlos-Modus bleiben erhalten und sind gegenseitig exklusiv zur Turm-Herausforderung.
+- **Schnelle Etagen:** Statt jedes Mal 13 große Kammern zu durchlaufen, bestehen Turm-Etagen aus 7 abwechslungsreichen Räumen, darunter Kampfräume, Elite, Schatzkammer, Schrein und ein Bossraum. Karten bleiben garantiert zusammenhängend.
+- **Zehn verschiedene Bosskonzepte:** Festgelegte Namen, Farben, Gegner- und Angriffskombinationen. Die Telegraphen warnen vor Schussfächern, Zielmarkierungen, Spiralen, Ansturm, Meteoriten und Kreuzangriffen; Etage 10 hat zusätzlich die Finsternis-Nova.
+- **Vier neue Gegnertypen:** Geister, eiserne Wächter, Kultisten und Berserker/Brutes mit eigener Pixel-Art und Grundwerten. Kultisten und Bogenschützen benötigen freie Sicht zum Schießen.
+- **Belohnungswahl:** Nach Boss 1–9 darfst du vor der nächsten Etage zwischen Heilung, einem seltenen Relikt oder dauerhaftem Schaden für diesen Run wählen. Ausrüstung, Talente, Gold und HP werden von Etage zu Etage übernommen.
+- **Progression:** Bestleistung und abgeschlossene Turmläufe werden in bestehendem, rückwärtskompatiblem Save-Key gespeichert; neue Erfolge bei Etage 5 und beim vollständigen Sieg. Der Endboss endet mit Sieg, kein unendlicher Loop.
+- **Checks:** Tower-Modus, Boss-Phasen (55 / 30 %), zehn Etagen, Belohnungen, Speicherdaten, Minimap, Safari-/Chrome-Kontrollen getestet.
+
+
 
 ## Alpha 0.10 – Dungeon Overhaul
 

@@ -66,7 +66,7 @@ test('all new challenge modes are gated by meaningful existing progress',()=>{
  assert.ok(g.player.damage>24);
 });
 test('achievements are permanent, pay out only once and survive reload',()=>{
- const p=defaultProgress();p.runs=5;p.bossKills=3;p.itemsFound=12;p.eliteKills=8;p.deepestFloor=3;
+ const p=defaultProgress();p.runs=5;p.bossKills=3;p.itemsFound=12;p.eliteKills=8;p.deepestFloor=3;p.towerBest=10;p.towerWins=1;
  const first=awardAchievements(p);assert.equal(first.length,ACHIEVEMENTS.length);
  const gold=p.gold;assert.deepEqual(awardAchievements(p),[]);assert.equal(p.gold,gold);
  const map=new Map(),storage={getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,v)};
