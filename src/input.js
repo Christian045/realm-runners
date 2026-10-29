@@ -12,8 +12,10 @@ export class Input {
    this.keys.add(e.code);
   });
   window.addEventListener('keyup',e=>this.keys.delete(e.code));
-  const clear=()=>{this.keys.clear();this.mouse.down=false;this.mobileAttack=false;this.stick={x:0,y:0}};
-  window.addEventListener('blur',clear);document.addEventListener('visibilitychange',()=>{if(document.hidden)clear()});
+  // Release buttons and queued actions when focus is lost or a menu opens.
+  // Otherwise a held attack or dash can fire unexpectedly when play resumes.
+  window.addEventListener('blur',()=>this.resetTransient());
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)this.resetTransient()});
   canvas.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'){this.mouse.x=e.clientX;this.mouse.y=e.clientY;this.mouse.active=true}});
   canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button===0){this.mouse.x=e.clientX;this.mouse.y=e.clientY;this.mouse.down=true;this.mouse.active=true}});
   window.addEventListener('pointerup',e=>{if(e.pointerType==='mouse')this.mouse.down=false});
@@ -38,6 +40,20 @@ export class Input {
   for(const evt of ['pointerup','pointercancel','lostpointercapture'])attack.addEventListener(evt,()=>this.mobileAttack=false);
   document.querySelector('#dashTouch').addEventListener('pointerdown',e=>{e.preventDefault();this.dashQueued=true});
   document.querySelector('#abilityTouch').addEventListener('pointerdown',e=>{e.preventDefault();this.abilityQueued=true});
+ }
+ resetTransient(){
+  this.keys.clear();
+  this.mouse.down=false;
+  this.mouse.active=false;
+  this.mobileAttack=false;
+  this.dashQueued=false;
+  this.abilityQueued=false;
+  this.stick={x:0,y:0};
+  const stick=document.querySelector('#joystick');
+  if(stick){
+   stick.style.setProperty('--sx','0px');
+   stick.style.setProperty('--sy','0px');
+  }
  }
  movement(){
   const x=Number(this.keys.has('KeyD')||this.keys.has('ArrowRight'))-Number(this.keys.has('KeyA')||this.keys.has('ArrowLeft'))+this.stick.x;
