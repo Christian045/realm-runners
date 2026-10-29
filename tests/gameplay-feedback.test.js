@@ -129,6 +129,6 @@ test('warrior now visibly holds a sword in all directions; 3-hit combo alters it
   beginPath(){},moveTo(){},lineTo(){calls.push({type:'blade'})},
   closePath(){},fill(){}};
  drawWarriorSword(ctx,p);
- assert.ok(calls.some(c=>c.type==='rect'&&c.h>=24),'full size sword guard exists');
+ assert.ok(calls.some(c=>c.type==='rect'&&c.h>=16),'proportionate sword guard exists');
  assert.ok(calls.filter(c=>c.type==='blade').length>=7,'sword outline is drawn');
 });

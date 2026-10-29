@@ -86,7 +86,10 @@ function frameHero(ctx,p,kind,state,frame,face){
  const armRaise=attack?-5:casting?-7:walking&&frame%2?-2:0;
  stamp(ctx,p,[['outline',6,16+armRaise,4,10],['skin',7,20+armRaise,2,4],
   ['outline',25,15+armRaise,4,10],['skin',26,19+armRaise,2,4]]);
- if(kind==='warrior'||kind==='goblin'){
+ if(kind==='warrior'){
+  // Sword is drawn in weapon-visuals.js, anchored to aim; sprite only has gauntlet.
+  stamp(ctx,p,[['metal',26,17+armRaise,4,6],['trim',27,18+armRaise,2,3]]);
+ }else if(kind==='goblin'){
   stamp(ctx,p,[['metal',27,7+armRaise,2,16],['trim',26,7+armRaise,4,4],['gold',25,20+armRaise,6,2]]);
   if(attack){stamp(ctx,p,[['trim',26,3,4,3],['light',23,4,3,2]])}
  }else if(kind==='hunter'||kind==='archer'){
@@ -118,7 +121,7 @@ function frameHero(ctx,p,kind,state,frame,face){
   stamp(ctx,p,[['outline',4,12,5,7],['metal',5,12,7,4],['light',6,12,5,2],
    ['outline',23,11,7,7],['metal',24,12,6,4],
    ['gold',17,1,4,3],['trim',15,4,8,2],['dark',14,25,6,4]]);
-  if(attack)stamp(ctx,p,[['trim',24,1+(frame%2)*4,7,3],['light',26,0+(frame%2)*4,5,2]]);
+  // Weapon swing is rendered independently; avoid a second floating blade.
  }else if(kind==='hunter'){
   stamp(ctx,p,[['outline',5,12,5,12],['shadow',6,13,4,16],
    ['light',11,3,13,3],['dark',11,5,13,2],['gold',10,16,3,4],
