@@ -1,23 +1,23 @@
-import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.15.0';
-import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.15.0';
-import {saveProgress, buyPermanent, upgradeCost} from './progression.js?v=0.20.0';
-import {defaultStatistics,newRunStatistics,recordEnemyKill,recordDamage,finishRunStatistics} from './statistics.js?v=0.20.0';
+import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.21.0';
+import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.21.0';
+import {saveProgress, buyPermanent, upgradeCost} from './progression.js?v=0.21.0';
+import {defaultStatistics,newRunStatistics,recordEnemyKill,recordDamage,finishRunStatistics} from './statistics.js?v=0.21.0';
 import {createBossState, updateBoss, startPhaseTwo, isBossInvulnerable, PHASE_TWO_AT} from './boss.js?v=0.18.0';
 import {createWardenState} from './warden.js?v=0.15.0';
-import {generateItem,equipItem,applyTalents,buyTalent} from './loot.js?v=0.16.0';
-import {hasAffix,onDash,beforeHit,afterHit,onHurt,onKill,statusTick} from './affixes.js';
-import {CHALLENGES,challengeUnlocked,applyRunChallenge,enemyExtraCount,challengeScale,challengeReward,awardAchievements} from './motivation.js';
-import {validSpecialization,specializationUnlocked,applySpecialization} from './specializations.js';
+import {generateItem,equipItem,applyTalents,buyTalent} from './loot.js?v=0.21.0';
+import {hasAffix,onDash,beforeHit,afterHit,onHurt,onKill,statusTick} from './affixes.js?v=0.21.0';
+import {CHALLENGES,challengeUnlocked,applyRunChallenge,enemyExtraCount,challengeScale,challengeReward,awardAchievements} from './motivation.js?v=0.21.0';
+import {validSpecialization,specializationUnlocked,applySpecialization} from './specializations.js?v=0.21.0';
 import {enemySteering,hasLineOfSight,findSpawnPosition} from './navigation.js';
 import {towerStage,towerFloorSeed,towerDifficulty,towerWinReward,TOWER_LENGTH} from './tower.js?v=0.17.0';
 import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js?v=0.18.0';
 import {updateTowerEnemy,towerEnemyDamage,towerRoomHazard} from './tower-enemies.js?v=0.18.0';
-import {updateEncounterEnemy,encounterMitigation,rangedEncounterType} from './encounter-enemies.js?v=0.15.0';
-import {nextTowerRelic,grantTowerRelic,towerRelicDamage,afterTowerRelicHit,towerRelicKill,towerRelicSave,towerRelicFloor} from './tower-relics.js';
+import {updateEncounterEnemy,encounterMitigation,rangedEncounterType} from './encounter-enemies.js?v=0.21.0';
+import {nextTowerRelic,grantTowerRelic,towerRelicDamage,afterTowerRelicHit,towerRelicKill,towerRelicSave,towerRelicFloor} from './tower-relics.js?v=0.21.0';
 import {cappedBossDamage,BOSS_BALANCE} from './combat-balance.js?v=0.15.0';
 import {towerFloorProfile,towerEncounterPlan,towerRoomDamage,towerRoomSpeed,towerEnemyWindup,towerEnemyRecovery,towerFirstHazard} from './difficulty-director.js?v=0.18.0';
 import {impactStyle} from './visual-impact.js?v=0.14.0';
-import {hasSet,hasRunPower,pickRunUpgrades,onBuildDash,onBuildHurt,onBuildHit,buildDamageFactor} from './buildcraft.js?v=0.16.0';
+import {hasSet,hasRunPower,pickRunUpgrades,onBuildDash,onBuildHurt,onBuildHit,buildDamageFactor} from './buildcraft.js?v=0.21.0';
 
 export class Game {
  constructor(progress,input,onChange=()=>{}){
