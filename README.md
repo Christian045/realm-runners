@@ -1,4 +1,17 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.19.4)
+# Realm Runners – Dungeon Reborn (Alpha 0.20.0)
+
+## Alpha 0.20.0 – Statistik-Chronik
+
+- **Neuer Statistik-Tab:** Im Hauptmenü zwischen „Spielen“ und „Statistiken“ wechseln. Beide Ansichten bleiben für iPhone und Desktop optimiert.
+- **Langzeitwerte:** Gesamtspielzeit (nur während des aktiven Gameplays), absolvierte Runs, Siege, Tode, Boss-Siege, besiegte Gegner sowie verursachter und erlittener Schaden.
+- **Gegnerstatistik:** Jeder vorhandene Gegnertyp wird einzeln gelistet, auch bei 0 Kills. Bosskills werden zusätzlich nach konkretem Bossnamen aufgeschlüsselt.
+- **Letzte Runs:** Die zwölf neuesten abgeschlossenen Durchgänge mit Spielklasse, Modus, Etage, Zeit, Kills und Schaden werden lokal gespeichert. Abgebrochene Runs werden nicht fälschlich als Niederlage gezählt.
+- **Werte korrekt zählen:** Treffer zählen nur tatsächlich entfernte Lebenspunkte; besiegte Gegner werden durch das vorhandene Kill-Flag nicht doppelt gezählt. Turm-Zwischenetagen erzeugen keine zusätzlichen vollständigen Runs.
+- **Spielstand sicher:** Bestehende Runs, Boss-Siege und Erfolge bleiben erhalten. Zuvor nicht erfasste Werte beginnen erst ab dieser Version – ältere Tode oder Gegnerkills werden nicht geschätzt.
+- **Speicherung:** Statistiken werden regelmäßig während des Spiels sowie bei Tabwechsel/Schließen gesichert. Alle Daten bleiben im bisherigen lokalen Spielstand; kein Konto oder Cloud-Dienst nötig.
+- **Tests:** Neue Tests für Migration, Duplikate, Boss-Zwischenetagen, Speicherung und UI auf Desktop/iPhone.
+
+
 
 ## Alpha 0.19.4 – Cleanes Dungeon-HUD ohne Raumtitel
 
