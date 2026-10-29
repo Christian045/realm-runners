@@ -168,7 +168,8 @@ export class Game {
    direction:{x:1,y:0},upgradeIds:[],hitCount:0,inventory:[],
    moving:false,attackTimer:0,castTimer:0,hurtTimer:0,walkCycle:0,
    comboStep:0,comboTime:0,hunterCharge:0,
-   equipment:{weapon:null,armor:null,charm:null,amulet:null,ring1:null,ring2:null}};
+   equipment:{weapon:null,armor:null,charm:null,amulet:null,ring1:null,ring2:null},
+    statuses:{poison:0,burn:0,stun:0,slow:0,rot:0,mark:0,markSource:null}};
   applyTalents(this.player,this.progress);
   applySpecialization(this.player,specializationUnlocked(this.progress,this.specialization)?this.specialization:'standard');
   applyRunChallenge(this,this.runMode);
@@ -367,6 +368,8 @@ export class Game {
   }
   this.progress.statistics.playTime+=dt;
   this.updateServant(dt);
+  this.tickPlayerStatuses(dt);
+  if(this.mode!=='playing')return;
   this.statisticsSaveClock+=dt;
   if(this.statisticsSaveClock>=8){this.statisticsSaveClock=0;this.saveStatistics()}
   const p=this.player,move=this.input.movement(),aim=this.input.aiming(p,camera);
@@ -393,7 +396,7 @@ export class Game {
    this.move(p,p.dashVector.x*690*dt,p.dashVector.y*690*dt);
    p.dashTimer=Math.max(0,p.dashTimer-dt);
    if(this.random()<.65)this.createEffect('spark',p.x,p.y,'#c1e9e4',.28,7);
-  }else this.move(p,move.x*p.speed*dt,move.y*p.speed*dt);
+  }else if(!(p.statuses?.stun>0))this.move(p,move.x*p.speed*dt*(p.statuses?.slow>0?.60:1),move.y*p.speed*dt*(p.statuses?.slow>0?.60:1));
   const attacking=this.input.attacking();
   if(p.kind==='hunter'){
    p.hunterCharge=attacking?(p.hunterCharge||0)+dt:0;
@@ -414,7 +417,7 @@ export class Game {
   for(const drop of this.loot)if(!drop.picked&&distance(drop,p)<30){
    drop.picked=true;
    if(drop.type==='coin')this.runCoins+=drop.value;
-   else if(drop.type==='heal')p.hp=Math.min(p.maxHp,p.hp+drop.value);
+   else if(drop.type==='heal'&&!(p.statuses?.rot>0))p.hp=Math.min(p.maxHp,p.hp+drop.value);
    else if(drop.type==='gear'){
     if(p.inventory.length<18){
      p.inventory.push(drop.item);this.progress.itemsFound=(this.progress.itemsFound||0)+1;
@@ -601,7 +604,7 @@ export class Game {
   e.flash=critical||options.finisher?.23:.20;e.hurtTimer=.22;
   const push=e.type==='boss'?30:options.finisher?280:critical?245:175;
   e.knock={x:dir.x*push,y:dir.y*push};
-  if(proc&&p.leech>0)p.hp=Math.min(p.maxHp,p.hp+d*p.leech);
+  if(proc&&p.leech>0&&!(p.statuses?.rot>0))p.hp=Math.min(p.maxHp,p.hp+d*p.leech);
   if(proc){
    this.hitstop=Math.max(this.hitstop,critical?.075:.035);
    this.shake=Math.max(this.shake,critical?8:e.type==='boss'?5:3);
@@ -656,6 +659,40 @@ export class Game {
   this.createEffect('burst',e.x,e.y,e.elite?'#ffca8c':'#b6f2bf',.56,40);
   this.playSound(e.type==='boss'?'bossDown':'enemyDown');
  }
+ inflictStatus(){
+  const p=this.player;if(!p?.statuses||this.random()>.42)return;
+  const enemy=this.enemies.filter(e=>e.hp>0&&distance(e,p)<375)
+   .sort((a,b)=>distance(a,p)-distance(b,p))[0];
+  if(!enemy)return;
+  const byType={mushroom:'poison',cultist:'burn',sentinel:'stun',brute:'slow',
+   wraith:'mark',hexer:'rot',scout:'slow',archer:'poison'};
+  const kind=byType[enemy.type];if(!kind)return;
+  p.statuses[kind]=Math.max(p.statuses[kind]||0,kind==='mark'?6:kind==='stun'?.45:kind==='rot'?4:3.4);
+  if(kind==='mark')p.statuses.markSource=enemy;
+  const names={poison:'GIFT',burn:'BRENNEN',stun:'BETÄUBT',slow:'VERLANGSAMT',rot:'FÄULNIS',mark:'TODESMARKE'};
+  this.createEffect('text',p.x,p.y-64,names[kind],'#eac18a',.9);
+ }
+ tickPlayerStatuses(dt){
+  const p=this.player,fx=p?.statuses;if(!fx)return;
+  for(const kind of ['poison','burn','stun','slow','rot','mark'])
+   fx[kind]=Math.max(0,(fx[kind]||0)-dt);
+  if(fx.markSource?.deadHandled||fx.markSource?.hp<=0){fx.mark=0;fx.markSource=null;}
+  fx.damageAccum=(fx.damageAccum||0)+((fx.poison>0?2:0)+(fx.burn>0?4:0))*dt;
+  const damage=Math.floor(fx.damageAccum);
+  if(damage>0){
+   fx.damageAccum-=damage;p.hp=Math.max(0,p.hp-damage);
+   recordDamage(this.progress.statistics,this.runStatistics,damage,'taken');
+   if(p.hp<=0){this.finish(false);return;}
+  }
+  if(fx.markSource&&fx.mark<=0){
+   fx.markSource=null;
+   const impact=Math.ceil(p.maxHp*.34);
+   p.hp=Math.max(0,p.hp-impact);
+   recordDamage(this.progress.statistics,this.runStatistics,impact,'taken');
+   this.createEffect('ring',p.x,p.y,'#c764d5',.7,72);
+   if(p.hp<=0)this.finish(false);
+  }
+ }
  hurt(damage,dir){
   const p=this.player;
   if(p.invulnerable>0)return;
@@ -665,6 +702,7 @@ export class Game {
   const actual=reduced-blocked;
   if(actual>0)this.hitsTaken++;
   if(actual>0&&this.runMode==='nohit')p.hp=0;
+  if(actual>0)this.inflictStatus();
   if(actual>0&&p.kind==='glasscannon'){
    p.maxHp=Math.max(20,p.maxHp-7);p.hp=Math.min(p.hp,p.maxHp);
    p.damage*=1.08;
