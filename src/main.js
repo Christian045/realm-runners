@@ -282,6 +282,14 @@ function refreshPanel(){
     '<small>Persönlicher Rekord: '+(progress.towerBestTime?fmtTime(progress.towerBestTime):'Noch kein vollständiger Sieg')+
     ' · Turm-Relikte: '+game.towerRelics.length+'/6</small></div>':'')+
    '<div class="summary"><div>KAMMERN<strong>'+game.clearCount+'</strong></div><div>GOLD<strong>+'+game.earnedGold+'</strong></div><div>ETAGE<strong>'+game.floorDepth+'</strong></div></div>'+
+    (progress.statistics.recentRuns.length?(()=>{
+     const run=progress.statistics.recentRuns[0];
+     return '<div class="run-report"><strong>DEIN RUN IM ÜBERBLICK</strong>'+
+      '<span>Spielzeit: '+fmtTime(run.seconds)+' · Gegner: '+run.kills+
+      ' · Bosse: '+run.bosses+'</span>'+
+      '<span>Schaden: '+run.damageDealt+' verursacht · '+run.damageTaken+' erlitten</span>'+
+      (game.runMode==='nohit'?'<span>'+(won?'NO-HIT SIEG ✓':'NO-HIT VERSUCH BEENDET')+'</span>':'')+'</div>';
+    })():'')+
    (game.achievementsEarned?.length?'<p class="earned-achievements">NEUE ERFOLGE: '+game.achievementsEarned.map(a=>a.name+' (+'+a.reward+' ◆)').join(' · ')+'</p>':'')+
    btn('restart','NOCH EIN RUN','primary')+btn('menu','ZUM HAUPTMENÜ');
  }
