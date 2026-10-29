@@ -150,3 +150,13 @@ test('warden and slime-king boss kills appear under their distinct names in stat
  assert.equal(g.progress.statistics.bosses['DER SCHLEIMKÖNIG'],1);
  assert.equal(g.progress.statistics.kills.boss,2);
 });
+
+test('no-hit remains lethal even when a phoenix resurrection relic is equipped',()=>{
+ const g=new Game(defaultProgress(),input);
+ g.setChallenge('nohit');g.setTower(true);g.start('warrior',111);
+ g.towerRelics=['phoenix'];g.player.hp=10;g.player.invulnerable=0;
+ g.hurt(100,{x:1,y:0});
+ assert.equal(g.mode,'dead','no-hit death cannot be overridden by phoenix');
+ assert.equal(g.towerPhoenixUsed,false);
+ assert.equal(g.progress.noHitWins,0);
+});
