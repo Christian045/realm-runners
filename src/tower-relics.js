@@ -46,7 +46,7 @@ export function towerRelicKill(game){
  if(!owns(game,'hunger'))return;
  game.towerRelicKills=(game.towerRelicKills||0)+1;
  if(game.towerRelicKills%3===0){
-  game.player.hp=Math.min(game.player.maxHp,game.player.hp+10);
+  if(!(game.player.statuses?.rot>0))game.player.hp=Math.min(game.player.maxHp,game.player.hp+10);
   game.createEffect('text',game.player.x,game.player.y-34,'SEELEN +10','#e5b2d8',.8);
  }
 }
