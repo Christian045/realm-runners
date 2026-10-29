@@ -1,6 +1,6 @@
 import {CLASSES} from './data.js?v=0.15.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.16.0';
-import {Input} from './input.js';
+import {Input} from './input.js?v=0.19.3';
 import {Game} from './game.js?v=0.18.0';
 import {Renderer} from './render.js?v=0.18.1';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.16.0';
@@ -28,7 +28,18 @@ const fmtTime=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/3600)?Math.
 const btn=(action,text,cls='secondary',extra='')=>'<button type="button" class="'+cls+'" data-action="'+action+'" '+extra+'>'+text+'</button>';
 function refreshPanel(){
  const overlay=$('overlay'),panel=$('panelContent'),playing=game.mode==='playing';
- const isMenu=game.mode==='menu';
+ const panelShell=overlay.querySelector('.panel'),isMenu=game.mode==='menu';
+ // Keep advanced tabs, the selected item and the scroll position when a
+ // purchase, equipment change or mode choice causes a full panel re-render.
+ const sameScreen=!playing&&overlay.dataset.renderMode===game.mode;
+ const previousView=sameScreen?{
+  scroll:panelShell.scrollTop,
+  items:panel.querySelector('.inventory-list')?.scrollTop||0,
+  expanded:[...panel.querySelectorAll('.castle-advanced')].map((node,i)=>node.open?i:-1).filter(i=>i>=0),
+  focused:panel.contains(document.activeElement)?document.activeElement?.dataset?.action:null
+ }:null;
+ if(overlay.dataset.renderMode!==game.mode)input.resetTransient();
+ overlay.dataset.renderMode=game.mode;
  overlay.classList.toggle('hidden',playing);
  overlay.classList.toggle('castle-menu',isMenu);
  // Menu typography is intentionally cinematic; gameplay decisions use compact dialogs.
@@ -214,6 +225,16 @@ function refreshPanel(){
    paint.imageSmoothingEnabled=false;paint.clearRect(0,0,32,36);paint.drawImage(frame,0,0);
   }
  }
+ if(previousView){
+  const sections=[...panel.querySelectorAll('.castle-advanced')];
+  for(const i of previousView.expanded)if(sections[i])sections[i].open=true;
+  panelShell.scrollTop=previousView.scroll;
+  const list=panel.querySelector('.inventory-list');
+  if(list)list.scrollTop=previousView.items;
+  const target=[...panel.querySelectorAll('button[data-action]')]
+   .find(button=>button.dataset.action===previousView.focused&&!button.disabled);
+  target?.focus({preventScroll:true});
+ }
 }
 $('panelContent').addEventListener('click',e=>{
  const element=e.target.closest('button[data-action]');if(!element)return;
@@ -240,12 +261,15 @@ $('panelContent').addEventListener('click',e=>{
 $('pauseBtn').addEventListener('click',()=>{if(game.mode==='playing'){game.mode='paused';game.notify()}});
 $('inventoryBtn').addEventListener('click',()=>game.toggleInventory());
 window.addEventListener('keydown',e=>{
- if(e.code==='Escape'){
+ if(e.code==='Escape'&&!e.repeat){
   if(game.mode==='playing'){game.mode='paused';game.notify()}
   else if(game.mode==='paused'){game.mode='playing';game.notify()}
+  else if(game.mode==='inventory')game.toggleInventory();
  }
- if(e.code==='KeyI'&&!e.repeat)game.toggleInventory();
- if(e.code==='Enter'&&game.mode==='menu')game.start(selected);
+ if(e.code==='KeyI'&&!e.repeat&&['playing','inventory'].includes(game.mode))game.toggleInventory();
+ // Enter on a focused menu control should activate that control, not start a run.
+ if(e.code==='Enter'&&!e.repeat&&game.mode==='menu'&&
+  !e.target?.closest?.('button,summary,input,select,textarea,a,[role="button"]'))game.start(selected);
 });
 function updateHud(){
  const hud=game.getHud();if(!hud)return;
