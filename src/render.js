@@ -1,6 +1,7 @@
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js';
 import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js';
+import {drawTowerVictory} from './tower-visuals.js';
 import {PixelSpriteAtlas,spriteIdentity} from './sprites.js';
 import {PixelTileAtlas,tileTheme,tileVariant} from './tileset.js';
 const hash=(x,y,seed=0)=>{let a=Math.imul(x+seed,374761393)+Math.imul(y,668265263);a=Math.imul(a^(a>>>13),1274126177);return (a^(a>>>16))>>>0};
@@ -41,7 +42,7 @@ export class Renderer {
   drawBossWarnings(c,game);
   for(const h of game.hazards||[]){
    c.save();c.globalAlpha=.14+.25*(1-Math.max(0,h.time)/h.maxTime);
-   c.fillStyle='#ff895a';c.strokeStyle='#ffd5a1';c.lineWidth=3;
+   c.fillStyle=h.color||'#ff895a';c.strokeStyle=h.color||'#ffd5a1';c.lineWidth=3;
    c.beginPath();c.arc(h.x,h.y,h.radius,0,Math.PI*2);c.fill();c.stroke();
    c.restore();
   }
@@ -57,6 +58,7 @@ export class Renderer {
   }
   for(const b of game.projectiles)this.projectile(b);
   for(const e of game.effects)this.effect(e);
+  drawTowerVictory(c,game);
   drawVignette(c,game,canvas);
   this.minimap(game);
  }

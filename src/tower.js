@@ -20,5 +20,6 @@ export function towerWinReward(floor){return 120+floor*38}
 export function towerTransitionOptions(){return Object.freeze([
  {id:'recover',name:'AUSRUHEN',description:'45 % deiner maximalen LP wiederherstellen'},
  {id:'relic',name:'RELIKT',description:'Seltene Ausrüstung für die nächste Etage'},
- {id:'power',name:'KRAFT',description:'+9 % Schaden für den restlichen Turmlauf'}
+ {id:'power',name:'KRAFT',description:'+9 % Schaden für den restlichen Turmlauf'},
+ {id:'sigil',name:'TURM-SIEGEL',description:'Eines von sechs einzigartigen Relikten mit Build-Synergien'}
 ])}
