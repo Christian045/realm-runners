@@ -1,18 +1,19 @@
-import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.13.0';
-import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.13.0';
+import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.15.0';
+import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.15.0';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js';
-import {createBossState, updateBoss, startPhaseTwo, isBossInvulnerable, PHASE_TWO_AT} from './boss.js?v=0.13.0';
-import {createWardenState} from './warden.js?v=0.13.0';
+import {createBossState, updateBoss, startPhaseTwo, isBossInvulnerable, PHASE_TWO_AT} from './boss.js?v=0.15.0';
+import {createWardenState} from './warden.js?v=0.15.0';
 import {generateItem,equipItem,applyTalents,buyTalent} from './loot.js';
 import {hasAffix,onDash,beforeHit,afterHit,onHurt,onKill,statusTick} from './affixes.js';
 import {CHALLENGES,challengeUnlocked,applyRunChallenge,enemyExtraCount,challengeScale,challengeReward,awardAchievements} from './motivation.js';
 import {validSpecialization,specializationUnlocked,applySpecialization} from './specializations.js';
 import {enemySteering,hasLineOfSight,findSpawnPosition} from './navigation.js';
-import {towerStage,towerFloorSeed,towerDifficulty,towerWinReward,TOWER_LENGTH} from './tower.js?v=0.13.0';
-import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js?v=0.13.0';
+import {towerStage,towerFloorSeed,towerDifficulty,towerWinReward,TOWER_LENGTH} from './tower.js?v=0.15.0';
+import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js?v=0.15.0';
 import {updateTowerEnemy,towerEnemyDamage,towerRoomHazard} from './tower-enemies.js';
+import {updateEncounterEnemy,encounterMitigation,rangedEncounterType} from './encounter-enemies.js?v=0.15.0';
 import {nextTowerRelic,grantTowerRelic,towerRelicDamage,afterTowerRelicHit,towerRelicKill,towerRelicSave,towerRelicFloor} from './tower-relics.js';
-import {cappedBossDamage,BOSS_BALANCE} from './combat-balance.js?v=0.13.0';
+import {cappedBossDamage,BOSS_BALANCE} from './combat-balance.js?v=0.15.0';
 import {impactStyle} from './visual-impact.js?v=0.14.0';
 
 export class Game {
@@ -211,15 +212,21 @@ export class Game {
   const boss=room.type==='boss';
   const eliteRoom=room.type==='elite';
   const amount=boss?1:eliteRoom?3:(this.tower?2+Math.floor(this.floorDepth/4):3+Math.floor(this.clearCount/2))+Math.floor(this.random()*2)+enemyExtraCount(this);
-  const variants=room.biome==='fungal'?['mushroom','slime','mushroom','archer']:
-   room.biome==='flooded'?['archer','slime','goblin','archer']:
-   ['goblin','mushroom','archer','slime'];
+  const variants=room.biome==='fungal'?['mushroom','slime','hexer','assassin','cultist']:
+   room.biome==='flooded'?['archer','scout','slime','assassin','wraith']:
+   ['goblin','bulwark','scout','hexer','assassin'];
   const warden=boss&&!this.tower&&this.dungeon.seed%3===2;
   const offsets=[[ -145,-90],[145,90],[140,-90],[-140,90],[0,-100],[0,110],[-150,0],[150,0]];
   const roster=this.tower?this.currentTowerStage().roster:variants;
+  const preferred=room.encounterStyle==='ambush'?'assassin':
+   room.encounterStyle==='ranged'?'scout':
+   room.encounterStyle==='arcane'?'hexer':
+   room.encounterStyle==='fortified'?'bulwark':null;
   for(let i=0;i<amount;i++){
-   const type=boss?'boss':roster[Math.floor(this.random()*
-    (this.tower?roster.length:Math.min(4,2+Math.floor(this.clearCount/2))))];
+   const type=boss?'boss':(i===0&&preferred&&room.type!=='elite'&&
+    (!this.tower||this.floorDepth>=2)?preferred:
+    roster[Math.floor(this.random()*
+     (this.tower?roster.length:Math.min(roster.length,3+Math.floor(this.clearCount/2))))]);
    const spec=ENEMY_DATA[type];
    const [ox,oy]=offsets[i%offsets.length];
    const point=findSpawnPosition(this.dungeon,room,room.cx+ox,room.cy+oy,spec.radius,this.player);
@@ -383,8 +390,10 @@ export class Game {
   const p=this.player,proc=options.proc!==false;
   const critical=proc&&this.random()<p.crit;
   let d=proc?beforeHit(this,e,damage):damage;
-  if(proc){d=towerRelicDamage(this,e,d);d=towerEnemyDamage(e,d,dir)}
+  if(proc){d=towerRelicDamage(this,e,d);d=towerEnemyDamage(e,d,dir);d=encounterMitigation(e,d,dir)}
   if(critical)d*=1.7;
+  // A short, visible post-attack opening rewards learning the boss pattern.
+  if(e.type==='boss'&&e.boss?.exposed>0)d*=1.18;
   if(proc){p.hitCount++;if(p.hitCount%4===0&&p.upgradeIds.includes('bolt'))d+=p.damage*.7}
   d=Math.max(1,Math.round(d));
   if(e.type==='boss')d=cappedBossDamage(e,d);
@@ -481,6 +490,7 @@ export class Game {
    if(e.type==='boss'&&e.boss){updateBoss(this,e,dt);if(this.mode!=='playing')return;continue}
    e.elapsed+=dt;e.flash=Math.max(0,e.flash-dt);e.cooldown-=dt;
    e.guardTime=Math.max(0,(e.guardTime||0)-dt);
+   if(updateEncounterEnemy(this,e,dt))continue;
    if(updateTowerEnemy(this,e,dt))continue;
    if(e.elite){
     e.eliteShot-=dt;
@@ -518,7 +528,7 @@ export class Game {
        this.spawnProjectile(e.x,e.y,{x:Math.cos(a),y:Math.sin(a)},e.damage,false,true);
       }
       this.createEffect('ring',e.x,e.y,'#ff789e',.55,95);
-     }else if(e.type==='archer'||e.type==='cultist'){
+     }else if(e.type==='archer'||e.type==='cultist'||rangedEncounterType(e.type)){
       if(hasLineOfSight(this.dungeon,e.x,e.y,p.x,p.y,true)){
        this.spawnProjectile(e.x,e.y,dir,e.damage,false,true);e.attackTimer=.24;
       }
@@ -526,8 +536,9 @@ export class Game {
      e.cooldown=e.type==='boss'?2.3:1.75;
     }
    }else{
-    const steering=enemySteering(this,e,p,dt,['archer','cultist'].includes(e.type));
-    const reposition=['archer','cultist'].includes(e.type)?(!steering.clear||dist<165||dist>300||e.elapsed%2.8<1.35):
+    const ranged=['archer','cultist'].includes(e.type)||rangedEncounterType(e.type);
+    const steering=enemySteering(this,e,p,dt,ranged);
+    const reposition=ranged?(!steering.clear||dist<165||dist>300||e.elapsed%2.8<1.35):
      dist>e.radius+p.radius+8;
     if(reposition){
      const amount=e.speed*dt;
@@ -537,11 +548,11 @@ export class Game {
      this.move(e,nx,ny);
     }
     if(e.cooldown<=0){
-     if(['archer','cultist'].includes(e.type)&&dist<500&&steering.clear){
+     if(ranged&&dist<500&&steering.clear){
       e.windup=e.type==='boss'?.8:.58;
       e.cooldown=99;
       this.createEffect('ring',e.x,e.y,e.type==='boss'?'#ff6f83':'#ecc5ff',e.windup,37);
-     }else if(!['archer','cultist'].includes(e.type)&&
+     }else if(!ranged&&
       dist<=e.radius+p.radius+18&&
       hasLineOfSight(this.dungeon,e.x,e.y,p.x,p.y,true)){
       // Attack windup is independent of movement or player input.

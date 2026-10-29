@@ -1,11 +1,12 @@
-import { TILE } from './data.js?v=0.13.0';
+import { TILE } from './data.js?v=0.15.0';
 
 // Thirteen rooms on a five-by-five grid: NOT the former filled 3x3 block.
 // Cells are only an address system: the playable outlines vary per chamber.
 export const ROOM_W=15, ROOM_H=11, ROOM_COLS=5, ROOM_ROWS=5, ROOM_COUNT=13;
 export const ROOM_LAYOUTS=Object.freeze(['columns','ruins','open','alcoves','crossroads','arcade',
- 'longhall','pillared','vault','chambers','shattered','tombs','mirror','crescent']);
-export const ROOM_SHAPES=Object.freeze(['great','compact','long','tall','cross','L','offset','zigzag','arc']);
+ 'longhall','pillared','vault','chambers','shattered','tombs','mirror','crescent',
+ 'bastion','switchback','trident','sanctum']);
+export const ROOM_SHAPES=Object.freeze(['great','compact','long','tall','cross','L','offset','zigzag','arc','hourglass','terrace']);
 export const SPECIAL_ROOMS=Object.freeze(['treasure','shrine','elite','secret','event','library','trap','camp','vault']);
 export function seeded(seed){let state=(seed>>>0)||1;return ()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296}}
 const key=(x,y)=>x+','+y;
@@ -23,7 +24,11 @@ const patterns={
  shattered:[[3,2],[4,2],[10,8],[11,8],[11,3]],
  tombs:[[3,3],[3,7],[11,3],[11,7],[2,2],[12,8]],
  mirror:[[3,2],[3,8],[11,2],[11,8],[4,3],[10,3]],
- crescent:[[3,2],[4,2],[10,2],[11,2],[3,8],[11,8]]
+ crescent:[[3,2],[4,2],[10,2],[11,2],[3,8],[11,8]],
+ bastion:[[2,2],[3,2],[12,2],[11,2],[2,8],[12,8]],
+ switchback:[[2,3],[3,3],[12,7],[11,7],[2,8],[12,2]],
+ trident:[[2,2],[12,2],[2,8],[12,8],[3,6],[11,4]],
+ sanctum:[[2,3],[12,3],[2,7],[12,7]]
 };
 function roomFloor(shape,x,y){
  const dx=x-7,dy=y-5,ax=Math.abs(dx),ay=Math.abs(dy);
@@ -39,6 +44,8 @@ function roomFloor(shape,x,y){
   shape==='L'?(dx<=2&&ax<=6&&ay<=3)||(dy>=-1&&ax<=5&&ay<=4):
   shape==='offset'?(ay<=3&&(dx<=4&&dx>=-5))||(ax<=3&&dy>=-4&&dy<=4):
   shape==='zigzag'?(dy<0?(dx>=-5&&dx<=3):(dx>=-3&&dx<=5))&&ay<=3:
+  shape==='hourglass'?(ay<=2&&ax<=6)||(ax<=2&&ay<=4)||(ax<=4&&ay<=3):
+  shape==='terrace'?(dy<=0?ax<=6&&ay<=3:ax<=4&&ay<=4):
   (ax<=4&&ay<=3)||(ay<=2&&ax<=6);
  return central||spine||special;
 }
@@ -75,7 +82,7 @@ export function generateDungeon(seed=1,options={}){
   id,gx:cell.gx,gy:cell.gy,links:[],visited:id===0,cleared:id===0,
   discovered:id===0,type:id===0?'start':'combat',layout:ROOM_LAYOUTS[Math.floor(random()*ROOM_LAYOUTS.length)],
   shape:ROOM_SHAPES[Math.floor(random()*ROOM_SHAPES.length)],biome:'crypt',theme:'crypt',
-  eventKind:null,roomLabel:'',runeAnswer:0,
+  eventKind:null,roomLabel:'',runeAnswer:0,encounterStyle:'mixed',
   cx:(cell.gx*ROOM_W+7.5)*TILE,cy:(cell.gy*ROOM_H+5.5)*TILE
  }));
  const byCell=new Map(rooms.map(r=>[key(r.gx,r.gy),r]));
@@ -105,6 +112,13 @@ export function generateDungeon(seed=1,options={}){
   const tier=dist[room.id]/Math.max(1,dist[bossId]);
   room.biome=options.tower&&['crypt','fungal','flooded'].includes(options.biome)?options.biome:biomes[Math.min(2,Math.floor(tier*2.9))];
   room.eventKind=room.type==='event'?(random()<.5?'forge':'trial'):null;
+  // A room's battle identity follows its architecture. This makes each
+  // silhouette communicate expected enemy tactics without altering doors.
+  room.encounterStyle=room.layout==='bastion'||room.layout==='pillared'?'fortified':
+   room.layout==='switchback'||room.layout==='crescent'?'ambush':
+   room.layout==='longhall'||room.layout==='trident'?'ranged':
+   room.layout==='sanctum'||room.layout==='mirror'?'arcane':
+   ['ambush','ranged','arcane','fortified','mixed'][Math.floor(random()*5)];
   room.runeAnswer=Math.floor(random()*3);
   room.theme=room.type==='start'||room.type==='shrine'||room.type==='camp'?'sanctuary':
    room.type==='boss'?'throne':
@@ -114,6 +128,9 @@ export function generateDungeon(seed=1,options={}){
   room.roomLabel=({start:'HEILIGTUM',combat:'KAMPFHALLE',elite:'ELITEKAMMER',
    boss:'THRON',treasure:'SCHATZKAMMER',shrine:'SCHREIN',secret:'GEHEIMNIS',
    event:'EREIGNIS',library:'BIBLIOTHEK',trap:'FALLENHALLE',camp:'LAGER',vault:'GEWÖLBE'})[room.type];
+  if(room.type==='combat')room.roomLabel=({
+   ambush:'HINTERHALT',ranged:'SCHÜTZENGALERIE',arcane:'RUNENKAMMER',
+   fortified:'BASTION',mixed:'KAMPFHALLE'})[room.encounterStyle];
   const ox=room.gx*ROOM_W,oy=room.gy*ROOM_H;
   for(let y=1;y<=9;y++)for(let x=1;x<=13;x++)
    if(roomFloor(room.shape,x,y))free(ox+x,oy+y);

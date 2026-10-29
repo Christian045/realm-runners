@@ -1,6 +1,6 @@
 import {distance,normalized} from './data.js';
-import {TOWER_LENGTH,towerStage} from './tower.js?v=0.13.0';
-import {towerWindup,towerBossRecovery} from './combat-balance.js?v=0.13.0';
+import {TOWER_LENGTH,towerStage} from './tower.js?v=0.15.0';
+import {towerWindup,towerBossRecovery} from './combat-balance.js?v=0.15.0';
 
 export function createTowerBossState(floor){
  const stage=towerStage(floor);
@@ -43,9 +43,9 @@ export function beginTowerAttack(game,e,forced=null){
   (s.phase===1?['mark','cross','dash','fan']:
    s.phase===2?['meteor','orbit','summon','lances','soulbeam']:
     ['eclipse','blades','spiralwall','soulbeam','dash','meteor','summon']):
-  s.phase===1?base:[...base,'ring','cross'];
+  s.phase===1?base:[...base,'ring','cross','pincer'];
  const type=forced||pool[s.attackIndex%pool.length];
- if(!['fan','mark','ring','lances','dash','cross','meteor','orbit','summon','eclipse','soulbeam','spiralwall','blades'].includes(type))return false;
+ if(!['fan','mark','ring','lances','dash','cross','meteor','orbit','summon','eclipse','soulbeam','spiralwall','blades','pincer'].includes(type))return false;
  const p=game.player,dir=aim(p.x-e.x,p.y-e.y);
  const duration=towerWindup(s.floor,s.phase,type);
  s.telegraph={type,time:duration,duration,dir,target:{x:p.x,y:p.y},
@@ -109,6 +109,15 @@ export function executeTowerAttack(game,e){
   case 'spiralwall':
    for(let i=0;i<21;i++)if(i%7!==0)shoot(game,e,a+i*.30,.62*bonus,270+i*3);
    break;
+  case 'pincer':{
+   // Twin flanking zones. The player's locked central tile remains safe:
+   // moving perpendicular to the opening is a learnable counterplay.
+   const ox=Math.cos(a+Math.PI/2)*112,oy=Math.sin(a+Math.PI/2)*112;
+   for(const sign of [-1,1])mark(game,t.target.x+ox*sign,t.target.y+oy*sign,
+     57,.72,Math.round(e.damage*1.05));
+   game.createEffect('ring',t.target.x,t.target.y,s.color,.46,78);
+   break;
+  }
   case 'blades':{
    // Two warned blade lanes, a wide safe corridor through the room center.
    const room=game.dungeon.rooms[e.homeRoom];
@@ -123,12 +132,14 @@ export function executeTowerAttack(game,e){
    for(let i=0;i<18;i++)if(i%6!==0)shoot(game,e,a+i*Math.PI/9,.75,250);
    break;
  }
+ s.exposed=t.type==='dash'||t.type==='pincer'?1.0:.56;
  s.recovery=towerBossRecovery(s.floor,phase);
  e.cooldown=s.recovery;game.createEffect('ring',e.x,e.y,s.color,.32,66);
 }
 export function updateTowerBoss(game,e,dt){
  const s=e.boss;if(!s||e.hp<=0)return;
  e.flash=Math.max(0,e.flash-dt);
+ s.exposed=Math.max(0,(s.exposed||0)-dt);
  if(s.transition>0){s.transition=Math.max(0,s.transition-dt);return}
  if(s.variant==='sovereign'&&s.phase===3){
   s.arenaClock=(s.arenaClock??5.0)-dt;
@@ -164,6 +175,11 @@ export function drawTowerBossWarnings(ctx,game,e){
   ctx.save();ctx.globalAlpha=.33;ctx.strokeStyle=s.color;ctx.lineWidth=7;
   ctx.beginPath();ctx.arc(e.x,e.y,110+Math.sin(game.time*8)*15,0,Math.PI*2);ctx.stroke();ctx.restore();
  }
+ if(s.exposed>0){
+  ctx.save();ctx.globalAlpha=Math.min(.8,s.exposed)*.65;
+  ctx.strokeStyle='#a9f3cf';ctx.lineWidth=5;
+  ctx.beginPath();ctx.arc(e.x,e.y,e.radius+21,0,Math.PI*2);ctx.stroke();ctx.restore();
+ }
  if(!t)return;
  const f=1-t.time/t.duration;
  ctx.save();ctx.strokeStyle=s.color;ctx.fillStyle=s.color;ctx.lineWidth=3;
@@ -176,6 +192,12 @@ export function drawTowerBossWarnings(ctx,game,e){
   const radius=t.type==='eclipse'?85:t.type==='mark'?74:78;
   ctx.beginPath();ctx.arc(t.target.x,t.target.y,radius,0,Math.PI*2);
   ctx.fill();ctx.stroke();
+ }else if(t.type==='pincer'){
+  const angle=t.angle+Math.PI/2;
+  for(const sign of [-1,1]){
+   const x=t.target.x+Math.cos(angle)*112*sign,y=t.target.y+Math.sin(angle)*112*sign;
+   ctx.beginPath();ctx.arc(x,y,57,0,Math.PI*2);ctx.fill();ctx.stroke();
+  }
  }else if(t.type==='blades'){
   const room=game.dungeon.rooms[e.homeRoom];
   ctx.globalAlpha=.18+.28*f;

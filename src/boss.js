@@ -1,12 +1,12 @@
 import { ENEMY_DATA, TILE, distance, normalized } from './data.js';
 import { ROOM_W, ROOM_H } from './dungeon.js';
-import {startWardenPhaseTwo,beginWardenAttack,executeWardenAttack,updateWarden} from './warden.js?v=0.13.0';
-import {triggerTowerPhase,beginTowerAttack,executeTowerAttack,updateTowerBoss} from './tower-boss.js?v=0.13.0';
-import {normalBossWindup,normalBossRecovery} from './combat-balance.js?v=0.13.0';
+import {startWardenPhaseTwo,beginWardenAttack,executeWardenAttack,updateWarden} from './warden.js?v=0.15.0';
+import {triggerTowerPhase,beginTowerAttack,executeTowerAttack,updateTowerBoss} from './tower-boss.js?v=0.15.0';
+import {normalBossWindup,normalBossRecovery} from './combat-balance.js?v=0.15.0';
 
 export const PHASE_TWO_AT = .55;
 const PHASE_ONE = Object.freeze(['volley','slam','charge']);
-const PHASE_TWO = Object.freeze(['volley','nova','charge','slam','summon']);
+const PHASE_TWO = Object.freeze(['volley','fracture','nova','charge','slam','summon']);
 
 // A separate, inspectable state machine. No invisible instant-hit boss abilities.
 export function createBossState(){
@@ -36,7 +36,7 @@ export function beginBossAttack(game,enemy,forcedType=null){
  if(!s||s.transition>0||s.telegraph||s.charge)return false;
  const order=s.phase===2?PHASE_TWO:PHASE_ONE;
  const type=forcedType||order[s.attackIndex%order.length];
- if(!['volley','slam','charge','nova','summon'].includes(type))return false;
+ if(!['volley','slam','charge','nova','summon','fracture'].includes(type))return false;
  s.attackIndex++;
  const p=game.player,dir=normalized(p.x-enemy.x,p.y-enemy.y);
  const duration=normalBossWindup(s.phase,type);
@@ -100,9 +100,17 @@ export function executeBossAttack(game,enemy){
   const n=14,base=Math.atan2(t.dir.y,t.dir.x);
   for(let i=0;i<n;i++)spawnSpit(game,enemy,t.dir,base-Math.atan2(t.dir.y,t.dir.x)+(i*2*Math.PI/n),285);
   game.createEffect('ring',enemy.x,enemy.y,'#c49aff',.65,110);
+ }else if(t.type==='fracture'){
+  // Two parallel delayed cracks; center lane stays safe until next pattern.
+  for(const side of [-1,1])game.hazards.push({
+   x:t.target.x+side*115,y:t.target.y,radius:56,
+   time:.7,maxTime:.7,damage:Math.round(enemy.damage*1.22),
+   color:'#ffa2c2',source:'boss'});
+  game.createEffect('ring',t.target.x,t.target.y,'#f2a4c7',.55,76);
  }else if(t.type==='summon'){
   summonAdds(game,enemy);
  }
+ s.exposed=['fracture','slam','charge'].includes(t.type)?1.0:.44;
  s.recovery=normalBossRecovery(s.phase);
  enemy.cooldown=s.recovery;
 }
@@ -112,6 +120,7 @@ export function updateBoss(game,enemy,dt){
  const s=enemy.boss;
  if(!s)return;
  enemy.elapsed+=dt;enemy.flash=Math.max(0,enemy.flash-dt);
+ s.exposed=Math.max(0,(s.exposed||0)-dt);
  if(s.phase===1&&enemy.hp/enemy.maxHp<=PHASE_TWO_AT){startPhaseTwo(game,enemy)}
  if(s.transition>0){
   s.transition=Math.max(0,s.transition-dt);

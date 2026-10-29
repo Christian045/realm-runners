@@ -23,7 +23,11 @@ export const ENEMY_DATA = Object.freeze({
   wraith: { hp:62, speed:143, damage:12, radius:15, color:'#9caeed', reward:17 },
   sentinel: { hp:115, speed:75, damage:17, radius:20, color:'#aebdc4', reward:20 },
   cultist: { hp:66, speed:87, damage:15, radius:17, color:'#b69ae4', reward:19 },
-  brute: { hp:151, speed:66, damage:22, radius:22, color:'#db9476', reward:23 }
+  brute: { hp:151, speed:66, damage:22, radius:22, color:'#db9476', reward:23 },
+  assassin: {hp:74,speed:158,damage:16,radius:15,color:'#ed98ad',reward:20},
+  scout: {hp:70,speed:118,damage:14,radius:16,color:'#b4dc9c',reward:20},
+  hexer: {hp:83,speed:79,damage:18,radius:18,color:'#cda5ed',reward:23},
+  bulwark: {hp:145,speed:67,damage:20,radius:23,color:'#aabfce',reward:25}
 });
 export const TILE = 48;
 export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
