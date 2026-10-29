@@ -102,7 +102,8 @@ export function drawDungeonAtmosphere(ctx,game){
    }
   }
   if(room.type==='start'){
-   renderSigil(ctx,cx,cy,76,'#a6e5b5');
+   // Subtle spawn medallion, not a giant targeting circle around the hero.
+   ctx.save();ctx.globalAlpha=.31;renderSigil(ctx,cx,cy,43,'#a6e5b5');ctx.restore();
    for(const dx of [-175,175]){rect(ctx,'#607d6b',cx+dx-14,cy-22,28,44);rect(ctx,'#cad5b3',cx+dx-17,cy-25,34,8)}
   }
   if(room.type==='treasure'||room.type==='secret'){
@@ -227,8 +228,8 @@ export function drawDungeonAtmosphere(ctx,game){
    }
    ctx.restore();
   }
-  ctx.font='bold 13px monospace';ctx.textAlign='center';
-  ctx.fillStyle=th.accent+'8c';ctx.fillText(th.name,cx,top+TILE*1.8);
+  // Room labels are rendered once in render.js. Repeating the biome name
+  // here would put both strings on exactly the same baseline.
  }
  // Gentle ambient falloff; dynamic torches and character bounce light are
  // drawn separately by the viewport-capped v0.14 lighting pass.
