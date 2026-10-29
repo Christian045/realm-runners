@@ -1,4 +1,16 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.18.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.18.1)
+
+## Alpha 0.18.1 – Grafische Überarbeitung nach iPhone-Screenshots
+
+- **Krieger:** Schwert deutlich verkleinert, passend an die rechte oder linke Handschuhposition angebunden; die Haltung richtet sich nach der sichtbaren Sprite-Blickrichtung, und der zweite Komboschlag läuft entgegengesetzt. Beim Blick nach oben liegt die Klinge hinter dem Charakter.
+- **Magier:** Neues, deutlich sichtbares Pixel-Artefakt mit Kristallkopf und Holzstab; Kapuze, Robe, Gürtel und Saum wurden detaillierter gestaltet. Doppelte statische Stab-Pixel im Sprite wurden entfernt, Zauberbewegungen bleiben sichtbar.
+- **Saubere Darstellung:** Beide Waffen erscheinen exakt einmal pro Frame; überflüssige Klingen-Pixel beim Krieger entfernt.
+- **Startzimmer:** Das riesige ornamentale Bodensiegel ist jetzt kleiner und transparent, damit der Charakter im Mittelpunkt bleibt.
+- **Raumnamen:** Der Biomtext wurde nicht mehr auf dieselbe Position wie der Raumtitel gezeichnet. Der aussagekräftige Raumtitel bleibt bestehen.
+- **Böden:** Vier neue, verteilte Steinplatten-Layouts statt identischer Ziegelmuster. Biomspezifische Abnutzung und Moos bleiben erhalten. Die Kollisionsgeometrie ändert sich nicht.
+- **Kompatibilität:** iPhone-Touchsteuerung, Spielstände, Gegnertypen und Kampfbalance unverändert; aktualisierte Modulversionen verhindern veraltete Browsergrafiken. Zusätzliche grafische Regressionstests.
+
+
 
 ## Alpha 0.18 – Turm-Schwierigkeitskurve für alle 10 Etagen
 
