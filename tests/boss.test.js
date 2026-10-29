@@ -112,7 +112,14 @@ test('boss defeat clears summons and projectiles, then awards victory',()=>{
  assert.ok(game.enemies.every(e=>e===boss||e.hp===0));
  assert.equal(game.projectiles.filter(p=>p.hostile).length,0);
  game.update(1/60);
- assert.equal(game.mode,'victory');
- assert.equal(game.progress.bossKills,1);
+ assert.equal(game.mode,'playing','defeating a boss keeps the floor explorable');
  assert.equal(room.cleared,true);
+ assert.ok(game.exitPortal,'a portal spawns in the cleared boss chamber');
+ game.player.x=game.exitPortal.x+150;game.player.y=game.exitPortal.y;
+ game.update(1/60);
+ assert.equal(game.exitPortal.ready,true);
+ game.player.x=game.exitPortal.x;game.player.y=game.exitPortal.y;
+ for(let i=0;i<100&&game.mode==='playing';i++)game.update(1/60);
+ assert.equal(game.mode,'victory','entering the portal ends the normal run');
+ assert.equal(game.progress.bossKills,1);
 });
