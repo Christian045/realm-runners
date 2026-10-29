@@ -9,7 +9,7 @@ import {beginBossAttack,startPhaseTwo,executeBossAttack} from '../src/boss.js';
 const input={movement:()=>({x:0,y:0}),aiming:()=>({x:1,y:0}),attacking:()=>false,consumeDash:()=>false,consumeAbility:()=>false};
 const rnd=(...values)=>{let i=0;return ()=>values[i++%values.length]};
 
-test('all nine room centers can be reached without clipping or a blind alley',()=>{
+test('all irregular room centers can be reached without clipping or a blind alley',()=>{
  for(let seed=1;seed<=90;seed++){
   const d=generateDungeon(seed);
   const stack=[[Math.floor(d.start.x/TILE),Math.floor(d.start.y/TILE)]],seen=new Set();
@@ -33,7 +33,7 @@ test('dungeon has varied layouts, special room types and deterministic biomes',(
    assert.ok(a.rooms.some(r=>r.type===type),type);
   assert.ok(new Set(a.rooms.map(r=>r.layout)).size>=2,'not every room should be identical');
   assert.equal(a.rooms[0].visited,true);
-  assert.equal(a.rooms[a.bossId].layout,'open');
+  assert.equal(a.rooms[a.bossId].shape,'great');
  }
 });
 test('loot rarity, class-specific weapons and equipment replacements have real effects',()=>{

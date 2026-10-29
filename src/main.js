@@ -83,16 +83,45 @@ function refreshPanel(){
    btn('shrine:risk','OPFER · 20 LP FÜR SELTENE AUSRÜSTUNG','secondary',game.player.hp<=25?'disabled':'')+
    '</div>';
  }else if(game.mode==='event'){
-  const kind=game.activeEvent?.eventKind;
-  title.textContent=kind==='forge'?'VERGESSENE SCHMIEDE':'VERFLUCHTER ALTAR';
-  chapter.textContent=kind==='forge'?'EINE GABE DES FEUERS':'WAGEN ODER WEITERZIEHEN';
-  panel.innerHTML=kind==='forge'
-   ?'<p>Ein alter Amboss glüht zwischen den Ruinen. Wähle eine Belohnung.</p>'+
-    btn('event:reforge','SCHMIEDEFUND · SELTENE AUSRÜSTUNG + 12 GOLD','primary')+
-    btn('event:repair','RUHEPAUSE · +32 LP','secondary')
-   :'<p>Der Altar fordert einen Elitekampf. Besiegst du die Gegner, winken zusätzliche Belohnungen.</p>'+
-    btn('event:challenge','PRÜFUNG ANNEHMEN · STÄRKERE GEGNER','primary')+
-    btn('event:leave','WEITERZIEHEN · +15 GOLD','secondary');
+  const room=game.activeEvent,kind=room?.eventKind;
+  if(kind==='library'){
+   title.textContent='VERGESSENE BIBLIOTHEK';chapter.textContent='DAS RÄTSEL DER DREI RUNEN';
+   const riddles=['Ich tanze und verzehre Holz, doch ohne Nahrung sterbe ich.',
+    'Ich falle vom Himmel und fülle die Flüsse, doch habe keine Gestalt.',
+    'Ich erscheine nachts am Himmel und lenke die Gezeiten.'];
+   panel.innerHTML='<p>In einer staubigen Schriftrolle steht:</p><p class="rune-riddle">'+riddles[room.runeAnswer]+'</p>'+
+    '<p>Welche Rune löst das Siegel? Bei einer falschen Antwort verlierst du 16 LP.</p>'+
+    '<div class="upgrade-grid">'+
+    btn('event:rune0','ᚠ · FEUER','secondary')+
+    btn('event:rune1','ᛚ · WASSER','secondary')+
+    btn('event:rune2','ᛟ · MOND','secondary')+
+    '</div>';
+  }else if(kind==='camp'){
+   title.textContent='VERLASSENES LAGER';chapter.textContent='EINE RUHEPAUSE';
+   panel.innerHTML='<p>Ein warmes Feuer, alte Vorräte und eine Karte auf einem Tisch.</p><div class="upgrade-grid">'+
+    btn('event:rest','AUSRUHEN · 38 % LP HEILEN','secondary')+
+    btn('event:scout','KARTE LESEN · UMGEBUNG AUFDECKEN','secondary')+
+    btn('event:trade','HANDEL · 35 GOLD FÜR SELTENE BEUTE','secondary',game.runCoins<35?'disabled':'')+
+    '</div>';
+  }else if(kind==='vault'){
+   title.textContent='VERSIEGELTES GEWÖLBE';chapter.textContent='DER GOLDENE SCHLÜSSEL';
+   panel.innerHTML='<p>Hinter dem Tor liegt hochwertige Ausrüstung. Du kannst einen Runenschlüssel benutzen, das Schloss bezahlen oder die Tür gewaltsam öffnen.</p>'+
+    '<div class="upgrade-grid">'+
+    btn('event:key','RUNENSCHLÜSSEL EINSETZEN','secondary',!game.libraryKey?'disabled':'')+
+    btn('event:gold','60 GOLD ZAHLEN','secondary',game.runCoins<60?'disabled':'')+
+    btn('event:force','AUFBRECHEN · 25 LP OPFERN','secondary',game.player.hp<=35?'disabled':'')+
+    btn('event:leave','GEWÖLBE VERLASSEN','secondary')+'</div>';
+  }else{
+   title.textContent=kind==='forge'?'VERGESSENE SCHMIEDE':'VERFLUCHTER ALTAR';
+   chapter.textContent=kind==='forge'?'EINE GABE DES FEUERS':'WAGEN ODER WEITERZIEHEN';
+   panel.innerHTML=kind==='forge'
+    ?'<p>Ein alter Amboss glüht zwischen den Ruinen. Wähle eine Belohnung.</p>'+
+     btn('event:reforge','SCHMIEDEFUND · SELTENE AUSRÜSTUNG + 12 GOLD','primary')+
+     btn('event:repair','RUHEPAUSE · +32 LP','secondary')
+    :'<p>Der Altar fordert einen Elitekampf. Besiegst du die Gegner, winken zusätzliche Belohnungen.</p>'+
+     btn('event:challenge','PRÜFUNG ANNEHMEN · STÄRKERE GEGNER','primary')+
+     btn('event:leave','WEITERZIEHEN · +15 GOLD','secondary');
+  }
  }else if(game.mode==='inventory'){
   title.textContent='AUSRÜSTUNG';chapter.textContent='WAFFEN · RÜSTUNG · RELIKTE';
   const p=game.player;
@@ -162,7 +191,7 @@ function updateHud(){
  const hud=game.getHud();if(!hud)return;
  $('hpText').textContent=hud.hp+' / '+hud.maxHp;
  $('hpFill').style.width=Math.max(0,hud.hp/hud.maxHp*100)+'%';
- $('roomText').textContent='E'+hud.floor+' · '+hud.rooms+' / 8';
+ $('roomText').textContent='E'+hud.floor+' · '+hud.rooms+' / '+(hud.totalRooms-1);
  $('coinText').innerHTML=hud.coins+' <span class="coin">◆</span>';
  $('biomeText').textContent={crypt:'GRUFT',fungal:'PILZGROTTE',flooded:'ÜBERFLUTETE HALLEN'}[hud.biome]||'DUNGEON';
  $('inventoryBtn').textContent='RUCKSACK ('+hud.inventory+')';
