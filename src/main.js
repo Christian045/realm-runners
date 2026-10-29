@@ -28,8 +28,13 @@ const fmtTime=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/3600)?Math.
 const btn=(action,text,cls='secondary',extra='')=>'<button type="button" class="'+cls+'" data-action="'+action+'" '+extra+'>'+text+'</button>';
 function refreshPanel(){
  const overlay=$('overlay'),panel=$('panelContent'),playing=game.mode==='playing';
+ const isMenu=game.mode==='menu';
  overlay.classList.toggle('hidden',playing);
- overlay.classList.toggle('castle-menu',game.mode==='menu');
+ overlay.classList.toggle('castle-menu',isMenu);
+ // Menu typography is intentionally cinematic; gameplay decisions use compact dialogs.
+ overlay.classList.toggle('dialog-view',!playing&&!isMenu);
+ overlay.classList.toggle('dialog-inventory',game.mode==='inventory');
+ overlay.classList.toggle('dialog-choice',['event','shrine','upgrade','stageclear'].includes(game.mode));
  $('hud').classList.toggle('hidden',!game.player);
  $('pauseBtn').classList.toggle('hidden',!playing);
  $('inventoryBtn').classList.toggle('hidden',!playing);
@@ -199,6 +204,8 @@ function refreshPanel(){
    (game.achievementsEarned?.length?'<p class="earned-achievements">NEUE ERFOLGE: '+game.achievementsEarned.map(a=>a.name+' (+'+a.reward+' ◆)').join(' · ')+'</p>':'')+
    btn('restart','NOCH EIN RUN','primary')+btn('menu','ZUM HAUPTMENÜ');
  }
+ // Screen-specific title sizing prevents long German headings from overflowing.
+ title.classList.toggle('long-title',!isMenu&&(title.textContent||'').trim().length>17);
  if(game.mode==='menu'){
   for(const preview of panel.querySelectorAll('canvas[data-hero]')){
    const frame=renderer.sprites.frame(preview.dataset.hero,'idle',0,'down');
