@@ -39,8 +39,8 @@ export function beforeHit(game,e,damage){
 }
 export function afterHit(game,e,damage,critical,dir){
  const p=game.player,fx=equippedAffixes(p);
- if(fx.has('critHeal')&&critical)p.hp=Math.min(p.maxHp,p.hp+4);
- if(fx.has('vampire'))p.hp=Math.min(p.maxHp,p.hp+1);
+ if(fx.has('critHeal')&&critical&&!(p.statuses?.rot>0))p.hp=Math.min(p.maxHp,p.hp+4);
+ if(fx.has('vampire')&&!(p.statuses?.rot>0))p.hp=Math.min(p.maxHp,p.hp+1);
  if(fx.has('burn'))e.burn=Math.max(e.burn||0,3);
  if(fx.has('poison'))e.poison=Math.max(e.poison||0,4);
  if(fx.has('frost'))e.slow=Math.max(e.slow||0,1.7);
@@ -73,7 +73,7 @@ export function onKill(game,e){
  if(fx.has('soul')){
   game.player.soulKills=(game.player.soulKills||0)+1;
   if(game.player.soulKills%5===0){
-   game.player.hp=Math.min(game.player.maxHp,game.player.hp+12);
+   if(!(game.player.statuses?.rot>0))game.player.hp=Math.min(game.player.maxHp,game.player.hp+12);
    game.createEffect('text',game.player.x,game.player.y-38,'SEELEN +12','#b8a4ff',.8);
   }
  }
