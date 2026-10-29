@@ -55,18 +55,18 @@ test('dash nova can damage several enemies without recursive procs',()=>{
 });
 test('all new challenge modes are gated by meaningful existing progress',()=>{
  const p=defaultProgress();
- assert.deepEqual(Object.keys(CHALLENGES),['normal','frenzy','glass','nightmare']);
+ assert.deepEqual(Object.keys(CHALLENGES),['normal','frenzy','glass','nightmare','nohit']);
  assert.equal(challengeUnlocked(p,'glass'),false);
  p.runs=2;p.bossKills=3;
  for(const id of Object.keys(CHALLENGES))assert.equal(challengeUnlocked(p,id),true);
  const g=new Game(p,input);
  assert.equal(g.setChallenge('glass'),true);
  g.start('warrior',11);
- assert.ok(g.player.maxHp<145);
+ assert.ok(g.player.maxHp<100);
  assert.ok(g.player.damage>24);
 });
 test('achievements are permanent, pay out only once and survive reload',()=>{
- const p=defaultProgress();p.runs=5;p.bossKills=3;p.itemsFound=12;p.eliteKills=8;p.deepestFloor=3;p.towerBest=10;p.towerWins=1;
+ const p=defaultProgress();p.runs=1000;p.bossKills=100;p.itemsFound=12;p.eliteKills=8;p.deepestFloor=3;p.towerBest=10;p.towerWins=1;p.noHitWins=1;p.statistics.damageDealt=10000;
  const first=awardAchievements(p);assert.equal(first.length,ACHIEVEMENTS.length);
  const gold=p.gold;assert.deepEqual(awardAchievements(p),[]);assert.equal(p.gold,gold);
  const map=new Map(),storage={getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,v)};
@@ -115,7 +115,7 @@ test('class specializations unlock per run or first boss kill and change real st
  assert.ok(g.selectSpecialization('bulwark'));
  g.start('warrior',7);
  assert.equal(g.player.specialization,'bulwark');
- assert.ok(g.player.maxHp>145);
+ assert.ok(g.player.maxHp>100);
  assert.ok(g.player.guard>.05);
 });
 test('changing class clears a previously selected specialization',()=>{
