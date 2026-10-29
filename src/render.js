@@ -1,12 +1,12 @@
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.15.0';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js';
-import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js?v=0.18.0';
+import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js?v=0.18.1';
 import {drawTowerVictory} from './tower-visuals.js';
-import {PixelSpriteAtlas,spriteIdentity} from './sprites.js?v=0.17.1';
-import {PixelTileAtlas,tileTheme,tileVariant} from './tileset.js?v=0.14.0';
+import {PixelSpriteAtlas,spriteIdentity} from './sprites.js?v=0.18.1';
+import {PixelTileAtlas,tileTheme,tileVariant} from './tileset.js?v=0.18.1';
 import {drawArchitecturalDepth,drawAnchoredDressings,drawDynamicLighting} from './visual-world.js?v=0.14.0';
 import {drawImpact,drawMagicTrail} from './visual-impact.js?v=0.14.0';
-import {drawWarriorSword} from './weapon-visuals.js?v=0.17.1';
+import {drawWarriorSword,drawMageStaff,weaponFacing} from './weapon-visuals.js?v=0.18.1';
 const hash=(x,y,seed=0)=>{let a=Math.imul(x+seed,374761393)+Math.imul(y,668265263);a=Math.imul(a^(a>>>13),1274126177);return (a^(a>>>16))>>>0};
 const fill=(ctx,color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h)};
 export class Renderer {
@@ -142,8 +142,12 @@ export class Renderer {
  }
  player(p,time){
   if(!p)return;
-  const c=this.ctx,k=CLASSES[p.kind],f=p.direction;
+  const c=this.ctx,k=CLASSES[p.kind],f=p.direction||{x:0,y:1};
+  const face=weaponFacing(f);
+  const drawWeapon=()=>{if(p.kind==='warrior')drawWarriorSword(c,p);else if(p.kind==='mage')drawMageStaff(c,p)};
   this.shadow(p.x,p.y,p.radius+5);
+  // Looking north places the weapon behind the body; other facings show it in front.
+  if(face==='up')drawWeapon();
   if(!this.sprites.draw(c,p,spriteIdentity(p,true),time,true)){
   c.save();c.translate(p.x,p.y);
   c.translate(0,p.dashTimer>0?-3:Math.sin(p.walkCycle||0)*2);
@@ -160,8 +164,7 @@ export class Renderer {
   else{fill(c,'#bb97f9',13,-11,6,6);fill(c,'#694cb0',15,-7,3,20)}
   c.restore();
   }
-  // A real full-size blade remains visible while running and animates with aim.
-  drawWarriorSword(c,p);
+  if(face!=='up')drawWeapon();
   if(p.shield>0){c.save();c.globalAlpha=.5+.12*Math.sin(time*8);c.strokeStyle='#a8e7ff';c.lineWidth=3;c.beginPath();c.arc(p.x,p.y,23,0,Math.PI*2);c.stroke();c.restore()}
   if(p.dashTimer>0){c.strokeStyle='#b1f1ee99';c.lineWidth=3;c.beginPath();c.arc(p.x,p.y,24,0,Math.PI*2);c.stroke()}
  }
