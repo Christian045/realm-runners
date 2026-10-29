@@ -65,11 +65,15 @@ const props=[
  {kind:'bones',floor:'#8f8b75',light:'#c9c7b1'},
  {kind:'rubble',floor:'#52636a',light:'#7b8e94'},
  {kind:'roots',floor:'#4a704f',light:'#87a77e'},
- {kind:'runes',floor:'#536b8b',light:'#b2b5ef'}
+ {kind:'runes',floor:'#536b8b',light:'#b2b5ef'},
+ {kind:'crates',floor:'#86694a',light:'#d0ab68'},
+ {kind:'fungus',floor:'#5b8d6b',light:'#d1dc93'},
+ {kind:'urns',floor:'#777a7d',light:'#dce6dd'},
+ {kind:'puddle',floor:'#457c95',light:'#a9d5df'}
 ];
 export function roomDressings(d,room){
  const points=[];
- const type=room.type==='boss'?'banner':room.theme==='throne'?'banner':
+ const type=room.type==='boss'||room.type==='shop'?'banner':room.theme==='throne'?'banner':
   room.theme==='crypt'?'chain':room.theme==='fungal'?'moss':'lantern';
  // Real fixture brackets are only attached to blocked tiles with a reachable
  // floor next to them. Thus they cannot hover in a cleared combat corridor.
@@ -94,7 +98,12 @@ export function roomDressings(d,room){
   const y=tileY+2+hash(i,room.id,d.seed)%7;
   if(Math.abs(x-(tileX+7))<4&&Math.abs(y-(tileY+5))<4)continue;
   if(d.tileAt(x,y)!==0||d.tileAt(x+1,y)!==0)continue;
-  const p=props[hash(i,room.id+9,d.seed)%props.length];
+  const subset=room.type==='shop'?props.filter(p=>['crates','urn'].includes(p.kind)):
+   room.theme==='fungal'?props.filter(p=>['roots','fungus','rubble'].includes(p.kind)):
+   room.theme==='flooded'?props.filter(p=>['puddle','urns','bones'].includes(p.kind)):
+   room.type==='library'?props.filter(p=>['runes','urns'].includes(p.kind)):
+   room.theme==='crypt'?props.filter(p=>['bones','urns','rubble'].includes(p.kind)):props;
+  const p=subset[hash(i,room.id+9,d.seed)%subset.length];
   points.push({kind:p.kind,x:(x+.5)*TILE,y:(y+.5)*TILE,colors:p});
  }
  return points;
@@ -124,7 +133,19 @@ export function drawAnchoredDressings(c,game){
    }else if(p.kind==='roots'){
     for(let i=0;i<3;i++){box(c,'#385444',x+i*5-9,y-7-(i%2)*5,4,17);
      box(c,'#8aab74',x+i*5-10,y-9-(i%2)*5,6,5)}
-   }else if(p.kind==='runes'){
+   }else if(p.kind==='crates'){
+     box(c,'#38291e',x-15,y-10,27,23);box(c,'#846044',x-12,y-8,23,18);
+     box(c,'#d1aa72',x-10,y-5,3,15);box(c,'#503d2d',x-2,y-7,3,17);
+    }else if(p.kind==='fungus'){
+     box(c,'#2a4939',x-8,y-6,8,17);box(c,'#b2e1a5',x-15,y-11,24,8);
+     box(c,'#719b7d',x-18,y-7,29,4);box(c,'#defbbf',x-9,y-9,4,2);
+    }else if(p.kind==='urns'){
+     box(c,'#252c34',x-15,y-9,26,20);box(c,'#788990',x-14,y-12,25,7);
+     box(c,'#abb8b4',x-9,y-13,14,3);box(c,'#3b4653',x-8,y-4,11,10);
+    }else if(p.kind==='puddle'){
+     box(c,'#234955',x-17,y+4,34,7);box(c,'#45818e',x-10,y+2,26,3);
+     box(c,'#9cc9b2',x+4,y+3,9,2);
+    }else if(p.kind==='runes'){
     box(c,'#283b4c',x-11,y-13,24,24);
     box(c,'#93adc5',x-7,y-9,16,3);
     box(c,'#a5acdf',x-1,y-5,3,12);
