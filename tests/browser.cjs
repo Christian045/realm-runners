@@ -22,6 +22,15 @@ const assert=require('node:assert/strict');
   assert.ok(await page.locator('[data-action="challenge:normal"]').count());
   assert.ok(await page.locator('[data-action="endless"]').count());
   assert.ok(await page.locator('[data-action="tower"]').count());
+  // The new statistics tab must be reachable without changing game mode.
+  await page.locator('[data-action="menuTab:stats"]').click();
+  assert.ok(await page.locator('.stats-dashboard').isVisible());
+  assert.ok(await page.locator('.stats-metrics .stats-metric').count()===8);
+  assert.ok(await page.locator('.stats-row').count()>=13,'all enemy types appear including bosses');
+  assert.ok((await page.locator('.stats-dashboard').innerText()).includes('Gesamtspielzeit'));
+  assert.ok((await page.locator('.stats-dashboard').innerText()).includes('BOSSE NACH NAME'));
+  await page.locator('[data-action="menuTab:play"]').click();
+  assert.ok(await page.locator('[data-action="start"]').isVisible());
   // Layout regression: a long German event title must never create
   // horizontal scrolling, and a short choice dialog fits on desktop.
   for(const viewport of [{width:742,height:706},{width:1280,height:800},
@@ -233,6 +242,17 @@ const assert=require('node:assert/strict');
   });
   assert.deepEqual(mobileMenu,{horizontal:false,modes:3,hero:true},
    'portrait menu should show hero and all three game modes without lateral overflow');
+  await mobile.locator('[data-action="menuTab:stats"]').tap();
+  assert.ok(await mobile.locator('.stats-dashboard').isVisible());
+  const mobileStats=await mobile.evaluate(()=>{
+   const overlay=document.querySelector('#overlay'),panel=overlay.querySelector('.panel');
+   const dashboard=document.querySelector('.stats-dashboard');
+   return {horizontal:overlay.scrollWidth>overlay.clientWidth+2||
+    panel.scrollWidth>panel.clientWidth+2||dashboard.scrollWidth>dashboard.clientWidth+2,
+    cards:document.querySelectorAll('.stats-metric').length};
+  });
+  assert.deepEqual(mobileStats,{horizontal:false,cards:8},'statistics must fit portrait screens');
+  await mobile.locator('[data-action="menuTab:play"]').tap();
   assert.ok(await mobile.locator('.challenge-grid').count(),'mobile challenge selection exists');
   await mobile.locator('[data-action="tower"]').tap();
   const recordUI=await mobile.locator('[data-action="tower"]').innerText();
