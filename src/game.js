@@ -256,9 +256,9 @@ export class Game {
   room.waveTimer=plan?.delay||0;
   if(this.tower)
    this.stageHazardClock=towerFirstHazard(this.floorDepth)+(boss?1.2:0);
-  const variants=room.biome==='fungal'?['mushroom','slime','hexer','assassin','cultist','brute']:
-   room.biome==='flooded'?['archer','scout','slime','assassin','wraith','hexer']:
-   ['goblin','bulwark','scout','hexer','assassin','sentinel','brute'];
+  const variants=room.biome==='fungal'?['mushroom','slime','hexer','assassin','cultist','brute','burrower','chanter']:
+   room.biome==='flooded'?['archer','scout','slime','assassin','wraith','hexer','burrower']:
+   ['goblin','bulwark','scout','hexer','assassin','sentinel','brute','chanter'];
   const warden=boss&&!this.tower&&this.dungeon.seed%3===2;
   const offsets=[[ -145,-90],[145,90],[140,-90],[-140,90],[0,-100],[0,110],[-150,0],[150,0]];
   const roster=this.tower?this.currentTowerStage().roster:variants;
@@ -274,7 +274,7 @@ export class Game {
     i===(this.tower?2:0)&&preferred&&room.type!=='elite'&&
     (!this.tower||roster.includes(preferred))?preferred:
     roster[Math.floor(this.random()*
-     (this.tower?roster.length:Math.min(roster.length,4+Math.floor(this.clearCount/2))))]);
+     (this.tower?roster.length:Math.min(roster.length,5+Math.floor(this.clearCount/2))))]);
    const spec=ENEMY_DATA[type];
    const [ox,oy]=offsets[i%offsets.length];
    const point=findSpawnPosition(this.dungeon,room,room.cx+ox,room.cy+oy,spec.radius,this.player);
@@ -770,6 +770,7 @@ export class Game {
    if(e.type==='boss'&&e.boss){updateBoss(this,e,dt);if(this.mode!=='playing')return;continue}
    e.elapsed+=dt;e.flash=Math.max(0,e.flash-dt);e.cooldown-=dt;
    e.guardTime=Math.max(0,(e.guardTime||0)-dt);
+    e.speedBuff=Math.max(0,(e.speedBuff||0)-dt);
    if(updateEncounterEnemy(this,e,dt))continue;
    if(updateTowerEnemy(this,e,dt))continue;
    if(e.elite){
@@ -821,7 +822,7 @@ export class Game {
     const reposition=ranged?(!steering.clear||dist<165||dist>300||e.elapsed%2.8<1.35):
      dist>e.radius+p.radius+8;
     if(reposition){
-     const amount=e.speed*dt;
+     const amount=e.speed*dt*(e.speedBuff>0?1.28:1);
      const speedFactor=e.slow>0?.58:1;
      const nx=steering.x*amount*speedFactor+e.knock.x*dt,ny=steering.y*amount*speedFactor+e.knock.y*dt;
      // Enemies do not cross walls or sealed doors.
