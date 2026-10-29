@@ -1,14 +1,15 @@
 import {CLASSES} from './data.js?v=0.15.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.16.0';
 import {Input} from './input.js';
-import {Game} from './game.js?v=0.17.0';
-import {Renderer} from './render.js?v=0.17.1';
+import {Game} from './game.js?v=0.18.0';
+import {Renderer} from './render.js?v=0.18.0';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.16.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.16.0';
 import {installTouchGuard} from './touch-guard.js';
 import {CHALLENGES,ACHIEVEMENTS,challengeUnlocked} from './motivation.js';
 import {AudioFeedback} from './audio.js';
 import {TOWER_LENGTH,towerTransitionOptions} from './tower.js?v=0.17.0';
+import {towerDifficultySummary} from './difficulty-director.js?v=0.18.0';
 import {nextTowerRelic} from './tower-relics.js';
 import {SPECIALIZATIONS,specializationUnlocked} from './specializations.js';
 
@@ -89,6 +90,7 @@ function refreshPanel(){
   chapter.textContent=stage.boss+' BESIEGT';
   panel.innerHTML='<p>Du hast '+stage.name+' überstanden. Auf Etage '+(game.floorDepth+1)+
    ' wartet ein neuer Gegnertrupp und ein weiterer Boss. Wähle eine Stärkung für deinen Aufstieg.</p>'+
+   '<p class="stage-time">NÄCHSTE ETAGE: '+towerDifficultySummary(game.floorDepth+1)+'</p>'+
    '<div class="tower-progress">'+Array.from({length:TOWER_LENGTH},(_,i)=>
     '<span class="'+(i<game.floorDepth?'cleared':i===game.floorDepth?'next':'')+'">'+(i+1)+'</span>').join('')+'</div>'+
    '<p class="stage-time">ETAGEN-BESTZEIT: '+fmtTime(progress.towerStageRecords?.[game.floorDepth])+

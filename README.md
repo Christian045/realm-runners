@@ -1,4 +1,31 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.17.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.18.0)
+
+## Alpha 0.18 – Turm-Schwierigkeitskurve für alle 10 Etagen
+
+Nach dem Gameplay-Review von v0.17 wird die bisher auf Etage 6 konzentrierte Schwierigkeit durch eine **handbalancierte, stufenweise Kurve für den gesamten Turm** ersetzt.
+
+| Etage | Herausforderung | Gegner zu Beginn (Kampfraum) | Zweite Welle | Bossmuster vor Phasenwechsel / Sieg |
+| --- | --- | ---: | ---: | --- |
+| 1 | Einstieg · Bewegung & Angriff | 2–3 | keine | Einsteigerkampf, keine Mindestanzahl |
+| 2 | Aufwärmen · Fernkampf | 3–4 | keine | 1 / 2 |
+| 3 | Bewährungsprobe · Schildträger | 3–4 | 1 | 2 / 3 |
+| 4 | Bedrohlich · Runenmagie | 4–5 | 1 | 2 / 4 |
+| 5 | Gefährlich · Schützen | 4–5 | 2 | 3 / 5 |
+| 6 | Festungsangriff · koordinierte Gegner | 5–6 | 2 | 3 / 6 |
+| 7 | Eskalation · Kultisten | 5–6 | 3 | 4 / 7 |
+| 8 | Höllisch · Assassinen | 6–7 | 3 | 4 / 8 |
+| 9 | Letzte Prüfung · schwere Wächter | 6–7 | 4 | 5 / 9 |
+| 10 | Finale · Ewiger Herrscher | 7 | 4 | Eigener Drei-Phasen-Boss |
+
+- **Gegnerzusammenstellung**: Jede Etage führt einen wiedererkennbaren, zu ihrer Geschichte passenden Leittype an. Ab Etage 2 unterstützt in passenden Rostern mindestens ein Fernkämpfer die Front; ab Etage 3 treten Verstärkungswellen hinzu. Einzelne Räume variieren bewusst zwischen den angegebenen Gruppengrößen.
+- **Handabgestimmte Werte**: Schaden, Gegnergeschwindigkeit, Angriffs-Windups und Erholungszeit, erste Raumgefahr und Folgeintervalle steigen stufenweise an. Mindestreaktionszeit der normalen Angriffe bleibt 0,44 Sekunden, damit Ausweichen auf iPhone weiterhin möglich ist.
+- **Bosse**: Temporärer, optisch sichtbarer Runenschild schützt ab Etage 2 davor, dass ein Spieler die Hälfte des Bosskampfs überspringt, bevor die Telegraph-Attacken überhaupt zu sehen waren. Nach den zugehörigen Angriffen öffnet sich der Schutz wieder. Der Ewige Herrscher auf Etage 10 behält sein eigenständiges, dreiphasiges System.
+- **Vorschau**: Zwischen den Etagen zeigt der Abschlussbildschirm die kommende Gefahrenstufe, Startgegnerzahl und Verstärkungen.
+- **Elite**: Besonders späte Elitekämpfe (ab Etage 7) können eine zusätzliche Verstärkung erhalten.
+- **Keine künstliche HP-Explosion**: Die Verschärfung entsteht hauptsächlich über Komposition, Raumdruck und Bossmechaniken. Bestehende Spielstände und Touch-Steuerung, vier Charakterdesigns, das sichtbare Schwert, Loot/Skilltrees und exakt sieben Räume pro Turmetage bleiben unverändert.
+- **Regressionen**: Neu hinzugefügte Tests prüfen die Profile aller zehn Etagen, tatsächliche gegnerische Zusammensetzungen, sich steigernden Raumdruck, die Bossmuster-/Phasengrenzen und ausbleibende Änderungen an der Dungeon-Geometrie. Chromium- und WebKit-Smokes bleiben im CI.
+
+
 
 ## Alpha 0.17 – Gameplay-Feedback: Etage 6 anspruchsvoller & Kriegerschwert sichtbar
 
