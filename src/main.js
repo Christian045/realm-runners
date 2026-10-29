@@ -2,7 +2,7 @@ import {CLASSES} from './data.js?v=0.15.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.16.0';
 import {Input} from './input.js?v=0.19.3';
 import {Game} from './game.js?v=0.18.0';
-import {Renderer} from './render.js?v=0.18.1';
+import {Renderer} from './render.js?v=0.19.4';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.16.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.16.0';
 import {installTouchGuard} from './touch-guard.js';
@@ -49,9 +49,8 @@ function refreshPanel(){
  $('hud').classList.toggle('hidden',!game.player);
  $('pauseBtn').classList.toggle('hidden',!playing);
  $('inventoryBtn').classList.toggle('hidden',!playing);
- $('abilityHud').classList.toggle('hidden',!game.player);
+ $('abilityHud').classList.toggle('hidden',!playing);
  $('bossHud').classList.toggle('hidden',!playing||!game.getActiveBoss());
- $('biomeText').classList.toggle('hidden',!playing);
  $('mobileControls').style.display=playing?'':'none';
  if(playing)return;
  const title=$('overlay').querySelector('h1'),chapter=$('overlay').querySelector('.chapter');
@@ -277,11 +276,14 @@ function updateHud(){
  $('hpFill').style.width=Math.max(0,hud.hp/hud.maxHp*100)+'%';
  $('roomText').textContent=(hud.tower?'TURM '+hud.floor+'/10':'E'+hud.floor)+' · '+hud.rooms+' / '+(hud.totalRooms-1);
  $('coinText').innerHTML=hud.coins+' <span class="coin">◆</span>';
- $('biomeText').textContent=hud.tower?hud.stageName.toUpperCase():({crypt:'GRUFT',fungal:'PILZGROTTE',flooded:'ÜBERFLUTETE HALLEN'}[hud.biome]||'DUNGEON');
  $('inventoryBtn').textContent='RUCKSACK ('+hud.inventory+')';
- $('classTag').textContent=hud.className.toUpperCase();
- $('dashLabel').textContent=hud.dash>0?'DASH '+hud.dash.toFixed(1)+'s':'DASH BEREIT';
- $('abilityLabel').textContent=hud.ability>0?'Q: '+hud.ability.toFixed(1)+'s':'Q: '+CLASSES[game.player.kind].ability;
+ const dash=$('dashLabel'),ability=$('abilityLabel');
+ dash.textContent=hud.dash>0?'DASH · '+hud.dash.toFixed(1)+'s':'DASH ✓';
+ dash.classList.toggle('ready',hud.dash<=0);
+ const abilityName=CLASSES[game.player.kind].ability;
+ ability.textContent=hud.ability>0?'Q · '+hud.ability.toFixed(1)+'s':'Q · '+abilityName;
+ ability.title=abilityName;
+ ability.classList.toggle('ready',hud.ability<=0);
  const boss=hud.boss;
  $('bossHud').classList.toggle('hidden',!boss||game.mode!=='playing');
  if(boss){
@@ -290,7 +292,9 @@ function updateHud(){
   $('bossPhase').textContent=boss.phase===3?'PHASE III · LETZTER ZORN':boss.phase===2?'PHASE II · ENTFESSELT':'PHASE I';
   $('bossHud').classList.toggle('enraged',boss.phase===2);
   const names={volley:'GIFT-SALVE',slam:'SCHLAG AUS DEM HIMMEL',charge:'ANSTURM',nova:'SPORENSTURM',summon:'VERSTÄRKUNG',lances:'RUNENLANZEN',triple:'DREIFACH-SCHLAG',spiral:'ARKANER WIRBEL',soulbeam:'SEELENSTRAHLEN',spiralwall:'SPIRALWELLE',blades:'FINSTERNISKLINGEN',pincer:'ZANGENANGRIFF',fracture:'BODENSPALTEN',sweep:'KRISTALLBARRIERE',fan:'GESCHOSSFÄCHER',mark:'MARKIERTER EINSCHLAG',ring:'RUNDUM-WELLE',dash:'STURMANGRIFF',cross:'KREUZFEUER',meteor:'METEORITEN',orbit:'SPIRALSALVE',eclipse:'FINSTERNIS-NOVA'};
-  $('bossHint').textContent=boss.transitioning?'PHASENWECHSEL · KURZE VERSCHNAUFPAUSE':boss.attack?'WARNUNG · '+names[boss.attack]:'BEOBACHTE SEINE BEWEGUNGEN';
+  const hint=$('bossHint');
+  hint.textContent=boss.transitioning?'PHASENWECHSEL':boss.attack?'ACHTUNG · '+(names[boss.attack]||'BOSSANGRIFF'):'';
+  hint.classList.toggle('hidden',!boss.transitioning&&!boss.attack);
  }
 }
 let last=0,accumulator=0,hudTime=0,lastMenuPreview=-1;
