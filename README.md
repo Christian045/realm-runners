@@ -1,4 +1,4 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.2.1)
+# Realm Runners – Dungeon Reborn (Alpha 0.5.0)
 
 **Top-down-Roguelite / Hack-and-Slash** auf Basis der bisherigen JavaScript-/HTML5-Canvas-Technik.
 Das bisherige Jump-and-Run wurde technisch und spielerisch neu aufgebaut. Der alte Stand bleibt im `main`-Branch bis zum Merge der Umstellung erhalten.
@@ -12,6 +12,17 @@ python3 -m http.server 8000
 ```
 
 Danach **http://localhost:8000** im Browser öffnen. Kein Build erforderlich.
+
+## Erweiterung Alpha 0.3–0.5
+
+- **Räume statt identischer Arenen:** Sechs Grundriss-Vorlagen (Säulen, Arkaden, Ruinen, offene Hallen, Kreuzungen, Alkoven) mit garantierten, drei Tiles breiten Wegen. Jeder Dungeon enthält Schreine, Schatzkammern, Elitekammern und geheime Räume.
+- **Erkundung:** Nebel des Krieges für nicht entdeckte Räume; die Minimap deckt Nachbarräume erst beim Erkunden auf.
+- **Entscheidungen:** Schreine bieten Heilung, einen Schadenssegen oder einen riskanten Tausch von Lebenspunkten gegen hochwertige Beute.
+- **Loot:** Zwölf Gegenstandstypen für drei Slots (Waffe, Rüstung, Relikt), vier Seltenheiten, Werte und ein Inventar (I bzw. Rucksack-Schaltfläche). Fundstücke werden beim Aufheben eingesammelt und der erste Gegenstand je Slot automatisch angelegt.
+- **Klassentalente:** Drei permanente Talentpfade pro Klasse mit je drei Stufen, im Hauptmenü für Gold aufrüstbar. Die bisherigen Spielstände werden ohne Löschung erweitert.
+- **Biome:** Gruft, Pilzgrotte und versunkene Hallen erhalten eigene Gegnergewichtungen und Bodenfarben. Elitegegner sind stärker und schießen zusätzliche Geschosse.
+- **Zweiter Boss:** Alternierend zum Schleimkönig kann der Runenwächter erscheinen. Eigene Warnmuster, Runenlanzen, Dreifachschläge, Ansturm, Arkanspirale, Beschwörungen sowie eine zweite Phase ab 55 % LP.
+- **Qualität:** Neue Pfadfindungs-, Loot-, Talent-, Boss- und Touch-Browser-Regressionstests.
 
 ## Fix in Alpha 0.2.1 – Safari Doppeltipp-Zoom
 
@@ -49,7 +60,7 @@ Die Räume verwenden zufällige Verbindungen, garantieren aber einen begehbaren 
 | Windows / Mac | WASD oder Pfeiltasten laufen |
 | PC | Maus zielen; Linksklick, F oder J angreifen |
 | PC | Leertaste / Shift Dash, Q / E Spezialfähigkeit |
-| PC | Escape pausieren, Enter im Menü starten |
+| PC | Escape pausieren, Enter im Menü starten, I Inventar öffnen |
 | Touch | Virtueller Stick links; Angriff, Dash und Spezialfähigkeit rechts |
 
 ### Klassen
@@ -67,6 +78,8 @@ Die Räume verwenden zufällige Verbindungen, garantieren aber einen begehbaren 
 | `src/dungeon.js` | Seed-RNG, zusammenhängende Raumgraphen, Tile-Kollision |
 | `src/render.js` | Canvas-Welt, Kreaturen, Effekte, Kamera, Minimap |
 | `src/boss.js` | Zwei-Phasen-Boss-KI, Angriffswarnungen, Bossfähigkeiten |
+| `src/warden.js` | Zweiter Boss: Runenwächter, Angriffstaktiken und Warnflächen |
+| `src/loot.js` | Ausrüstung, Seltenheitsgrade, Klassenbeschränkungen und Talente |
 | `src/atmosphere.js` | Visuelle Raumthemen, Fackeln, Lichteffekte und Boss-Warnzonen |
 | `src/input.js` | Keyboard, Maus und Touch |
 | `src/touch-guard.js` | iOS-Safari-Gestenschutz ohne Eingriff in die Spielsteuerung |

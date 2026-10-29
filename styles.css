@@ -85,3 +85,29 @@ canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
 .boss-hud.enraged #bossPhase{color:#ff87a5}
 @media(max-width:700px){.boss-hud{top:max(94px,calc(82px + env(safe-area-inset-top)));width:min(300px,72vw);padding:5px 8px}.boss-header{font-size:9px;letter-spacing:.4px}#bossPhase{font-size:8px}.boss-hint{font-size:8px}.boss-track{height:10px;margin:4px 0}}
 @media(max-height:540px){.boss-hud{top:max(46px,calc(35px + env(safe-area-inset-top)));width:min(320px,45vw)}}
+
+/* Dungeon v0.5 interface: readable in portrait and on iPhone. */
+.inventory-button{width:auto;padding:0 13px;font-size:10px;letter-spacing:.3px;white-space:nowrap}
+.biome-label{position:fixed;z-index:3;top:max(134px,calc(126px + env(safe-area-inset-top)));left:50%;transform:translateX(-50%);font-weight:800;font-size:9px;letter-spacing:2px;color:#b9d6ca;background:#081d23b8;border:1px solid #6e918666;padding:5px 9px;pointer-events:none}
+.talent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.talent-card{background:#112e34;border:1px solid #678e80;min-height:107px;padding:10px 8px;text-align:left;display:flex;flex-direction:column;gap:7px}
+.talent-card strong{font-size:12px;color:#e9d7a1}
+.talent-card small{font-size:10px;line-height:1.4;color:#c1d5c7;flex:1}
+.talent-card button{background:#335b52;color:#ebefda;border:1px solid #95ad94;border-radius:3px;font-size:9px;padding:7px 3px;font-weight:750}
+.talent-card button:disabled{opacity:.48}
+.equip-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:12px 0}
+.equip-slot{padding:10px 5px;border:1px solid #668c82;background:#103239;min-height:69px}
+.equip-slot strong{display:block;font-size:10px;color:#dfd1a2;letter-spacing:1px;margin-bottom:6px}
+.equip-slot span{font-size:11px;line-height:1.35;display:block}
+.inventory-list{display:grid;gap:7px;max-height:36dvh;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;padding:2px}
+.inventory-item{border:1px solid #71938c;background:#133a3f;text-align:left;display:grid;gap:3px;grid-template-columns:1fr auto;padding:10px}
+.inventory-item strong{font-size:12px;grid-column:1}
+.inventory-item small{grid-row:2;grid-column:1;color:#b9d2c2;font-size:10px;line-height:1.4}
+.inventory-item span{align-self:center;grid-column:2;grid-row:1/3;color:#e6d39e;font-size:9px;font-weight:850}
+.inventory-item:disabled{opacity:.66;cursor:default}
+@media(max-width:700px){.talent-grid{gap:4px}.talent-card{padding:8px 5px;min-height:108px}.talent-card strong{font-size:10px}.talent-card small{font-size:9px}.talent-card button{font-size:8px}.inventory-button{padding:0 5px;font-size:8px}.biome-label{top:max(105px,calc(96px + env(safe-area-inset-top)));font-size:8px}}
+@media(max-height:540px){.biome-label{display:none!important}.inventory-list{max-height:30dvh}}
+
+/* Keep the iPhone HUD, bag, and pause controls on-screen side by side. */
+@media(max-width:700px){.game-top:has(.hud:not(.hidden)) .identity{display:none}.game-top{gap:4px}.hud{min-width:0}}
+body:has(.boss-hud:not(.hidden)) .biome-label{display:none!important}

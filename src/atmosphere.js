@@ -1,5 +1,6 @@
 import { TILE, clamp, distance } from './data.js';
 import { ROOM_W, ROOM_H } from './dungeon.js';
+import {drawWardenWarnings} from './warden.js';
 
 const THEMES={
  sanctuary:{floor:'#3f6853',accent:'#afd9a3',glow:'#98e8b1',name:'HEILIGTUM'},
@@ -102,10 +103,23 @@ export function drawDungeonAtmosphere(ctx,game){
    renderSigil(ctx,cx,cy,76,'#a6e5b5');
    for(const dx of [-175,175]){rect(ctx,'#607d6b',cx+dx-14,cy-22,28,44);rect(ctx,'#cad5b3',cx+dx-17,cy-25,34,8)}
   }
-  if(room.type==='treasure'){
+  if(room.type==='treasure'||room.type==='secret'){
    renderSigil(ctx,cx,cy,75,'#f4c780',time);
    drawChest(ctx,cx,cy-12,room.cleared);
    for(let i=0;i<6;i++)rect(ctx,'#d7ad6a',cx-69+i*24,cy+66+(i%2)*7,8,5);
+  }
+  if(room.type==='shrine'){
+   renderSigil(ctx,cx,cy,92,'#8fe8d0',time);
+   rect(ctx,'#456962',cx-24,cy-27,48,55);
+   rect(ctx,'#a8e2c2',cx-13,cy-40,26,26);
+   rect(ctx,'#f4e8bd',cx-6,cy-29,12,14);
+  }
+  if(room.type==='elite'){
+   renderSigil(ctx,cx,cy,105,'#edb276',time);
+   for(const dx of [-180,180]){
+    rect(ctx,'#4d463a',cx+dx-13,cy-66,26,132);
+    rect(ctx,'#ce9c68',cx+dx-9,cy-69,18,12);
+   }
   }
   if(room.type==='boss'){
    const pulse=.5+.5*Math.sin(time*1.5);
@@ -122,7 +136,7 @@ export function drawDungeonAtmosphere(ctx,game){
   if(room.theme==='crypt'){drawCobweb(ctx,left+TILE+3,top+TILE+3);drawCobweb(ctx,right-TILE-3,bottom-TILE-56,true)}
   if(room.theme==='reliquary')for(const dx of [-175,175])drawChest(ctx,cx+dx,cy-95,room.cleared);
   // Wall torches are decoration only, not extra collision obstacles.
-  const warm=room.type==='boss'||room.theme==='reliquary';
+  const warm=room.type==='boss'||room.theme==='reliquary'||room.type==='elite';
   for(let i=0;i<4;i++){
    const tx=cx+(i%2?198:-198),ty=cy+(i<2?-148:148);
    torch(ctx,tx,ty,time,i+room.id*8,warm);
@@ -136,7 +150,7 @@ export function drawDungeonAtmosphere(ctx,game){
  for(const room of d.rooms){
   const left=room.gx*ROOM_W*TILE,top=room.gy*ROOM_H*TILE;
   if(left+ROOM_W*TILE<cam.x-180||left>cam.x+cw+180||top+ROOM_H*TILE<cam.y-180||top>cam.y+ch+180)continue;
-  const warm=room.type==='boss'||room.theme==='reliquary';
+  const warm=room.type==='boss'||room.theme==='reliquary'||room.type==='elite';
   for(let i=0;i<4;i++){
    const x=room.cx+(i%2?198:-198),y=room.cy+(i<2?-148:148);
    const flicker=.91+.09*Math.sin(time*11+i*5+room.id);
@@ -163,6 +177,7 @@ export function drawDungeonAtmosphere(ctx,game){
 export function drawBossWarnings(ctx,game){
  const boss=game.getActiveBoss?.();
  if(!boss)return;
+ if(boss.boss?.variant==='warden'){drawWardenWarnings(ctx,game,boss);return}
  const state=boss.boss;
  if(state.transition>0){
   ctx.save();ctx.globalAlpha=.2+.15*Math.sin(game.time*18);

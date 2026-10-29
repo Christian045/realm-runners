@@ -1,13 +1,19 @@
 import { CLASSES } from './data.js';
+import { TALENTS } from './loot.js';
 export const SAVE_KEY='realm-runners-roguelite-v1';
 export const OLD_SAVE_KEY='realm-runners-save-v2';
-export function defaultProgress(){return {version:1,gold:0,runs:0,bestRooms:0,bossKills:0,selectedClass:'warrior',upgrades:{vitality:0,strength:0}}}
+export function defaultProgress(){return {version:1,gold:0,runs:0,bestRooms:0,bossKills:0,selectedClass:'warrior',upgrades:{vitality:0,strength:0},talents:{warrior:{},hunter:{},mage:{}}}}
 export function normalizeProgress(value){
  const d=defaultProgress(),p=value&&typeof value==='object'?value:{};
  const num=(n,max=999999)=>Number.isFinite(+n)?Math.max(0,Math.min(max,Math.floor(+n))):0;
+ const talents={};
+ for(const [kind,choices] of Object.entries(TALENTS)){
+  talents[kind]={};
+  for(const choice of choices)talents[kind][choice.id]=num(p.talents?.[kind]?.[choice.id],3);
+ }
  return {version:1,gold:num(p.gold),runs:num(p.runs),bestRooms:num(p.bestRooms,9),
   bossKills:num(p.bossKills),selectedClass:CLASSES[p.selectedClass]?p.selectedClass:'warrior',
-  upgrades:{vitality:num(p.upgrades?.vitality,5),strength:num(p.upgrades?.strength,5)}};
+  upgrades:{vitality:num(p.upgrades?.vitality,5),strength:num(p.upgrades?.strength,5)},talents};
 }
 export function loadProgress(storage=globalThis.localStorage){
  try{
