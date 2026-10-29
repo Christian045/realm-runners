@@ -63,7 +63,7 @@ test('new runs initialize all three classes, dungeon and old save-independent st
   assert.equal(game.mode,'playing');
   assert.equal(game.player.kind,kind);
   assert.ok(game.player.maxHp>0);
-  assert.equal(game.dungeon.rooms.length,9);
+  assert.equal(game.dungeon.rooms.length,ROOM_COUNT);
   game.update(1/60);
   assert.equal(game.mode,'playing');
  }

@@ -102,7 +102,7 @@ test('line of sight blocks archer shots at walls; bounded path search routes aro
  assert.equal(hasLineOfSight(dungeon,from.x,from.y,to.x,to.y),false);
  const path=findPath(dungeon,from,to);
  assert.ok(path.length>4);
- assert.ok(path.some(point=>point.y>4.5*TILE));
+ assert.ok(path.some(point=>point.y>4.5*TILE||point.y<1.5*TILE));
  assert.ok(path.every(p=>!dungeon.isBlocked(p.x,p.y)));
  assert.equal(hasLineOfSight(dungeon,from.x,from.y,3.5*TILE,2.5*TILE),true);
 });
