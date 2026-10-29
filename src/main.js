@@ -3,9 +3,12 @@ import {loadProgress,upgradeCost} from './progression.js';
 import {Input} from './input.js';
 import {Game} from './game.js';
 import {Renderer} from './render.js';
+import {installTouchGuard} from './touch-guard.js';
 
 const $=id=>document.getElementById(id);
-const canvas=$('gameCanvas'),renderer=new Renderer(canvas),input=new Input(canvas);
+const canvas=$('gameCanvas');
+installTouchGuard(canvas);
+const renderer=new Renderer(canvas),input=new Input(canvas);
 const progress=loadProgress();
 const game=new Game(progress,input,()=>refreshPanel());
 let selected=progress.selectedClass;

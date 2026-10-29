@@ -1,6 +1,10 @@
 :root{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#eaf0df;background:#08171c;font-synthesis:none}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;touch-action:none}button{font:inherit;cursor:pointer}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;touch-action:none;overscroll-behavior:none}button{font:inherit;cursor:pointer;touch-action:manipulation}
 canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
+/* Safari must not page-zoom when quickly double-tapping the canvas corners. */
+#gameCanvas{touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;overscroll-behavior:none}
+#joystick,#joystick *,#mobileControls,.mobile-actions,.action{touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.overlay,.panel{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .hidden{display:none!important}
 .game-top{position:fixed;z-index:4;top:max(15px,env(safe-area-inset-top));left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));display:flex;align-items:center;gap:18px;pointer-events:none}
 .identity{display:flex;align-items:center;gap:9px;color:#d8ecc7;text-shadow:0 2px 4px #0008;font-size:14px;line-height:1.05;letter-spacing:1.4px;font-weight:800;white-space:nowrap}
