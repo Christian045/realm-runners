@@ -664,3 +664,5 @@ canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
  padding:12px;display:grid;gap:7px;text-align:left;max-width:570px}
 .run-report strong{font-size:11px;letter-spacing:.11em;color:#ecd49c}
 .run-report span{display:block;font-size:11px;color:#c2ddd4;line-height:1.45}
+
+.castle-hero-title{display:block;margin-top:5px;font-size:10px;letter-spacing:.12em;font-weight:900;color:#f4c27f;text-shadow:0 1px 5px #000}
