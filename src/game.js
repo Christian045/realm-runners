@@ -30,7 +30,7 @@ export class Game {
   this.hazards=[];this.achievementsEarned=[];this.sound=null;this.libraryKey=false;
   this.towerRelics=[];this.towerRelicHits=0;this.towerRelicKills=0;this.towerPhoenixUsed=false;this.stageStartedAt=0;this.stageHazardClock=9;this.towerNewRecord=false;
   this.runStatistics=null;this.statisticsSaveClock=0;this.exitPortal=null;this.hitsTaken=0;this.shopStock=[];
-  this.servantChoice='guardian';this.servant=null;
+  this.servantChoice='guardian';this.servant=null;this.ambientClock=9;
  }
  notify(){this.onChange(this)}
  saveStatistics(){return saveProgress(this.progress)}
@@ -176,7 +176,7 @@ export class Game {
   this.mode='playing';this.enemies=[];this.projectiles=[];this.effects=[];this.loot=[];
   this.runCoins=0;this.clearCount=0;this.time=0;this.bossDefeated=false;this.exitPortal=null;this.hitsTaken=0;this.shopStock=[];this.upgradeChoices=[];this.bossMessage='';
   this.runStatistics=newRunStatistics(kind,this.tower?'Turm':this.endless?'Endlos':'Dungeon');
-  this.statisticsSaveClock=0;
+  this.statisticsSaveClock=0;this.ambientClock=9;
   this.servant=kind==='summoner'?{kind:this.servantChoice,x:this.player.x-30,y:this.player.y-30,cooldown:0}:null;
   this.camera.x=this.player.x-this.camera.w/2;this.camera.y=this.player.y-this.camera.h/2;
   this.playSound('start');
@@ -227,7 +227,7 @@ export class Game {
     const item=generateItem(this.random,this.clearCount,this.player.kind,id===2,false);
     return {id,item,price:35+Math.floor(this.clearCount*7)+(id===2?35:0),sold:false};
    });
-   this.mode='shop';this.playSound('event');this.notify();return;
+   this.mode='shop';this.playSound('shop');this.notify();return;
   }
   if(room.type==='secret'){
    room.cleared=true;this.clearCount++;
@@ -370,6 +370,12 @@ export class Game {
   this.updateServant(dt);
   this.tickPlayerStatuses(dt);
   if(this.mode!=='playing')return;
+  this.ambientClock-=dt;
+  if(this.ambientClock<=0){
+   const biome=this.dungeon.roomAt(this.player.x,this.player.y)?.biome;
+   this.playSound(biome==='flooded'?'drip':biome==='fungal'?'cavern':'wind');
+   this.ambientClock=10+this.random()*7;
+  }
   this.statisticsSaveClock+=dt;
   if(this.statisticsSaveClock>=8){this.statisticsSaveClock=0;this.saveStatistics()}
   const p=this.player,move=this.input.movement(),aim=this.input.aiming(p,camera);
