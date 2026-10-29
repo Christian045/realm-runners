@@ -10,6 +10,13 @@ const assert=require('node:assert/strict');
   await page.locator('[data-action="start"]').waitFor({timeout:10000});
   assert.match(await page.title(),/Realm Runners/);
   assert.ok(await page.locator('#bossHud').count(),'boss HUD structure must exist');
+  assert.equal(await page.locator('#biomeText').count(),0,
+   'old biome/location banner must not exist');
+  assert.equal(await page.locator('#classTag').count(),0,
+   'redundant hero label must not exist');
+  assert.equal(await page.locator('#abilityHud span').count(),2,
+   'only dash and ability status belong in the cooldown HUD');
+
   assert.ok(await page.locator('#bossPhase').count(),'second-phase label must exist');
   assert.ok(await page.locator('[data-action="specialization:standard"]').count());
   assert.ok(await page.locator('[data-action="challenge:normal"]').count());
@@ -232,6 +239,13 @@ const assert=require('node:assert/strict');
   assert.ok(recordUI.includes('Bestleistung'),'mobile tower records must be readable');
   await mobile.locator('[data-action="start"]').click();
   assert.ok(await mobile.locator('#mobileControls').isVisible());
+  assert.equal(await mobile.locator('#abilityHud span').count(),2);
+  const cooldownBox=await mobile.evaluate(()=>{
+   const box=document.querySelector('#abilityHud').getBoundingClientRect();
+   return {left:box.left,right:box.right,width:innerWidth};
+  });
+  assert.ok(cooldownBox.right<=cooldownBox.width-124,
+   'cooldown badges must leave room for the portrait minimap: '+JSON.stringify(cooldownBox));
   await mobile.waitForTimeout(120);
   assert.match(await mobile.locator('#roomText').textContent(),/TURM 1\/10/);
   await mobile.locator('#inventoryBtn').tap();
