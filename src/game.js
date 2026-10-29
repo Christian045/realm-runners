@@ -29,7 +29,7 @@ export class Game {
   this.runMode='normal';this.endless=false;this.tower=false;this.runSeed=0;this.specialization='standard';this.floorDepth=1;this.shake=0;this.hitstop=0;
   this.hazards=[];this.achievementsEarned=[];this.sound=null;this.libraryKey=false;
   this.towerRelics=[];this.towerRelicHits=0;this.towerRelicKills=0;this.towerPhoenixUsed=false;this.stageStartedAt=0;this.stageHazardClock=9;this.towerNewRecord=false;
-  this.runStatistics=null;this.statisticsSaveClock=0;
+  this.runStatistics=null;this.statisticsSaveClock=0;this.exitPortal=null;this.hitsTaken=0;this.shopStock=[];
  }
  notify(){this.onChange(this)}
  saveStatistics(){return saveProgress(this.progress)}
@@ -155,7 +155,7 @@ export class Game {
   applySpecialization(this.player,specializationUnlocked(this.progress,this.specialization)?this.specialization:'standard');
   applyRunChallenge(this,this.runMode);
   this.mode='playing';this.enemies=[];this.projectiles=[];this.effects=[];this.loot=[];
-  this.runCoins=0;this.clearCount=0;this.time=0;this.bossDefeated=false;this.upgradeChoices=[];this.bossMessage='';
+  this.runCoins=0;this.clearCount=0;this.time=0;this.bossDefeated=false;this.exitPortal=null;this.hitsTaken=0;this.shopStock=[];this.upgradeChoices=[];this.bossMessage='';
   this.runStatistics=newRunStatistics(kind,this.tower?'Turm':this.endless?'Endlos':'Dungeon');
   this.statisticsSaveClock=0;
   this.camera.x=this.player.x-this.camera.w/2;this.camera.y=this.player.y-this.camera.h/2;
@@ -304,6 +304,13 @@ export class Game {
   this.shake=Math.max(0,this.shake-dt*19);
   if(this.hitstop>0){this.hitstop=Math.max(0,this.hitstop-dt);if(this.enemies.some(e=>e.hp>0))return}
   this.time+=dt;
+  if(this.exitPortal){
+   this.exitPortal.arming=Math.max(0,this.exitPortal.arming-dt);
+   // The player decides when to leave: collecting loot or exploring stays possible.
+   if(this.exitPortal.arming===0&&distance(this.player,this.exitPortal)<36){
+    this.exitPortal=null;this.finish(true);return;
+   }
+  }
   this.progress.statistics.playTime+=dt;
   this.statisticsSaveClock+=dt;
   if(this.statisticsSaveClock>=8){this.statisticsSaveClock=0;this.saveStatistics()}
@@ -380,13 +387,19 @@ export class Game {
   }
   if(pending&&!pending.reinforcements&&!this.enemies.some(e=>e.hp>0&&e.homeRoom===pending.id)){
    pending.cleared=true;this.clearCount++;
-   if(pending.type==='boss'){this.bossDefeated=true;this.finish(true);return}
+   if(pending.type==='boss'){
+    this.bossDefeated=true;
+    this.exitPortal={x:pending.cx,y:pending.cy,arming:2.1};
+    this.createEffect('ring',pending.cx,pending.cy,'#b7a9ff',1.4,85);
+    this.createEffect('text',pending.cx,pending.cy-94,'PORTAL GEÖFFNET · WEITER ERKUNDEN ODER EINTRETEN','#d5c3ff',2.2);
+    this.playSound('portal');this.notify();return;
+   }
    this.createEffect('text',pending.cx,pending.cy-110,'KAMMER GESÄUBERT','#a9f1b4',1.4);
    if(pending.type==='elite')this.dropGear(pending.cx,pending.cy,true);
    else if(this.random()<.28)this.dropGear(pending.cx,pending.cy);
    if(this.clearCount%2===0)this.offerUpgrades();else this.notify();
   }
-  if(room&&room.type==='boss'&&room.cleared&&!this.bossDefeated)this.finish(true);
+  // A defeated boss leaves the floor explorable until the portal is entered.
  }
  attack(charged=false){
   const p=this.player;const kind=p.kind,aim=p.direction;
@@ -560,6 +573,7 @@ export class Game {
   const blocked=Math.min(reduced,p.shield||0);
   p.shield=Math.max(0,(p.shield||0)-blocked);
   const actual=reduced-blocked;
+  if(actual>0)this.hitsTaken++;
   recordDamage(this.progress.statistics,this.runStatistics,actual,'taken');
   p.hp=Math.max(0,p.hp-actual);
   p.invulnerable=.78;p.hurtTimer=.34;
@@ -752,7 +766,7 @@ export class Game {
   this.player.hp=Math.min(this.player.maxHp,this.player.hp+Math.round(this.player.maxHp*(this.tower?.15:.32)));
   this.player.invulnerable=1.5;this.player.dashCooldown=0;
   this.enemies=[];this.projectiles=[];this.loot=[];this.hazards=[];this.effects=[];this.libraryKey=false;
-  this.clearCount=0;this.bossDefeated=false;this.hitstop=0;this.mode='playing';
+  this.clearCount=0;this.bossDefeated=false;this.exitPortal=null;this.hitstop=0;this.mode='playing';
   this.stageStartedAt=this.time;this.stageHazardClock=8;towerRelicFloor(this);
   this.camera.x=this.player.x-this.camera.w/2;this.camera.y=this.player.y-this.camera.h/2;
   this.createEffect('text',this.player.x,this.player.y-70,'ETAGE '+this.floorDepth,
