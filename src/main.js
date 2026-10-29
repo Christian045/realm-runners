@@ -293,7 +293,22 @@ function updateHud(){
   $('bossHint').textContent=boss.transitioning?'PHASENWECHSEL · KURZE VERSCHNAUFPAUSE':boss.attack?'WARNUNG · '+names[boss.attack]:'BEOBACHTE SEINE BEWEGUNGEN';
  }
 }
-let last=0,accumulator=0,hudTime=0;
+let last=0,accumulator=0,hudTime=0,lastMenuPreview=-1;
+function animateMenuPreviews(now){
+ if(game.mode!=='menu'||document.hidden)return;
+ const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+ const tick=reducedMotion?0:Math.floor(now/380);
+ if(tick===lastMenuPreview)return;
+ lastMenuPreview=tick;
+ for(const preview of document.querySelectorAll('#panelContent canvas[data-hero]')){
+  const sprite=renderer.sprites.frame(preview.dataset.hero,'idle',tick%4,'down');
+  const paint=preview.getContext('2d');
+  if(!sprite||!paint)continue;
+  paint.imageSmoothingEnabled=false;
+  paint.clearRect(0,0,preview.width,preview.height);
+  paint.drawImage(sprite,0,0,preview.width,preview.height);
+ }
+}
 function frame(now){
  const delta=Math.min(.05,(now-last)/1000||0);last=now;
  if(game.mode==='playing'){
@@ -304,6 +319,7 @@ function frame(now){
  }else accumulator=0;
  renderer.updateCamera(game);
  renderer.draw(game);
+ animateMenuPreviews(now);
  if(now-hudTime>90){updateHud();hudTime=now}
  requestAnimationFrame(frame);
 }
