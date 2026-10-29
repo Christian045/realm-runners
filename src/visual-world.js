@@ -1,7 +1,7 @@
 // v0.14: low-overdraw world depth, physically anchored dressing and pooled light.
 // Pure rendering: no collision changes, no randomized frame-to-frame placement.
-import {TILE} from './data.js';
-import {ROOM_W,ROOM_H} from './dungeon.js';
+import {TILE} from './data.js?v=0.21.0';
+import {ROOM_W,ROOM_H} from './dungeon.js?v=0.21.0';
 const hash=(a,b,c=0)=>{let v=Math.imul(a+7,73856093)^Math.imul(b+29,19349663)^Math.imul(c+11,83492791);v=Math.imul(v^(v>>>13),1274126177);return (v^(v>>>16))>>>0};
 const box=(c,color,x,y,w,h)=>{c.fillStyle=color;c.fillRect(x,y,w,h)};
 export function visibleTiles(d,cam){
