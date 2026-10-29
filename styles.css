@@ -159,3 +159,11 @@ body:has(.boss-hud:not(.hidden)) .biome-label{display:none!important}
 .tower-progress span.cleared{background:#397164;color:#f1ddac;border-color:#bdcfad}
 .tower-progress span.next{border:2px solid #f0b875;color:#ffdfb2}
 @media(max-width:700px){.tower-progress{gap:2px}.tower-progress span{font-size:9px;min-height:26px}.tower-toggle{padding:11px 6px}}
+
+/* v0.12 · tower relic selection, records and an unmistakable final victory. */
+.relic-preview{display:block;margin-top:7px;color:#d9c5ff;font-size:10px;line-height:1.5}
+.stage-time{font-family:monospace;font-weight:750;color:#f3dbad;text-align:center;letter-spacing:.04em;margin:10px 0 14px}
+.tower-victory{text-align:center;border:2px solid #d6b37e;padding:20px 14px;margin:16px 0;background:radial-gradient(ellipse at center,#59436c88,#1a2a36ee 75%);color:#ffe4ac;font-size:17px;font-weight:900;text-shadow:0 2px 16px #bba9d288}
+.tower-victory small{display:block;margin-top:10px;font-size:11px;line-height:1.65;color:#d5e4d9;font-weight:500;text-shadow:none}
+.tower-toggle.selected{box-shadow:0 0 21px #a88fd560}
+@media(max-width:700px){.tower-victory{padding:12px 8px;font-size:14px}.tower-victory small{font-size:10px}.stage-time{font-size:10px}}

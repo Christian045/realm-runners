@@ -2,6 +2,7 @@ import { TILE, clamp, distance } from './data.js';
 import { ROOM_W, ROOM_H } from './dungeon.js';
 import {drawWardenWarnings} from './warden.js';
 import {drawTowerBossWarnings} from './tower-boss.js';
+import {drawTowerEnvironment} from './tower-visuals.js';
 
 const THEMES={
  sanctuary:{floor:'#3f6853',accent:'#afd9a3',glow:'#98e8b1',name:'HEILIGTUM'},
@@ -242,6 +243,7 @@ export function drawDungeonAtmosphere(ctx,game){
   }
  }
  ctx.globalAlpha=1;ctx.restore();
+ drawTowerEnvironment(ctx,game);
 }
 export function drawBossWarnings(ctx,game){
  const boss=game.getActiveBoss?.();

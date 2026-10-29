@@ -2,7 +2,7 @@ import { CLASSES } from './data.js';
 import { TALENTS } from './loot.js';
 export const SAVE_KEY='realm-runners-roguelite-v1';
 export const OLD_SAVE_KEY='realm-runners-save-v2';
-export function defaultProgress(){return {version:1,gold:0,runs:0,bestRooms:0,bossKills:0,selectedClass:'warrior',upgrades:{vitality:0,strength:0},talents:{warrior:{},hunter:{},mage:{}},itemsFound:0,eliteKills:0,deepestFloor:1,towerBest:0,towerWins:0,achievements:{}}}
+export function defaultProgress(){return {version:1,gold:0,runs:0,bestRooms:0,bossKills:0,selectedClass:'warrior',upgrades:{vitality:0,strength:0},talents:{warrior:{},hunter:{},mage:{}},itemsFound:0,eliteKills:0,deepestFloor:1,towerBest:0,towerWins:0,towerBestTime:0,towerLastTime:0,towerStageRecords:{},achievements:{}}}
 export function normalizeProgress(value){
  const d=defaultProgress(),p=value&&typeof value==='object'?value:{};
  const num=(n,max=999999)=>Number.isFinite(+n)?Math.max(0,Math.min(max,Math.floor(+n))):0;
@@ -12,7 +12,8 @@ export function normalizeProgress(value){
   for(const choice of choices)talents[kind][choice.id]=num(p.talents?.[kind]?.[choice.id],3);
  }
  return {version:1,gold:num(p.gold),runs:num(p.runs),bestRooms:num(p.bestRooms,99),
-  bossKills:num(p.bossKills),itemsFound:num(p.itemsFound),eliteKills:num(p.eliteKills),deepestFloor:Math.max(1,num(p.deepestFloor,999)),towerBest:num(p.towerBest,10),towerWins:num(p.towerWins),achievements:Object.fromEntries(Object.entries(p.achievements||{}).filter(([k,v])=>/^[a-zA-Z]+$/.test(k)&&v===true)),selectedClass:CLASSES[p.selectedClass]?p.selectedClass:'warrior',
+  bossKills:num(p.bossKills),itemsFound:num(p.itemsFound),eliteKills:num(p.eliteKills),deepestFloor:Math.max(1,num(p.deepestFloor,999)),towerBest:num(p.towerBest,10),towerWins:num(p.towerWins),towerBestTime:num(p.towerBestTime,864000),towerLastTime:num(p.towerLastTime,864000),
+  towerStageRecords:Object.fromEntries(Object.entries(p.towerStageRecords||{}).filter(([k,v])=>/^(10|[1-9])$/.test(k)&&Number.isFinite(+v)&&+v>0).map(([k,v])=>[k,num(v,864000)])),achievements:Object.fromEntries(Object.entries(p.achievements||{}).filter(([k,v])=>/^[a-zA-Z]+$/.test(k)&&v===true)),selectedClass:CLASSES[p.selectedClass]?p.selectedClass:'warrior',
   upgrades:{vitality:num(p.upgrades?.vitality,5),strength:num(p.upgrades?.strength,5)},talents};
 }
 export function loadProgress(storage=globalThis.localStorage){

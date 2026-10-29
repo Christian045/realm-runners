@@ -8,6 +8,7 @@ import {installTouchGuard} from './touch-guard.js';
 import {CHALLENGES,ACHIEVEMENTS,challengeUnlocked} from './motivation.js';
 import {AudioFeedback} from './audio.js';
 import {TOWER_LENGTH,towerTransitionOptions} from './tower.js';
+import {nextTowerRelic} from './tower-relics.js';
 import {SPECIALIZATIONS,specializationUnlocked} from './specializations.js';
 
 const $=id=>document.getElementById(id);
@@ -21,6 +22,7 @@ let selected=progress.selectedClass;
 const icons={warrior:'⚔',hunter:'➶',mage:'✦'};
 const label=key=>({vitality:'Lebenskraft',strength:'Waffenschmiede'})[key];
 const upgradeDescription=key=>key==='vitality'?'+12 LP pro Stufe':'+8% Schaden pro Stufe';
+const fmtTime=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/3600)?Math.floor(s/3600)+':'+String(Math.floor(s/60)%60).padStart(2,'0')+':'+String(s%60).padStart(2,'0'):Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 const btn=(action,text,cls='secondary',extra='')=>'<button type="button" class="'+cls+'" data-action="'+action+'" '+extra+'>'+text+'</button>';
 function refreshPanel(){
  const overlay=$('overlay'),panel=$('panelContent'),playing=game.mode==='playing';
@@ -58,7 +60,8 @@ function refreshPanel(){
    '<button data-action="tower" class="mode-toggle tower-toggle '+(game.tower?'selected':'')+'">'+
     (game.tower?'✓ TURM DER ZEHN PRÜFUNGEN AKTIV':'♛ TURM DER ZEHN PRÜFUNGEN')+
     '<small>10 Etagen · auf jeder Etage andere Feinde und ein Boss · der ewige Herrscher als Endgegner</small>'+
-    '<small>Bestleistung: '+(progress.towerBest||0)+'/10 · Siege: '+(progress.towerWins||0)+'</small></button>'+
+    '<small>Bestleistung: '+(progress.towerBest||0)+'/10 · Siege: '+(progress.towerWins||0)+
+    (progress.towerBestTime?' · Rekord: '+fmtTime(progress.towerBestTime):'')+'</small></button>'+
    btn('start',game.tower?'TURM BESTEIGEN':game.endless?'ENDLOS-ABSTIEG STARTEN':'DUNGEON BETRETEN','primary')+
    '<div class="section-label">PERMANENTE VERBESSERUNGEN · '+progress.gold+' ◆</div><div class="meta-row">'+
    ['vitality','strength'].map(k=>'<div class="meta-card"><strong>'+label(k)+' · '+progress.upgrades[k]+'/5</strong>'+upgradeDescription(k)+
@@ -83,9 +86,16 @@ function refreshPanel(){
    ' wartet ein neuer Gegnertrupp und ein weiterer Boss. Wähle eine Stärkung für deinen Aufstieg.</p>'+
    '<div class="tower-progress">'+Array.from({length:TOWER_LENGTH},(_,i)=>
     '<span class="'+(i<game.floorDepth?'cleared':i===game.floorDepth?'next':'')+'">'+(i+1)+'</span>').join('')+'</div>'+
-   '<div class="upgrade-grid">'+towerTransitionOptions().map(x=>
-    '<button class="upgrade-card" data-action="towerReward:'+x.id+'"><strong>✦ '+x.name+
-    '</strong><span>'+x.description+'</span></button>').join('')+'</div>';
+   '<p class="stage-time">ETAGEN-BESTZEIT: '+fmtTime(progress.towerStageRecords?.[game.floorDepth])+
+    ' · GESAMTZEIT: '+fmtTime(game.time)+'</p>'+
+   '<div class="upgrade-grid">'+towerTransitionOptions().map(x=>{
+    const relic=x.id==='sigil'?nextTowerRelic(game):null;
+    const disabled=x.id==='sigil'&&!relic;
+    return '<button class="upgrade-card" data-action="towerReward:'+x.id+'" '+(disabled?'disabled':'')+'>'+
+     '<strong>✦ '+x.name+'</strong><span>'+x.description+
+     (relic?'<small class="relic-preview">NÄCHSTES RELIKT: '+relic.name+' · '+relic.description+'</small>':'')+
+     '</span></button>';
+   }).join('')+'</div>';
  }else if(game.mode==='upgrade'){
   title.textContent='RELIKT';chapter.textContent='WÄHLE DEINE MACHT';
   panel.innerHTML='<p>Die Kammer ist gesäubert. Wähle eine Verbesserung für diesen Durchgang.</p><div class="upgrade-grid">'+
@@ -165,6 +175,10 @@ function refreshPanel(){
   panel.innerHTML='<p>'+(won?
    game.tower?'Du hast alle zehn Etagen überlebt und den ewigen Herrscher endgültig besiegt!':'Du hast das Herz des Dungeons bezwungen.':
    'Deine Reise endet hier. Gesammeltes Gold und dauerhafte Verbesserungen bleiben erhalten.')+'</p>'+
+   (game.tower?'<div class="tower-victory">'+(won?'♛ DER TURM IST DEIN!':'DER TURM FORDERT SEINEN TRIBUT')+
+    '<small>Spielzeit: '+fmtTime(game.time)+(won&&game.towerNewRecord?' · NEUER REKORD!':'')+'</small>'+
+    '<small>Persönlicher Rekord: '+(progress.towerBestTime?fmtTime(progress.towerBestTime):'Noch kein vollständiger Sieg')+
+    ' · Turm-Relikte: '+game.towerRelics.length+'/6</small></div>':'')+
    '<div class="summary"><div>KAMMERN<strong>'+game.clearCount+'</strong></div><div>GOLD<strong>+'+game.earnedGold+'</strong></div><div>ETAGE<strong>'+game.floorDepth+'</strong></div></div>'+
    (game.achievementsEarned?.length?'<p class="earned-achievements">NEUE ERFOLGE: '+game.achievementsEarned.map(a=>a.name+' (+'+a.reward+' ◆)').join(' · ')+'</p>':'')+
    btn('restart','NOCH EIN RUN','primary')+btn('menu','ZUM HAUPTMENÜ');
@@ -227,7 +241,7 @@ function updateHud(){
   $('bossFill').style.width=(100*boss.hp/boss.maxHp)+'%';
   $('bossPhase').textContent=boss.phase===3?'PHASE III · LETZTER ZORN':boss.phase===2?'PHASE II · ENTFESSELT':'PHASE I';
   $('bossHud').classList.toggle('enraged',boss.phase===2);
-  const names={volley:'GIFT-SALVE',slam:'SCHLAG AUS DEM HIMMEL',charge:'ANSTURM',nova:'SPORENSTURM',summon:'VERSTÄRKUNG',lances:'RUNENLANZEN',triple:'DREIFACH-SCHLAG',spiral:'ARKANER WIRBEL',fan:'GESCHOSSFÄCHER',mark:'MARKIERTER EINSCHLAG',ring:'RUNDUM-WELLE',dash:'STURMANGRIFF',cross:'KREUZFEUER',meteor:'METEORITEN',orbit:'SPIRALSALVE',eclipse:'FINSTERNIS-NOVA'};
+  const names={volley:'GIFT-SALVE',slam:'SCHLAG AUS DEM HIMMEL',charge:'ANSTURM',nova:'SPORENSTURM',summon:'VERSTÄRKUNG',lances:'RUNENLANZEN',triple:'DREIFACH-SCHLAG',spiral:'ARKANER WIRBEL',soulbeam:'SEELENSTRAHLEN',spiralwall:'SPIRALWELLE',fan:'GESCHOSSFÄCHER',mark:'MARKIERTER EINSCHLAG',ring:'RUNDUM-WELLE',dash:'STURMANGRIFF',cross:'KREUZFEUER',meteor:'METEORITEN',orbit:'SPIRALSALVE',eclipse:'FINSTERNIS-NOVA'};
   $('bossHint').textContent=boss.transitioning?'PHASENWECHSEL · KURZE VERSCHNAUFPAUSE':boss.attack?'WARNUNG · '+names[boss.attack]:'BEOBACHTE SEINE BEWEGUNGEN';
  }
 }

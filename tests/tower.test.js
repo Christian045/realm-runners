@@ -49,7 +49,7 @@ test('floor completion selects one of three rewards, keeps gear and moves to the
  g.finish(true);
  assert.equal(g.mode,'stageclear');
  assert.equal(g.floorDepth,1);
- assert.ok(towerTransitionOptions().length===3);
+ assert.ok(towerTransitionOptions().length===4);
  const originalDamage=g.player.damage;
  assert.ok(g.chooseTowerReward('power'));
  assert.equal(g.mode,'playing');assert.equal(g.floorDepth,2);

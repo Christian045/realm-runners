@@ -10,6 +10,8 @@ import {validSpecialization,specializationUnlocked,applySpecialization} from './
 import {enemySteering,hasLineOfSight,findSpawnPosition} from './navigation.js';
 import {towerStage,towerFloorSeed,towerDifficulty,towerWinReward,TOWER_LENGTH} from './tower.js';
 import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js';
+import {updateTowerEnemy,towerEnemyDamage,towerRoomHazard} from './tower-enemies.js';
+import {nextTowerRelic,grantTowerRelic,towerRelicDamage,afterTowerRelicHit,towerRelicKill,towerRelicSave,towerRelicFloor} from './tower-relics.js';
 
 export class Game {
  constructor(progress,input,onChange=()=>{}){
@@ -19,6 +21,7 @@ export class Game {
   this.attackSequence=0;this.upgradeChoices=[];this.bossDefeated=false;this.bossMessage='';
   this.runMode='normal';this.endless=false;this.tower=false;this.runSeed=0;this.specialization='standard';this.floorDepth=1;this.shake=0;this.hitstop=0;
   this.hazards=[];this.achievementsEarned=[];this.sound=null;this.libraryKey=false;
+  this.towerRelics=[];this.towerRelicHits=0;this.towerRelicKills=0;this.towerPhoenixUsed=false;this.stageStartedAt=0;this.stageHazardClock=9;this.towerNewRecord=false;
  }
  notify(){this.onChange(this)}
  setChallenge(id){if(this.mode==='menu'&&challengeUnlocked(this.progress,id)){this.runMode=id;this.notify();return true}return false}
@@ -30,11 +33,12 @@ export class Game {
  currentTowerStage(){return towerStage(this.floorDepth)}
  enemySpec(type){return ENEMY_DATA[type]}
  chooseTowerReward(id){
-  if(this.mode!=='stageclear'||!['recover','relic','power'].includes(id)||!this.tower)return false;
+  if(this.mode!=='stageclear'||!['recover','relic','power','sigil'].includes(id)||!this.tower)return false;
   this.advanceFloor();
   if(id==='recover')this.player.hp=Math.min(this.player.maxHp,this.player.hp+Math.ceil(this.player.maxHp*.45));
   if(id==='power')this.player.damage*=1.09;
   if(id==='relic')this.dropGear(this.player.x+24,this.player.y+12,true);
+  if(id==='sigil')grantTowerRelic(this);
   this.createEffect('text',this.player.x,this.player.y-105,'ETAGE '+this.floorDepth+' · '+this.currentTowerStage().name,
    this.currentTowerStage().color,1.7);
   this.notify();return true;
@@ -125,6 +129,7 @@ export class Game {
   if(!CLASSES[kind])kind='warrior';
   this.progress.selectedClass=kind;saveProgress(this.progress);
   this.floorDepth=1;this.runSeed=seed;this.shake=0;this.hitstop=0;this.hazards=[];this.achievementsEarned=[];this.libraryKey=false;
+  this.towerRelics=[];this.towerRelicHits=0;this.towerRelicKills=0;this.towerPhoenixUsed=false;this.stageStartedAt=0;this.stageHazardClock=8;this.towerNewRecord=false;
   this.dungeon=generateDungeon(seed,this.tower?{tower:true,biome:this.currentTowerStage().biome}:{});this.random=seeded(seed^0xa5b4c382);
   for(const id of this.dungeon.rooms[0].links)if(this.dungeon.rooms[id].type!=='secret')this.dungeon.rooms[id].discovered=true;
   const base=CLASSES[kind],bonus=this.progress.upgrades;
@@ -268,6 +273,7 @@ export class Game {
   this.updateEnemies(dt);
   if(this.mode!=='playing')return;
   this.updateProjectiles(dt);
+  towerRoomHazard(this,dt);
   this.updateHazards(dt);
   if(this.mode!=='playing')return;
   for(const drop of this.loot)if(!drop.picked&&distance(drop,p)<30){
@@ -346,6 +352,7 @@ export class Game {
   const p=this.player,proc=options.proc!==false;
   const critical=proc&&this.random()<p.crit;
   let d=proc?beforeHit(this,e,damage):damage;
+  if(proc){d=towerRelicDamage(this,e,d);d=towerEnemyDamage(e,d,dir)}
   if(critical)d*=1.7;
   if(proc){p.hitCount++;if(p.hitCount%4===0&&p.upgradeIds.includes('bolt'))d+=p.damage*.7}
   d=Math.max(1,Math.round(d));
@@ -365,7 +372,7 @@ export class Game {
   }
   this.createEffect('text',e.x,e.y-29,(critical?'KRIT ':'')+d,critical?'#ffde86':'#fff1bf',critical?.78:.52);
   this.createEffect('burst',e.x,e.y,critical?'#ffd37b':e.type==='boss'?'#ffb2c0':'#ffdd9e',.3,critical?26:16);
-  if(proc&&e.hp>0)afterHit(this,e,d,critical,dir);
+  if(proc&&e.hp>0){afterHit(this,e,d,critical,dir);afterTowerRelicHit(this,e,d)}
   if(e.hp<=0)this.killEnemy(e);
  }
  killEnemy(e){
@@ -387,6 +394,7 @@ export class Game {
    this.createEffect('ring',e.x,e.y,'#efaa75',.85,85);
   }
   onKill(this,e);
+  if(e.type!=='boss')towerRelicKill(this);
   this.effects.push({type:'death',kind:e.type==='boss'?(e.boss?.variant==='sovereign'?'sovereign':e.boss?.variant==='tower'?'tower'+e.boss.floor:e.boss?.variant==='warden'?'warden':'slimeking'):e.type,
    x:e.x,y:e.y,radius:e.radius,elite:e.elite,phaseTwo:e.boss?.phase===2,
    color:'#d9e5e9',life:.4,maxLife:.4});
@@ -408,14 +416,14 @@ export class Game {
   this.createEffect('burst',p.x,p.y,'#ff8397',.4,24);
   if(actual>0)onHurt(this,actual);
   this.playSound(actual?'hurt':'block');
-  if(p.hp<=0)this.finish(false);
+  if(p.hp<=0&&!towerRelicSave(this))this.finish(false);
  }
  updateHazards(dt){
   for(const h of this.hazards){
    h.time-=dt;
    if(h.time<=0&&!h.done){
     h.done=true;
-    this.createEffect('ring',h.x,h.y,'#f9b184',.65,h.radius);
+    this.createEffect('ring',h.x,h.y,h.color||'#f9b184',.65,h.radius);
     if(distance(this.player,h)<h.radius+this.player.radius)
      this.hurt(h.damage,{x:0,y:0});
    }
@@ -432,6 +440,8 @@ export class Game {
    statusTick(this,e,dt);if(e.hp<=0)continue;
    if(e.type==='boss'&&e.boss){updateBoss(this,e,dt);if(this.mode!=='playing')return;continue}
    e.elapsed+=dt;e.flash=Math.max(0,e.flash-dt);e.cooldown-=dt;
+   e.guardTime=Math.max(0,(e.guardTime||0)-dt);
+   if(updateTowerEnemy(this,e,dt))continue;
    if(e.elite){
     e.eliteShot-=dt;
     if(e.eliteShot<=0&&distance(e,p)<375&&hasLineOfSight(this.dungeon,e.x,e.y,p.x,p.y,true)){
@@ -546,6 +556,7 @@ export class Game {
   this.player.invulnerable=1.5;this.player.dashCooldown=0;
   this.enemies=[];this.projectiles=[];this.loot=[];this.hazards=[];this.effects=[];this.libraryKey=false;
   this.clearCount=0;this.bossDefeated=false;this.hitstop=0;this.mode='playing';
+  this.stageStartedAt=this.time;this.stageHazardClock=8;towerRelicFloor(this);
   this.camera.x=this.player.x-this.camera.w/2;this.camera.y=this.player.y-this.camera.h/2;
   this.createEffect('text',this.player.x,this.player.y-70,'ETAGE '+this.floorDepth,
    this.tower?this.currentTowerStage().color:'#b5dfc7',1.5);
@@ -554,6 +565,10 @@ export class Game {
  finish(won){
   if(this.mode!=='playing')return;
   if(won&&this.tower){
+   const duration=Math.max(1,Math.ceil(this.time-this.stageStartedAt));
+   this.progress.towerStageRecords??={};
+   const record=this.progress.towerStageRecords[this.floorDepth];
+   if(!record||duration<record)this.progress.towerStageRecords[this.floorDepth]=duration;
    this.runCoins+=towerWinReward(this.floorDepth);
    this.progress.towerBest=Math.max(this.progress.towerBest||0,this.floorDepth);
    this.progress.bossKills++;
@@ -563,6 +578,16 @@ export class Game {
     saveProgress(this.progress);this.notify();return;
    }
    this.progress.towerWins=(this.progress.towerWins||0)+1;
+   const oldBest=this.progress.towerBestTime||0;
+   this.towerNewRecord=!oldBest||this.time<oldBest;
+   if(this.towerNewRecord)this.progress.towerBestTime=Math.ceil(this.time);
+   this.progress.towerLastTime=Math.ceil(this.time);
+   for(let i=0;i<34;i++){
+    const a=i*Math.PI*2/34,r=55+(i%8)*23;
+    this.createEffect('spark',this.player.x+Math.cos(a)*r,this.player.y+Math.sin(a)*r,
+      i%2?'#ffe3a0':'#d3b0ff',2.2,8);
+   }
+   this.playSound('bossDown');
   }else if(won&&this.endless){this.advanceFloor();return}
   this.mode=won?'victory':'dead';
   this.progress.runs++;
@@ -583,7 +608,8 @@ export class Game {
   return {className:CLASSES[this.player.kind].name,hp:Math.ceil(this.player.hp),maxHp:this.player.maxHp,
    inventory:this.player.inventory.length,biome:this.dungeon.roomAt(this.player.x,this.player.y)?.biome||'crypt',
    totalRooms:this.dungeon.rooms.length,
-   floor:this.floorDepth,challenge:this.runMode,endless:this.endless,tower:this.tower,stageName:this.tower?this.currentTowerStage().name:null,shield:this.player.shield||0,
+   floor:this.floorDepth,challenge:this.runMode,endless:this.endless,tower:this.tower,stageName:this.tower?this.currentTowerStage().name:null,
+   relics:this.towerRelics.length,bestTime:this.progress.towerBestTime||0,shield:this.player.shield||0,
    rooms:this.clearCount,remaining:this.dungeon.rooms.length-1-this.clearCount,coins:this.runCoins,ability:this.player.abilityCooldown,
    dash:this.player.dashCooldown,time:this.time,seed:this.dungeon.seed,
    boss:(()=>{const e=this.getActiveBoss();return e?{name:e.boss.name|| (e.boss.variant==='warden'?'DER RUNENWÄCHTER':'DER SCHLEIMKÖNIG'),

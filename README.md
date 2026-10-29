@@ -1,4 +1,16 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.11.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.12.0)
+
+## Alpha 0.12 – Tower & Boss Overhaul
+
+- **Etagenlänge unverändert:** Im Turm bleiben genau sieben Räume pro Etage und weiterhin zehn Etagen. Normale Dungeons mit 13 Räumen und Endlosmodus sind unverändert.
+- **Der Ewige Herrscher:** Drei voneinander getrennte Angriffspools (I: Markierungen, Kreuzfeuer, Dash; II: Meteore, Orbit, Beschwörung, Runenlanzen, Seelenstrahlen; III: Finsternis-Nova, Spiralwand, Strahlen, Dash und zusätzliche verzögerte Arenafallen). Phasengrenzen bei 55 % und 30 %, Warnungen vor jedem Schlag und Schutzfenster beim Phasenwechsel.
+- **Gegner-Spezialfähigkeiten:** Geister teleportieren nach sichtbarer Warnung, schwere Nahkämpfer stürmen nach einer Anlaufphase, Kultisten erzeugen verzögerte Sigill-Fallen und eiserne Wächter parieren frontale Treffer mit begrenzter Schutzdauer. Spezialfähigkeiten nutzen das vorhandene Kollision- und Gefahrenzonensystem.
+- **Zehn visuell eigene Etagen:** Unterschiedliche Inschriften, Wandbanner, Wellenzeichen, Sporen-, Ketten-, Seelen- und Runendekorationen; farbig beleuchtete Bossarenen und ein eigener mehrstufiger Thronraum auf Etage 10. Dekorationen sind nicht Teil der Kollision.
+- **Turm-Relikte:** Sechs neue, sammelbare Runen (Gewitterkrone, Aschenherz, Wächterschild, Widerhall, Phönixfeder, Seelenzahn) als vierte Option nach einem Etagenboss. Verschiedene Schaden-/Heil-/Rettungs-Synergien, ohne rekursive Trefferprocs.
+- **Zeitwertung und Belohnungen:** Bestzeit für jede Etage, persönliche Bestzeit eines gesamten Turmlaufs und erneute Siegesfeier mit besonderen Effekten. Rekorde werden abwärtskompatibel im vorhandenen `realm-runners-roguelite-v1`-Schlüssel gespeichert.
+- **Tests:** automatisierte Boss-/KI-/Relikt-/Rekordtests plus Chromium und WebKit mit Touch-Steuerung.
+
+
 
 ## Alpha 0.11 – Turm der zehn Prüfungen
 

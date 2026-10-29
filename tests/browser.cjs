@@ -15,6 +15,12 @@ const assert=require('node:assert/strict');
   assert.ok(await page.locator('[data-action="challenge:normal"]').count());
   assert.ok(await page.locator('[data-action="endless"]').count());
   assert.ok(await page.locator('[data-action="tower"]').count());
+  const towerRuntime=await page.evaluate(async()=>{
+    const [{TOWER_RELICS},{generateDungeon}]=await Promise.all([
+     import('./src/tower-relics.js'),import('./src/dungeon.js')]);
+    return {relicCount:TOWER_RELICS.length,roomCount:generateDungeon(11,{tower:true}).rooms.length};
+  });
+  assert.deepEqual(towerRuntime,{relicCount:6,roomCount:7});
   await page.locator('[data-action="tower"]').click();
   assert.ok(await page.locator('[data-action="tower"]').getAttribute('class').then(c=>c.includes('selected')));
   await page.locator('[data-action="tower"]').click();
@@ -77,6 +83,8 @@ const assert=require('node:assert/strict');
   await mobile.goto('http://127.0.0.1:8000/',{waitUntil:'load'});
   assert.ok(await mobile.locator('.challenge-grid').count(),'mobile challenge selection exists');
   await mobile.locator('[data-action="tower"]').tap();
+  const recordUI=await mobile.locator('[data-action="tower"]').innerText();
+  assert.ok(recordUI.includes('Bestleistung'),'mobile tower records must be readable');
   await mobile.locator('[data-action="start"]').click();
   assert.ok(await mobile.locator('#mobileControls').isVisible());
   await mobile.waitForTimeout(120);
