@@ -49,7 +49,7 @@ export class Game {
  chooseTowerReward(id){
   if(this.mode!=='stageclear'||!['recover','relic','power','sigil'].includes(id)||!this.tower)return false;
   this.advanceFloor();
-  if(id==='recover')this.player.hp=Math.min(this.player.maxHp,this.player.hp+Math.ceil(this.player.maxHp*.45));
+  if(id==='recover'&&!(this.player.statuses?.rot>0))this.player.hp=Math.min(this.player.maxHp,this.player.hp+Math.ceil(this.player.maxHp*.45));
   if(id==='power')this.player.damage*=1.06;
   if(id==='relic')this.dropGear(this.player.x+24,this.player.y+12,true);
   if(id==='sigil')grantTowerRelic(this);
@@ -76,7 +76,7 @@ export class Game {
   const p=this.player,room=this.activeEvent,kind=room.eventKind;
   if(kind==='forge'){
    if(choice==='reforge'){this.dropGear(p.x+15,p.y+28,true);this.runCoins+=12}
-   else if(choice==='repair')p.hp=Math.min(p.maxHp,p.hp+32);
+   else if(choice==='repair'&&!(p.statuses?.rot>0))p.hp=Math.min(p.maxHp,p.hp+32);
    else return false;
   }else if(kind==='trial'){
    if(choice==='challenge'){
@@ -100,7 +100,7 @@ export class Game {
     this.createEffect('text',p.x,p.y-60,'FALSCHE RUNE · -16 LP','#f9ab90',1.2);
    }
   }else if(kind==='camp'){
-   if(choice==='rest')p.hp=Math.min(p.maxHp,p.hp+Math.ceil(p.maxHp*.38));
+   if(choice==='rest'&&!(p.statuses?.rot>0))p.hp=Math.min(p.maxHp,p.hp+Math.ceil(p.maxHp*.38));
    else if(choice==='scout'){
     const adjacent=new Set([room.id,...room.links]);
     for(const id of [...adjacent])for(const to of this.dungeon.rooms[id].links)adjacent.add(to);
@@ -138,7 +138,7 @@ export class Game {
  chooseShrine(choice){
   if(this.mode!=='shrine')return false;
   const p=this.player;
-  if(choice==='heal')p.hp=Math.min(p.maxHp,p.hp+Math.ceil(p.maxHp*.42));
+  if(choice==='heal'&&!(p.statuses?.rot>0))p.hp=Math.min(p.maxHp,p.hp+Math.ceil(p.maxHp*.42));
   else if(choice==='risk'){
    if(p.hp<=25)return false;
    p.hp-=20;this.dropGear(p.x,p.y+22,true);
@@ -338,7 +338,7 @@ export class Game {
    const step=Math.min(d-ideal,175*dt);this.move(s,n.x*step,n.y*step,10);}
   if(s.cooldown>0)return;
   if(s.kind==='spirit'){
-   p.hp=Math.min(p.maxHp,p.hp+9);
+   if(!(p.statuses?.rot>0))p.hp=Math.min(p.maxHp,p.hp+9);
    if(p.statuses)p.statuses.poison=0;
    this.createEffect('ring',p.x,p.y,'#b2f9da',.5,46);
    s.cooldown=9;return;
@@ -566,7 +566,7 @@ export class Game {
    this.createEffect('ring',p.x,p.y,'#b8f5ce',.6,145);
    if(companion){companion.cooldown=0;
     if(companion.kind==='guardian')p.shield=Math.min(40,(p.shield||0)+18);
-    if(companion.kind==='spirit')p.hp=Math.min(p.maxHp,p.hp+22);
+    if(companion.kind==='spirit'&&!(p.statuses?.rot>0))p.hp=Math.min(p.maxHp,p.hp+22);
     if(companion.kind==='ranger')for(const e of [...this.enemies])
      if(e.hp>0&&distance(e,p)<230)this.hitEnemy(e,p.damage*.85,aim,{proc:false});
    }
@@ -916,7 +916,7 @@ export class Game {
   switch(id){
    case 'power':p.damage*=p.upgradeIds.filter(x=>x==='power').length<=3?1.12:1.05;break;
    case 'fury':p.attackDelay=Math.max(CLASSES[p.kind].cooldown*.58,p.attackDelay*.92);break;
-   case 'stride':p.speed*=1.12;break;case 'heart':p.maxHp+=30;p.hp=Math.min(p.maxHp,p.hp+35);break;
+   case 'stride':p.speed*=1.12;break;case 'heart':p.maxHp+=30;if(!(p.statuses?.rot>0))p.hp=Math.min(p.maxHp,p.hp+35);break;
    case 'guard':p.guard=Math.min(.65,p.guard+.1);break;
    case 'reach':p.reach*=1.2;break;
    case 'leech':p.leech+=.06;break;
@@ -943,7 +943,7 @@ export class Game {
    this.dungeon.rooms[id].discovered=true;
   this.player.x=this.dungeon.start.x;this.player.y=this.dungeon.start.y;
   if(this.servant){this.servant.x=this.player.x-35;this.servant.y=this.player.y-25;}
-  this.player.hp=Math.min(this.player.maxHp,this.player.hp+Math.round(this.player.maxHp*(this.tower?.15:.32)));
+  if(!(this.player.statuses?.rot>0))this.player.hp=Math.min(this.player.maxHp,this.player.hp+Math.round(this.player.maxHp*(this.tower?.15:.32)));
   this.player.invulnerable=1.5;this.player.dashCooldown=0;
   this.enemies=[];this.projectiles=[];this.loot=[];this.hazards=[];this.effects=[];this.libraryKey=false;
   this.clearCount=0;this.bossDefeated=false;this.exitPortal=null;this.hitstop=0;this.mode='playing';
