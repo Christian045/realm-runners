@@ -15,12 +15,12 @@ const integer=(value,max=1e9)=>Math.floor(finite(value,max));
 const name=(value,max=70)=>String(value||'').slice(0,max);
 const validEnemyTypes=Object.keys(ENEMY_DATA);
 const emptyKills=()=>Object.fromEntries(validEnemyTypes.map(key=>[key,0]));
-const validClasses=new Set(['warrior','hunter','mage']);
+const validClasses=new Set(['warrior','hunter','mage','glasscannon','summoner','alchemist']);
 const validModes=new Set(['Dungeon','Endlos','Turm']);
 export const STATS_HISTORY_LIMIT=12;
 export function defaultStatistics(){
  return {playTime:0,deaths:0,victories:0,damageDealt:0,damageTaken:0,
-  kills:emptyKills(),bosses:{},classRuns:{warrior:0,hunter:0,mage:0},
+  kills:emptyKills(),bosses:{},classRuns:{warrior:0,hunter:0,mage:0,glasscannon:0,summoner:0,alchemist:0},
   recentRuns:[]};
 }
 export function newRunStatistics(kind='warrior',mode='Dungeon'){
