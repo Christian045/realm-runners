@@ -7,7 +7,9 @@ export const ENCOUNTER_ROLES=Object.freeze({
  assassin:{name:'Schattenläufer',role:'flanker',color:'#f3a2b2'},
  scout:{name:'Knochenjäger',role:'ranged',color:'#b9db97'},
  hexer:{name:'Runenwirker',role:'caster',color:'#cba3ff'},
- bulwark:{name:'Schildwache',role:'defender',color:'#c5d8e1'}
+ bulwark:{name:'Schildwache',role:'defender',color:'#c5d8e1'},
+ burrower:{name:'Erdbohrer',role:'ambusher',color:'#dcc396'},
+ chanter:{name:'Nebelrufer',role:'support',color:'#a5f2c4'}
 });
 export const rangedEncounterType=type=>type==='scout'||type==='hexer';
 const warn=(g,x,y,color,time,radius)=>g.createEffect('ring',x,y,color,time,radius);
@@ -20,6 +22,31 @@ export function updateEncounterEnemy(g,e,dt){
   const s=e.special;
   s.time-=dt;
   e.castTimer=Math.max(e.castTimer,Math.max(0,s.time));
+  if(s.kind==='burrow'){
+   if(s.time<=0){
+    const targets=[[85,0],[-85,0],[0,85],[0,-85]];
+    const candidate=targets.map(([dx,dy])=>({x:s.x+dx,y:s.y+dy}))
+     .find(pos=>g.dungeon.canMove(pos.x,pos.y,e.radius,true));
+    if(candidate){e.x=candidate.x;e.y=candidate.y;}
+    e.special=null;e.specialCooldown=4.6;e.cooldown=.8;
+    g.createEffect('burst',e.x,e.y,'#d8bc88',.42,45);
+    if(distance(e,p)<e.radius+p.radius+45)g.hurt(e.damage*1.3,normalized(p.x-e.x,p.y-e.y));
+   }
+   return true;
+  }
+  if(s.kind==='chant'){
+   if(s.time<=0){
+    let count=0;
+    for(const ally of g.enemies)if(ally!==e&&ally.hp>0&&distance(ally,e)<240){
+     ally.speedBuff=Math.max(ally.speedBuff||0,3.6);
+     ally.guardTime=Math.max(ally.guardTime||0,2.2);
+     count++;
+    }
+    g.createEffect('ring',e.x,e.y,'#99e1bf',.5,180);
+    e.special=null;e.specialCooldown=count?5:3;
+   }
+   return true;
+  }
   if(s.kind==='assassin-windup'){
    if(s.time<=0)e.special={kind:'assassin-dash',time:.32,dir:s.dir,hit:false};
    return true;
@@ -75,6 +102,17 @@ export function updateEncounterEnemy(g,e,dt){
  if(dist>455||e.specialCooldown>0||!hasLineOfSight(g.dungeon,e.x,e.y,p.x,p.y,true))return false;
  if(e.windup>0)return false; // Never override another queued projectile.
  const direction=normalized(p.x-e.x,p.y-e.y);
+ if(e.type==='burrower'&&dist>85&&dist<350){
+  const landing={x:p.x,y:p.y};
+  e.special={kind:'burrow',time:.75,x:landing.x,y:landing.y};
+  warn(g,landing.x,landing.y,role.color,.75,69);
+  e.castTimer=.75;return true;
+ }
+ if(e.type==='chanter'){
+  e.special={kind:'chant',time:.7};
+  warn(g,e.x,e.y,role.color,.7,175);
+  e.castTimer=.7;return true;
+ }
  if(e.type==='assassin'&&dist>80&&dist<350){
   e.special={kind:'assassin-windup',time:.61,dir:direction};
   warn(g,e.x,e.y,role.color,.61,54);e.castTimer=.61;
