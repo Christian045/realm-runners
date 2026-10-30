@@ -70,13 +70,31 @@ export function enemySteering(game,e,target,dt,ranged=false){
  }
  return {x:vector.x,y:vector.y,clear,dist};
 }
-export function findSpawnPosition(dungeon,room,x,y,radius=18,player=null){
- const candidates=[[x,y],[room.cx,room.cy],
-  ...[-1,1].flatMap(sign=>[[x+sign*48,y],[x,y+sign*48],[room.cx+sign*88,room.cy]])];
- for(const [px,py] of candidates){
-  if(!dungeon.canMove(px,py,radius,true))continue;
-  if(player&&Math.hypot(px-player.x,py-player.y)<85)continue;
-  return {x:px,y:py};
- }
+export function findSpawnPosition(dungeon,room,x,y,radius=18,player=null,occupied=[]){
+ // Different footprint sizes need real collision-aware placement, not a fixed
+ // set of offsets designed solely for the old rectangular rooms.
+ const candidates=[[x,y],[room.cx,room.cy]];
+ for(const [dx,dy] of [[-48,0],[48,0],[0,-48],[0,48],
+  [-96,0],[96,0],[0,-96],[0,96],[-96,-48],[96,48],[-96,48],[96,-48]])
+  candidates.push([x+dx,y+dy]);
+ for(let row=-4;row<=4;row++)for(let col=-6;col<=6;col++)
+  candidates.push([room.cx+col*TILE,room.cy+row*TILE]);
+ // Prioritise the desired quadrant before searching the rest of the chamber.
+ const unique=[...new Map(candidates.map(([cx,cy])=>[cx+','+cy,[cx,cy]])).values()]
+  .sort((a,b)=>Math.hypot(a[0]-x,a[1]-y)-Math.hypot(b[0]-x,b[1]-y));
+ const safe=(cx,cy,minSpacing=12,playerGap=55)=>{
+  if(dungeon.roomAt?.(cx,cy)?.id!==room.id)return false;
+  if(!dungeon.canMove(cx,cy,radius,true))return false;
+  if(player&&Math.hypot(cx-player.x,cy-player.y)<
+   radius+(player.radius||14)+playerGap)return false;
+  for(const e of occupied||[])if(e.hp!==0&&
+   Math.hypot(cx-e.x,cy-e.y)<radius+(e.radius||18)+minSpacing)return false;
+  return true;
+ };
+ for(const gap of [55,25,0])for(const spacing of [12,4,0])
+  for(const [cx,cy] of unique)if(safe(cx,cy,spacing,gap))return {x:cx,y:cy};
+ // On unusually crowded boss summon waves, at least stay on a walkable tile.
+ for(const [cx,cy] of unique)if(dungeon.canMove(cx,cy,radius,true))
+  return {x:cx,y:cy};
  return {x:room.cx,y:room.cy};
 }
