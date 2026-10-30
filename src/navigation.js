@@ -22,7 +22,8 @@ export function findPath(dungeon,from,to,room=null,seal=false){
  const start=id(sx,sy),goal=id(tx,ty);
  const queue=[[sx,sy]],parent=new Map([[start,-1]]);
  let found=false;
- for(let cursor=0;cursor<queue.length&&cursor<220;cursor++){
+ const searchLimit=room?220:Math.min(dungeon.width*dungeon.height,6500);
+ for(let cursor=0;cursor<queue.length&&cursor<searchLimit;cursor++){
   const [x,y]=queue[cursor];
   for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
    const nx=x+dx,ny=y+dy,nid=id(nx,ny);
@@ -36,7 +37,7 @@ export function findPath(dungeon,from,to,room=null,seal=false){
  }
  if(!found)return [];
  let current=goal;const result=[];
- while(current!==start&&parent.has(current)&&result.length<110){
+ while(current!==start&&parent.has(current)&&result.length<(room?110:320)){
   const x=current%dungeon.width,y=Math.floor(current/dungeon.width);
   result.push({x:(x+.5)*TILE,y:(y+.5)*TILE});
   current=parent.get(current);
