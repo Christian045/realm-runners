@@ -397,7 +397,7 @@ function updateHud(){
   $('bossFill').style.width=(100*boss.hp/boss.maxHp)+'%';
   $('bossPhase').textContent=boss.phase===3?'PHASE III · LETZTER ZORN':boss.phase===2?'PHASE II · ENTFESSELT':'PHASE I';
   $('bossHud').classList.toggle('enraged',boss.phase===2);
-  const names={volley:'GIFT-SALVE',slam:'SCHLAG AUS DEM HIMMEL',charge:'ANSTURM',nova:'SPORENSTURM',summon:'VERSTÄRKUNG',lances:'RUNENLANZEN',triple:'DREIFACH-SCHLAG',spiral:'ARKANER WIRBEL',soulbeam:'SEELENSTRAHLEN',spiralwall:'SPIRALWELLE',blades:'FINSTERNISKLINGEN',pincer:'ZANGENANGRIFF',fracture:'BODENSPALTEN',sweep:'KRISTALLBARRIERE',fan:'GESCHOSSFÄCHER',mark:'MARKIERTER EINSCHLAG',ring:'RUNDUM-WELLE',dash:'STURMANGRIFF',cross:'KREUZFEUER',meteor:'METEORITEN',orbit:'SPIRALSALVE',eclipse:'FINSTERNIS-NOVA'};
+  const names={volley:'GIFT-SALVE',slam:'SCHLAG AUS DEM HIMMEL',charge:'ANSTURM',nova:'SPORENSTURM',summon:'VERSTÄRKUNG',lances:'RUNENLANZEN',triple:'DREIFACH-SCHLAG',spiral:'ARKANER WIRBEL',soulbeam:'SEELENSTRAHLEN',spiralwall:'SPIRALWELLE',blades:'FINSTERNISKLINGEN',pincer:'ZANGENANGRIFF',echo:'NACHSCHLAG',cage:'RUNENKÄFIG',fracture:'BODENSPALTEN',sweep:'KRISTALLBARRIERE',fan:'GESCHOSSFÄCHER',mark:'MARKIERTER EINSCHLAG',ring:'RUNDUM-WELLE',dash:'STURMANGRIFF',cross:'KREUZFEUER',meteor:'METEORITEN',orbit:'SPIRALSALVE',eclipse:'FINSTERNIS-NOVA'};
   const hint=$('bossHint');
   hint.textContent=boss.transitioning?'PHASENWECHSEL':boss.attack?'ACHTUNG · '+(names[boss.attack]||'BOSSANGRIFF'):'';
   hint.classList.toggle('hidden',!boss.transitioning&&!boss.attack);
