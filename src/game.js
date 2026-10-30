@@ -8,7 +8,7 @@ import {generateItem,equipItem,applyTalents,buyTalent} from './loot.js?v=0.21.0'
 import {hasAffix,onDash,beforeHit,afterHit,onHurt,onKill,statusTick} from './affixes.js?v=0.21.0';
 import {CHALLENGES,challengeUnlocked,applyRunChallenge,enemyExtraCount,challengeScale,challengeReward,awardAchievements} from './motivation.js?v=0.21.0';
 import {validSpecialization,specializationUnlocked,applySpecialization} from './specializations.js?v=0.21.0';
-import {enemySteering,hasLineOfSight,findSpawnPosition} from './navigation.js';
+import {enemySteering,hasLineOfSight,findSpawnPosition,findPath} from './navigation.js?v=0.23.0';
 import {towerStage,towerFloorSeed,towerDifficulty,towerWinReward,TOWER_LENGTH} from './tower.js?v=0.17.0';
 import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js?v=0.18.0';
 import {updateTowerEnemy,towerEnemyDamage,towerRoomHazard} from './tower-enemies.js?v=0.18.0';
@@ -177,14 +177,14 @@ export class Game {
   this.runCoins=0;this.clearCount=0;this.time=0;this.bossDefeated=false;this.exitPortal=null;this.hitsTaken=0;this.shopStock=[];this.upgradeChoices=[];this.bossMessage='';this.giant=null;this.puddles=[];
   this.runStatistics=newRunStatistics(kind,this.tower?'Turm':this.endless?'Endlos':'Dungeon');
   this.statisticsSaveClock=0;this.ambientClock=9;
-  this.servant=kind==='summoner'?{kind:this.servantChoice,x:this.player.x-30,y:this.player.y-30,radius:11,cooldown:0,healClock:0}:null;
+  this.servant=kind==='summoner'?{kind:this.servantChoice,x:this.player.x-30,y:this.player.y-30,radius:11,cooldown:0,healClock:0,friendly:true,path:[],pathClock:0,stuckClock:0}:null;
   this.camera.x=this.player.x-this.camera.w/2;this.camera.y=this.player.y-this.camera.h/2;
   this.playSound('start');
   this.notify();
  }
  move(entity,dx,dy,r=entity.radius){
   if(entity!==this.player&&Math.hypot(dx,dy)>.01){entity.moving=true;entity.moveX=dx;entity.moveY=dy}
-  const seal=this.enemies.some(e=>e.hp>0);
+  const seal=!entity.friendly&&this.enemies.some(e=>e.hp>0);
   if(this.dungeon.canMove(entity.x+dx,entity.y,r,seal))entity.x+=dx;
   if(this.dungeon.canMove(entity.x,entity.y+dy,r,seal))entity.y+=dy;
  }
@@ -326,68 +326,84 @@ export class Game {
   }
   if(spawned)this.createEffect('text',room.cx,room.cy-119,'VERSTÄRKUNG!','#ffc29f',.95);
  }
+ moveCompanion(c,target,desired,dt,speed=250){
+  if(!this.dungeon||!target)return;
+  const dungeon=this.dungeon,d=distance(c,target);
+  if(d<=desired+7)return;
+  let seek=target;
+  if(!hasLineOfSight(dungeon,c.x,c.y,target.x,target.y,false)){
+   c.pathClock=(c.pathClock||0)-dt;
+   const room=dungeon.roomAt(target.x,target.y)?.id;
+   if(c.pathClock<=0||c.pathGoal!==room||!c.path?.length){
+    c.path=findPath(dungeon,c,target,null,false);c.pathGoal=room;c.pathClock=.3;
+   }
+   const point=c.path?.find(point=>distance(c,point)>14);
+   if(point)seek=point;
+  }else{c.pathClock=0;c.path=[];}
+  const n=normalized(seek.x-c.x,seek.y-c.y);
+  const ox=c.x,oy=c.y,step=Math.min(Math.max(0,d-desired),speed*dt);
+  this.move(c,n.x*step,n.y*step,c.radius);
+  c.stuckClock=Math.hypot(c.x-ox,c.y-oy)<.7&&d>200?(c.stuckClock||0)+dt:0;
+  if(c.stuckClock>1.2&&distance(c,this.player)>240){
+   const p=this.player;
+   for(const [dx,dy] of [[-45,30],[45,30],[0,-55],[-70,-35],[70,-35],[0,0]]){
+    if(!dungeon.canMove(p.x+dx,p.y+dy,c.radius,false))continue;
+    c.x=p.x+dx;c.y=p.y+dy;c.path=[];c.pathClock=0;c.stuckClock=0;
+    this.createEffect('burst',c.x,c.y,'#9fc8c2',.35,24);break;
+   }
+  }
+ }
  updateServant(dt){
   const s=this.servant,p=this.player;
   if(!p)return;
-  const companionPower=hasRunPower(p,'companionForce')?1.3:1;
+  const power=hasRunPower(p,'companionForce')?1.3:1;
   if(s){
+   s.friendly=true;
    s.cooldown=Math.max(0,s.cooldown-dt);
    s.healClock=Math.max(0,(s.healClock||0)-dt);
-   const near=this.enemies.filter(e=>e.hp>0&&distance(e,p)<500)
+   const far=distance(s,p)>165 ||
+    this.dungeon.roomAt(s.x,s.y)?.id!==this.dungeon.roomAt(p.x,p.y)?.id;
+   const near=this.enemies.filter(e=>e.hp>0&&distance(e,p)<520)
     .sort((a,b)=>distance(a,s)-distance(b,s))[0];
-   const destination=near&&s.kind!=='spirit'?near:p;
-   const ideal=s.kind==='bat'?42:s.kind==='imp'?190:150;
-   const d=distance(s,destination);
-   if(d>ideal+6){
-    const n=normalized(destination.x-s.x,destination.y-s.y);
-    const step=Math.min(d-ideal,(s.kind==='bat'?270:205)*dt);
-    this.move(s,n.x*step,n.y*step,s.radius);
-   }
-   if(s.cooldown<=0&&near){
-    if(s.kind==='bat'&&distance(s,near)<105){
-     this.hitEnemy(near,(12+p.damage*.26)*companionPower,normalized(near.x-s.x,near.y-s.y),{proc:false});
+   const fight=!!near&&!far;
+   const goal=fight?near:p,ideal=fight?(s.kind==='bat'?39:s.kind==='imp'?150:120):48;
+   this.moveCompanion(s,goal,ideal,dt,s.kind==='bat'?300:255);
+   if(s.cooldown<=0&&fight&&hasLineOfSight(this.dungeon,s.x,s.y,near.x,near.y,false)){
+    if(s.kind==='bat'&&distance(s,near)<100){
+     this.hitEnemy(near,(12+p.damage*.26)*power,
+      normalized(near.x-s.x,near.y-s.y),{proc:false});
      this.createEffect('slash',s.x,s.y,'#d6a6ff',.22,43,Math.atan2(near.y-s.y,near.x-s.x));
      if(s.healClock<=0&&!(p.statuses?.rot>0)){
       const heal=hasRunPower(p,'servantAegis')?6:3;
       p.hp=Math.min(p.maxHp,p.hp+heal);s.healClock=2.5;
       this.createEffect('text',p.x,p.y-43,'+'+heal,'#a4f4d9',.48);
      }
-     s.cooldown=.70;
-    }else if(s.kind==='imp'&&distance(s,near)<400){
-     this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),(8+p.damage*.16)*companionPower,true,false,560);
-     const shot=this.projectiles.at(-1);shot.summonShot='imp';shot.radius=5;
-     this.createEffect('spark',s.x,s.y,'#ffc384',.20,14);
-     s.cooldown=.48;
-    }else if(s.kind==='spirit'&&distance(s,near)<440){
-     this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),(17+p.damage*.23)*companionPower,true,false,430);
-     const shot=this.projectiles.at(-1);shot.summonShot='spirit';shot.radius=8;
-     this.createEffect('ember',s.x,s.y,'#b4adff',.24,17);
-     s.cooldown=1.05;
+     s.cooldown=.7;
+    }else if(s.kind==='imp'&&distance(s,near)<390){
+     this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),
+      (8+p.damage*.16)*power,true,false,560);
+     const bullet=this.projectiles.at(-1);bullet.summonShot='imp';bullet.radius=5;
+     this.createEffect('spark',s.x,s.y,'#ffc384',.20,14);s.cooldown=.48;
+    }else if(s.kind==='spirit'&&distance(s,near)<420){
+     this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),
+      (17+p.damage*.23)*power,true,false,430);
+     const bullet=this.projectiles.at(-1);bullet.summonShot='spirit';bullet.radius=8;
+     this.createEffect('ember',s.x,s.y,'#b4adff',.24,17);s.cooldown=1.05;
     }
    }
   }
-  const g=this.giant;
-  if(!g)return;
-  g.life=Math.max(0,g.life-dt);g.cooldown=Math.max(0,g.cooldown-dt);
-  if(g.life<=0){
-   this.createEffect('burst',g.x,g.y,'#f2c69a',.55,70);
-   this.giant=null;return;
-  }
+  const g=this.giant;if(!g)return;
+  g.friendly=true;g.life=Math.max(0,g.life-dt);g.cooldown=Math.max(0,g.cooldown-dt);
+  if(g.life<=0){this.createEffect('burst',g.x,g.y,'#f2c69a',.55,70);this.giant=null;return;}
   const target=this.enemies.filter(e=>e.hp>0&&distance(e,p)<620)
    .sort((a,b)=>distance(a,g)-distance(b,g))[0];
-  if(!target)return;
-  const d=distance(g,target);
-  if(d>78){
-   const n=normalized(target.x-g.x,target.y-g.y);
-   const step=Math.min(d-65,290*dt);
-   this.move(g,n.x*step,n.y*step,g.radius);
-  }
-  if(g.cooldown<=0&&distance(g,target)<122){
-   const angle=Math.atan2(target.y-g.y,target.x-g.x);
-   this.createEffect('slash',g.x,g.y,'#f9d49d',.35,119,angle);
+  if(target)this.moveCompanion(g,target,65,dt,300);
+  if(target&&g.cooldown<=0&&distance(g,target)<122
+   &&hasLineOfSight(this.dungeon,g.x,g.y,target.x,target.y,false)){
+   this.createEffect('slash',g.x,g.y,'#f9d49d',.35,119,Math.atan2(target.y-g.y,target.x-g.x));
    this.createEffect('ring',target.x,target.y,'#b9adff',.28,67);
-   for(const enemy of [...this.enemies])if(enemy.hp>0&&distance(enemy,target)<72+enemy.radius)
-    this.hitEnemy(enemy,(34+p.damage*.64)*companionPower,normalized(enemy.x-g.x,enemy.y-g.y),{proc:false});
+   for(const e of [...this.enemies])if(e.hp>0&&distance(e,target)<72+e.radius)
+    this.hitEnemy(e,(34+p.damage*.64)*power,normalized(e.x-g.x,e.y-g.y),{proc:false});
    this.shake=Math.max(this.shake,3);g.cooldown=.68;
   }
  }
@@ -609,7 +625,7 @@ export class Game {
    const center={x:p.x+aim.x*56,y:p.y+aim.y*56};
    const valid=this.dungeon.canMove(center.x,center.y,25,false);
    const x=valid?center.x:p.x,y=valid?center.y:p.y;
-   this.giant={x,y,kind:'giant',radius:25,life:3.8,maxLife:3.8,cooldown:0};
+   this.giant={x,y,kind:'giant',radius:25,friendly:true,life:3.8,maxLife:3.8,cooldown:0};
    if(hasRunPower(p,'servantAegis'))p.shield=Math.min(45,Math.max(0,p.shield||0)+12);
    this.createEffect('ring',x,y,'#e7c3a0',.75,85);
    this.createEffect('text',x,y-70,'RIESENRUF','#f4d4a4',.9);
@@ -1046,7 +1062,8 @@ export class Game {
   for(const id of this.dungeon.rooms[0].links)if(this.dungeon.rooms[id].type!=='secret')
    this.dungeon.rooms[id].discovered=true;
   this.player.x=this.dungeon.start.x;this.player.y=this.dungeon.start.y;
-  if(this.servant){this.servant.x=this.player.x-35;this.servant.y=this.player.y-25;}
+  if(this.servant){this.servant.x=this.player.x-35;this.servant.y=this.player.y-25;
+    this.servant.path=[];this.servant.pathClock=0;this.servant.stuckClock=0;}
   if(!(this.player.statuses?.rot>0))this.player.hp=Math.min(this.player.maxHp,this.player.hp+Math.round(this.player.maxHp*(this.tower?.15:.32)));
   this.player.invulnerable=1.5;this.player.dashCooldown=0;
   this.enemies=[];this.projectiles=[];this.loot=[];this.hazards=[];this.effects=[];this.libraryKey=false;
