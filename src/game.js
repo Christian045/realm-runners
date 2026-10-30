@@ -645,7 +645,7 @@ export class Game {
   const dx=target.x-p.x,dy=target.y-p.y,len=Math.hypot(dx,dy);
   const range=Math.min(maxRange,Math.max(65,len));
   const dir=len>1?normalized(dx,dy):aim;
-  let x=p.x+dir.x*range,y=p.y+dir.y*range;
+  let x=p.x,y=p.y;
   for(let f=range;f>=42;f-=18){
    const tx=p.x+dir.x*f,ty=p.y+dir.y*f;
    if(this.dungeon.canMove(tx,ty,12,false)){x=tx;y=ty;break}
