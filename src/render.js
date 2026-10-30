@@ -6,7 +6,7 @@ import {PixelSpriteAtlas,spriteIdentity} from './sprites.js?v=0.21.0';
 import {PixelTileAtlas,tileTheme,tileVariant} from './tileset.js?v=0.18.1';
 import {drawArchitecturalDepth,drawAnchoredDressings,drawDynamicLighting} from './visual-world.js?v=0.21.0';
 import {drawImpact,drawMagicTrail} from './visual-impact.js?v=0.14.0';
-import {drawWarriorSword,drawMageStaff,weaponFacing} from './weapon-visuals.js?v=0.18.1';
+import {drawWarriorSword,drawMageStaff,drawCrystalDagger,drawSummonerTome,weaponFacing} from './weapon-visuals.js?v=0.22.0';
 const hash=(x,y,seed=0)=>{let a=Math.imul(x+seed,374761393)+Math.imul(y,668265263);a=Math.imul(a^(a>>>13),1274126177);return (a^(a>>>16))>>>0};
 const fill=(ctx,color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h)};
 export class Renderer {
@@ -59,6 +59,23 @@ export class Renderer {
     c.beginPath();c.arc(Math.cos(a)*10,-8+Math.sin(a)*17,3+i,0,Math.PI*2);c.stroke();}
    c.restore();
   }
+  for(const pool of game.puddles||[]){
+   const colors={burn:'#ff7847',poison:'#88d664',frost:'#7ec8ed'};
+   const base=colors[pool.kind]||'#c5ca88';
+   const pulse=.85+.09*Math.sin(game.time*6+pool.x*.04);
+   const fade=Math.min(1,pool.life/.65);
+   c.save();c.globalAlpha=.18*fade;c.fillStyle=base;
+   c.beginPath();c.ellipse(pool.x,pool.y,pool.radius*pulse,pool.radius*.64*pulse,0,0,Math.PI*2);c.fill();
+   c.globalAlpha=.46*fade;c.strokeStyle=base;c.lineWidth=3;
+   c.beginPath();c.ellipse(pool.x,pool.y,pool.radius*pulse,pool.radius*.64*pulse,0,0,Math.PI*2);c.stroke();
+   c.globalAlpha=.24*fade;
+   for(let n=0;n<5;n++){
+    const theta=n*Math.PI*2/5+game.time*(pool.kind==='frost'?.25:.55);
+    const dx=Math.cos(theta)*pool.radius*.62,dy=Math.sin(theta)*pool.radius*.42;
+    c.beginPath();c.arc(pool.x+dx,pool.y+dy,5+2*Math.sin(game.time*3+n),0,Math.PI*2);c.fill();
+   }
+   c.restore();
+  }
   for(const h of game.hazards||[]){
    c.save();c.globalAlpha=.14+.25*(1-Math.max(0,h.time)/h.maxTime);
    c.fillStyle=h.color||'#ff895a';c.strokeStyle=h.color||'#ffd5a1';c.lineWidth=3;
@@ -69,6 +86,7 @@ export class Renderer {
    ...game.loot.map(e=>({kind:'loot',e,y:e.y})),
    ...game.enemies.map(e=>({kind:'enemy',e,y:e.y})),
    ...(game.servant?[{kind:'servant',e:game.servant,y:game.servant.y}]:[]),
+   ...(game.giant?[{kind:'servant',e:game.giant,y:game.giant.y}]:[]),
    {kind:'player',e:game.player,y:game.player.y}
   ].sort((a,b)=>a.y-b.y);
   for(const v of entities){
@@ -154,18 +172,56 @@ export class Renderer {
  }
  servant(s,time){
   const c=this.ctx;
-  const color=s.kind==='guardian'?'#a6c9e9':s.kind==='ranger'?'#c5efa5':'#b4f4e0';
   c.save();c.translate(Math.round(s.x),Math.round(s.y));
-  c.globalAlpha=.92;c.fillStyle='#081b24b0';
-  c.beginPath();c.ellipse(1,12,13,5,0,0,Math.PI*2);c.fill();
-  c.translate(0,Math.sin(time*5)*2);
-  c.fillStyle='#182d38';c.fillRect(-10,-16,20,25);
-  c.fillStyle=color;c.fillRect(-7,-12,14,17);
-  c.fillStyle='#e9f6e2';c.fillRect(-4,-8,8,5);
-  if(s.kind==='guardian'){c.fillStyle='#8697bb';c.fillRect(-15,-10,6,20);}
-  if(s.kind==='ranger'){c.fillStyle='#dfbf7e';c.fillRect(10,-11,4,20);}
-  if(s.kind==='spirit'){
-   c.globalAlpha=.25;c.fillStyle='#99f4df';c.beginPath();c.arc(0,-4,18,0,Math.PI*2);c.fill();
+  if(s.kind==='giant'){
+   const fade=Math.min(1,s.life/.45);
+   c.globalAlpha=fade;c.fillStyle='#07141ba9';
+   c.beginPath();c.ellipse(1,18,33,12,0,0,Math.PI*2);c.fill();
+   const bob=Math.sin(time*8)*2;
+   c.translate(0,bob);
+   // Huge stone shoulders and fists, contrasting with player silhouettes.
+   c.fillStyle='#192431';c.fillRect(-27,-58,54,58);
+   c.fillStyle='#576272';c.fillRect(-23,-55,46,43);
+   c.fillStyle='#a9a5ab';c.fillRect(-16,-48,32,26);
+   c.fillStyle='#31394b';c.fillRect(-32,-40,12,36);c.fillRect(20,-40,12,36);
+   c.fillStyle='#8f9bac';c.fillRect(-32,-37,11,17);c.fillRect(21,-37,11,17);
+   c.fillStyle='#151e2c';c.fillRect(-15,-63,30,23);
+   c.fillStyle='#bdb5bb';c.fillRect(-12,-60,24,17);
+   c.fillStyle='#f2c681';c.fillRect(-9,-53,6,4);c.fillRect(3,-53,6,4);
+   c.fillStyle='#eacb9c';c.fillRect(-7,-29,14,8);
+   c.strokeStyle='#d6b4ff';c.lineWidth=2;c.strokeRect(-24,-54,48,46);
+   c.restore();return;
+  }
+  c.fillStyle='#07151ba8';
+  c.beginPath();c.ellipse(1,11,14,5,0,0,Math.PI*2);c.fill();
+  const bob=Math.sin(time*(s.kind==='bat'?13:5))*3;
+  c.translate(0,bob);
+  if(s.kind==='bat'){
+   // Flapping silhouette, purple ears, glowing eyes.
+   const wing=Math.sin(time*19)*8;
+   c.fillStyle='#382846';c.beginPath();
+   c.moveTo(-5,-8);c.lineTo(-25,-19-wing);c.lineTo(-16,-1-wing*.3);c.lineTo(-5,0);
+   c.lineTo(5,0);c.lineTo(16,-1-wing*.3);c.lineTo(25,-19-wing);c.lineTo(5,-8);c.fill();
+   c.fillStyle='#704b8e';c.fillRect(-8,-15,16,14);
+   c.beginPath();c.moveTo(-8,-12);c.lineTo(-8,-22);c.lineTo(-1,-14);
+   c.moveTo(8,-12);c.lineTo(8,-22);c.lineTo(1,-14);c.fill();
+   c.fillStyle='#e9c6ff';c.fillRect(-5,-10,3,3);c.fillRect(3,-10,3,3);
+  }else if(s.kind==='imp'){
+   // Small amber goblin with pointed ears and a fast casting hand.
+   c.fillStyle='#37251d';c.fillRect(-10,-17,20,27);
+   c.fillStyle='#c27948';c.fillRect(-7,-17,14,15);
+   c.fillStyle='#a66b44';c.fillRect(-14,-13,8,7);c.fillRect(6,-13,8,7);
+   c.fillStyle='#ffd79b';c.fillRect(-4,-12,3,3);c.fillRect(2,-12,3,3);
+   c.fillStyle='#e79d4c';c.fillRect(-8,0,16,10);
+   c.fillStyle='#ffb558';c.beginPath();c.arc(14,-14,4+Math.sin(time*8),0,Math.PI*2);c.fill();
+  }else{
+   // Ethereal caster with visible arcane fire, instead of a heal-only pet.
+   c.globalAlpha=.77;
+   c.fillStyle='#263d65';c.beginPath();c.moveTo(0,-23);
+   c.lineTo(12,-11);c.lineTo(9,12);c.lineTo(0,6);c.lineTo(-9,12);c.lineTo(-12,-11);c.fill();
+   c.fillStyle='#a6e8f2';c.fillRect(-7,-17,14,12);
+   c.fillStyle='#152e53';c.fillRect(-4,-11,3,3);c.fillRect(2,-11,3,3);
+   c.fillStyle='#bbabff';c.beginPath();c.arc(11,-15,5,0,Math.PI*2);c.fill();
   }
   c.restore();
  }
@@ -173,7 +229,7 @@ export class Renderer {
   if(!p)return;
   const c=this.ctx,k=CLASSES[p.kind],f=p.direction||{x:0,y:1};
   const face=weaponFacing(f);
-  const drawWeapon=()=>{if(p.kind==='warrior')drawWarriorSword(c,p);else if(['mage','glasscannon','summoner'].includes(p.kind))drawMageStaff(c,{...p,kind:'mage'})};
+  const drawWeapon=()=>{if(p.kind==='warrior')drawWarriorSword(c,p);else if(p.kind==='mage')drawMageStaff(c,p);else if(p.kind==='glasscannon')drawCrystalDagger(c,p);else if(p.kind==='summoner')drawSummonerTome(c,p)};
   this.shadow(p.x,p.y,p.radius+5);
   // Looking north places the weapon behind the body; other facings show it in front.
   if(face==='up')drawWeapon();
@@ -282,7 +338,25 @@ export class Renderer {
  }
  projectile(b){
   const c=this.ctx;
-  const color=b.hostile?'#ff8198':b.magic?'#c2a1ff':b.charged?'#c6fba1':'#e3d89e';
+  if(b.flask){
+   const colors={burn:'#fa9358',poison:'#b3ed86',frost:'#9fdbfd'};
+   const color=colors[b.alchemy]||'#e8efb3';
+   c.save();
+   c.globalAlpha=.38;c.fillStyle='#080f16';
+   c.beginPath();c.ellipse(b.x,b.y+7,13,5,0,0,Math.PI*2);c.fill();
+   c.globalAlpha=.42;c.strokeStyle=color;c.lineWidth=2;
+   c.beginPath();c.arc(b.targetX,b.targetY,b.large?22:16,0,Math.PI*2);c.stroke();
+   c.globalAlpha=1;c.translate(b.x,b.y-b.arcHeight-9);
+   const flightProgress=1-b.flight/b.flightTotal;
+   c.rotate(flightProgress*Math.PI*3);
+   c.shadowColor=color;c.shadowBlur=14;c.fillStyle='#152333';
+   c.fillRect(-7,-9,14,18);c.fillStyle=color;c.fillRect(-5,-5,10,12);
+   c.fillStyle='#e9e9d4';c.fillRect(-4,-13,8,4);
+   c.fillStyle='#ffffffae';c.fillRect(-3,-4,2,6);
+   if(b.large){c.strokeStyle='#e5efb8';c.lineWidth=2;c.strokeRect(-8,-10,16,20);}
+   c.restore();return;
+  }
+  const color=b.hostile?'#ff8198':b.summonShot==='imp'?'#ff9a50':b.summonShot==='spirit'?'#b4b0ff':b.magic?'#c2a1ff':b.charged?'#c6fba1':'#e3d89e';
   c.save();c.shadowColor=color;c.shadowBlur=b.magic||b.charged?15:7;c.fillStyle=color;
   if(!b.hostile&&!b.magic){
    // Razor-sharp arrowheads make direction and charged penetration visible.
