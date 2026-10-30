@@ -500,10 +500,14 @@ export class Game {
     this.alchemyAiming=true;
     this.alchemyTarget=this.input.lobTarget?.(p,camera,260,this.enemies)||
      this.input.target?.(p,camera,260)||{x:p.x+aim.x*235,y:p.y+aim.y*235};
-   }else if(released||this.alchemyAiming){
+   }else if(released){
     this.alchemyAiming=false;
     const selected=this.input.lobTarget?.(p,camera,260,this.enemies)||this.alchemyTarget;
     if(selected)this.queuedAlchemyThrow=selected;
+    this.input.clearLobAim?.();
+   }else if(this.alchemyAiming){
+    // Pointer cancellation, window blur and lost focus must not cause a throw.
+    this.alchemyAiming=false;this.alchemyTarget=null;
     this.input.clearLobAim?.();
    }
    if(!attacking&&this.queuedAlchemyThrow&&p.attackCooldown<=0){
