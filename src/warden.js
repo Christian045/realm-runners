@@ -20,7 +20,13 @@ export function beginWardenAttack(game,e,forced=null){
  const x=Math.max(room.gx*ROOM_W*TILE+100,Math.min((room.gx+1)*ROOM_W*TILE-100,game.player.x));
  const y=Math.max(room.gy*ROOM_H*TILE+90,Math.min((room.gy+1)*ROOM_H*TILE-90,game.player.y));
  const duration=s.phase===2?.60:.70;
- s.telegraph={type,time:duration,duration,dir,x:e.x,y:e.y,target:{x,y},angle:Math.atan2(dir.y,dir.x)};
+ // Cage points are clamped toward the room center so all four rune zones
+ // fit on traversable tiles even when the player hugs the boss-room wall.
+ const target=type==='cage'?{
+  x:Math.max(room.cx-70,Math.min(room.cx+70,x)),
+  y:Math.max(room.cy-60,Math.min(room.cy+60,y))
+ }:{x,y};
+ s.telegraph={type,time:duration,duration,dir,x:e.x,y:e.y,target,angle:Math.atan2(dir.y,dir.x)};
  s.attackIndex++;e.cooldown=99;game.notify();return true;
 }
 function hitLine(p,cx,cy,angle,width,length){
