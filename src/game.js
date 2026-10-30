@@ -279,6 +279,7 @@ export class Game {
   room.normalPlan=normalPlan;
   room.reinforcements=plan?.reinforcements??normalPlan?.reinforcements??0;
   room.waveTimer=plan?.delay??normalPlan?.delay??0;
+  room.waveWarned=false;
   if(this.tower)
    this.stageHazardClock=towerFirstHazard(this.floorDepth)+(boss?1.2:0);
   const variants=room.biome==='fungal'?['mushroom','slime','hexer','assassin','cultist','brute','burrower','chanter']:
@@ -567,6 +568,11 @@ export class Game {
    const alive=this.enemies.some(e=>e.hp>0&&e.homeRoom===pending.id);
    pending.waveTimer=Math.max(0,(pending.waveTimer||0)-dt);
    if(!alive)pending.waveTimer=Math.min(pending.waveTimer,.72);
+   if(!pending.waveWarned&&pending.waveTimer<=.85){
+    pending.waveWarned=true;
+    this.createEffect('ring',pending.cx,pending.cy,'#ffb486',.82,75);
+    this.createEffect('text',pending.cx,pending.cy-91,'VERSTÄRKUNG NAHT','#ffce99',.76);
+   }
    if(pending.waveTimer<=0)this.spawnReinforcements(pending);
   }
   if(pending&&!pending.reinforcements&&!this.enemies.some(e=>e.hp>0&&e.homeRoom===pending.id)){
@@ -860,7 +866,7 @@ export class Game {
   if(e.elite){
    this.progress.eliteKills=(this.progress.eliteKills||0)+1;
    this.dropGear(e.x+25,e.y,true);
-  }else if(e.type!=='boss'&&this.random()<.08)this.dropGear(e.x+18,e.y);
+  }else if(e.type!=='boss'&&this.random()<(this.tower?.08:.065))this.dropGear(e.x+18,e.y);
   if(this.random()<.19)this.loot.push({x:e.x+14,y:e.y+8,type:'heal',value:18,picked:false});
   if(e.eliteMod==='volatile'){
    this.hazards.push({x:e.x,y:e.y,radius:105,time:.48,maxTime:.48,damage:27});
