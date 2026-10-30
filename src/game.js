@@ -30,13 +30,13 @@ export class Game {
   this.hazards=[];this.achievementsEarned=[];this.sound=null;this.libraryKey=false;
   this.towerRelics=[];this.towerRelicHits=0;this.towerRelicKills=0;this.towerPhoenixUsed=false;this.stageStartedAt=0;this.stageHazardClock=9;this.towerNewRecord=false;
   this.runStatistics=null;this.statisticsSaveClock=0;this.exitPortal=null;this.hitsTaken=0;this.shopStock=[];
-  this.servantChoice='guardian';this.servant=null;this.ambientClock=9;
+  this.servantChoice='bat';this.servant=null;this.giant=null;this.puddles=[];this.ambientClock=9;
  }
  notify(){this.onChange(this)}
  saveStatistics(){return saveProgress(this.progress)}
  setServant(id){
-  if(this.mode!=='menu'||!['guardian','ranger','spirit'].includes(id))return false;
-  this.servantChoice=id;this.notify();return true;
+  if(this.mode!=='menu'||!['bat','imp','spirit','guardian','ranger'].includes(id))return false;
+  this.servantChoice=id==='guardian'?'bat':id==='ranger'?'imp':id;this.notify();return true;
  }
  setChallenge(id){if(this.mode==='menu'&&challengeUnlocked(this.progress,id)){this.runMode=id;this.notify();return true}return false}
  setEndless(enabled){if(this.mode==='menu'&&(!enabled||this.progress.bossKills>0)){
@@ -174,10 +174,10 @@ export class Game {
   applySpecialization(this.player,specializationUnlocked(this.progress,this.specialization)?this.specialization:'standard');
   applyRunChallenge(this,this.runMode);
   this.mode='playing';this.enemies=[];this.projectiles=[];this.effects=[];this.loot=[];
-  this.runCoins=0;this.clearCount=0;this.time=0;this.bossDefeated=false;this.exitPortal=null;this.hitsTaken=0;this.shopStock=[];this.upgradeChoices=[];this.bossMessage='';
+  this.runCoins=0;this.clearCount=0;this.time=0;this.bossDefeated=false;this.exitPortal=null;this.hitsTaken=0;this.shopStock=[];this.upgradeChoices=[];this.bossMessage='';this.giant=null;this.puddles=[];
   this.runStatistics=newRunStatistics(kind,this.tower?'Turm':this.endless?'Endlos':'Dungeon');
   this.statisticsSaveClock=0;this.ambientClock=9;
-  this.servant=kind==='summoner'?{kind:this.servantChoice,x:this.player.x-30,y:this.player.y-30,radius:10,cooldown:0}:null;
+  this.servant=kind==='summoner'?{kind:this.servantChoice,x:this.player.x-30,y:this.player.y-30,radius:11,cooldown:0,healClock:0}:null;
   this.camera.x=this.player.x-this.camera.w/2;this.camera.y=this.player.y-this.camera.h/2;
   this.playSound('start');
   this.notify();
@@ -328,29 +328,65 @@ export class Game {
  }
  updateServant(dt){
   const s=this.servant,p=this.player;
-  if(!s||!p)return;
-  s.cooldown=Math.max(0,s.cooldown-dt);
-  const near=this.enemies.filter(e=>e.hp>0&&distance(e,p)<420)
-   .sort((a,b)=>distance(a,s)-distance(b,s))[0];
-  const destination=near&&s.kind!=='spirit'?near:p;
-  const d=distance(s,destination),ideal=s.kind==='guardian'?55:s.kind==='ranger'?165:65;
-  if(d>ideal){const n=normalized(destination.x-s.x,destination.y-s.y);
-   const step=Math.min(d-ideal,175*dt);this.move(s,n.x*step,n.y*step,10);}
-  if(s.cooldown>0)return;
-  if(s.kind==='spirit'){
-   if(!(p.statuses?.rot>0))p.hp=Math.min(p.maxHp,p.hp+9);
-   if(p.statuses)p.statuses.poison=0;
-   this.createEffect('ring',p.x,p.y,'#b2f9da',.5,46);
-   s.cooldown=9;return;
+  if(!p)return;
+  if(s){
+   s.cooldown=Math.max(0,s.cooldown-dt);
+   s.healClock=Math.max(0,(s.healClock||0)-dt);
+   const near=this.enemies.filter(e=>e.hp>0&&distance(e,p)<500)
+    .sort((a,b)=>distance(a,s)-distance(b,s))[0];
+   const destination=near&&s.kind!=='spirit'?near:p;
+   const ideal=s.kind==='bat'?42:s.kind==='imp'?190:150;
+   const d=distance(s,destination);
+   if(d>ideal+6){
+    const n=normalized(destination.x-s.x,destination.y-s.y);
+    const step=Math.min(d-ideal,(s.kind==='bat'?270:205)*dt);
+    this.move(s,n.x*step,n.y*step,s.radius);
+   }
+   if(s.cooldown<=0&&near){
+    if(s.kind==='bat'&&distance(s,near)<105){
+     this.hitEnemy(near,12+p.damage*.26,normalized(near.x-s.x,near.y-s.y),{proc:false});
+     this.createEffect('slash',s.x,s.y,'#d6a6ff',.22,43,Math.atan2(near.y-s.y,near.x-s.x));
+     if(s.healClock<=0&&!(p.statuses?.rot>0)){
+      p.hp=Math.min(p.maxHp,p.hp+3);s.healClock=2.5;
+      this.createEffect('text',p.x,p.y-43,'+3','#a4f4d9',.48);
+     }
+     s.cooldown=.70;
+    }else if(s.kind==='imp'&&distance(s,near)<400){
+     this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),8+p.damage*.16,false,false,560);
+     const shot=this.projectiles.at(-1);shot.summonShot='imp';shot.radius=5;
+     this.createEffect('spark',s.x,s.y,'#ffc384',.20,14);
+     s.cooldown=.48;
+    }else if(s.kind==='spirit'&&distance(s,near)<440){
+     this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),17+p.damage*.23,true,false,430);
+     const shot=this.projectiles.at(-1);shot.summonShot='spirit';shot.radius=8;
+     this.createEffect('ember',s.x,s.y,'#b4adff',.24,17);
+     s.cooldown=1.05;
+    }
+   }
   }
-  if(!near)return;
-  if(s.kind==='guardian'&&distance(s,near)<96){
-   this.hitEnemy(near,p.damage*.75,normalized(near.x-s.x,near.y-s.y),{proc:false});
-   p.shield=Math.min(30,(p.shield||0)+3);
-   this.createEffect('ring',s.x,s.y,'#a0bfd9',.22,32);s.cooldown=1.45;
-  }else if(s.kind==='ranger'&&distance(s,near)<370){
-   this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),p.damage*.66,false,false,480);
-   this.createEffect('spark',s.x,s.y,'#c5ed9a',.24,12);s.cooldown=1.18;
+  const g=this.giant;
+  if(!g)return;
+  g.life=Math.max(0,g.life-dt);g.cooldown=Math.max(0,g.cooldown-dt);
+  if(g.life<=0){
+   this.createEffect('burst',g.x,g.y,'#f2c69a',.55,70);
+   this.giant=null;return;
+  }
+  const target=this.enemies.filter(e=>e.hp>0&&distance(e,p)<620)
+   .sort((a,b)=>distance(a,g)-distance(b,g))[0];
+  if(!target)return;
+  const d=distance(g,target);
+  if(d>78){
+   const n=normalized(target.x-g.x,target.y-g.y);
+   const step=Math.min(d-65,290*dt);
+   this.move(g,n.x*step,n.y*step,g.radius);
+  }
+  if(g.cooldown<=0&&distance(g,target)<122){
+   const angle=Math.atan2(target.y-g.y,target.x-g.x);
+   this.createEffect('slash',g.x,g.y,'#f9d49d',.35,119,angle);
+   this.createEffect('ring',target.x,target.y,'#b9adff',.28,67);
+   for(const enemy of [...this.enemies])if(enemy.hp>0&&distance(enemy,target)<72+enemy.radius)
+    this.hitEnemy(enemy,34+p.damage*.64,normalized(enemy.x-g.x,enemy.y-g.y),{proc:false});
+   this.shake=Math.max(this.shake,3);g.cooldown=.68;
   }
  }
  update(dt,camera=this.camera){
@@ -369,6 +405,7 @@ export class Game {
   }
   this.progress.statistics.playTime+=dt;
   this.updateServant(dt);
+  this.updatePuddles(dt);
   this.tickPlayerStatuses(dt);
   if(this.mode!=='playing')return;
   this.ambientClock-=dt;
