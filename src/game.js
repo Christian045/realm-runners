@@ -190,12 +190,32 @@ export class Game {
   if(this.dungeon.canMove(entity.x+dx,entity.y,r,seal))entity.x+=dx;
   if(this.dungeon.canMove(entity.x,entity.y+dy,r,seal))entity.y+=dy;
  }
+ regroupCompanion(companion,room){
+  if(!companion||!room)return false;
+  const p=this.player;
+  // Summoned allies warp through a room threshold together. Otherwise the
+  // combat door could close behind the player before they cross it.
+  for(const [dx,dy] of [[-45,28],[45,28],[0,-52],[-65,-25],[65,-25],[0,0]]){
+   const x=p.x+dx,y=p.y+dy;
+   if(this.dungeon.roomAt(x,y)?.id!==room.id||
+     !this.dungeon.canMove(x,y,companion.radius,false))continue;
+   companion.x=x;companion.y=y;companion.path=[];companion.pathClock=0;
+   companion.stuckClock=0;companion.friendly=true;
+   this.createEffect('burst',x,y,'#a4dbc8',.28,20);
+   return true;
+  }
+  return false;
+ }
  entrance(room){
   if(!room||room.visited)return;
   const localX=this.player.x/TILE-room.gx*ROOM_W;
   const localY=this.player.y/TILE-room.gy*ROOM_H;
   if(localX<2.8||localX>ROOM_W-2.8||localY<2.8||localY>ROOM_H-2.8)return;
   room.visited=true;room.discovered=true;
+  if(this.servant&&this.dungeon.roomAt(this.servant.x,this.servant.y)?.id!==room.id)
+   this.regroupCompanion(this.servant,room);
+  if(this.giant&&this.dungeon.roomAt(this.giant.x,this.giant.y)?.id!==room.id)
+   this.regroupCompanion(this.giant,room);
   for(const linked of room.links)if(this.dungeon.rooms[linked].type!=='secret')this.dungeon.rooms[linked].discovered=true;
   if(room.type==='start')return;
   if(room.type==='trap'){
@@ -363,8 +383,12 @@ export class Game {
    s.friendly=true;
    s.cooldown=Math.max(0,s.cooldown-dt);
    s.healClock=Math.max(0,(s.healClock||0)-dt);
+   const playerRoom=this.dungeon.roomAt(p.x,p.y);
+   const petRoom=this.dungeon.roomAt(s.x,s.y);
+   if(playerRoom?.visited&&playerRoom?.id!==petRoom?.id&&
+      distance(s,p)>180)this.regroupCompanion(s,playerRoom);
    const far=distance(s,p)>165 ||
-    this.dungeon.roomAt(s.x,s.y)?.id!==this.dungeon.roomAt(p.x,p.y)?.id;
+    this.dungeon.roomAt(s.x,s.y)?.id!==playerRoom?.id;
    const near=this.enemies.filter(e=>e.hp>0&&distance(e,p)<520)
     .sort((a,b)=>distance(a,s)-distance(b,s))[0];
    const fight=!!near&&!far;
