@@ -1,4 +1,16 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.23.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.24.0)
+
+## Alpha 0.24.0 – Vielseitigere Dungeons und anspruchsvollere Kämpfe
+
+- **Dungeon-Verlauf:** Vier echte Kampfräume werden nicht mehr zufällig auf den Anfang konzentriert, sondern in einem frühen, zwei mittleren und einem tiefen Abschnitt des Dungeons verteilt. Die zehn vorhandenen Sonderräume (Händler, Schatz, Schrein, Elite etc.) und der Boss bleiben erhalten, die Raumanzahl bleibt bei 16.
+- **Taktische Raumtypen:** Hinterhalt, Schützengalerie, Runenkammer, Festung und gemischte Kampfhalle erhalten unterschiedliche Gegnerformationen. Die ersten drei Feinde erfüllen gezielt unterschiedliche Rollen (Angreifer, Verteidiger, Distanz-/Unterstützung). Die jeweiligen Biome steuern weitere Gegner bei.
+- **Ansteigende Herausforderung:** Mittlere Kampfräume erzeugen eine zweite Welle mit einem Gegner; tiefe Räume bis zu zwei weitere Gegner. Vor dem Erscheinen gibt es einen sichtbaren Ring, eine Warnung und ein dezentes Warnsignal. Pro Raum erscheinen höchstens sieben Gegner gleichzeitig zu Beginn, weitere maximal zwei als Verstärkung.
+- **Balance:** Die Steigerung erfolgt hauptsächlich durch Rollen, Angriffsabstände und Gegnerkombinationen statt großer HP-Multiplikatoren. Gegner-LP wachsen im normalen Modus langsamer; spätere Räume erhalten moderat mehr Tempo und Schaden. Die normale Zufalls-Ausrüstungsdroprate sinkt angesichts der höheren Gegnerzahl leicht von 8 auf 6,5 %, mythische Items bleiben ausschließlich Bossbeute.
+- **Visuelle Identität:** In die echten Bodenfliesen eingearbeitete Runen, Kratzer, Wegweiser, Steinplatten, Wasser-/Wurzelmarkierungen und besondere Motive für Händler und Boss. Die Markierungen sind kollisionsfrei und behalten ihre Position über den ganzen Run; keine schwebenden Requisiten.
+- **Turmmodus:** Weiterhin sieben Räume pro Turmetage, eigener Gegnerplan und identische bestehende Eskalationsregeln.
+- **Qualität:** Neue deterministische Tests für alle fünf Begegnungstypen, Dungeon-Tiefen, Wellen, echte Gegner-Spawnpunkte, Bodenmarkierungen, seltene Beute und den unveränderten Turmmodus. 200 zufällige Dungeon-Seeds und 36 Kampfszenarien zusätzlich direkt geprüft. Browser-Gesamttest und Langzeit-Balancing bleiben offen.
+
+
 
 ## Alpha 0.23.0 – Begleiter, Zielwerfen und Kristallgewehr
 
