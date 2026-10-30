@@ -277,6 +277,17 @@ export function drawBossWarnings(ctx,game){
   ctx.fillStyle='#fa5266';ctx.beginPath();ctx.arc(t.target.x,t.target.y,t.radius,0,Math.PI*2);ctx.fill();
   ctx.globalAlpha=1;circle(ctx,t.target.x,t.target.y,t.radius,'#ffd3c4',3);
   circle(ctx,t.target.x,t.target.y,Math.max(5,t.radius*fraction),'#ff748b',4);
+ }else if(t.type==='echo'){
+  const side={x:-t.dir.y,y:t.dir.x};
+  for(const n of [0,-1,1]){
+   const x=t.target.x+side.x*n*110,y=t.target.y+side.y*n*110;
+   const r=n?57:66;
+   ctx.globalAlpha=.17+(1-fraction)*.27;
+   ctx.fillStyle='#f08eae';
+   ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+   ctx.globalAlpha=.9;circle(ctx,x,y,r,'#ffe1eb',3);
+   circle(ctx,x,y,Math.max(5,r*fraction),'#f6accc',3);
+  }
  }else if(t.type==='fracture'){
   ctx.globalAlpha=.26+(1-fraction)*.22;
   ctx.fillStyle='#f07aa2';ctx.strokeStyle='#ffd2db';
