@@ -1,9 +1,9 @@
-import {CLASSES} from './data.js?v=0.22.0';
+import {CLASSES} from './data.js?v=0.23.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.21.0';
 import {ENEMY_NAMES,totalKills,formatPlayTime} from './statistics.js?v=0.21.0';
-import {Input} from './input.js?v=0.22.0';
-import {Game} from './game.js?v=0.22.0';
-import {Renderer} from './render.js?v=0.22.0';
+import {Input} from './input.js?v=0.23.0';
+import {Game} from './game.js?v=0.23.0';
+import {Renderer} from './render.js?v=0.23.0';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.21.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.21.0';
 import {installTouchGuard} from './touch-guard.js';
@@ -370,6 +370,12 @@ function updateHud(){
  $('roomText').textContent=(hud.tower?'TURM '+hud.floor+'/10':'E'+hud.floor)+' · '+hud.rooms+' / '+(hud.totalRooms-1);
  $('coinText').innerHTML=hud.coins+' <span class="coin">◆</span>';
  $('inventoryBtn').textContent='RUCKSACK ('+hud.inventory+')';
+ const aimFlask=game.player.kind==='alchemist';
+ const attackButton=$('attackTouch');
+ attackButton.textContent=aimFlask?'◎':'⚔';
+ attackButton.setAttribute('aria-label',aimFlask?'Flasche zielen: gedrückt halten und ziehen, loslassen zum Werfen':'Angreifen');
+ attackButton.title=aimFlask?'Halten und ziehen zum Zielen – loslassen zum Werfen':'Angreifen';
+ canvas.style.cursor=aimFlask&&game.mode==='playing'?'crosshair':'default';
  const dash=$('dashLabel'),ability=$('abilityLabel');
  dash.textContent=hud.dash>0?'DASH · '+hud.dash.toFixed(1)+'s':'DASH ✓';
  dash.classList.toggle('ready',hud.dash<=0);
