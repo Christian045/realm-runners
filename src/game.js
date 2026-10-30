@@ -586,6 +586,12 @@ export class Game {
       return;
      }
     }
+   if(kind==='glasscannon'){
+    this.spawnProjectile(p.x+aim.x*32,p.y+aim.y*32,aim,p.damage,false,false,1030);
+    const bullet=this.projectiles.at(-1);bullet.rifle=true;bullet.radius=4;
+    this.createEffect('spark',p.x+aim.x*42,p.y+aim.y*42,'#efd0ff',.16,20);
+    return;
+   }
    if(kind==='alchemist'){
     const recipe=['burn','poison','frost'][(this.attackSequence-1)%3];
     this.throwFlask(recipe,p.damage*.93,false);
