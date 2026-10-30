@@ -467,7 +467,13 @@ export class Renderer {
    if(room.type==='secret'&&!room.visited)continue;
    if(!room.discovered&&!room.visited)continue;
    const x=px+room.gx*pitch,y=py+room.gy*pitch;
-   fill(c,room.visited?'#6c9981':'#2b4b51',x,y,size,size);
+   // Mini-map rooms display their actual walkable silhouettes rather than
+   // identical squares. This makes compact, long, tall and grand arenas legible.
+   const sw=size/5,samplesX=[1,4,7,10,13],samplesY=[1,3,5,7,9];
+   for(let py=0;py<5;py++)for(let px=0;px<5;px++)
+    if(d.tileAt(room.gx*ROOM_W+samplesX[px],room.gy*ROOM_H+samplesY[py])===0)
+     fill(c,room.visited?'#6c9981':'#2b4b51',
+      x+px*sw,y+py*sw,sw+.35*dp,sw+.35*dp);
    const flags={boss:'#ed788a',treasure:'#f1ce84',shrine:'#93e4c6',elite:'#eab36f',
     event:'#b6a3ea',library:'#a9b0e9',trap:'#e7977e',camp:'#9edbb7',vault:'#ffd38c',secret:'#efcda1'};
    if(room.visited&&flags[room.type])fill(c,flags[room.type],x+size*.28,y+size*.28,size*.44,size*.44);
