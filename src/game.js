@@ -352,7 +352,7 @@ export class Game {
      }
      s.cooldown=.70;
     }else if(s.kind==='imp'&&distance(s,near)<400){
-     this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),8+p.damage*.16,false,false,560);
+     this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),8+p.damage*.16,true,false,560);
      const shot=this.projectiles.at(-1);shot.summonShot='imp';shot.radius=5;
      this.createEffect('spark',s.x,s.y,'#ffc384',.20,14);
      s.cooldown=.48;
@@ -764,7 +764,7 @@ export class Game {
    for(const add of this.enemies)if(add!==e&&add.homeRoom===e.homeRoom)add.hp=0;
    this.projectiles=this.projectiles.filter(p=>!p.hostile);
   }
-  const reward=ENEMY_DATA[e.type].reward*(e.elite?3:1);
+  const reward=Math.round(ENEMY_DATA[e.type].reward*(e.elite?3:1)*(this.servant?.kind==='imp'?1.3:1));
   this.loot.push({x:e.x,y:e.y,type:'coin',value:reward,picked:false});
   if(e.elite){
    this.progress.eliteKills=(this.progress.eliteKills||0)+1;
@@ -1046,6 +1046,7 @@ export class Game {
   this.player.invulnerable=1.5;this.player.dashCooldown=0;
   this.enemies=[];this.projectiles=[];this.loot=[];this.hazards=[];this.effects=[];this.libraryKey=false;
   this.clearCount=0;this.bossDefeated=false;this.exitPortal=null;this.hitstop=0;this.mode='playing';
+  this.giant=null;this.puddles=[];
   this.stageStartedAt=this.time;this.stageHazardClock=8;towerRelicFloor(this);
   this.camera.x=this.player.x-this.camera.w/2;this.camera.y=this.player.y-this.camera.h/2;
   this.createEffect('text',this.player.x,this.player.y-70,'ETAGE '+this.floorDepth,
