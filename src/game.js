@@ -549,14 +549,16 @@ export class Game {
       return;
      }
     }
+   if(kind==='alchemist'){
+    const recipe=['burn','poison','frost'][(this.attackSequence-1)%3];
+    this.throwFlask(recipe,p.damage*.93,false);
+    return;
+   }
    const shotSpeed=kind==='hunter'&&charged?840:null;
-   this.spawnProjectile(p.x+aim.x*19,p.y+aim.y*19,aim,shotDamage,['mage','glasscannon','summoner','alchemist'].includes(kind),false,shotSpeed);
-    this.projectiles[this.projectiles.length-1].magicSplash=kind==='mage';
-    if(kind==='alchemist'){
-     const flask=this.projectiles[this.projectiles.length-1];
-     flask.alchemy=['burn','poison','frost'][(this.attackSequence-1)%3];
-     flask.radius=10;flask.life=1.7;
-    }
+   this.spawnProjectile(p.x+aim.x*19,p.y+aim.y*19,aim,
+    kind==='summoner'?p.damage*.32:shotDamage,
+    ['mage','glasscannon','summoner'].includes(kind),false,shotSpeed);
+   this.projectiles[this.projectiles.length-1].magicSplash=kind==='mage';
    if(kind==='hunter'&&p.specialization==='marksman'){
      const bolt=this.projectiles[this.projectiles.length-1];
      bolt.pierce=2;bolt.hitIds=new Set();bolt.charged=true;
@@ -600,23 +602,18 @@ export class Game {
     this.hitEnemy(e,p.damage*2.1,aim,{magic:true});
    p.shield=Math.max(p.shield||0,5);
   }else if(p.kind==='summoner'){
-   const companion=this.servant;
-   this.createEffect('ring',p.x,p.y,'#b8f5ce',.6,145);
-   if(companion){companion.cooldown=0;
-    if(companion.kind==='guardian')p.shield=Math.min(40,(p.shield||0)+18);
-    if(companion.kind==='spirit'&&!(p.statuses?.rot>0))p.hp=Math.min(p.maxHp,p.hp+22);
-    if(companion.kind==='ranger')for(const e of [...this.enemies])
-     if(e.hp>0&&distance(e,p)<230)this.hitEnemy(e,p.damage*.85,aim,{proc:false});
-   }
+   // A short-lived siege giant complements the permanent summon.
+   p.abilityCooldown=14;
+   const center={x:p.x+aim.x*56,y:p.y+aim.y*56};
+   const valid=this.dungeon.canMove(center.x,center.y,25,false);
+   const x=valid?center.x:p.x,y=valid?center.y:p.y;
+   this.giant={x,y,kind:'giant',radius:25,life:3.8,maxLife:3.8,cooldown:0};
+   this.createEffect('ring',x,y,'#e7c3a0',.75,85);
+   this.createEffect('text',x,y-70,'RIESENRUF','#f4d4a4',.9);
   }else if(p.kind==='alchemist'){
-   const center={x:p.x+aim.x*155,y:p.y+aim.y*155};
-   this.createEffect('ring',center.x,center.y,'#e9d57d',.72,152);
-   for(const e of [...this.enemies])if(e.hp>0&&distance(e,center)<152+e.radius){
-    this.hitEnemy(e,p.damage*1.85,aim,{magic:true});
-    e.poison=Math.max(e.poison||0,5);
-    e.burn=Math.max(e.burn||0,3.5);
-    e.slow=Math.max(e.slow||0,2.2);
-   }
+   const recipe=['burn','poison','frost'][this.attackSequence%3];
+   this.throwFlask(recipe,p.damage*1.30,true);
+   p.abilityCooldown=10.5;
   }else if(p.kind==='hunter'){
    for(let i=-3;i<=3;i++){
     const angle=Math.atan2(aim.y,aim.x)+i*.14;
@@ -640,6 +637,58 @@ export class Game {
      this.hitEnemy(e,p.damage*.95,aim,{proc:false});
    }
   }
+ }
+ throwFlask(recipe,damage,large=false){
+  const p=this.player,aim=p.direction,maxRange=large?315:260;
+  const target=this.input.target?.(p,this.camera,maxRange)||
+   {x:p.x+aim.x*maxRange,y:p.y+aim.y*maxRange};
+  const dx=target.x-p.x,dy=target.y-p.y,len=Math.hypot(dx,dy);
+  const range=Math.min(maxRange,Math.max(65,len));
+  const dir=len>1?normalized(dx,dy):aim;
+  let x=p.x+dir.x*range,y=p.y+dir.y*range;
+  for(let f=range;f>=42;f-=18){
+   const tx=p.x+dir.x*f,ty=p.y+dir.y*f;
+   if(this.dungeon.canMove(tx,ty,12,false)){x=tx;y=ty;break}
+  }
+  const flight=.52+range/1200;
+  this.projectiles.push({x:p.x,y:p.y,vx:0,vy:0,
+   damage,magic:false,hostile:false,life:flight+.2,radius:9,
+   alchemy:recipe,flask:true,startX:p.x,startY:p.y,targetX:x,targetY:y,
+   flight,flightTotal:flight,arcHeight:0,large});
+  this.createEffect('spark',p.x,p.y-15,'#f6e2b8',.18,12);
+ }
+ detonateFlask(b){
+  if(b.exploded)return;
+  b.exploded=true;b.life=0;
+  const colors={burn:'#ff985a',poison:'#9fe786',frost:'#91d9f5'};
+  const color=colors[b.alchemy]||'#d4e5aa',radius=b.large?137:91;
+  this.createEffect('ring',b.x,b.y,color,.52,radius);
+  this.createEffect('burst',b.x,b.y,color,.48,b.large?57:32);
+  this.shake=Math.max(this.shake,b.large?4:2);
+  this.puddles.push({x:b.x,y:b.y,kind:b.alchemy,radius,
+   life:b.large?4.3:3.3,maxLife:b.large?4.3:3.3,
+   damage:b.damage*(b.large?.75:.48),tick:0,large:b.large});
+  for(const enemy of [...this.enemies])if(enemy.hp>0&&distance(enemy,b)<radius+enemy.radius){
+   this.hitEnemy(enemy,b.damage*(b.large?1.22:1),normalized(enemy.x-b.x,enemy.y-b.y),{proc:false,magic:true});
+   if(enemy.hp>0)this.applyAlchemyStatus(enemy,b.alchemy,b.large);
+  }
+ }
+ applyAlchemyStatus(enemy,kind,large=false){
+  if(kind==='burn')enemy.burn=Math.max(enemy.burn||0,large?5:3.5);
+  else if(kind==='poison')enemy.poison=Math.max(enemy.poison||0,large?5.5:4);
+  else if(kind==='frost')enemy.slow=Math.max(enemy.slow||0,large?4.5:3.1);
+ }
+ updatePuddles(dt){
+  for(const puddle of this.puddles){
+   puddle.life-=dt;puddle.tick-=dt;
+   if(puddle.tick>0||puddle.life<=0)continue;
+   puddle.tick=.45;
+   for(const enemy of [...this.enemies])if(enemy.hp>0&&distance(enemy,puddle)<puddle.radius+enemy.radius){
+    this.hitEnemy(enemy,puddle.damage*.36,normalized(enemy.x-puddle.x,enemy.y-puddle.y),{proc:false,magic:true});
+    if(enemy.hp>0)this.applyAlchemyStatus(enemy,puddle.kind,puddle.large);
+   }
+  }
+  this.puddles=this.puddles.filter(p=>p.life>0);
  }
  spawnProjectile(x,y,dir,damage,magic=false,hostile=false,speedOverride=null){
   const speed=speedOverride??(hostile?250:magic?490:690);
@@ -903,6 +952,15 @@ export class Game {
  updateProjectiles(dt){
   const p=this.player;
   for(const b of this.projectiles){
+   if(b.flask){
+    b.flight=Math.max(0,b.flight-dt);
+    const progress=1-b.flight/b.flightTotal;
+    b.x=b.startX+(b.targetX-b.startX)*progress;
+    b.y=b.startY+(b.targetY-b.startY)*progress;
+    b.arcHeight=Math.sin(Math.PI*progress)*(b.large?77:55);
+    if(b.flight<=0)this.detonateFlask(b);
+    continue;
+   }
    b.life-=dt;if(b.life<=0)continue;
    b.x+=b.vx*dt;b.y+=b.vy*dt;
    if(b.magic&&!b.hostile){
