@@ -1,6 +1,7 @@
-import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.28.1';
-import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.28.1';
-import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.27.0';
+import {advanceLocomotion} from './locomotion.js?v=0.29.0';
+import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.29.0';
+import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.29.0';
+import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.29.0';
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.23.0';
 import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.26.0';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js?v=0.21.0';
@@ -172,7 +173,7 @@ export class Game {
    reach:base.range,crit:0,leech:0,guard:0,dashTimer:0,dashCooldown:0,
    dashVector:{x:1,y:0},invulnerable:0,abilityCooldown:0,attackCooldown:0,
    direction:{x:1,y:0},upgradeIds:[],hitCount:0,inventory:[],
-   moving:false,attackTimer:0,castTimer:0,hurtTimer:0,walkCycle:0,
+   moving:false,attackTimer:0,castTimer:0,hurtTimer:0,walkCycle:0,walkDistance:0,
    comboStep:0,comboTime:0,hunterCharge:0,
    equipment:{weapon:null,armor:null,charm:null,amulet:null,ring1:null,ring2:null},
     statuses:{poison:0,burn:0,stun:0,slow:0,rot:0,mark:0,markSource:null}};
@@ -490,9 +491,8 @@ export class Game {
   if(this.statisticsSaveClock>=8){this.statisticsSaveClock=0;this.saveStatistics()}
   const p=this.player,move=this.input.movement(),aim=this.input.aiming(p,camera);
   if(Number.isFinite(aim.x)&&Number.isFinite(aim.y))p.direction=aim;
-  p.walkCycle=(p.walkCycle||0)+Math.hypot(move.x,move.y)*dt*14;
-  p.moving=Math.hypot(move.x,move.y)>.12;
-  if(p.moving){p.knightMoveDirection={...move};p.heroMoveDirection={...move};}
+  const moveFromX=p.x,moveFromY=p.y;
+  let locomotionDash=p.dashTimer>0;
   p.attackTimer=Math.max(0,(p.attackTimer||0)-dt);
   p.castTimer=Math.max(0,(p.castTimer||0)-dt);
   p.hurtTimer=Math.max(0,(p.hurtTimer||0)-dt);
@@ -507,6 +507,7 @@ export class Game {
    p.dashVector=Math.hypot(move.x,move.y)>.1?normalized(move.x,move.y):{...p.direction};
    if(p.kind==='warrior')beginKnightAction(p,'dash',.18,p.dashVector);
    else beginHeroAction(p,'dash',.18,p.dashVector);
+   locomotionDash=true;
    p.dashTimer=.18;p.dashCooldown=(p.specialization==='ranger'?.75:1.05)*(hasSet(p,'tempest')?.84:1);p.invulnerable=Math.max(p.invulnerable,.26);
    this.createEffect('burst',p.x,p.y,CLASSES[p.kind].color,.25,20);
    onDash(this);onBuildDash(this);this.playSound('dash');
@@ -516,6 +517,7 @@ export class Game {
    p.dashTimer=Math.max(0,p.dashTimer-dt);
    if(this.random()<.65)this.createEffect('spark',p.x,p.y,'#c1e9e4',.28,7);
   }else if(!(p.statuses?.stun>0))this.move(p,move.x*p.speed*dt*(p.statuses?.slow>0?.60:1),move.y*p.speed*dt*(p.statuses?.slow>0?.60:1));
+  advanceLocomotion(p,moveFromX,moveFromY,locomotionDash);
   if(p.kind==='warrior')this.updateKnightAction(dt);else this.updateHeroAction(dt);
   const attacking=this.input.attacking();
   if(p.kind==='hunter'){

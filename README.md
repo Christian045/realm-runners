@@ -1,4 +1,12 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.28.1)
+# Realm Runners – Dungeon Reborn (Alpha 0.29.0)
+
+## Alpha 0.29.0 – Geerdete Laufanimationen für alle sechs Klassen
+
+- Beide Beine besitzen eigene, um vier Phasen versetzte Acht-Frame-Schrittzyklen. Neue gezeichnete Beinposen enthalten Kniebeugung, Abheben, Durchschwingen und Aufsetzen. Stahl-, dunkle Rüstungs- und Lederbeine passen zu den vorhandenen Klassen.
+- Der Oberkörper bleibt an einer festen Höhe ausgerichtet. Die bisherigen wechselnden Fuß-Pivots werden beim Laufen ersetzt; Roben und Waffen behalten ihre eigenen Ebenen.
+- Der Laufzyklus folgt der tatsächlich zurückgelegten Strecke. Wandkontakt, Stillstand, Betäubung, Pause und Dash treiben ihn nicht weiter; Wandgleiten nutzt die tatsächliche Bewegungsrichtung.
+- Beim Laufen und gleichzeitigen Angreifen bleiben die Beine animiert. Treffer-/Schussfreigabe und Oberkörperaktionen laufen unabhängig weiter. Gewehr und Bogen verwenden ihre getrennten Waffenebenen auch beim Laufen.
+- Validierung: 210 Unit-Tests, alle bestehenden Browserprüfungen und eine neue Rasterprüfung sämtlicher Klassen/Richtungen in Chromium und WebKit. Diese prüft acht unterschiedliche Gangbilder, wechselnde Aufsetzfüße, stabile Kopfhöhe und bewegte Beine während Angriffen. Kein Test auf einem physischen iPhone.
 
 ## Alpha 0.28.1 – Waffenrichtung und Geschossaustritt
 

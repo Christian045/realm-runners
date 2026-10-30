@@ -1,4 +1,5 @@
-import {knightPose} from './knight-animation.js?v=0.27.0';
+import {drawLocomotion} from './locomotion.js?v=0.29.0';
+import {knightPose} from './knight-animation.js?v=0.29.0';
 
 // Four compact, decoded-once PNG atlases. Source frames include the sword;
 // never draw the old floating weapon on top of this character.
@@ -9,7 +10,7 @@ export class KnightSpriteAtlas{
  }
  async load(imageFactory){
   try{
-   const response=await fetch(new URL('../assets/knight/atlas.json?v=0.27.0',import.meta.url));
+   const response=await fetch(new URL('../assets/knight/atlas.json?v=0.29.0',import.meta.url));
    if(!response.ok)throw new Error('Knight atlas manifest unavailable');
    this.manifest=await response.json();
    await Promise.all(['down','right','up','left'].map(async face=>{
@@ -21,6 +22,11 @@ export class KnightSpriteAtlas{
     if(image.decode)await image.decode();
     this.images[face]=image;
    }));
+   if(this.manifest.locomotion){
+    const image=imageFactory();image.decoding='async';
+    await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/locomotion/steel.png?v=0.29.0',import.meta.url).href;});
+    if(image.decode)await image.decode();this.images.legs=image;
+   }
    this.ready=true;
   }catch(error){this.failed=true;console.warn('Knight graphics unavailable; using cached fallback.',error);}
  }
@@ -30,7 +36,15 @@ export class KnightSpriteAtlas{
   const image=this.images[pose.face];
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
-  ctx.drawImage(image,f.x,f.y,f.w,f.h,Math.round(p.x-f.anchorX),Math.round(p.y-f.anchorY),f.w,f.h);
+  drawLocomotion(ctx,p,pose,this.manifest.locomotion,this.images.legs,(weaponOnly=false)=>{
+   if(weaponOnly&&!f.blade)return;
+   const grounded=pose.clip==='walk'&&this.manifest.locomotion,scale=grounded?76/f.h:1;
+   const x=Math.round(p.x-(grounded?(f.walkRootX??f.anchorX):f.anchorX)*scale),y=Math.round(p.y-(grounded?68:f.anchorY));
+   ctx.save();
+   if(weaponOnly){ctx.beginPath();f.blade.forEach(([bx,by],i)=>ctx[i?'lineTo':'moveTo'](x+bx*scale,y+by*scale));ctx.closePath();ctx.clip();}
+   ctx.drawImage(image,f.x,f.y,f.w,f.h,x,y,f.w*scale,f.h*scale);
+   ctx.restore();
+  });
   ctx.restore();return true;
  }
  preview(ctx,width,height,time){

@@ -1,5 +1,5 @@
-import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.28.1';
-import {KnightSpriteAtlas,drawKnightEffect} from './knight-sprites.js?v=0.27.0';
+import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.29.0';
+import {KnightSpriteAtlas,drawKnightEffect} from './knight-sprites.js?v=0.29.0';
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.23.0';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js?v=0.26.0';
 import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js?v=0.26.0';

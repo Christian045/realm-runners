@@ -1,3 +1,4 @@
+import {WALK_STRIDE} from './locomotion.js?v=0.29.0';
 // Action-local clocks: graphics and damage share the same frame boundary.
 export const KNIGHT_CLIPS=Object.freeze({
  idle:{row:0,frames:8,duration:1.6,loop:true},
@@ -34,7 +35,7 @@ export function knightPose(p,time=0){
  if(p.hp<=0){clip='death';elapsed=p.knightDeathElapsed||0;duration=KNIGHT_CLIPS.death.duration;direction=p.knightDeathDirection||direction;}
  else if(p.knightAction){({clip,elapsed,duration,direction}=p.knightAction);}
  else if(p.hurtTimer>0){clip='hurt';elapsed=.34-p.hurtTimer;duration=.34;}
- else if(p.moving){clip='walk';elapsed=(p.walkCycle||0)/14;duration=KNIGHT_CLIPS.walk.duration;direction=p.knightMoveDirection||direction;}
+ else if(p.moving){clip='walk';duration=KNIGHT_CLIPS.walk.duration;elapsed=p.walkDistance===undefined?(p.walkCycle||0)/14:p.walkDistance/WALK_STRIDE*duration;direction=p.knightMoveDirection||direction;}
  const spec=KNIGHT_CLIPS[clip];
  const progress=Math.max(0,elapsed/duration);
  const frame=spec.loop?Math.floor(progress*spec.frames)%spec.frames:Math.min(spec.frames-1,Math.floor(progress*spec.frames));

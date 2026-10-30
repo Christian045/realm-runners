@@ -22,3 +22,4 @@ jobs:
           npm run test:browser
           npm run test:knight-browser
           npm run test:heroes-browser
+          npm run test:locomotion-browser
