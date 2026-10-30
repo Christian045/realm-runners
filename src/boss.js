@@ -6,7 +6,7 @@ import {normalBossWindup,normalBossRecovery} from './combat-balance.js?v=0.15.0'
 
 export const PHASE_TWO_AT = .55;
 const PHASE_ONE = Object.freeze(['volley','slam','charge']);
-const PHASE_TWO = Object.freeze(['volley','fracture','nova','charge','slam','summon','echo']);
+const PHASE_TWO = Object.freeze(['volley','echo','fracture','nova','charge','slam','summon']);
 
 // A separate, inspectable state machine. No invisible instant-hit boss abilities.
 export function createBossState(){
