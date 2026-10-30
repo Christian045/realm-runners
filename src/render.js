@@ -6,7 +6,7 @@ import {PixelSpriteAtlas,spriteIdentity} from './sprites.js?v=0.22.0';
 import {PixelTileAtlas,tileTheme,tileVariant} from './tileset.js?v=0.18.1';
 import {drawArchitecturalDepth,drawAnchoredDressings,drawDynamicLighting} from './visual-world.js?v=0.21.0';
 import {drawImpact,drawMagicTrail} from './visual-impact.js?v=0.14.0';
-import {drawWarriorSword,drawMageStaff,drawCrystalDagger,drawSummonerTome,weaponFacing} from './weapon-visuals.js?v=0.22.0';
+import {drawWarriorSword,drawMageStaff,drawCrystalRifle,drawSummonerTome,weaponFacing} from './weapon-visuals.js?v=0.23.0';
 const hash=(x,y,seed=0)=>{let a=Math.imul(x+seed,374761393)+Math.imul(y,668265263);a=Math.imul(a^(a>>>13),1274126177);return (a^(a>>>16))>>>0};
 const fill=(ctx,color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h)};
 export class Renderer {
@@ -96,6 +96,19 @@ export class Renderer {
    else this.drop(v.e,game.time);
   }
   for(const b of game.projectiles)this.projectile(b);
+  if(game.player?.kind==='alchemist'&&game.alchemyAiming&&game.alchemyTarget){
+   const target=game.alchemyTarget,p=game.player;
+   const recipe=['burn','poison','frost'][game.attackSequence%3];
+   const color={burn:'#ff965f',poison:'#b0ec83',frost:'#a1dffa'}[recipe];
+   c.save();c.lineWidth=2;c.strokeStyle=color;c.globalAlpha=.65;
+   c.setLineDash([6,7]);c.beginPath();c.moveTo(p.x,p.y-13);
+   c.lineTo(target.x,target.y);c.stroke();c.setLineDash([]);
+   c.globalAlpha=.22;c.fillStyle=color;c.beginPath();c.arc(target.x,target.y,91,0,Math.PI*2);c.fill();
+   c.globalAlpha=.9;c.beginPath();c.arc(target.x,target.y,91,0,Math.PI*2);c.stroke();
+   c.beginPath();c.moveTo(target.x-14,target.y);c.lineTo(target.x+14,target.y);
+   c.moveTo(target.x,target.y-14);c.lineTo(target.x,target.y+14);c.stroke();
+   c.restore();
+  }
   for(const e of game.effects)this.effect(e);
   drawTowerVictory(c,game);
   drawVignette(c,game,canvas);
@@ -229,7 +242,7 @@ export class Renderer {
   if(!p)return;
   const c=this.ctx,k=CLASSES[p.kind],f=p.direction||{x:0,y:1};
   const face=weaponFacing(f);
-  const drawWeapon=()=>{if(p.kind==='warrior')drawWarriorSword(c,p);else if(p.kind==='mage')drawMageStaff(c,p);else if(p.kind==='glasscannon')drawCrystalDagger(c,p);else if(p.kind==='summoner')drawSummonerTome(c,p)};
+  const drawWeapon=()=>{if(p.kind==='warrior')drawWarriorSword(c,p);else if(p.kind==='mage')drawMageStaff(c,p);else if(p.kind==='glasscannon')drawCrystalRifle(c,p);else if(p.kind==='summoner')drawSummonerTome(c,p)};
   this.shadow(p.x,p.y,p.radius+5);
   // Looking north places the weapon behind the body; other facings show it in front.
   if(face==='up')drawWeapon();
@@ -338,6 +351,13 @@ export class Renderer {
  }
  projectile(b){
   const c=this.ctx;
+  if(b.rifle){
+   const a=Math.atan2(b.vy,b.vx);
+   c.save();c.translate(b.x,b.y);c.rotate(a);
+   c.shadowColor='#c49aff';c.shadowBlur=9;c.fillStyle='#f4d6ff';
+   c.fillRect(-9,-2,18,4);c.fillStyle='#fff3dc';c.fillRect(0,-1,9,2);
+   c.restore();return;
+  }
   if(b.flask){
    const colors={burn:'#fa9358',poison:'#b3ed86',frost:'#9fdbfd'};
    const color=colors[b.alchemy]||'#e8efb3';
