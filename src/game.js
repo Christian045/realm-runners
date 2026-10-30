@@ -9,6 +9,7 @@ import {hasAffix,onDash,beforeHit,afterHit,onHurt,onKill,statusTick} from './aff
 import {CHALLENGES,challengeUnlocked,applyRunChallenge,enemyExtraCount,challengeScale,challengeReward,awardAchievements} from './motivation.js?v=0.21.0';
 import {validSpecialization,specializationUnlocked,applySpecialization} from './specializations.js?v=0.21.0';
 import {enemySteering,hasLineOfSight,findSpawnPosition,findPath} from './navigation.js?v=0.23.0';
+import {normalEncounterPlan,pickNormalEnemy} from './encounter-planner.js?v=0.24.0';
 import {towerStage,towerFloorSeed,towerDifficulty,towerWinReward,TOWER_LENGTH} from './tower.js?v=0.17.0';
 import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js?v=0.18.0';
 import {updateTowerEnemy,towerEnemyDamage,towerRoomHazard} from './tower-enemies.js?v=0.18.0';
@@ -271,11 +272,13 @@ export class Game {
   const eliteRoom=room.type==='elite';
   const plan=this.tower?towerEncounterPlan(this.floorDepth,room.type,this.random()):null;
   const floorProfile=this.tower?towerFloorProfile(this.floorDepth):null;
+  const normalPlan=!this.tower&&!boss?normalEncounterPlan(room,this.clearCount,this.random()):null;
   const amount=boss?1:this.tower?Math.min(8,plan.initial+enemyExtraCount(this)):
-   eliteRoom?4:4+Math.floor(this.clearCount/2)+Math.floor(this.random()*2)+enemyExtraCount(this);
-  // Keep late-floor rooms sealed through a clearly signalled second enemy wave.
-  room.reinforcements=plan?.reinforcements||0;
-  room.waveTimer=plan?.delay||0;
+   Math.min(8,normalPlan.initial+enemyExtraCount(this));
+  // An escalating second wave is reserved for later normal combat chambers.
+  room.normalPlan=normalPlan;
+  room.reinforcements=plan?.reinforcements??normalPlan?.reinforcements??0;
+  room.waveTimer=plan?.delay??normalPlan?.delay??0;
   if(this.tower)
    this.stageHazardClock=towerFirstHazard(this.floorDepth)+(boss?1.2:0);
   const variants=room.biome==='fungal'?['mushroom','slime','hexer','assassin','cultist','brute','burrower','chanter']:
@@ -291,12 +294,12 @@ export class Game {
    room.encounterStyle==='arcane'?'hexer':
    room.encounterStyle==='fortified'?'bulwark':null;
   for(let i=0;i<amount;i++){
-   const type=boss?'boss':(this.tower&&i===0?floorProfile.lead:
+   const type=boss?'boss':!this.tower?
+    pickNormalEnemy(normalPlan,i,this.random):
+    (i===0?floorProfile.lead:
     i===1&&backline.length?backline[Math.floor(this.random()*backline.length)]:
-    i===(this.tower?2:0)&&preferred&&room.type!=='elite'&&
-    (!this.tower||roster.includes(preferred))?preferred:
-    roster[Math.floor(this.random()*
-     (this.tower?roster.length:Math.min(roster.length,5+Math.floor(this.clearCount/2))))]);
+    i===2&&preferred&&room.type!=='elite'&&roster.includes(preferred)?preferred:
+    roster[Math.floor(this.random()*roster.length)]);
    const spec=ENEMY_DATA[type];
    const [ox,oy]=offsets[i%offsets.length];
    const point=findSpawnPosition(this.dungeon,room,room.cx+ox,room.cy+oy,spec.radius,this.player);
@@ -304,45 +307,59 @@ export class Game {
    const elite=eliteRoom&&i===0;
    const eliteMods=['swift','guardian','arcane','volatile','vampiric'];
    const eliteMod=elite?eliteMods[Math.floor(this.random()*eliteMods.length)]:null;
-   const scale=(1+this.clearCount*(this.tower?.075:.15)+Math.max(0,this.floorDepth-1)*(this.tower?.115:.30))*(elite?2.25:1)*challengeScale(this);
+   // Normal mode gets more complex formations, not disproportionate HP inflation.
+   const scale=(1+this.clearCount*(this.tower?.075:.10)+
+    Math.max(0,this.floorDepth-1)*(this.tower?.115:.23))*
+    (elite?2.25:1)*challengeScale(this);
    const hpScale=eliteMod==='guardian'?1.35:1;
    const speedScale=eliteMod==='swift'?1.3:1;
    const floorBossBonus=boss&&this.tower?(this.floorDepth===TOWER_LENGTH?1.8:.88+this.floorDepth*.09):1;
    this.enemies.push({x,y,homeRoom:room.id,type,radius:boss&&this.tower&&this.floorDepth===TOWER_LENGTH?44:elite?spec.radius*1.3:spec.radius,
     hp:Math.round(spec.hp*scale*hpScale*floorBossBonus),maxHp:Math.round(spec.hp*scale*hpScale*floorBossBonus),
     speed:spec.speed*(boss?1:1+this.clearCount*.025)*(elite?1.18:1)*speedScale*
-     (this.tower&&!boss?towerRoomSpeed(this.floorDepth):1)*challengeScale(this),
+     (this.tower&&!boss?towerRoomSpeed(this.floorDepth):
+      !this.tower&&!boss?1+(normalPlan?.tier||0)*.022:1)*challengeScale(this),
     damage:spec.damage*(elite?1.55:1)*(boss?(this.tower?1.10+this.floorDepth*.085:1.18):
-     this.tower?towerRoomDamage(this.floorDepth):1)*challengeScale(this),elite,eliteMod,eliteShot:2,spawnIndex:i,
+     this.tower?towerRoomDamage(this.floorDepth):1+(normalPlan?.tier||0)*.055)*
+     challengeScale(this),elite,eliteMod,eliteShot:2,spawnIndex:i,
     cooldown:boss?(this.tower?BOSS_BALANCE.towerOpening:BOSS_BALANCE.normalOpening):
-     this.tower?Math.max(.20,.52-this.floorDepth*.036)+i*.12:.36+i*.13,
+     this.tower?Math.max(.20,.52-this.floorDepth*.036)+i*.12:
+      Math.max(.30,.52-(normalPlan?.tier||0)*.035)+i*.09,
     specialCooldown:this.tower?Math.max(.45,1.5-this.floorDepth*.11)+i*.13:null,
     windup:0,phase:0,flash:0,elapsed:0,knock:{x:0,y:0},
     ...(boss?{boss:this.tower?createTowerBossState(this.floorDepth):warden?createWardenState():createBossState()}: {})});
   }
   this.createEffect('text',room.cx,room.cy-110,
-   boss?(this.tower?this.currentTowerStage().boss:warden?'DER RUNENWÄCHTER':'DER SCHLEIMKÖNIG'):eliteRoom?'ELITEKAMMER':'KAMMER VERSIEGELT',
-   '#f8c78f',1.3);
+   boss?(this.tower?this.currentTowerStage().boss:warden?'DER RUNENWÄCHTER':'DER SCHLEIMKÖNIG'):
+   eliteRoom?'ELITEKAMMER':'KAMMER VERSIEGELT','#f8c78f',1.05);
  }
  spawnReinforcements(room){
   const count=room.reinforcements||0;
-  if(!count||!this.tower)return;
+  if(!count)return;
   room.reinforcements=0;
-  const roster=this.currentTowerStage().roster;
-  const backline=roster.filter(type=>['archer','scout','hexer','cultist'].includes(type));
+  const normalPlan=!this.tower?(room.normalPlan||
+   normalEncounterPlan(room,this.clearCount,0)):null;
+  const roster=this.tower?this.currentTowerStage().roster:null;
+  const backline=this.tower?
+   roster.filter(type=>['archer','scout','hexer','cultist'].includes(type)):[];
   const offsets=[[-165,115],[165,-115],[-175,-105],[175,105],[-180,0],[180,0]];
   let spawned=0;
   for(let i=0;i<count;i++){
-   const type=i===0&&backline.length?backline[Math.floor(this.random()*backline.length)]:
+   const type=!this.tower?pickNormalEnemy(normalPlan,i+4,this.random):
+    i===0&&backline.length?backline[Math.floor(this.random()*backline.length)]:
     roster[Math.floor(this.random()*roster.length)];
    const spec=ENEMY_DATA[type],offset=offsets[i%offsets.length];
    const point=findSpawnPosition(this.dungeon,room,room.cx+offset[0],room.cy+offset[1],spec.radius,this.player);
    if(distance(point,this.player)<spec.radius+this.player.radius+72)continue;
-   const hp=Math.round(spec.hp*(1+this.clearCount*.075+Math.max(0,this.floorDepth-1)*.115)*challengeScale(this));
+   const hp=Math.round(spec.hp*(1+this.clearCount*(this.tower?.075:.10)+
+    Math.max(0,this.floorDepth-1)*(this.tower?.115:.23))*challengeScale(this));
    this.enemies.push({x:point.x,y:point.y,homeRoom:room.id,type,radius:spec.radius,
-    hp,maxHp:hp,speed:spec.speed*(1+this.clearCount*.025)*towerRoomSpeed(this.floorDepth)*challengeScale(this),
-    damage:spec.damage*towerRoomDamage(this.floorDepth)*challengeScale(this),elite:false,eliteMod:null,
-    eliteShot:2,spawnIndex:8+i,cooldown:.45+i*.16,specialCooldown:.55+i*.2,
+    hp,maxHp:hp,speed:spec.speed*(1+this.clearCount*.025)*
+     (this.tower?towerRoomSpeed(this.floorDepth):1+(normalPlan?.tier||0)*.022)*
+     challengeScale(this),
+    damage:spec.damage*(this.tower?towerRoomDamage(this.floorDepth):
+     1+(normalPlan?.tier||0)*.055)*challengeScale(this),elite:false,eliteMod:null,
+    eliteShot:2,spawnIndex:8+i,cooldown:.49+i*.13,specialCooldown:.75+i*.2,
     windup:0,phase:0,flash:0,elapsed:0,knock:{x:0,y:0}});
    this.createEffect('ring',point.x,point.y,'#ffb486',.72,43);spawned++;
   }
