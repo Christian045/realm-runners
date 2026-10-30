@@ -1,4 +1,4 @@
-import { CLASSES, clamp } from './data.js?v=0.21.0';
+import { CLASSES, clamp } from './data.js?v=0.22.0';
 import {AFFIXES,rollAffix} from './affixes.js?v=0.21.0';
 import {ITEM_SETS,rollSet,setPieces} from './buildcraft.js?v=0.21.0';
 export const RARITIES=Object.freeze({
