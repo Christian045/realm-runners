@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {Game} from '../src/game.js?v=0.22.0';
 import {defaultProgress} from '../src/progression.js';
 import {Input} from '../src/input.js';
-import {drawCrystalDagger,drawSummonerTome} from '../src/weapon-visuals.js';
+import {drawCrystalRifle,drawSummonerTome} from '../src/weapon-visuals.js';
 
 const input={
  movement:()=>({x:0,y:0}),aiming:()=>({x:1,y:0}),
@@ -16,12 +16,12 @@ const newGame=(kind='summoner')=>{
 const enemy=(g,dist=85)=>({hp:230,maxHp:230,x:g.player.x+dist,y:g.player.y,
  type:'slime',radius:18,knock:{x:0,y:0},homeRoom:0,elite:false,flash:0});
 
-test('glass cannon no longer uses mage staff and carries a small dagger',()=>{
+test('glass cannon uses a crystal rifle rather than a mage staff or dagger',()=>{
  const renderContext={
   save(){},restore(){},translate(){},rotate(){},scale(){},fillRect(){},
   beginPath(){},moveTo(){},lineTo(){},closePath(){},fill(){}
  };
- assert.doesNotThrow(()=>drawCrystalDagger(renderContext,{kind:'glasscannon',
+ assert.doesNotThrow(()=>drawCrystalRifle(renderContext,{kind:'glasscannon',
   x:100,y:100,direction:{x:1,y:0},attackTimer:.1}));
  assert.doesNotThrow(()=>drawSummonerTome(renderContext,{kind:'summoner',
   x:100,y:100,direction:{x:1,y:0}}));
