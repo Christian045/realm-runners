@@ -89,3 +89,40 @@ export function drawMageStaff(ctx,player){
  }
  ctx.restore();
 }
+
+// Small, hand-held crystal blade: never reuse the mage's tall staff.
+export function drawCrystalDagger(ctx,player){
+ if(player?.kind!=='glasscannon')return;
+ const face=weaponFacing(player.direction),active=(player.attackTimer||0)>0;
+ const anchor={
+  right:{x:18,y:-7,angle:-.52},left:{x:-18,y:-7,angle:Math.PI+.52},
+  up:{x:16,y:-11,angle:-1.32},down:{x:17,y:-6,angle:.72}
+ }[face];
+ ctx.save();ctx.translate(Math.round(player.x+anchor.x),Math.round(player.y+anchor.y-(active?2:0)));
+ ctx.rotate(anchor.angle+(active?-.26:0));
+ ctx.fillStyle='#30213f';ctx.fillRect(-7,-3,11,6);
+ ctx.fillStyle='#ae8ac5';ctx.fillRect(-4,-2,9,4);
+ ctx.fillStyle='#e8d6ed';ctx.fillRect(4,-6,4,12);
+ ctx.fillStyle='#673f86';ctx.beginPath();ctx.moveTo(7,-5);
+ ctx.lineTo(23,-4);ctx.lineTo(29,0);ctx.lineTo(23,4);ctx.lineTo(7,5);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#e5aaff';ctx.beginPath();ctx.moveTo(8,-2);
+ ctx.lineTo(22,-2);ctx.lineTo(26,0);ctx.lineTo(8,0);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#fff0ff';ctx.fillRect(11,-2,9,1);
+ if(active){ctx.globalAlpha=.8;ctx.fillStyle='#f6b9ff';ctx.fillRect(24,-2,7,3);}
+ ctx.restore();
+}
+// The summoner carries a small open tome, not a weapon-sized mage staff.
+export function drawSummonerTome(ctx,player){
+ if(player?.kind!=='summoner')return;
+ const face=weaponFacing(player.direction);
+ const x=player.x+(face==='left'?-19:19),y=player.y-10;
+ ctx.save();ctx.translate(Math.round(x),Math.round(y));
+ if(face==='left')ctx.scale(-1,1);
+ ctx.rotate((player.castTimer||0)>0?-.24:.12);
+ ctx.fillStyle='#192e32';ctx.fillRect(-10,-9,20,17);
+ ctx.fillStyle='#e8dcb0';ctx.fillRect(-8,-7,8,13);ctx.fillRect(1,-7,8,13);
+ ctx.fillStyle='#81d8bc';ctx.fillRect(0,-8,2,15);
+ ctx.fillStyle='#5f9887';ctx.fillRect(-6,-3,4,1);ctx.fillRect(3,-3,4,1);
+ ctx.fillStyle='#f2d794';ctx.fillRect(3,1,3,2);
+ ctx.restore();
+}
