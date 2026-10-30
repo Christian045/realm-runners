@@ -32,23 +32,36 @@ const patterns={
 };
 function roomFloor(shape,x,y){
  const dx=x-7,dy=y-5,ax=Math.abs(dx),ay=Math.abs(dy);
- // Every entry corridor has a three-tile central spine. The central area
- // remains clear, including the +/-145px enemy spawn staging positions.
- const central=ax<=3&&ay<=3;
- const spine=ax<=1||ay<=1;
- const special=shape==='great'?ax<=6&&ay<=4:
-  shape==='compact'?ax<=4&&ay<=3:
-  shape==='long'?ax<=6&&ay<=2:
-  shape==='tall'?ax<=2&&ay<=4:
-  shape==='cross'?(ax<=3&&ay<=4)||(ax<=6&&ay<=2):
-  shape==='L'?(dx<=2&&ax<=6&&ay<=3)||(dy>=-1&&ax<=5&&ay<=4):
-  shape==='offset'?(ay<=3&&(dx<=4&&dx>=-5))||(ax<=3&&dy>=-4&&dy<=4):
-  shape==='zigzag'?(dy<0?(dx>=-5&&dx<=3):(dx>=-3&&dx<=5))&&ay<=3:
-  shape==='hourglass'?(ay<=2&&ax<=6)||(ax<=2&&ay<=4)||(ax<=4&&ay<=3):
-  shape==='terrace'?(dy<=0?ax<=6&&ay<=3:ax<=4&&ay<=4):
-  (ax<=4&&ay<=3)||(ay<=2&&ax<=6);
- return central||spine||special;
+ // Before, an unconditional central 7x7 square and entire cross made
+ // even 'compact' and 'long' rooms almost the same size. These are true outlines.
+ switch(shape){
+  case 'great':return ax<=6&&ay<=4;
+  case 'compact':return ax<=3&&ay<=2;
+  case 'long':return ax<=6&&ay<=2;
+  case 'tall':return ax<=2&&ay<=4;
+  case 'cross':return (ax<=2&&ay<=4)||(ax<=6&&ay<=1);
+  case 'L':return (dx>=-6&&dx<=2&&ay<=3)||(dy>=-1&&dy<=4&&ax<=4);
+  case 'offset':return (dx>=-5&&dx<=3&&ay<=2)||
+   (dx>=-2&&dx<=4&&dy>=-4&&dy<=1);
+  case 'zigzag':return (dy<0?dx>=-5&&dx<=2:dx>=-2&&dx<=5)&&ay<=3;
+  case 'arc':return (ax<=5&&ay<=3)&&!(dx>=2&&dy<=-2);
+  case 'hourglass':return (ax<=6&&ay<=1)||(ax<=3&&ay<=3)||(ax<=1&&ay<=4);
+  case 'terrace':return dy<=0?(ax<=6&&ay<=2):(ax<=4&&ay<=4);
+  default:return ax<=4&&ay<=3;
+ }
 }
+function carveRoomApproaches(room,rooms,free){
+ const ox=room.gx*ROOM_W,oy=room.gy*ROOM_H;
+ // Carve three-tile door passages only in actual linked directions.
+ for(const id of room.links){
+  const next=rooms[id];
+  if(next.gx>room.gx)for(let x=7;x<=14;x++)for(let y=4;y<=6;y++)free(ox+x,oy+y);
+  else if(next.gx<room.gx)for(let x=0;x<=7;x++)for(let y=4;y<=6;y++)free(ox+x,oy+y);
+  else if(next.gy>room.gy)for(let y=5;y<=10;y++)for(let x=6;x<=8;x++)free(ox+x,oy+y);
+  else if(next.gy<room.gy)for(let y=0;y<=5;y++)for(let x=6;x<=8;x++)free(ox+x,oy+y);
+ }
+}
+
 export function generateDungeon(seed=1,options={}){
  const roomCount=options.tower?7:ROOM_COUNT;
  const random=seeded(seed),width=ROOM_W*ROOM_COLS,height=ROOM_H*ROOM_ROWS;
@@ -137,8 +150,19 @@ export function generateDungeon(seed=1,options={}){
   room.theme=room.type==='start'||room.type==='shrine'||room.type==='camp'?'sanctuary':
    room.type==='boss'?'throne':
    ['treasure','secret','vault','library','shop'].includes(room.type)?'reliquary':room.biome;
-  if(room.type==='boss')room.shape='great';
-  if(['shrine','camp','vault','library','treasure','shop'].includes(room.type))room.shape='great';
+  if(room.type==='boss'||room.type==='start')room.shape='great';
+  if(['shrine','camp','vault','library','shop'].includes(room.type))room.shape='great';
+  // Every normal dungeon has physically small, elongated, irregular and
+  // large combat spaces, rather than four similarly sized random squares.
+  if(room.type==='combat'&&!options.tower){
+   const fights=rooms.filter(r=>r.type==='combat')
+    .sort((a,b)=>a.encounterTier-b.encounterTier||a.id-b.id);
+   const stage=fights.findIndex(r=>r.id===room.id);
+   room.shape=stage===0?'compact':
+    stage===1?['long','tall','hourglass'][(seed+room.id)%3]:
+    stage===2?['cross','L','offset','zigzag','arc','terrace'][(seed+room.id)%6]:
+    'great';
+  }
   room.roomLabel=({start:'HEILIGTUM',combat:'KAMPFHALLE',elite:'ELITEKAMMER',
    boss:'THRON',treasure:'SCHATZKAMMER',shrine:'SCHREIN',secret:'GEHEIMNIS',
    event:'EREIGNIS',library:'BIBLIOTHEK',trap:'FALLENHALLE',camp:'LAGER',vault:'GEWÖLBE',shop:'HÄNDLER'})[room.type];
@@ -148,15 +172,15 @@ export function generateDungeon(seed=1,options={}){
   const ox=room.gx*ROOM_W,oy=room.gy*ROOM_H;
   for(let y=1;y<=9;y++)for(let x=1;x<=13;x++)
    if(roomFloor(room.shape,x,y))free(ox+x,oy+y);
-  // Cover belongs to the side pockets, outside the central circulation spine.
-  // Elite and boss fights remain completely unobstructed in the middle.
+  carveRoomApproaches(room,rooms,free);
+  // Cover only on actual floor, never over the circulation center.
   for(const [x,y] of patterns[room.layout]){
    if(['boss','library','camp','shrine','vault','shop'].includes(room.type))continue;
    if(Math.abs(x-7)<=3&&Math.abs(y-5)<=3)continue;
    if(tiles[index(ox+x,oy+y)]===0)set(ox+x,oy+y,2);
   }
-  // Keep all spawn quadrants usable and visibly inside the room's floor.
-  for(const [x,y] of [[5,3],[9,3],[5,7],[9,7],[7,3],[7,7]])free(ox+x,oy+y);
+  // Reserve the true center, not an artificial six-cell square in every shape.
+  free(ox+7,oy+5);
   room.bounds={left:ox+1,right:ox+13,top:oy+1,bottom:oy+9};
  }
  // Four-ish tile transitions with 3-tile door openings, engraved thresholds,
