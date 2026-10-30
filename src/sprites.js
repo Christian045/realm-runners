@@ -327,7 +327,8 @@ export function drawSpritePixels(ctx,kind,state='idle',frame=0,dir='down',phase=
    ['trim',12,20,11,4],['gold',24,14,6,3]]);
  }
  else if(['glasscannon','summoner','alchemist'].includes(kind)){
-  const basis=kind==='alchemist'?'hunter':'mage';
+  // Alchemist throws flasks; the hunter's bow silhouette was misleading.
+  const basis='mage';
   frameHero(ctx,p,basis,state,frame,facingRight);
   if(kind==='glasscannon'){
    stamp(ctx,p,[['gold',13,0,6,3],['light',14,2,4,4],['trim',5,14,4,10],
@@ -340,6 +341,10 @@ export function drawSpritePixels(ctx,kind,state='idle',frame=0,dir='down',phase=
    stamp(ctx,p,[['gold',4,13,5,3],['trim',4,16,5,10],
     ['light',5,17,3,5],['gold',23,12,6,4],['light',24,16,5,7],
     ['shadow',8,27,16,4],['trim',13,2,7,3]]);
+   const raised=state==='attack'||state==='cast';
+   stamp(ctx,p,[['outline',25,11+(raised?-4:0),6,10],
+    ['gold',27,8+(raised?-4:0),3,4],['light',25,13+(raised?-4:0),5,5],
+    ['trim',26,18+(raised?-4:0),4,2]]);
   }
  }
  else frameHero(ctx,p,kind,state,frame,facingRight);
