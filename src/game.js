@@ -329,6 +329,7 @@ export class Game {
  updateServant(dt){
   const s=this.servant,p=this.player;
   if(!p)return;
+  const companionPower=hasRunPower(p,'companionForce')?1.3:1;
   if(s){
    s.cooldown=Math.max(0,s.cooldown-dt);
    s.healClock=Math.max(0,(s.healClock||0)-dt);
@@ -344,20 +345,21 @@ export class Game {
    }
    if(s.cooldown<=0&&near){
     if(s.kind==='bat'&&distance(s,near)<105){
-     this.hitEnemy(near,12+p.damage*.26,normalized(near.x-s.x,near.y-s.y),{proc:false});
+     this.hitEnemy(near,(12+p.damage*.26)*companionPower,normalized(near.x-s.x,near.y-s.y),{proc:false});
      this.createEffect('slash',s.x,s.y,'#d6a6ff',.22,43,Math.atan2(near.y-s.y,near.x-s.x));
      if(s.healClock<=0&&!(p.statuses?.rot>0)){
-      p.hp=Math.min(p.maxHp,p.hp+3);s.healClock=2.5;
-      this.createEffect('text',p.x,p.y-43,'+3','#a4f4d9',.48);
+      const heal=hasRunPower(p,'servantAegis')?6:3;
+      p.hp=Math.min(p.maxHp,p.hp+heal);s.healClock=2.5;
+      this.createEffect('text',p.x,p.y-43,'+'+heal,'#a4f4d9',.48);
      }
      s.cooldown=.70;
     }else if(s.kind==='imp'&&distance(s,near)<400){
-     this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),8+p.damage*.16,true,false,560);
+     this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),(8+p.damage*.16)*companionPower,true,false,560);
      const shot=this.projectiles.at(-1);shot.summonShot='imp';shot.radius=5;
      this.createEffect('spark',s.x,s.y,'#ffc384',.20,14);
      s.cooldown=.48;
     }else if(s.kind==='spirit'&&distance(s,near)<440){
-     this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),17+p.damage*.23,true,false,430);
+     this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),(17+p.damage*.23)*companionPower,true,false,430);
      const shot=this.projectiles.at(-1);shot.summonShot='spirit';shot.radius=8;
      this.createEffect('ember',s.x,s.y,'#b4adff',.24,17);
      s.cooldown=1.05;
@@ -385,7 +387,7 @@ export class Game {
    this.createEffect('slash',g.x,g.y,'#f9d49d',.35,119,angle);
    this.createEffect('ring',target.x,target.y,'#b9adff',.28,67);
    for(const enemy of [...this.enemies])if(enemy.hp>0&&distance(enemy,target)<72+enemy.radius)
-    this.hitEnemy(enemy,34+p.damage*.64,normalized(enemy.x-g.x,enemy.y-g.y),{proc:false});
+    this.hitEnemy(enemy,(34+p.damage*.64)*companionPower,normalized(enemy.x-g.x,enemy.y-g.y),{proc:false});
    this.shake=Math.max(this.shake,3);g.cooldown=.68;
   }
  }
@@ -608,6 +610,7 @@ export class Game {
    const valid=this.dungeon.canMove(center.x,center.y,25,false);
    const x=valid?center.x:p.x,y=valid?center.y:p.y;
    this.giant={x,y,kind:'giant',radius:25,life:3.8,maxLife:3.8,cooldown:0};
+   if(hasRunPower(p,'servantAegis'))p.shield=Math.min(45,Math.max(0,p.shield||0)+12);
    this.createEffect('ring',x,y,'#e7c3a0',.75,85);
    this.createEffect('text',x,y-70,'RIESENRUF','#f4d4a4',.9);
   }else if(p.kind==='alchemist'){
@@ -661,7 +664,8 @@ export class Game {
   if(b.exploded)return;
   b.exploded=true;b.life=0;
   const colors={burn:'#ff985a',poison:'#9fe786',frost:'#91d9f5'};
-  const color=colors[b.alchemy]||'#d4e5aa',radius=b.large?137:91;
+  const color=colors[b.alchemy]||'#d4e5aa';
+  const radius=(b.large?137:91)*(hasRunPower(this.player,'catalyst')?1.22:1);
   this.createEffect('ring',b.x,b.y,color,.52,radius);
   this.createEffect('burst',b.x,b.y,color,.48,b.large?57:32);
   this.shake=Math.max(this.shake,b.large?4:2);
@@ -674,9 +678,10 @@ export class Game {
   }
  }
  applyAlchemyStatus(enemy,kind,large=false){
-  if(kind==='burn')enemy.burn=Math.max(enemy.burn||0,large?5:3.5);
-  else if(kind==='poison')enemy.poison=Math.max(enemy.poison||0,large?5.5:4);
-  else if(kind==='frost')enemy.slow=Math.max(enemy.slow||0,large?4.5:3.1);
+  const duration=hasRunPower(this.player,'longBrew')?1.5:1;
+  if(kind==='burn')enemy.burn=Math.max(enemy.burn||0,(large?5:3.5)*duration);
+  else if(kind==='poison')enemy.poison=Math.max(enemy.poison||0,(large?5.5:4)*duration);
+  else if(kind==='frost')enemy.slow=Math.max(enemy.slow||0,(large?4.5:3.1)*duration);
  }
  updatePuddles(dt){
   for(const puddle of this.puddles){
