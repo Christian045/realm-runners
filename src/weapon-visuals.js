@@ -126,3 +126,37 @@ export function drawSummonerTome(ctx,player){
  ctx.fillStyle='#f2d794';ctx.fillRect(3,1,3,2);
  ctx.restore();
 }
+
+/** Compact two-handed crystalline rifle instead of the old crystal dagger. */
+export function drawCrystalRifle(ctx,p){
+ if(p?.kind!=='glasscannon')return;
+ const face=weaponFacing(p.direction);
+ const angle=Math.atan2(p.direction?.y||0,p.direction?.x||1);
+ const firing=(p.attackTimer||0)>0;
+ const recoil=firing?Math.min(5,(p.attackTimer||0)*20):0;
+ // Pivot close to the front hand; the stock remains against the shoulder.
+ const ox=face==='left'?-8:face==='right'?8:0;
+ ctx.save();
+ ctx.translate(Math.round(p.x+ox),Math.round(p.y-7));
+ ctx.rotate(angle);
+ ctx.translate(-recoil,0);
+ // Stock, receiver and short forward grip remain one visible silhouette.
+ ctx.fillStyle='#211c2e';ctx.fillRect(-19,-6,19,12);
+ ctx.fillStyle='#6f5c7b';ctx.fillRect(-17,-4,16,8);
+ ctx.fillStyle='#141a29';ctx.fillRect(-5,-9,23,16);
+ ctx.fillStyle='#8b76a1';ctx.fillRect(-3,-7,21,12);
+ ctx.fillStyle='#d3b5e7';ctx.fillRect(2,-5,13,3);
+ ctx.fillStyle='#27243f';ctx.fillRect(14,-5,28,10);
+ ctx.fillStyle='#a3a6ba';ctx.fillRect(17,-3,24,5);
+ ctx.fillStyle='#e3c6ff';ctx.fillRect(20,-3,17,2);
+ ctx.fillStyle='#3f3653';ctx.fillRect(1,5,8,13);
+ ctx.fillStyle='#6e5d82';ctx.fillRect(3,5,5,10);
+ ctx.fillStyle='#e8b2ff';ctx.fillRect(5,-11,11,3);
+ ctx.fillStyle='#28223d';ctx.fillRect(38,-7,6,14);
+ ctx.fillStyle='#dcb7ef';ctx.fillRect(42,-4,3,8);
+ if(firing&&p.attackTimer>.075){
+  ctx.fillStyle='#fff3d2';ctx.fillRect(47,-4,11,7);
+  ctx.fillStyle='#e7b3ff';ctx.fillRect(54,-2,10,3);
+ }
+ ctx.restore();
+}
