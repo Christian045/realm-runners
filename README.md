@@ -1,4 +1,16 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.25.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.26.0)
+
+## Alpha 0.26.0 – Echte Raumgrößen und Boss in der Mitte
+
+- **Tatsächliche Raumgeometrie statt optischer Täuschung:** Der zuvor für jede Form erzwungene offene 7x7-Mittelbereich mit durchgehendem Kreuz wurde entfernt. Kompakte Kammern, längliche und hohe Räume, L-/Zickzack-Grundrisse und große Arenen haben jetzt deutlich unterschiedliche *begehbare* Flächen.
+- **Vier klar unterscheidbare Kampfräume:** Jeder normale Dungeon enthält eine kleine Kammer, eine lange/hohe Variante, einen unregelmäßigen Grundriss und eine große Arena. Die Reihenfolge richtet sich nach der Entfernung vom Start. Bossraum und große interaktive Schauplätze bleiben absichtlich geräumig.
+- **Sichere Zugänge:** Schmale drei Kacheln breite Verbindungsgänge werden nur in den tatsächlich verbundenen Himmelsrichtungen gegraben. Alle Räume bleiben durch ihre Tore verbunden. Keine zusätzlichen Türen ohne entsprechende Links.
+- **Boss zentriert:** Der Schleimkönig, der Runenwächter und sämtliche Turmbosse werden jetzt exakt auf den Mittelpunkt ihrer Bosskammer gesetzt, statt an einem zufälligen Gegner-Spawnpunkt aufzutauchen.
+- **Spawning aktualisiert:** Gegner suchen begehbare Positionen im jeweiligen Grundriss und halten nach Möglichkeit Abstand voneinander und zum Spieler. Das verhindert Gegnerstapel in schmalen Kammern.
+- **Sichtbare Größenunterschiede:** Bodenbegrenzungen folgen dem echten, teils verwinkelten Raumumriss statt immer denselben rechteckigen Rahmen zu zeichnen. Ambienteobjekte werden nicht auf nicht begehbaren Flächen verteilt. Die Minikarte bildet die tatsächlichen Grundrisse schematisch ab.
+- **Stabilität:** 500 zufällige Dungeon-Generierungen auf begehbare Mittelpunkte, Torverbindungen und Größenunterschiede kontrolliert; 100 echte Boss-/Gegner-Spawnabläufe erfolgreich. Zusätzliche automatische Regressionstests enthalten. Die vollständige Desktop-/iPhone-Browser-Testreihe ist noch nicht bestätigt.
+
+
 
 ## Alpha 0.25.0 – Gegner-KI & Bossmechaniken
 
