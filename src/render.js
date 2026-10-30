@@ -338,8 +338,23 @@ export class Renderer {
    c.beginPath();c.arc(e.x,e.y-r*.19,r+4+e.flash*19,0,Math.PI*2);c.stroke();c.restore();
   }
   if(e.windup>0){
-   c.strokeStyle=e.type==='boss'?'#ff7898':'#eed0ff';c.lineWidth=2;
-   c.beginPath();c.arc(e.x,e.y,e.radius+9,-Math.PI/2,-Math.PI/2+Math.PI*2*(1-e.windup/.58));c.stroke();
+   const progress=clamp(1-e.windup/(e.windupMax||.58),0,1);
+   c.save();c.strokeStyle=e.attackType==='melee'?'#ffc39a':'#d6b9ff';c.lineWidth=2;
+   c.beginPath();c.arc(e.x,e.y,e.radius+9,-Math.PI/2,-Math.PI/2+Math.PI*2*progress);c.stroke();
+   // Enemy direction stays locked throughout the warning; the player can
+   // escape the line or dodge behind a melee swing instead of guessing.
+   if(e.lockedAim){
+    const melee=e.attackType==='melee';
+    const reach=melee?e.radius+35:185;
+    c.globalAlpha=.20+progress*.35;
+    c.strokeStyle=melee?'#ffa87b':'#d9baff';
+    c.lineWidth=melee?15:9;
+    c.setLineDash([8,7]);
+    c.beginPath();c.moveTo(e.x,e.y);
+    c.lineTo(e.x+e.lockedAim.x*reach,e.y+e.lockedAim.y*reach);c.stroke();
+    c.setLineDash([]);
+   }
+   c.restore();
   }
  }
  drop(d,t){
