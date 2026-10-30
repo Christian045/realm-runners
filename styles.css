@@ -679,3 +679,5 @@ canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
  .castle-servants .servant-card strong{font-size:10px}
  .castle-servants .servant-card small{font-size:9px}
 }
+
+.servant-card canvas{display:block;width:64px;height:58px;max-width:100%;margin:0 auto 3px;image-rendering:pixelated;pointer-events:none}

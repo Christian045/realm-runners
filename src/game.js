@@ -1,3 +1,4 @@
+import {beginCompanionAttack,advanceCompanion,companionShot} from './companion-animation.js?v=0.30.0';
 import {advanceLocomotion} from './locomotion.js?v=0.29.0';
 import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.29.0';
 import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.29.0';
@@ -185,7 +186,7 @@ export class Game {
   this.runStatistics=newRunStatistics(kind,this.tower?'Turm':this.endless?'Endlos':'Dungeon');
   this.statisticsSaveClock=0;this.ambientClock=9;
   this.alchemyAiming=false;this.alchemyTarget=null;this.queuedAlchemyThrow=null;this.alchemyThrowTarget=null;
-  this.servant=kind==='summoner'?{kind:this.servantChoice,x:this.player.x-30,y:this.player.y-30,radius:11,cooldown:0,healClock:0,friendly:true,path:[],pathClock:0,stuckClock:0}:null;
+  this.servant=kind==='summoner'?{kind:this.servantChoice,x:this.player.x-30,y:this.player.y-30,radius:11,cooldown:0,healClock:0,direction:{x:0,y:1},appearanceElapsed:0,visualTime:0,friendly:true,path:[],pathClock:0,stuckClock:0}:null;
   this.camera.x=this.player.x-this.camera.w/2;this.camera.y=this.player.y-this.camera.h/2;
   this.playSound('start');
   this.notify();
@@ -206,7 +207,7 @@ export class Game {
    if(this.dungeon.roomAt(x,y)?.id!==room.id||
      !this.dungeon.canMove(x,y,companion.radius,false))continue;
    companion.x=x;companion.y=y;companion.path=[];companion.pathClock=0;
-   companion.stuckClock=0;companion.friendly=true;
+   companion.stuckClock=0;companion.friendly=true;companion.companionAction=null;companion.moving=false;
    this.createEffect('burst',x,y,'#a4dbc8',.28,20);
    return true;
   }
@@ -379,6 +380,7 @@ export class Game {
  }
  moveCompanion(c,target,desired,dt,speed=250){
   if(!this.dungeon||!target)return;
+  c.moving=false;
   const dungeon=this.dungeon,d=distance(c,target);
   if(d<=desired+7)return;
   let seek=target;
@@ -394,6 +396,8 @@ export class Game {
   const n=normalized(seek.x-c.x,seek.y-c.y);
   const ox=c.x,oy=c.y,step=Math.min(Math.max(0,d-desired),speed*dt);
   this.move(c,n.x*step,n.y*step,c.radius);
+  const travelled=Math.hypot(c.x-ox,c.y-oy);c.moving=travelled>.01;
+  if(c.moving&&!c.companionAction)c.direction=normalized(c.x-ox,c.y-oy);
   c.stuckClock=Math.hypot(c.x-ox,c.y-oy)<.7&&d>200?(c.stuckClock||0)+dt:0;
   if(c.stuckClock>1.2&&distance(c,this.player)>240){
    const p=this.player;
@@ -405,62 +409,55 @@ export class Game {
   }
  }
  updateServant(dt){
-  const s=this.servant,p=this.player;
-  if(!p)return;
-  const power=hasRunPower(p,'companionForce')?1.3:1;
+  const s=this.servant,p=this.player;if(!p)return;
   if(s){
-   s.friendly=true;
-   s.cooldown=Math.max(0,s.cooldown-dt);
+   s.friendly=true;s.moving=false;s.cooldown=Math.max(0,s.cooldown-dt);
    s.healClock=Math.max(0,(s.healClock||0)-dt);
-   const playerRoom=this.dungeon.roomAt(p.x,p.y);
-   const petRoom=this.dungeon.roomAt(s.x,s.y);
-   if(playerRoom?.visited&&playerRoom?.id!==petRoom?.id&&
-      distance(s,p)>180)this.regroupCompanion(s,playerRoom);
-   const far=distance(s,p)>165 ||
-    this.dungeon.roomAt(s.x,s.y)?.id!==playerRoom?.id;
-   const near=this.enemies.filter(e=>e.hp>0&&distance(e,p)<520)
-    .sort((a,b)=>distance(a,s)-distance(b,s))[0];
-   const fight=!!near&&!far;
-   const goal=fight?near:p,ideal=fight?(s.kind==='bat'?39:s.kind==='imp'?150:120):48;
-   this.moveCompanion(s,goal,ideal,dt,s.kind==='bat'?300:255);
-   if(s.cooldown<=0&&fight&&hasLineOfSight(this.dungeon,s.x,s.y,near.x,near.y,false)){
-    if(s.kind==='bat'&&distance(s,near)<100){
-     this.hitEnemy(near,(12+p.damage*.26)*power,
-      normalized(near.x-s.x,near.y-s.y),{proc:false});
-     this.createEffect('slash',s.x,s.y,'#d6a6ff',.22,43,Math.atan2(near.y-s.y,near.x-s.x));
-     if(s.healClock<=0&&!(p.statuses?.rot>0)){
-      const heal=hasRunPower(p,'servantAegis')?6:3;
-      p.hp=Math.min(p.maxHp,p.hp+heal);s.healClock=2.5;
-      this.createEffect('text',p.x,p.y-43,'+'+heal,'#a4f4d9',.48);
-     }
-     s.cooldown=.7;
-    }else if(s.kind==='imp'&&distance(s,near)<390){
-     this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),
-      (8+p.damage*.16)*power,true,false,560);
-     const bullet=this.projectiles.at(-1);bullet.summonShot='imp';bullet.radius=5;
-     this.createEffect('spark',s.x,s.y,'#ffc384',.20,14);s.cooldown=.48;
-    }else if(s.kind==='spirit'&&distance(s,near)<420){
-     this.spawnProjectile(s.x,s.y,normalized(near.x-s.x,near.y-s.y),
-      (17+p.damage*.23)*power,true,false,430);
-     const bullet=this.projectiles.at(-1);bullet.summonShot='spirit';bullet.radius=8;
-     this.createEffect('ember',s.x,s.y,'#b4adff',.24,17);s.cooldown=1.05;
-    }
-   }
+   const playerRoom=this.dungeon.roomAt(p.x,p.y),petRoom=this.dungeon.roomAt(s.x,s.y);
+   if(playerRoom?.visited&&playerRoom?.id!==petRoom?.id&&distance(s,p)>180)this.regroupCompanion(s,playerRoom);
+   const far=distance(s,p)>165||this.dungeon.roomAt(s.x,s.y)?.id!==playerRoom?.id;
+   const near=this.enemies.filter(e=>e.hp>0&&distance(e,p)<520).sort((a,b)=>distance(a,s)-distance(b,s))[0];
+   const fight=!!near&&!far,goal=fight?near:p,ideal=fight?(s.kind==='bat'?39:s.kind==='imp'?150:120):48;
+   if(!s.companionAction)this.moveCompanion(s,goal,ideal,dt,s.kind==='bat'?300:255);
+   const reach=s.kind==='bat'?100:s.kind==='imp'?390:420;
+   if(!s.companionAction&&s.cooldown<=0&&fight&&distance(s,near)<reach&&hasLineOfSight(this.dungeon,s.x,s.y,near.x,near.y,false))beginCompanionAttack(s,near);
+   advanceCompanion(s,dt,action=>this.resolveCompanionAttack(s,action));
   }
   const g=this.giant;if(!g)return;
-  g.friendly=true;g.life=Math.max(0,g.life-dt);g.cooldown=Math.max(0,g.cooldown-dt);
-  if(g.life<=0){this.createEffect('burst',g.x,g.y,'#f2c69a',.55,70);this.giant=null;return;}
-  const target=this.enemies.filter(e=>e.hp>0&&distance(e,p)<620)
-   .sort((a,b)=>distance(a,g)-distance(b,g))[0];
-  if(target)this.moveCompanion(g,target,65,dt,300);
-  if(target&&g.cooldown<=0&&distance(g,target)<122
-   &&hasLineOfSight(this.dungeon,g.x,g.y,target.x,target.y,false)){
-   this.createEffect('slash',g.x,g.y,'#f9d49d',.35,119,Math.atan2(target.y-g.y,target.x-g.x));
-   this.createEffect('ring',target.x,target.y,'#b9adff',.28,67);
-   for(const e of [...this.enemies])if(e.hp>0&&distance(e,target)<72+e.radius)
-    this.hitEnemy(e,(34+p.damage*.64)*power,normalized(e.x-g.x,e.y-g.y),{proc:false});
-   this.shake=Math.max(this.shake,3);g.cooldown=.68;
+  g.friendly=true;g.moving=false;g.life=Math.max(0,g.life-dt);g.cooldown=Math.max(0,g.cooldown-dt);
+  if(g.life<=0){
+   this.effects.push({type:'companion-vanish',kind:'giant',x:g.x,y:g.y,direction:g.direction,life:.48,maxLife:.48});
+   this.giant=null;return;
   }
+  const target=this.enemies.filter(e=>e.hp>0&&distance(e,p)<620).sort((a,b)=>distance(a,g)-distance(b,g))[0];
+  if(target&&!g.companionAction)this.moveCompanion(g,target,65,dt,300);
+  if(target&&!g.companionAction&&g.cooldown<=0&&distance(g,target)<122&&hasLineOfSight(this.dungeon,g.x,g.y,target.x,target.y,false))beginCompanionAttack(g,target);
+  advanceCompanion(g,dt,action=>this.resolveCompanionAttack(g,action));
+ }
+ resolveCompanionAttack(s,action){
+  const p=this.player,power=hasRunPower(p,'companionForce')?1.3:1,target=action.target;
+  if(s.kind==='giant'){
+   const point=action.targetPoint;
+   if(!hasLineOfSight(this.dungeon,s.x,s.y,point.x,point.y,false))return;
+   this.effects.push({type:'companion-impact',kind:'giant',x:point.x,y:point.y,life:.44,maxLife:.44});
+   for(const e of [...this.enemies])if(e.hp>0&&distance(e,point)<72+e.radius)this.hitEnemy(e,(34+p.damage*.64)*power,normalized(e.x-s.x,e.y-s.y),{proc:false});
+   this.shake=Math.max(this.shake,3);return;
+  }
+  if(s.kind==='bat'){
+   if(!target||target.hp<=0||distance(s,target)>=100||!hasLineOfSight(this.dungeon,s.x,s.y,target.x,target.y,false))return;
+   this.hitEnemy(target,(12+p.damage*.26)*power,normalized(target.x-s.x,target.y-s.y),{proc:false});
+   this.effects.push({type:'companion-impact',kind:'bat',x:target.x,y:target.y-20,life:.24,maxLife:.24});
+   if(s.healClock<=0&&!(p.statuses?.rot>0)){
+    const heal=hasRunPower(p,'servantAegis')?6:3;p.hp=Math.min(p.maxHp,p.hp+heal);s.healClock=2.5;
+    this.effects.push({type:'companion-heal',kind:'bat',x:s.x,y:s.y-24,toX:p.x,toY:p.y-24,life:.42,maxLife:.42});
+    this.createEffect('text',p.x,p.y-43,'+'+heal,'#a4f4d9',.48);
+   }return;
+  }
+  if(!target||target.hp<=0||!hasLineOfSight(this.dungeon,s.x,s.y,action.targetPoint.x,action.targetPoint.y,false))return;
+  const shot=companionShot(s,action),imp=s.kind==='imp';
+  this.spawnProjectile(shot.x,shot.y+27,shot.aim,(imp?8+p.damage*.16:17+p.damage*.23)*power,true,false,imp?560:430);
+  const bullet=this.projectiles.at(-1);bullet.summonShot=s.kind;bullet.radius=imp?5:8;bullet.visualHeight=27;bullet.launchStart={x:s.x,y:s.y};
+  this.effects.push({type:'companion-release',kind:s.kind,x:shot.x,y:shot.y,angle:shot.angle,life:.23,maxLife:.23});
  }
  update(dt,camera=this.camera){
   if(this.mode!=='playing')return;
@@ -792,7 +789,7 @@ export class Game {
    const center={x:p.x+aim.x*56,y:p.y+aim.y*56};
    const valid=this.dungeon.canMove(center.x,center.y,25,false);
    const x=valid?center.x:p.x,y=valid?center.y:p.y;
-   this.giant={x,y,kind:'giant',radius:25,friendly:true,life:3.8,maxLife:3.8,cooldown:0};
+   this.giant={x,y,kind:'giant',radius:25,friendly:true,life:3.8,maxLife:3.8,cooldown:0,direction:{...aim},appearanceElapsed:0,visualTime:0};
    if(hasRunPower(p,'servantAegis'))p.shield=Math.min(45,Math.max(0,p.shield||0)+12);
    this.createEffect('ring',x,y,'#e7c3a0',.75,85);
    this.createEffect('text',x,y-70,'RIESENRUF','#f4d4a4',.9);
@@ -1163,7 +1160,7 @@ export class Game {
    if(b.magic&&!b.hostile){
     b.trailClock=(b.trailClock||0)-dt;
     if(b.trailClock<=0){
-     this.createEffect('ember',b.x-b.vx*.025,b.y-(b.visualHeight||0)-b.vy*.025,'#efad7c',.26,10);
+     this.createEffect('ember',b.x-b.vx*.025,b.y-(b.visualHeight||0)-b.vy*.025,b.summonShot==='spirit'?'#b5afff':b.summonShot==='imp'?'#ffa16c':'#efad7c',.26,10);
      b.trailClock=.078;
     }
    }
@@ -1248,7 +1245,7 @@ export class Game {
    this.dungeon.rooms[id].discovered=true;
   this.player.x=this.dungeon.start.x;this.player.y=this.dungeon.start.y;
   if(this.servant){this.servant.x=this.player.x-35;this.servant.y=this.player.y-25;
-    this.servant.path=[];this.servant.pathClock=0;this.servant.stuckClock=0;}
+    this.servant.path=[];this.servant.pathClock=0;this.servant.stuckClock=0;this.servant.companionAction=null;}
   if(!(this.player.statuses?.rot>0))this.player.hp=Math.min(this.player.maxHp,this.player.hp+Math.round(this.player.maxHp*(this.tower?.15:.32)));
   this.player.invulnerable=1.5;this.player.dashCooldown=0;
   this.enemies=[];this.projectiles=[];this.loot=[];this.hazards=[];this.effects=[];this.libraryKey=false;

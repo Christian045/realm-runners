@@ -1,3 +1,4 @@
+import {CompanionSpriteAtlas,drawCompanionEffect,drawCompanionProjectile} from './companion-sprites.js?v=0.30.0';
 import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.29.0';
 import {KnightSpriteAtlas,drawKnightEffect} from './knight-sprites.js?v=0.29.0';
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.23.0';
@@ -14,10 +15,13 @@ const fill=(ctx,color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h)};
 export class Renderer {
  constructor(canvas,selectedKind='warrior'){
   this.canvas=canvas;this.ctx=canvas.getContext('2d',{alpha:false});this.ctx.imageSmoothingEnabled=false;
+  this.companions=new CompanionSpriteAtlas();this.selectedHero=selectedKind;
   this.sprites=new PixelSpriteAtlas();this.knight=null;this.heroes=new HeroSpriteAtlas();this.selectHero(selectedKind);this.tiles=new PixelTileAtlas();
   this.resize();window.addEventListener('resize',()=>this.resize());
  }
+ selectCompanion(kind,giant=true){return this.companions.select(kind,giant);}
  selectHero(kind){
+  this.selectedHero=kind;if(kind!=='summoner'&&this.companions.active)this.companions.release();
   if(kind==='warrior'){
    if(this.heroes.kind)this.heroes.release();
    if(!this.knight)this.knight=new KnightSpriteAtlas();
@@ -43,6 +47,7 @@ export class Renderer {
  draw(game){
   const c=this.ctx,canvas=this.canvas;
   if(game.mode!=='menu'&&game.player)this.selectHero(game.player.kind);
+  if(game.mode!=='menu'&&game.player?.kind==='summoner')this.selectCompanion(game.servant?.kind||game.servantChoice,true);
   c.setTransform(1,0,0,1,0,0);
   fill(c,'#09161b',0,0,canvas.width,canvas.height);
   if(!game.dungeon){this.titleBackground();return}
@@ -195,59 +200,9 @@ export class Renderer {
   c.restore();
  }
  servant(s,time){
-  const c=this.ctx;
-  c.save();c.translate(Math.round(s.x),Math.round(s.y));
-  if(s.kind==='giant'){
-   const fade=Math.min(1,s.life/.45);
-   c.globalAlpha=fade;c.fillStyle='#07141ba9';
-   c.beginPath();c.ellipse(1,18,33,12,0,0,Math.PI*2);c.fill();
-   const bob=Math.sin(time*8)*2;
-   c.translate(0,bob);
-   // Huge stone shoulders and fists, contrasting with player silhouettes.
-   c.fillStyle='#192431';c.fillRect(-27,-58,54,58);
-   c.fillStyle='#576272';c.fillRect(-23,-55,46,43);
-   c.fillStyle='#a9a5ab';c.fillRect(-16,-48,32,26);
-   c.fillStyle='#31394b';c.fillRect(-32,-40,12,36);c.fillRect(20,-40,12,36);
-   c.fillStyle='#8f9bac';c.fillRect(-32,-37,11,17);c.fillRect(21,-37,11,17);
-   c.fillStyle='#151e2c';c.fillRect(-15,-63,30,23);
-   c.fillStyle='#bdb5bb';c.fillRect(-12,-60,24,17);
-   c.fillStyle='#f2c681';c.fillRect(-9,-53,6,4);c.fillRect(3,-53,6,4);
-   c.fillStyle='#eacb9c';c.fillRect(-7,-29,14,8);
-   c.strokeStyle='#d6b4ff';c.lineWidth=2;c.strokeRect(-24,-54,48,46);
-   c.restore();return;
-  }
-  c.fillStyle='#07151ba8';
-  c.beginPath();c.ellipse(1,11,14,5,0,0,Math.PI*2);c.fill();
-  const bob=Math.sin(time*(s.kind==='bat'?13:5))*3;
-  c.translate(0,bob);
-  if(s.kind==='bat'){
-   // Flapping silhouette, purple ears, glowing eyes.
-   const wing=Math.sin(time*19)*8;
-   c.fillStyle='#382846';c.beginPath();
-   c.moveTo(-5,-8);c.lineTo(-25,-19-wing);c.lineTo(-16,-1-wing*.3);c.lineTo(-5,0);
-   c.lineTo(5,0);c.lineTo(16,-1-wing*.3);c.lineTo(25,-19-wing);c.lineTo(5,-8);c.fill();
-   c.fillStyle='#704b8e';c.fillRect(-8,-15,16,14);
-   c.beginPath();c.moveTo(-8,-12);c.lineTo(-8,-22);c.lineTo(-1,-14);
-   c.moveTo(8,-12);c.lineTo(8,-22);c.lineTo(1,-14);c.fill();
-   c.fillStyle='#e9c6ff';c.fillRect(-5,-10,3,3);c.fillRect(3,-10,3,3);
-  }else if(s.kind==='imp'){
-   // Small amber goblin with pointed ears and a fast casting hand.
-   c.fillStyle='#37251d';c.fillRect(-10,-17,20,27);
-   c.fillStyle='#c27948';c.fillRect(-7,-17,14,15);
-   c.fillStyle='#a66b44';c.fillRect(-14,-13,8,7);c.fillRect(6,-13,8,7);
-   c.fillStyle='#ffd79b';c.fillRect(-4,-12,3,3);c.fillRect(2,-12,3,3);
-   c.fillStyle='#e79d4c';c.fillRect(-8,0,16,10);
-   c.fillStyle='#ffb558';c.beginPath();c.arc(14,-14,4+Math.sin(time*8),0,Math.PI*2);c.fill();
-  }else{
-   // Ethereal caster with visible arcane fire, instead of a heal-only pet.
-   c.globalAlpha=.77;
-   c.fillStyle='#263d65';c.beginPath();c.moveTo(0,-23);
-   c.lineTo(12,-11);c.lineTo(9,12);c.lineTo(0,6);c.lineTo(-9,12);c.lineTo(-12,-11);c.fill();
-   c.fillStyle='#a6e8f2';c.fillRect(-7,-17,14,12);
-   c.fillStyle='#152e53';c.fillRect(-4,-11,3,3);c.fillRect(2,-11,3,3);
-   c.fillStyle='#bbabff';c.beginPath();c.arc(11,-15,5,0,Math.PI*2);c.fill();
-  }
-  c.restore();
+  if(this.companions.draw(this.ctx,s,time))return;
+  // A small summon rune bridges asynchronous image decoding.
+  const c=this.ctx;c.save();c.strokeStyle='#b69de1';c.globalAlpha=.55;c.lineWidth=2;c.beginPath();c.ellipse(s.x,s.y+7,s.kind==='giant'?29:13,s.kind==='giant'?10:5,0,0,Math.PI*2);c.stroke();c.restore();
  }
  player(p,time){
   if(!p)return;
@@ -388,6 +343,7 @@ export class Renderer {
  }
  projectile(b){
   if(b.visualHeight)b={...b,y:b.y-b.visualHeight};
+  if(drawCompanionProjectile(this.ctx,b))return;
   const c=this.ctx;
   if(b.rifle){
    const a=Math.atan2(b.vy,b.vx);
@@ -432,7 +388,11 @@ export class Renderer {
  effect(e){
   const c=this.ctx,alpha=clamp(e.life/e.maxLife,0,1);
   c.save();c.globalAlpha=alpha;c.strokeStyle=e.color;c.fillStyle=e.color;
-  if(e.type==='hero-release'){
+  if(e.type==='companion-vanish'){
+   c.restore();this.companions.draw(c,{kind:e.kind,x:e.x,y:e.y,direction:e.direction,vanishElapsed:e.maxLife-e.life},0);return;
+  }else if(e.type==='companion-release'||e.type==='companion-impact'||e.type==='companion-heal'){
+   c.restore();drawCompanionEffect(c,e,alpha);return;
+  }else if(e.type==='hero-release'){
    c.restore();drawHeroRelease(c,e,alpha);return;
   }else if(e.type==='knight-slash'||e.type==='knight-whirl'){
    c.restore();drawKnightEffect(c,e,alpha);return;

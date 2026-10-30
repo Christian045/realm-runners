@@ -1,4 +1,14 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.29.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.30.0)
+
+## Alpha 0.30.0 – Beschwörer-Gefährten
+
+- Fledermaus, Feuerkobold, Geist und der kurzzeitig beschworene Riese besitzen neue detaillierte Fantasy-Pixelgrafik: je 60 gezeichnete Frames für Bewegung und Angriffe in vier Richtungen sowie Materialisieren/Auflösen.
+- Die Fledermaus schlägt mit echten Flügelposen und beißt mit Lebensraub. Der geflügelte Feuerkobold wirkt schnelle Feuerbälle, der Geist stärkere blauviolette Geisterflammen. Der Riese erscheint als schwebender Runengolem mit schwerem Faustschlag und Bodenimpakt.
+- Bisse, Geschosse und Golemschaden lösen genau auf Angriffsframe 2 aus. Die Schusspunkte sind aus den tatsächlichen Hand-/Flammenpixeln der Release-Frames abgeleitet. Lebensraub erfolgt beim Treffer, nicht schon beim Ausholen.
+- Neue Funken, Geisterfeuer, Lebensraub-Verbindung und Golem-Risse ergänzen das Treffergefühl. Der Golem endet spielmechanisch nach unverändert 3,8 Sekunden; seine anschließende Auflösung ist rein visuell.
+- Die Dienerauswahl zeigt animierte Sprites. Nur die Beschwörerklasse lädt den ausgewählten Gefährten und den Golem vollständig; andere Klassen laden keine Gefährtenatlanten.
+- Erhalten bleiben Schadensformeln, Angriffscooldowns, Lebensraub-/Build-Boni, 30 % Goldbonus des Kobolds, Wegfindung, Raumwechsel und Speicherstände. Angriffe besitzen nun eine kurze sichtbare Ausholphase und verfolgen währenddessen ein festgelegtes Ziel.
+- Validierung: 218 Unit-Tests plus bestehende Browserprüfungen und neue Atlas-/Casting-Hand-/Auswahl-/Touch-Prüfungen aller vier Gefährten in Chromium und WebKit. Kein Test auf einem physischen iPhone.
 
 ## Alpha 0.29.0 – Geerdete Laufanimationen für alle sechs Klassen
 

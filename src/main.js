@@ -2,8 +2,8 @@ import {CLASSES} from './data.js?v=0.23.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.21.0';
 import {ENEMY_NAMES,totalKills,formatPlayTime} from './statistics.js?v=0.21.0';
 import {Input} from './input.js?v=0.23.0';
-import {Game} from './game.js?v=0.29.0';
-import {Renderer} from './render.js?v=0.29.0';
+import {Game} from './game.js?v=0.30.0';
+import {Renderer} from './render.js?v=0.30.0';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.21.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.21.0';
 import {installTouchGuard} from './touch-guard.js';
@@ -84,7 +84,8 @@ function renderStatistics(){
 
 function refreshPanel(){
  const overlay=$('overlay'),panel=$('panelContent'),playing=game.mode==='playing';
- if(game.mode==='menu'){renderer.selectHero(selected);lastMenuPreview=-1;}
+ if(game.mode==='menu'){renderer.selectHero(selected);
+ if(selected==='summoner')renderer.selectCompanion(game.servantChoice);lastMenuPreview=-1;}
  const panelShell=overlay.querySelector('.panel'),isMenu=game.mode==='menu';
  // Keep advanced tabs, the selected item and the scroll position when a
  // purchase, equipment change or mode choice causes a full panel re-render.
@@ -119,8 +120,8 @@ function refreshPanel(){
   panel.innerHTML='<div class="castle-stage"><span class="castle-stage-caption">DIE HALLE DER HELDEN</span><div class="castle-hero"><canvas data-hero="'+selected+'" width="32" height="36" aria-label="Ausgewählter Charakter"></canvas></div><span class="castle-hero-name">'+CLASSES[selected].name+'</span><span class="castle-hero-sub">'+CLASSES[selected].subtitle+'</span>'+(achievementTitle()?'<span class="castle-hero-title">'+achievementTitle()+'</span>':'')+'</div><div class="section-label">WÄHLE DEINEN HELDEN</div><div class="class-grid">'+
    Object.entries(CLASSES).map(([id,c])=>'<button class="class-card '+(selected===id?'active':'')+'" data-action="class:'+id+'"><canvas class="class-preview" data-hero="'+id+'" width="32" height="36" aria-hidden="true"></canvas><strong>'+c.name+'</strong><small>'+c.subtitle+'</small></button>').join('')+'</div>'+
    (selected==='summoner'?'<div class="section-label">DIENER FÜR DEN NÄCHSTEN RUN</div><div class="castle-servants">'+
-    [['bat','🦇 FLEDERMAUS','Nahkampf · Lebensraub'],['imp','🔥 KOBOLD','Feuerbälle · 30 % mehr Gold'],['spirit','✦ GEIST','Starke Geisterfeuerbälle']].map(([id,name,role])=>
-    '<button data-action="servant:'+id+'" class="servant-card '+(game.servantChoice===id?'selected':'')+'"><strong>'+name+'</strong><small>'+role+'</small></button>').join('')+'</div>':'')+
+    [['bat','FLEDERMAUS','Nahkampf · Lebensraub'],['imp','FEUERKOBOLD','Feuerbälle · 30 % mehr Gold'],['spirit','GEIST','Starke Geisterfeuerbälle']].map(([id,name,role])=>
+    '<button data-action="servant:'+id+'" class="servant-card '+(game.servantChoice===id?'selected':'')+'"><canvas data-companion="'+id+'" width="72" height="64" aria-hidden="true"></canvas><strong>'+name+'</strong><small>'+role+'</small></button>').join('')+'</div>':'')+
    '<details class="castle-advanced"><summary>KLASSE ANPASSEN · SPEZIALISIERUNG</summary><div class="section-label">SPEZIALISIERUNG</div><div class="specialization-grid">'+
    SPECIALIZATIONS[selected].map(spec=>{
     const unlocked=specializationUnlocked(progress,spec.id);
@@ -409,9 +410,10 @@ function animateMenuPreviews(now){
  if(game.mode!=='menu'||document.hidden)return;
  const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
  const tick=reducedMotion?0:Math.floor(now/380);
- const art=Object.keys(renderer.heroes.previews).length+(renderer.knight?.ready?10:0);
+ const art=Object.keys(renderer.heroes.previews).length+(renderer.knight?.ready?10:0)+Object.keys(renderer.companions.previews).length*100;
  if(tick===lastMenuPreview&&art===lastMenuArt)return;
  lastMenuPreview=tick;lastMenuArt=art;
+ for(const preview of document.querySelectorAll('#panelContent canvas[data-companion]'))renderer.companions.preview(preview.getContext('2d'),preview.dataset.companion,preview.width,preview.height,reducedMotion?0:now/1000);
  for(const preview of document.querySelectorAll('#panelContent canvas[data-hero]')){
   if(preview.dataset.hero==='warrior'&&renderer.knight?.ready){
    renderer.knight.preview(preview.getContext('2d'),preview.width,preview.height,now/1000);continue;

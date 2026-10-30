@@ -33,7 +33,7 @@ test('summoner does very little personal damage but permanent bat heals on attac
  g.servant.y=g.player.y;
  const mob=enemy(g,65);g.enemies=[mob];
  g.player.hp=70;
- g.updateServant(.1);
+ g.updateServant(.1);assert.equal(mob.hp,230,'bite waits for contact pose');g.updateServant(.02);
  assert.ok(mob.hp<230,'bat must attack autonomously');
  assert.ok(g.player.hp>70,'bat should heal when damaging nearby enemies');
 });
@@ -42,7 +42,7 @@ test('imp launches rapid fireballs and increases gold loot',()=>{
  const g=newGame('summoner');g.servant.kind='imp';g.servant.x=g.player.x+20;
  g.servant.y=g.player.y;g.servant.cooldown=0;
  g.enemies=[enemy(g,165)];
- g.updateServant(.05);
+ g.updateServant(.05);assert.equal(g.projectiles.length,0,'fireball waits for casting pose');g.updateServant(.05);
  assert.equal(g.projectiles.at(-1)?.summonShot,'imp');
  assert.equal(g.projectiles.at(-1)?.magic,true);
  assert.ok(g.servant.cooldown<=.48);
@@ -53,7 +53,7 @@ test('imp launches rapid fireballs and increases gold loot',()=>{
 test('spirit independently fires magic projectiles rather than only healing',()=>{
  const g=newGame('summoner');g.servant.kind='spirit';g.servant.cooldown=0;
  g.enemies=[enemy(g,160)];
- g.updateServant(.05);
+ g.updateServant(.05);assert.equal(g.projectiles.length,0,'ghostfire waits for casting pose');g.updateServant(.15);
  assert.equal(g.projectiles.at(-1)?.summonShot,'spirit');
  assert.equal(g.projectiles.at(-1)?.magic,true);
 });
