@@ -1,4 +1,4 @@
-import { CLASSES } from './data.js?v=0.22.0';
+import { CLASSES } from './data.js?v=0.23.0';
 import { TALENTS } from './loot.js?v=0.21.0';
 import {defaultStatistics,normalizeStatistics} from './statistics.js?v=0.21.0';
 export const SAVE_KEY='realm-runners-roguelite-v1';
