@@ -1,4 +1,14 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.22.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.23.0)
+
+## Alpha 0.23.0 – Begleiter, Zielwerfen und Kristallgewehr
+
+- **Begleiter durch Türen:** Fledermaus, Kobold und Geist verwenden eine eigene weltweite Wegsuche, passieren Türsperren des Kampfes und folgen beim Eintritt in eine neue Kammer per kurzer magischer Rückrufanimation direkt ins Rauminnere. Der Riese kann ebenfalls Türen passieren. Die Fledermaus erreicht und verletzt jetzt Gegner statt im Flur hängen zu bleiben; Geist und Kobold schießen im selben Raum selbstständig.
+- **Alchemist mit präzisem Zielwerfen:** Am PC den linken Mausknopf halten, auf ein Ziel bewegen und loslassen. Auf dem iPhone den Angriffsknopf gedrückt halten und in die gewünschte Richtung ziehen, dann zum Werfen loslassen. Ein farbiger Zielkreis und eine Verbindungslinie zeigen die geplante Aufschlagzone. Kurze Tipps lösen einzelne Würfe aus. Ohne Drag sucht die Touch-Steuerung den nächsten Gegner im Wurfradius. Würfe können bei kurzer Abklingzeit bis zum nächsten möglichen Angriff vorgemerkt werden.
+- **Glaskanonier mit Gewehr:** Neue handgezeichnete Pixel-Gewehrgrafik mit langem Lauf, Kolben, Rückstoß und Mündungsfeuer; ein eigener schneller Gewehrschuss statt des violetten Magieballs. Basiswerte: 100 LP, 35 Schaden, 0,46 Sekunden zwischen Schüssen und 550 Reichweite. Als Risiko verliert die Klasse bei Treffer wie bisher maximale Lebenspunkte.
+- **Lebenspunkte:** Alle sechs Klassen haben weiterhin 100 Basis-LP; permanente Upgrades dürfen die Start-LP wie bisher erhöhen.
+- **Tests:** Neue Regressionstests für Begleiter beim Raumwechsel, Treffer der Fledermaus, Einmalwurf nach Antippen, präzises Drag-Zielen auf iPhone, PC-Zielen, das Gewehr und die Basis-LP. Direkte Laufzeitstichproben mit 24 Seed-/Begleiter-Kombinationen erfolgreich; die vollständige Browsertest-Suite ist noch offen.
+
+
 
 ## Alpha 0.22.0 – Drei Klassen mit deutlich unterschiedlichem Gameplay
 
