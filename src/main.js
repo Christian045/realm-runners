@@ -1,9 +1,9 @@
-import {CLASSES} from './data.js?v=0.21.0';
+import {CLASSES} from './data.js?v=0.22.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.21.0';
 import {ENEMY_NAMES,totalKills,formatPlayTime} from './statistics.js?v=0.21.0';
-import {Input} from './input.js?v=0.19.3';
-import {Game} from './game.js?v=0.21.1';
-import {Renderer} from './render.js?v=0.21.0';
+import {Input} from './input.js?v=0.22.0';
+import {Game} from './game.js?v=0.22.0';
+import {Renderer} from './render.js?v=0.22.0';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.21.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.21.0';
 import {installTouchGuard} from './touch-guard.js';
@@ -118,7 +118,7 @@ function refreshPanel(){
   panel.innerHTML='<div class="castle-stage"><span class="castle-stage-caption">DIE HALLE DER HELDEN</span><div class="castle-hero"><canvas data-hero="'+selected+'" width="32" height="36" aria-label="Ausgewählter Charakter"></canvas></div><span class="castle-hero-name">'+CLASSES[selected].name+'</span><span class="castle-hero-sub">'+CLASSES[selected].subtitle+'</span>'+(achievementTitle()?'<span class="castle-hero-title">'+achievementTitle()+'</span>':'')+'</div><div class="section-label">WÄHLE DEINEN HELDEN</div><div class="class-grid">'+
    Object.entries(CLASSES).map(([id,c])=>'<button class="class-card '+(selected===id?'active':'')+'" data-action="class:'+id+'"><canvas class="class-preview" data-hero="'+id+'" width="32" height="36" aria-hidden="true"></canvas><strong>'+c.name+'</strong><small>'+c.subtitle+'</small></button>').join('')+'</div>'+
    (selected==='summoner'?'<div class="section-label">DIENER FÜR DEN NÄCHSTEN RUN</div><div class="castle-servants">'+
-    [['bat','FLEDERMAUS','Nahkampf · heilt dich mit Bissen'],['imp','KOBOLD','Schnelle Feuerbälle · +30 % Gold'],['spirit','GEIST','Starke arkane Feuerbälle']].map(([id,name,role])=>
+    [['bat','🦇 FLEDERMAUS','Nahkampf · Lebensraub'],['imp','🔥 KOBOLD','Feuerbälle · 30 % mehr Gold'],['spirit','✦ GEIST','Starke Geisterfeuerbälle']].map(([id,name,role])=>
     '<button data-action="servant:'+id+'" class="servant-card '+(game.servantChoice===id?'selected':'')+'"><strong>'+name+'</strong><small>'+role+'</small></button>').join('')+'</div>':'')+
    '<details class="castle-advanced"><summary>KLASSE ANPASSEN · SPEZIALISIERUNG</summary><div class="section-label">SPEZIALISIERUNG</div><div class="specialization-grid">'+
    SPECIALIZATIONS[selected].map(spec=>{
@@ -380,7 +380,8 @@ function updateHud(){
  const states=game.player?.statuses||{};
  const statusLabels={poison:'GIFT',burn:'FEUER',stun:'BETÄUBT',slow:'LANGSAM',rot:'FÄULNIS',mark:'TODESMARKE'};
  const statuses=Object.entries(statusLabels).filter(([key])=>states[key]>0)
-  .map(([key,label])=>'<span class="'+key+'">'+label+' · '+states[key].toFixed(1)+'s</span>').join('');
+  .map(([key,label])=>'<span class="'+key+'">'+label+' · '+states[key].toFixed(1)+'s</span>').join('')+
+  (game.giant?'<span class="giant">RIESE · '+game.giant.life.toFixed(1)+'s</span>':'');
  $('statusHud').innerHTML=statuses;
  $('statusHud').classList.toggle('hidden',!statuses||game.mode!=='playing');
  const boss=hud.boss;
