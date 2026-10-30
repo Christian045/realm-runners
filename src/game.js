@@ -330,6 +330,7 @@ export class Game {
     windup:0,phase:0,flash:0,elapsed:0,knock:{x:0,y:0},
     ...(boss?{boss:this.tower?createTowerBossState(this.floorDepth):warden?createWardenState():createBossState()}: {})});
   }
+  if(normalPlan?.tier>=3)this.playSound('danger');
   this.createEffect('text',room.cx,room.cy-110,
    boss?(this.tower?this.currentTowerStage().boss:warden?'DER RUNENWÄCHTER':'DER SCHLEIMKÖNIG'):
    eliteRoom?'ELITEKAMMER':'KAMMER VERSIEGELT','#f8c78f',1.05);
@@ -572,6 +573,7 @@ export class Game {
     pending.waveWarned=true;
     this.createEffect('ring',pending.cx,pending.cy,'#ffb486',.82,75);
     this.createEffect('text',pending.cx,pending.cy-91,'VERSTÄRKUNG NAHT','#ffce99',.76);
+    this.playSound('danger');
    }
    if(pending.waveTimer<=0)this.spawnReinforcements(pending);
   }
