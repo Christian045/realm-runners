@@ -1,7 +1,7 @@
 import { ENEMY_DATA, TILE, distance, normalized } from './data.js?v=0.15.0';
 import { ROOM_W,ROOM_H } from './dungeon.js';
 export function createWardenState(){return {variant:'warden',phase:1,transition:0,attackIndex:0,telegraph:null,charge:null,invulnerable:false}}
-const first=['lances','triple','charge'],second=['lances','sweep','spiral','charge','triple','summon','cage'];
+const first=['lances','triple','charge'],second=['lances','cage','sweep','spiral','charge','triple','summon'];
 export function startWardenPhaseTwo(game,e){
  if(e.boss.phase!==1)return false;
  const s=e.boss;s.phase=2;s.transition=1.05;s.telegraph=null;s.charge=null;s.attackIndex=0;
