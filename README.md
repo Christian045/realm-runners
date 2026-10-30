@@ -1,4 +1,16 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.21.1)
+# Realm Runners – Dungeon Reborn (Alpha 0.22.0)
+
+## Alpha 0.22.0 – Drei Klassen mit deutlich unterschiedlichem Gameplay
+
+- **Glaskanonier:** Der hohe Magierstab wurde durch eine kleine, an der Hand befestigte Kristallklinge ersetzt. Die separate Waffe wird in allen Blickrichtungen mit dem Charakter gezeichnet.
+- **Beschwörer:** Sehr geringer Eigenschaden (8 Basisangriff, normale Projektile nur 32 %). Drei neue, wählbare, dauerhaft aktive Diener: **Fledermaus** (schnelle Nahkampfangriffe und kleine Heilung), **Kobold** (rasche Feuerbälle und 30 % mehr Gold aus besiegten Gegnern) und **Geist** (stärkere Geisterfeuerbälle).
+- **Riesenruf (Q):** Zusätzlich zum dauerhaft gewählten Diener erscheint 3,8 Sekunden lang ein großer Steingigant. Er verfolgt Gegner, schlägt auf Gruppen ein und verschwindet danach. Abklingzeit: 14 Sekunden; ein kompakter Timer zeigt die verbleibende Beschwörungsdauer.
+- **Alchemist:** Primärangriffe werfen nun farbige Glasflaschen in einer sichtbaren Wurfparabel. Die Flaschen können Gegner während des Fluges überqueren und zerspringen erst am Zielort. Dort verursachen sie Flächenschaden und hinterlassen für etwa 3,3 Sekunden Feuer-, Gift- oder Frostflächen, die Gegner wiederholt treffen und Statuswirkungen verteilen.
+- **Alchemisten-Fähigkeit (Q):** Eine größere Flasche mit 4,3 Sekunden Wirkfläche, größerem Radius und höherem Schaden. Desktop-Maus bestimmt den Zielpunkt bis zur Reichweitengrenze; auf iPhone wird in Bewegungs-/Blickrichtung geworfen.
+- **Visuals:** Eindeutig unterscheidbare Pixelgestalten für Fledermaus, Kobold, Geist und Riese; animierte Flaschendrehung, Bodenschatten und Zielring, separate Aufschlags- und Wirkflächeneffekte.
+- **Qualität:** Neue fokussierte Tests für Begleiter, Goldbonus, Riesenlaufzeit, Flugbahn, Aufschlag und die iPhone-Alternative. Die 0.21.1-Spielstände und anderen Klassen bleiben kompatibel.
+
+
 
 ## Alpha 0.21.1 – Nachprüfung und Gameplay-Korrekturen
 
