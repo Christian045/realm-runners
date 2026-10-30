@@ -68,7 +68,7 @@ test('warrior gains a 3-hit combo with a readable stronger finisher',()=>{
   knock:{x:0,y:0},flash:0,homeRoom:0};
  g.enemies=[e];p.direction={x:1,y:0};
  const changes=[];
- for(let i=0;i<3;i++){const before=e.hp;g.attack();changes.push(before-e.hp)}
+ for(let i=0;i<3;i++){const before=e.hp;g.attack();g.updateKnightAction(1);changes.push(before-e.hp)}
  assert.deepEqual([1,2,3],[1,2,3].map((_,i)=>i+1));
  assert.equal(p.comboStep,3);
  assert.ok(changes[2]>changes[0],'finisher should do more damage');
@@ -100,7 +100,7 @@ test('later tower floors keep seven rooms, but no longer guarantee a treasure ch
   assert.equal(d.rooms.filter(r=>r.type==='treasure').length,floor<4?1:0);
   assert.equal(d.rooms.filter(r=>r.type==='boss').length,1);
  }
- const normal=generateDungeon(123);assert.equal(normal.rooms.length,13);
+ const normal=generateDungeon(123);assert.equal(normal.rooms.length,16);
 });
 test('final boss blade corridors are telegraphed and leave a central dodge lane',()=>{
  const {g,boss,room}=setup(true,10);

@@ -1,4 +1,13 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.26.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.27.0)
+
+## Alpha 0.27.0 – Neuer Ritter & framegenauer Nahkampf
+
+- **Neues Ritterdesign:** detaillierte Stahl-/Goldrüstung, geschlossener Helm, roter Umhang und ein direkt in den Posen gehaltenes Langschwert. Eigene Vorder-, Rücken- und Seitenansichten ersetzen den bisherigen 32×36-Krieger.
+- **288 Frame-Einträge:** je acht Frames für Idle, Laufen, drei Komboschläge, Wirbelsturm, Dash, Treffer und Tod in vier Richtungen. Die Posen verändern Beine, Rumpf, Arme und Stoff; der alte separat rotierte Schwert-Overlay entfällt beim neuen Ritter. Ruhe-/Erholungsposen dürfen sich wiederholen.
+- **Gemeinsame Zeitleiste:** Treffer, Klang und Effekte beginnen an den Kontaktframes. Die Schlagrichtung wird beim Ausholen festgelegt; Gegner können vor dem Kontakt ausweichen. Dash und normale Trefferreaktionen können einen noch nicht ausgeführten Hieb abbrechen. Reichweite, Waffenboni, Dreierkombo und Schaden bleiben erhalten; Schwerthiebe treffen nicht durch Wände.
+- **Kampfgefühl:** gerichtete silberne Schwertschweife, goldener Abschluss, Wirbelsturm, Funken, Bodenpartikel, kritische Treffer und synchroner Hitstop. Der Tod spielt aus, bevor das Ergebnisfenster erscheint.
+- **Laden & Kompatibilität:** vier lokal gespeicherte, einmal dekodierte PNG-Atlanten unter 1 MiB insgesamt; keine Downloads von fremden Asset-Servern. Grafik-Fallback bei Ladefehlern. Klassenkennung `warrior`, Save-Key, Ausrüstung, Fortschritt und PC-/iPhone-Eingaben bleiben kompatibel.
+- **Validierung:** 194 Unit-Tests plus Desktop-/Touch-Smoke-Tests und eigene Ritter-Atlas-/Kontaktframe-Prüfungen in Chromium und WebKit. Das ersetzt keinen Test auf einem physischen iPhone. Veraltete Testannahmen aus älteren Releases (13 statt 16 Räume, alte Menübanner, frühere Bodendetails und die ursprünglichen drei Klassen) wurden aktualisiert.
 
 ## Alpha 0.26.0 – Echte Raumgrößen und Boss in der Mitte
 

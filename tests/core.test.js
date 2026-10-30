@@ -72,9 +72,9 @@ test('melee attacks deal directional damage',()=>{
  const game=new Game(defaultProgress(),fakeInput);game.start('warrior',5);
  const p=game.player;
  const e={x:p.x+40,y:p.y,hp:100,maxHp:100,radius:17,type:'slime',knock:{x:0,y:0},flash:0};
- game.enemies=[e];p.direction={x:1,y:0};game.attack();
+ game.enemies=[e];p.direction={x:1,y:0};game.attack();game.updateKnightAction(1);
  assert.ok(e.hp<100);
- const old=e.hp;p.attackCooldown=0;p.direction={x:-1,y:0};game.attack();
+ const old=e.hp;p.attackCooldown=0;p.direction={x:-1,y:0};game.attack();game.updateKnightAction(1);
  assert.equal(e.hp,old);
 });
 test('entering a new room spawns enemies and clearing it unlocks a path',()=>{

@@ -157,6 +157,6 @@ test('stage bests and full clear time are stored and a later slower run cannot o
 test('normal and endless modes retain their existing number of rooms and settings',()=>{
  const g=new Game(defaultProgress(),input);g.start('mage',131);
  assert.equal(g.tower,false);
- assert.equal(g.dungeon.rooms.length,13);
+ assert.equal(g.dungeon.rooms.length,16);
  assert.equal(g.towerRelics.length,0);
 });

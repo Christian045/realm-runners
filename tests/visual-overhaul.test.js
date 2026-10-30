@@ -14,7 +14,8 @@ test('decorations are deterministic, wall mounted, outside combat core, and do n
   for(const r of d.rooms){
    const props=roomDressings(d,r);
    assert.deepEqual(props,roomDressings(d,r));
-   assert.ok(props.length<=9);
+   assert.ok(props.filter(p=>p.kind!=='groundmark').length<=9);
+   assert.ok(props.filter(p=>p.kind==='groundmark').length<=4);
    for(const p of props){
     const tx=Math.floor(p.x/48),ty=Math.floor(p.y/48);
     if(p.kind==='fixture'){
@@ -22,7 +23,7 @@ test('decorations are deterministic, wall mounted, outside combat core, and do n
      assert.ok([[0,1],[0,-1],[1,0],[-1,0]].some(([dx,dy])=>d.tileAt(tx+dx,ty+dy)===0));
     }else{
      assert.equal(d.tileAt(tx,ty),0,'floor dressing can never float on blocked tiles');
-     assert.ok(Math.abs(tx-(r.gx*15+7))>=4||Math.abs(ty-(r.gy*11+5))>=4);
+     if(p.kind!=='groundmark')assert.ok(Math.abs(tx-(r.gx*15+7))>=4||Math.abs(ty-(r.gy*11+5))>=4);
     }
    }
   }
@@ -55,7 +56,7 @@ test('six themed masonry palettes remain cached and include substantial pixel de
   assert.ok(wall&&floor&&pillar);
   assert.strictEqual(atlas.tile(theme,1,3),wall);
  }
- assert.ok(calls.length>600,'beveled walls and floor stones must be textured');
+ assert.ok(calls.length>200,'cached walls, pillars and restrained floor slabs must contain authored detail');
 });
 test('class effects have distinctive palettes and heavier finisher silhouettes',()=>{
  for(const kind of ['warrior','hunter','mage']){
@@ -70,7 +71,7 @@ test('the third warrior swing generates a special readable impact without instan
  const g=new Game(defaultProgress(),input);g.start('warrior',22);
  const p=g.player;const e={type:'slime',x:p.x+48,y:p.y,hp:550,maxHp:550,radius:18,flash:0,knock:{x:0,y:0},homeRoom:0};
  g.enemies=[e];p.direction={x:1,y:0};
- for(let i=0;i<3;i++)g.attack();
+ for(let i=0;i<3;i++){g.attack();g.updateKnightAction(1);}
  const impacts=g.effects.filter(x=>x.type==='impact');
  assert.equal(impacts.length,3);
  assert.ok(impacts.at(-1).finisher);

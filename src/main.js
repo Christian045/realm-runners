@@ -2,8 +2,8 @@ import {CLASSES} from './data.js?v=0.23.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.21.0';
 import {ENEMY_NAMES,totalKills,formatPlayTime} from './statistics.js?v=0.21.0';
 import {Input} from './input.js?v=0.23.0';
-import {Game} from './game.js?v=0.26.0';
-import {Renderer} from './render.js?v=0.26.0';
+import {Game} from './game.js?v=0.27.0';
+import {Renderer} from './render.js?v=0.27.0';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.21.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.21.0';
 import {installTouchGuard} from './touch-guard.js';
@@ -96,7 +96,7 @@ function refreshPanel(){
  }:null;
  if(overlay.dataset.renderMode!==game.mode)input.resetTransient();
  overlay.dataset.renderMode=game.mode;
- overlay.classList.toggle('hidden',playing);
+ overlay.classList.toggle('hidden',playing||(game.mode==='dead'&&game.player?.kind==='warrior'&&(game.player.knightDeathElapsed||0)<1.04));
  overlay.classList.toggle('castle-menu',isMenu);
  overlay.classList.toggle('stats-tab',isMenu&&menuTab==='stats');
  // Menu typography is intentionally cinematic; gameplay decisions use compact dialogs.
@@ -411,6 +411,9 @@ function animateMenuPreviews(now){
  if(tick===lastMenuPreview)return;
  lastMenuPreview=tick;
  for(const preview of document.querySelectorAll('#panelContent canvas[data-hero]')){
+  if(preview.dataset.hero==='warrior'&&renderer.knight.ready){
+   renderer.knight.preview(preview.getContext('2d'),preview.width,preview.height,now/1000);continue;
+  }
   const sprite=renderer.sprites.frame(preview.dataset.hero,'idle',tick%4,'down');
   const paint=preview.getContext('2d');
   if(!sprite||!paint)continue;
@@ -427,6 +430,10 @@ function frame(now){
   while(accumulator>=1/60&&steps<4){renderer.updateCamera(game);game.update(1/60,game.camera);accumulator-=1/60;steps++}
   if(steps===4)accumulator=0;
  }else accumulator=0;
+ if(game.mode==='dead'&&game.player?.kind==='warrior'){
+  game.player.knightDeathElapsed=Math.min(1.04,(game.player.knightDeathElapsed||0)+delta);
+  $('overlay').classList.toggle('hidden',game.player.knightDeathElapsed<1.04);
+ }
  renderer.updateCamera(game);
  renderer.draw(game);
  animateMenuPreviews(now);

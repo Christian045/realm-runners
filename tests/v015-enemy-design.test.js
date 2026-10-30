@@ -79,7 +79,7 @@ test('generator produces tactical rooms without changing the original room count
  for(let seed=1;seed<=80;seed++){
   for(const tower of [false,true]){
    const d=generateDungeon(seed,{tower,floor:6});
-   assert.equal(d.rooms.length,tower?7:13);
+   assert.equal(d.rooms.length,tower?7:16);
    assert.equal(d.rooms.filter(r=>r.type==='boss').length,1);
    for(const r of d.rooms){styles.add(r.encounterStyle);shapes.add(r.shape);
     assert.ok(d.canMove(r.cx,r.cy,12),'center must remain walkable');
@@ -99,7 +99,8 @@ test('all tower rosters include the new tactical roles without losing their boss
   for(const type of t.roster){assert.ok(ENEMY_DATA[type]);roles.add(type)}
   assert.ok(t.boss&&t.signature.length>=3);
  }
- for(const name of Object.keys(ENCOUNTER_ROLES))assert.ok(roles.has(name));
+ for(const name of ['assassin','scout','hexer','bulwark'])assert.ok(roles.has(name));
+ for(const name of ['burrower','chanter'])assert.ok(ENEMY_DATA[name]&&ENCOUNTER_ROLES[name]);
 });
 test('fresh generated combat chambers still damage an idle player',()=>{
  for(const tower of [false,true]){

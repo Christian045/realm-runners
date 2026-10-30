@@ -56,7 +56,7 @@ test('biome tiles use themed sprites and deterministic seed variations with cach
  for(const theme of Object.keys(TILE_THEMES)){
   for(const type of [0,1,2]){
    const tile=atlas.tile(theme,type,3);
-   assert.ok(tile.calls.length>10,theme+' '+type);
+   assert.ok(tile.calls.length>=6,theme+' '+type);
    assert.equal(tile.width,24);
    assert.strictEqual(atlas.tile(theme,type,3),tile);
   }

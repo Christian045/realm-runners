@@ -135,11 +135,11 @@ const assert=require('node:assert/strict');
   // A versioned main module alone does not bust an imported ./game.js URL.
   // Prevent an old cached combat engine from running after a release.
   const currentCombat=await page.evaluate(()=>performance.getEntriesByType('resource')
-    .some(entry=>entry.name.includes('/src/game.js?v=0.18.0')));
+    .some(entry=>entry.name.includes('/src/game.js?v=0.27.0')));
   assert.ok(currentCombat,'the browser must load the versioned combat engine');
   const realBattle=await page.evaluate(async()=>{
    const [{Game},{defaultProgress}]=await Promise.all([
-    import('./src/game.js?v=0.18.0'),import('./src/progression.js')]);
+    import('./src/game.js?v=0.27.0'),import('./src/progression.js')]);
    const input={movement:()=>({x:0,y:0}),aiming:()=>({x:1,y:0}),
     attacking:()=>false,consumeDash:()=>false,consumeAbility:()=>false};
    for(const seed of [5,71,150]){
@@ -163,8 +163,8 @@ const assert=require('node:assert/strict');
     vault:d.rooms.some(r=>r.type==='vault'),camp:d.rooms.some(r=>r.type==='camp'),
     traps:d.rooms.some(r=>r.type==='trap')};
   });
-  assert.equal(dungeonResult.rooms,13);
-  assert.equal(dungeonResult.expected,13);
+  assert.equal(dungeonResult.rooms,16);
+  assert.equal(dungeonResult.expected,16);
   assert.equal(dungeonResult.grid,25);
   assert.ok(dungeonResult.gateCount>=12);
   assert.ok(dungeonResult.library&&dungeonResult.vault&&dungeonResult.camp&&dungeonResult.traps);

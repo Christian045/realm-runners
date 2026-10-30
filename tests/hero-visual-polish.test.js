@@ -63,9 +63,9 @@ test('floor tiles have four different authored silhouettes, with static cached v
  assert.strictEqual(tiles.tile('sanctuary',0,2),frames[2]);
 });
 
-test('the room title is only rendered once, not overprinted by the biome name',()=>{
+test('room labels stay in the menu and never overprint the playable floor',()=>{
  const atmosphere=readFileSync(new URL('../src/atmosphere.js',import.meta.url),'utf8');
  const render=readFileSync(new URL('../src/render.js',import.meta.url),'utf8');
  assert.ok(!atmosphere.includes('fillText(th.name,cx,top+TILE*1.8)'));
- assert.ok(render.includes("room.roomLabel||'KAMMER '"));
+ assert.ok(!render.includes("room.roomLabel||'KAMMER '"));
 });

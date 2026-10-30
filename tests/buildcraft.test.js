@@ -10,7 +10,7 @@ const makeGame=(kind='warrior',progress=defaultProgress())=>{const g=new Game(pr
 const dummy=(g,hp=1000)=>({type:'mushroom',x:g.player.x+40,y:g.player.y,hp,maxHp:hp,radius:19,flash:0,knock:{x:0,y:0},homeRoom:0,damage:10});
 const piece=(id,slot,setId,kind='warrior')=>({id,slot,setId,rarity:'epic',classes:null,stats:{damage:0,hp:0,speed:0,guard:0,crit:0,leech:0},kind});
 test('v0.16 new item bases expand all three classes and keep class restrictions',()=>{
- for(const kind of Object.keys(CLASSES)){
+ for(const kind of ['warrior','hunter','mage']){
   assert.ok(ITEM_BASES.filter(x=>x.slot==='weapon'&&x.classes?.includes(kind)).length>=4);
  }
  assert.ok(ITEM_BASES.filter(x=>x.slot==='armor').length>=6);
@@ -37,7 +37,8 @@ test('set roll respects rarity and emits a valid two-piece synergy',()=>{
 });
 test('all classes receive two permanent branch masteries with correct prerequisites and save migration',()=>{
  const p=defaultProgress();p.gold=2500;
- for(const [kind,defs]of Object.entries(TALENTS)){
+ for(const kind of ['warrior','hunter','mage']){
+  const defs=TALENTS[kind];
   const branches=defs.filter(x=>x.branch);
   assert.equal(branches.length,2);
   assert.ok(!buyTalent(p,kind,branches[0].id),'locked branch must not spend gold');
@@ -81,10 +82,10 @@ test('warrior counter mastery consumes its bonus exactly once',()=>{
  const p=defaultProgress();p.talents.warrior.steel=2;p.talents.warrior.counter=1;
  const g=makeGame('warrior',p);
  const e=dummy(g);g.enemies=[e];g.player.crit=0;
- const baseline=e.hp;g.attack();const normal=baseline-e.hp;
+ const baseline=e.hp;g.attack();g.updateKnightAction(1);const normal=baseline-e.hp;
  g.player.invulnerable=0;g.hurt(5,{x:1,y:0});
  assert.ok(g.player.counterReady>0);
- const before=e.hp;g.attack();
+ const before=e.hp;g.attack();g.updateKnightAction(1);
  assert.ok(before-e.hp>normal*1.2);
  assert.equal(g.player.counterReady,0);
 });

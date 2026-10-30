@@ -1,3 +1,4 @@
+import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.27.0';
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.23.0';
 import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.26.0';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js?v=0.21.0';
@@ -489,6 +490,7 @@ export class Game {
   if(Number.isFinite(aim.x)&&Number.isFinite(aim.y))p.direction=aim;
   p.walkCycle=(p.walkCycle||0)+Math.hypot(move.x,move.y)*dt*14;
   p.moving=Math.hypot(move.x,move.y)>.12;
+  if(p.moving)p.knightMoveDirection={...move};
   p.attackTimer=Math.max(0,(p.attackTimer||0)-dt);
   p.castTimer=Math.max(0,(p.castTimer||0)-dt);
   p.hurtTimer=Math.max(0,(p.hurtTimer||0)-dt);
@@ -501,6 +503,7 @@ export class Game {
   p.evadeEmpower=Math.max(0,(p.evadeEmpower||0)-dt);
   if(this.input.consumeDash()&&p.dashCooldown<=0){
    p.dashVector=Math.hypot(move.x,move.y)>.1?normalized(move.x,move.y):{...p.direction};
+   if(p.kind==='warrior')beginKnightAction(p,'dash',.18,p.dashVector);
    p.dashTimer=.18;p.dashCooldown=(p.specialization==='ranger'?.75:1.05)*(hasSet(p,'tempest')?.84:1);p.invulnerable=Math.max(p.invulnerable,.26);
    this.createEffect('burst',p.x,p.y,CLASSES[p.kind].color,.25,20);
    onDash(this);onBuildDash(this);this.playSound('dash');
@@ -510,6 +513,7 @@ export class Game {
    p.dashTimer=Math.max(0,p.dashTimer-dt);
    if(this.random()<.65)this.createEffect('spark',p.x,p.y,'#c1e9e4',.28,7);
   }else if(!(p.statuses?.stun>0))this.move(p,move.x*p.speed*dt*(p.statuses?.slow>0?.60:1),move.y*p.speed*dt*(p.statuses?.slow>0?.60:1));
+  if(p.kind==='warrior')this.updateKnightAction(dt);
   const attacking=this.input.attacking();
   if(p.kind==='hunter'){
    p.hunterCharge=attacking?(p.hunterCharge||0)+dt:0;
@@ -539,7 +543,7 @@ export class Game {
     this.alchemyThrowTarget=this.queuedAlchemyThrow;
     this.queuedAlchemyThrow=null;this.attack();this.alchemyThrowTarget=null;
    }
-  }else if(attacking&&p.attackCooldown<=0)this.attack();
+  }else if(attacking&&p.attackCooldown<=0&&!(p.kind==='warrior'&&p.hurtTimer>.20))this.attack();
   if(this.input.consumeAbility()&&p.abilityCooldown<=0)this.ability();
   this.entrance(this.dungeon.roomAt(p.x,p.y));
   this.updateEnemies(dt);
@@ -601,8 +605,9 @@ export class Game {
  }
  attack(charged=false){
   const p=this.player;const kind=p.kind,aim=p.direction;
+  if(kind==='warrior'&&(p.knightAction||p.hp<=0))return false;
   p.attackCooldown=p.attackDelay*(charged?1.22:1);p.attackTimer=charged?.3:.18;
-  this.attackSequence++;this.playSound(p.kind==='warrior'?'slash':'shoot');
+  this.attackSequence++;if(p.kind!=='warrior')this.playSound('shoot');
   if(kind==='warrior'){
    const blade=p.equipment?.weapon?.baseId;
    if(blade==='greatsword')p.attackCooldown*=1.25;
@@ -610,29 +615,10 @@ export class Game {
    else if(blade==='axe')p.attackCooldown*=1.10;
    p.comboStep=p.comboTime>0?(p.comboStep%3)+1:1;
    p.comboTime=.85;
-   const finisher=p.comboStep===3,reach=p.reach+(finisher?13:0)+(blade==='greatsword'?20:0);
-   const angle=Math.atan2(aim.y,aim.x);
-   this.createEffect('slash',p.x,p.y,finisher?'#ffe39c':'#e6f6ff',finisher?.34:.22,reach,angle);
-   if(finisher){
-    p.attackCooldown*=1.26;
-    this.createEffect('ring',p.x+aim.x*45,p.y+aim.y*45,'#ffe29d',.35,45);
-    this.shake=Math.max(this.shake,4);
-   }
-   for(const e of this.enemies){
-    const delta=normalized(e.x-p.x,e.y-p.y);
-    if(e.hp>0&&distance(e,p)<reach+e.radius&&delta.x*aim.x+delta.y*aim.y>(blade==='axe'?.19:blade==='duelist'?.68:.45))
-     this.hitEnemy(e,p.damage*(finisher?1.27:p.comboStep===2?1.04:1)*(blade==='duelist'?.88:blade==='greatsword'?1.12:1),aim,{finisher,melee:true});
-   }
-   if(finisher&&(hasRunPower(p,'shockwave')||p.masteries?.includes('juggernaut'))){
-    const radius=hasRunPower(p,'shockwave')?145:110;
-    const bonus=hasRunPower(p,'shockwave')?.45:.30;
-    for(const e of [...this.enemies]){
-     const delta=normalized(e.x-p.x,e.y-p.y);
-     if(e.hp>0&&distance(e,p)<radius+e.radius&&delta.x*aim.x+delta.y*aim.y>.2)
-      this.hitEnemy(e,p.damage*bonus,aim,{proc:false});
-    }
-    this.createEffect('ring',p.x+aim.x*45,p.y+aim.y*45,'#ffd58d',.30,radius);
-   }
+   if(p.comboStep===3)p.attackCooldown*=1.26;
+   p.attackTimer=p.attackCooldown;
+   const action=beginKnightAction(p,'attack'+p.comboStep,p.attackCooldown);
+   action.comboStep=p.comboStep;action.blade=blade;
   }else{
    const shotDamage=kind==='hunter'&&charged?p.damage*2.05:p.damage;
     // The rogue uses paired daggers whenever a target is within striking distance.
@@ -688,15 +674,59 @@ export class Game {
    this.createEffect('spark',p.x+aim.x*22,p.y+aim.y*22,CLASSES[kind].color,charged?.3:.19,charged?25:13);
   }
  }
+ updateKnightAction(dt){
+  const p=this.player;
+  if(p.hp<=0){p.knightAction=null;return;}
+  advanceKnightAction(p,dt,action=>{
+   if(action.clip==='special')this.resolveKnightSpecial(action);
+   else this.resolveKnightStrike(action);
+  });
+ }
+ resolveKnightStrike(action){
+  const p=this.player,aim=action.direction,blade=action.blade;
+  this.playSound('slash');
+   const finisher=action.comboStep===3,reach=p.reach+(finisher?13:0)+(blade==='greatsword'?20:0);
+   const angle=Math.atan2(aim.y,aim.x);
+   this.effects.push({type:'knight-slash',x:p.x,y:p.y,angle,radius:reach,step:action.comboStep,life:.20,maxLife:.20});
+   if(finisher){
+    this.createEffect('ring',p.x+aim.x*45,p.y+aim.y*45,'#ffe29d',.35,45);
+    this.shake=Math.max(this.shake,4);
+   }
+   for(const e of this.enemies){
+    const delta=normalized(e.x-p.x,e.y-p.y);
+    if(e.hp>0&&hasLineOfSight(this.dungeon,p.x,p.y,e.x,e.y)&&distance(e,p)<reach+e.radius&&delta.x*aim.x+delta.y*aim.y>(blade==='axe'?.19:blade==='duelist'?.68:.45))
+     this.hitEnemy(e,p.damage*(finisher?1.27:action.comboStep===2?1.04:1)*(blade==='duelist'?.88:blade==='greatsword'?1.12:1),aim,{finisher,melee:true});
+   }
+   if(finisher&&(hasRunPower(p,'shockwave')||p.masteries?.includes('juggernaut'))){
+    const radius=hasRunPower(p,'shockwave')?145:110;
+    const bonus=hasRunPower(p,'shockwave')?.45:.30;
+    for(const e of [...this.enemies]){
+     const delta=normalized(e.x-p.x,e.y-p.y);
+     if(e.hp>0&&hasLineOfSight(this.dungeon,p.x,p.y,e.x,e.y)&&distance(e,p)<radius+e.radius&&delta.x*aim.x+delta.y*aim.y>.2)
+      this.hitEnemy(e,p.damage*bonus,aim,{proc:false});
+    }
+    this.createEffect('ring',p.x+aim.x*45,p.y+aim.y*45,'#ffd58d',.30,radius);
+   }
+ }
+ resolveKnightSpecial(action){
+  const p=this.player;
+  this.playSound('ability');
+  this.effects.push({type:'knight-whirl',x:p.x,y:p.y,radius:144,life:.32,maxLife:.32});
+  this.shake=Math.max(this.shake,5);
+  for(const e of [...this.enemies])if(e.hp>0&&distance(e,p)<145+e.radius&&hasLineOfSight(this.dungeon,p.x,p.y,e.x,e.y))
+   this.hitEnemy(e,p.damage*1.9,normalized(e.x-p.x,e.y-p.y),{melee:true,finisher:true});
+ }
  ability(){
-  const p=this.player,aim=p.direction;p.abilityCooldown=p.specialization==='cryomancer'?6.5:7;p.castTimer=.36;this.playSound('ability');
+  const p=this.player,aim=p.direction;
+  if(p.kind==='warrior'&&(p.dashTimer>0||p.hp<=0))return false;
+  p.abilityCooldown=p.specialization==='cryomancer'?6.5:7;p.castTimer=.36;if(p.kind!=='warrior')this.playSound('ability');
   if(p.kind==='mage'&&p.masteries?.includes('warding')){
    p.shield=Math.max(p.shield||0,13);
    this.createEffect('ring',p.x,p.y,'#a9c7ff',.45,40);
   }
   if(p.kind==='warrior'){
-   this.createEffect('ring',p.x,p.y,'#b6e5ff',.55,144);
-   for(const e of this.enemies)if(e.hp>0&&distance(e,p)<145+e.radius)this.hitEnemy(e,p.damage*1.9,normalized(e.x-p.x,e.y-p.y));
+   beginKnightAction(p,'special',.64);p.castTimer=.64;p.attackTimer=0;
+   p.attackCooldown=Math.max(p.attackCooldown,.64);
   }else if(p.kind==='glasscannon'){
    const center={x:p.x+aim.x*130,y:p.y+aim.y*130};
    this.createEffect('ring',center.x,center.y,'#eec1ff',.65,150);
@@ -940,6 +970,9 @@ export class Game {
   recordDamage(this.progress.statistics,this.runStatistics,actual,'taken');
   p.hp=Math.max(0,p.hp-actual);
   p.invulnerable=.78;p.hurtTimer=.34;
+  if(actual>0&&p.kind==='warrior'&&p.knightAction?.clip!=='special'){
+   p.knightAction=null;p.attackTimer=0;
+  }
   this.shake=Math.max(this.shake,actual?11:4);
   this.hitstop=Math.max(this.hitstop,actual?.07:.04);
   this.createEffect('text',p.x,p.y-32,actual?'-'+actual:'BLOCK','#ff9a91',.75);
@@ -1191,6 +1224,10 @@ export class Game {
    }
    this.playSound('bossDown');
   }else if(won&&this.endless){this.advanceFloor();return}
+  if(!won&&this.player.kind==='warrior'){
+   this.player.knightAction=null;this.player.knightDeathElapsed=0;
+   this.player.knightDeathDirection={...this.player.direction};
+  }
   this.mode=won?'victory':'dead';
   this.progress.runs++;
   if(won&&this.runMode==='nohit'&&this.hitsTaken===0)this.progress.noHitWins=(this.progress.noHitWins||0)+1;
