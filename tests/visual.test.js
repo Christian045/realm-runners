@@ -70,8 +70,8 @@ test('rendering animation timers follow actual attacks, abilities and received h
  const g=new Game(defaultProgress(),input);
  g.start('warrior',123);
  assert.equal(g.player.attackTimer,0);
- g.attack();assert.ok(g.player.attackTimer>0);
- g.ability();assert.ok(g.player.castTimer>0);
+ g.attack();g.updateHeroAction(1);assert.ok(g.player.attackTimer>0);
+ g.ability();g.updateHeroAction(1);assert.ok(g.player.castTimer>0);
  g.player.invulnerable=0;
  g.hurt(5,{x:1,y:0});
  assert.ok(g.player.hurtTimer>0);

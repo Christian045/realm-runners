@@ -1,3 +1,4 @@
+import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.28.0';
 import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.27.0';
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.23.0';
 import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.26.0';
@@ -19,7 +20,7 @@ import {updateEncounterEnemy,encounterMitigation,rangedEncounterType} from './en
 import {nextTowerRelic,grantTowerRelic,towerRelicDamage,afterTowerRelicHit,towerRelicKill,towerRelicSave,towerRelicFloor} from './tower-relics.js?v=0.21.0';
 import {cappedBossDamage,BOSS_BALANCE} from './combat-balance.js?v=0.15.0';
 import {towerFloorProfile,towerEncounterPlan,towerRoomDamage,towerRoomSpeed,towerEnemyWindup,towerEnemyRecovery,towerFirstHazard} from './difficulty-director.js?v=0.18.0';
-import {impactStyle} from './visual-impact.js?v=0.14.0';
+import {impactStyle} from './visual-impact.js?v=0.28.0';
 import {hasSet,hasRunPower,pickRunUpgrades,onBuildDash,onBuildHurt,onBuildHit,buildDamageFactor} from './buildcraft.js?v=0.21.0';
 
 export class Game {
@@ -490,7 +491,7 @@ export class Game {
   if(Number.isFinite(aim.x)&&Number.isFinite(aim.y))p.direction=aim;
   p.walkCycle=(p.walkCycle||0)+Math.hypot(move.x,move.y)*dt*14;
   p.moving=Math.hypot(move.x,move.y)>.12;
-  if(p.moving)p.knightMoveDirection={...move};
+  if(p.moving){p.knightMoveDirection={...move};p.heroMoveDirection={...move};}
   p.attackTimer=Math.max(0,(p.attackTimer||0)-dt);
   p.castTimer=Math.max(0,(p.castTimer||0)-dt);
   p.hurtTimer=Math.max(0,(p.hurtTimer||0)-dt);
@@ -504,6 +505,7 @@ export class Game {
   if(this.input.consumeDash()&&p.dashCooldown<=0){
    p.dashVector=Math.hypot(move.x,move.y)>.1?normalized(move.x,move.y):{...p.direction};
    if(p.kind==='warrior')beginKnightAction(p,'dash',.18,p.dashVector);
+   else beginHeroAction(p,'dash',.18,p.dashVector);
    p.dashTimer=.18;p.dashCooldown=(p.specialization==='ranger'?.75:1.05)*(hasSet(p,'tempest')?.84:1);p.invulnerable=Math.max(p.invulnerable,.26);
    this.createEffect('burst',p.x,p.y,CLASSES[p.kind].color,.25,20);
    onDash(this);onBuildDash(this);this.playSound('dash');
@@ -513,11 +515,11 @@ export class Game {
    p.dashTimer=Math.max(0,p.dashTimer-dt);
    if(this.random()<.65)this.createEffect('spark',p.x,p.y,'#c1e9e4',.28,7);
   }else if(!(p.statuses?.stun>0))this.move(p,move.x*p.speed*dt*(p.statuses?.slow>0?.60:1),move.y*p.speed*dt*(p.statuses?.slow>0?.60:1));
-  if(p.kind==='warrior')this.updateKnightAction(dt);
+  if(p.kind==='warrior')this.updateKnightAction(dt);else this.updateHeroAction(dt);
   const attacking=this.input.attacking();
   if(p.kind==='hunter'){
    p.hunterCharge=attacking?(p.hunterCharge||0)+dt:0;
-   if(attacking&&p.attackCooldown<=0){
+   if(attacking&&p.attackCooldown<=0&&!p.heroAction&&p.hurtTimer<=.20){
     const charged=p.hunterCharge>=.9;
     this.attack(charged);
     if(charged)p.hunterCharge=0;
@@ -539,11 +541,11 @@ export class Game {
     this.alchemyAiming=false;this.alchemyTarget=null;
     this.input.clearLobAim?.();
    }
-   if(!attacking&&this.queuedAlchemyThrow&&p.attackCooldown<=0){
+   if(!attacking&&this.queuedAlchemyThrow&&p.attackCooldown<=0&&!p.heroAction&&p.hurtTimer<=.20){
     this.alchemyThrowTarget=this.queuedAlchemyThrow;
     this.queuedAlchemyThrow=null;this.attack();this.alchemyThrowTarget=null;
    }
-  }else if(attacking&&p.attackCooldown<=0&&!(p.kind==='warrior'&&p.hurtTimer>.20))this.attack();
+  }else if(attacking&&p.attackCooldown<=0&&!(p.hurtTimer>.20))this.attack();
   if(this.input.consumeAbility()&&p.abilityCooldown<=0)this.ability();
   this.entrance(this.dungeon.roomAt(p.x,p.y));
   this.updateEnemies(dt);
@@ -604,10 +606,11 @@ export class Game {
   // A defeated boss leaves the floor explorable until the portal is entered.
  }
  attack(charged=false){
-  const p=this.player;const kind=p.kind,aim=p.direction;
+  const p=this.player;const kind=p.kind;
+  if(HERO_KINDS.includes(kind))return this.beginHeroAttack(charged);
   if(kind==='warrior'&&(p.knightAction||p.hp<=0))return false;
   p.attackCooldown=p.attackDelay*(charged?1.22:1);p.attackTimer=charged?.3:.18;
-  this.attackSequence++;if(p.kind!=='warrior')this.playSound('shoot');
+  this.attackSequence++;
   if(kind==='warrior'){
    const blade=p.equipment?.weapon?.baseId;
    if(blade==='greatsword')p.attackCooldown*=1.25;
@@ -619,7 +622,28 @@ export class Game {
    p.attackTimer=p.attackCooldown;
    const action=beginKnightAction(p,'attack'+p.comboStep,p.attackCooldown);
    action.comboStep=p.comboStep;action.blade=blade;
-  }else{
+  }
+ }
+ beginHeroAttack(charged=false){
+  const p=this.player;
+  if(p.heroAction||p.hp<=0)return false;
+  p.attackCooldown=p.attackDelay*(charged?1.22:1);p.attackTimer=p.attackCooldown;
+  this.attackSequence++;
+  const action=beginHeroAction(p,'attack',Math.min(.52,p.attackCooldown));
+  action.charged=charged;action.sequence=this.attackSequence;
+  if(p.kind==='alchemist')action.target={...(this.alchemyThrowTarget||this.input.target?.(p,this.camera,260)||
+   {x:p.x+p.direction.x*260,y:p.y+p.direction.y*260})};
+  return true;
+ }
+ updateHeroAction(dt){
+  const p=this.player;if(p.hp<=0){p.heroAction=null;return;}
+  advanceHeroAction(p,dt,action=>{
+   if(action.clip==='special')this.resolveHeroSpecial(action);else this.resolveHeroAttack(action);
+  });
+ }
+ resolveHeroAttack(action){
+  const p=this.player,kind=p.kind,aim=action.direction,charged=action.charged;
+  this.playSound('shoot');this.heroReleaseEffect(action);
    const shotDamage=kind==='hunter'&&charged?p.damage*2.05:p.damage;
     // The rogue uses paired daggers whenever a target is within striking distance.
     if(kind==='hunter'&&p.specialization==='ranger'){
@@ -638,8 +662,8 @@ export class Game {
     return;
    }
    if(kind==='alchemist'){
-    const recipe=['burn','poison','frost'][(this.attackSequence-1)%3];
-    this.throwFlask(recipe,p.damage*.93,false);
+    const recipe=['burn','poison','frost'][(action.sequence-1)%3];
+    this.throwFlask(recipe,p.damage*.93,false,action.target,aim);
     return;
    }
    const shotSpeed=kind==='hunter'&&charged?840:null;
@@ -672,7 +696,11 @@ export class Game {
     this.spawnProjectile(p.x,p.y,{x:Math.cos(a),y:Math.sin(a)},p.damage*.55,kind==='mage',false);
    }
    this.createEffect('spark',p.x+aim.x*22,p.y+aim.y*22,CLASSES[kind].color,charged?.3:.19,charged?25:13);
-  }
+ }
+ heroReleaseEffect(action){
+  const p=this.player;
+  this.effects.push({type:'hero-release',kind:p.kind,x:p.x+action.direction.x*20,y:p.y+action.direction.y*20,
+   angle:Math.atan2(action.direction.y,action.direction.x),life:.18,maxLife:.18});
  }
  updateKnightAction(dt){
   const p=this.player;
@@ -717,17 +745,28 @@ export class Game {
    this.hitEnemy(e,p.damage*1.9,normalized(e.x-p.x,e.y-p.y),{melee:true,finisher:true});
  }
  ability(){
-  const p=this.player,aim=p.direction;
-  if(p.kind==='warrior'&&(p.dashTimer>0||p.hp<=0))return false;
-  p.abilityCooldown=p.specialization==='cryomancer'?6.5:7;p.castTimer=.36;if(p.kind!=='warrior')this.playSound('ability');
+  const p=this.player;
+  if(p.dashTimer>0||p.hp<=0)return false;
+  if(HERO_KINDS.includes(p.kind))return this.beginHeroSpecial();
+  p.abilityCooldown=7;beginKnightAction(p,'special',.64);p.castTimer=.64;p.attackTimer=0;
+  p.attackCooldown=Math.max(p.attackCooldown,.64);
+ }
+ beginHeroSpecial(){
+  const p=this.player;
+  p.abilityCooldown=p.kind==='summoner'?14:p.kind==='alchemist'?10.5:p.specialization==='cryomancer'?6.5:7;
+  const duration=p.kind==='summoner'?.66:p.kind==='mage'?.54:.48;
+  const action=beginHeroAction(p,'special',duration);p.castTimer=duration;p.attackTimer=0;
+  p.attackCooldown=Math.max(p.attackCooldown,duration);
+  if(p.kind==='alchemist')action.target={...(this.input.target?.(p,this.camera,315)||
+   {x:p.x+p.direction.x*315,y:p.y+p.direction.y*315})};
   if(p.kind==='mage'&&p.masteries?.includes('warding')){
-   p.shield=Math.max(p.shield||0,13);
-   this.createEffect('ring',p.x,p.y,'#a9c7ff',.45,40);
+   p.shield=Math.max(p.shield||0,13);this.createEffect('ring',p.x,p.y,'#a9c7ff',.45,40);
   }
-  if(p.kind==='warrior'){
-   beginKnightAction(p,'special',.64);p.castTimer=.64;p.attackTimer=0;
-   p.attackCooldown=Math.max(p.attackCooldown,.64);
-  }else if(p.kind==='glasscannon'){
+  return true;
+ }
+ resolveHeroSpecial(action){
+  const p=this.player,aim=action.direction;this.playSound('ability');this.heroReleaseEffect(action);
+  if(p.kind==='glasscannon'){
    const center={x:p.x+aim.x*130,y:p.y+aim.y*130};
    this.createEffect('ring',center.x,center.y,'#eec1ff',.65,150);
    for(const e of [...this.enemies])if(e.hp>0&&distance(e,center)<150+e.radius)
@@ -735,7 +774,6 @@ export class Game {
    p.shield=Math.max(p.shield||0,5);
   }else if(p.kind==='summoner'){
    // A short-lived siege giant complements the permanent summon.
-   p.abilityCooldown=14;
    const center={x:p.x+aim.x*56,y:p.y+aim.y*56};
    const valid=this.dungeon.canMove(center.x,center.y,25,false);
    const x=valid?center.x:p.x,y=valid?center.y:p.y;
@@ -745,8 +783,7 @@ export class Game {
    this.createEffect('text',x,y-70,'RIESENRUF','#f4d4a4',.9);
   }else if(p.kind==='alchemist'){
    const recipe=['burn','poison','frost'][this.attackSequence%3];
-   this.throwFlask(recipe,p.damage*1.30,true);
-   p.abilityCooldown=10.5;
+   this.throwFlask(recipe,p.damage*1.30,true,action.target,aim);
   }else if(p.kind==='hunter'){
    for(let i=-3;i<=3;i++){
     const angle=Math.atan2(aim.y,aim.x)+i*.14;
@@ -771,9 +808,9 @@ export class Game {
    }
   }
  }
- throwFlask(recipe,damage,large=false){
-  const p=this.player,aim=p.direction,maxRange=large?315:260;
-  const target=(!large&&this.alchemyThrowTarget)||this.input.target?.(p,this.camera,maxRange)||
+ throwFlask(recipe,damage,large=false,targetOverride=null,aimOverride=null){
+  const p=this.player,aim=aimOverride||p.direction,maxRange=large?315:260;
+  const target=targetOverride||(!large&&this.alchemyThrowTarget)||this.input.target?.(p,this.camera,maxRange)||
    {x:p.x+aim.x*maxRange,y:p.y+aim.y*maxRange};
   const dx=target.x-p.x,dy=target.y-p.y,len=Math.hypot(dx,dy);
   const range=Math.min(maxRange,Math.max(65,len));
@@ -970,6 +1007,7 @@ export class Game {
   recordDamage(this.progress.statistics,this.runStatistics,actual,'taken');
   p.hp=Math.max(0,p.hp-actual);
   p.invulnerable=.78;p.hurtTimer=.34;
+  if(actual>0&&HERO_KINDS.includes(p.kind)&&p.heroAction?.clip!=='special'){p.heroAction=null;p.attackTimer=0;}
   if(actual>0&&p.kind==='warrior'&&p.knightAction?.clip!=='special'){
    p.knightAction=null;p.attackTimer=0;
   }
@@ -1227,6 +1265,9 @@ export class Game {
   if(!won&&this.player.kind==='warrior'){
    this.player.knightAction=null;this.player.knightDeathElapsed=0;
    this.player.knightDeathDirection={...this.player.direction};
+  }
+  if(!won&&HERO_KINDS.includes(this.player.kind)){
+   this.player.heroAction=null;this.player.heroDeathElapsed=0;this.player.heroDeathDirection={...this.player.direction};
   }
   this.mode=won?'victory':'dead';
   this.progress.runs++;

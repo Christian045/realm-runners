@@ -4,6 +4,9 @@ export const IMPACT_PALETTE=Object.freeze({
  warrior:{core:'#fff2cf',edge:'#f4bd77',spark:'#ffdc8c'},
  hunter:{core:'#f5ffe1',edge:'#a9eb96',spark:'#d5f7ba'},
  mage:{core:'#f8ebff',edge:'#bfa4ff',spark:'#e3b4ff'},
+ glasscannon:{core:'#fff1fb',edge:'#cb96ee',spark:'#e8bfff'},
+ summoner:{core:'#f0ddff',edge:'#9671cc',spark:'#ccadf2'},
+ alchemist:{core:'#f3ffd4',edge:'#a4cf73',spark:'#d4eda0'},
  enemy:{core:'#fff0ed',edge:'#ee8093',spark:'#ffd0a7'}
 });
 export function impactStyle(kind='warrior',critical=false,finisher=false){

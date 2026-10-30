@@ -1,4 +1,14 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.27.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.28.0)
+
+## Alpha 0.28.0 – Alle Helden im neuen Grafik- und Animationssystem
+
+- **Fünf neue Klassendesigns:** Jäger mit grünem Umhang und Bogen, Magier mit bestickter Robe und Kristallstab, Glaskanonier mit Hut und Kristallgewehr, Beschwörer mit Knochenzier und Zauberbuch sowie Alchemist mit Schutzbrille und Fläschchengürtel. Detailgrad und Körpergröße orientieren sich am Ritter.
+- **840 zusätzliche Frame-Einträge:** pro Klasse sechs Frames für Idle, Laufen, Angriff, Spezialfähigkeit, Dash, Treffer und Tod in vier Richtungen. Eigenständige Bewegungen von Beinen, Armen, Rumpf und Stoff; der Ritter behält seine bestehende Dreierkombo. Ruhe-/Erholungsposen dürfen gehalten werden.
+- **Freigabe am richtigen Frame:** Pfeile, Kristallgeschosse, Zauber und Fläschchen verlassen den Charakter am Freigabe-Frame. Spezialeffekte und Beschwörung verwenden dieselbe Zeitleiste. Gezielt gesetzte Wurfziele und Rezepte bleiben bis zur Freigabe gespeichert; während eines Dashs losgelassene Alchemistenwürfe gehen anschließend in die Wurfanimation über.
+- **Klassenbezogenes Feedback:** eigene Freigabe-Effekte sowie passende Trefferfarben für alle sechs Klassen. Alte separat gezeichnete Waffen überlagern die neuen Figuren nicht. Treffer- und Todesreaktionen werden jetzt auch bei den Fernkampfklassen sichtbar ausgespielt.
+- **Mobiles Laden:** nur die gewählte Klasse lädt ihre vollständigen Atlanten; die übrigen Menüfiguren verwenden kleine animierte Vorschauen. Schnelle Klassenwechsel können keine verspäteten falschen Texturen einsetzen. Insgesamt rund 2,8 MiB zusätzliche Klassengrafiken, mit lokalen Dateien und vorhandenem Fallback.
+- **Kompatibilität:** Klassen-IDs, Talente, Spezialisierungen, Waffen-/Setboni, Fortschritt und Speicherformat bleiben erhalten. Desktop- und Touch-Eingaben verwenden dieselben Freigabe-Ereignisse.
+- **Validierung:** 201 Unit-Tests; bestehende Desktop-/Touch-/WebKit-Smoke-Tests; Ritter-Regression und vollständige Atlas-/Freigabe-Prüfungen aller fünf neuen Klassen in Chromium und WebKit. Kein Test auf einem physischen iPhone.
 
 ## Alpha 0.27.0 – Neuer Ritter & framegenauer Nahkampf
 

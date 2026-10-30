@@ -59,7 +59,7 @@ test('six themed masonry palettes remain cached and include substantial pixel de
  assert.ok(calls.length>200,'cached walls, pillars and restrained floor slabs must contain authored detail');
 });
 test('class effects have distinctive palettes and heavier finisher silhouettes',()=>{
- for(const kind of ['warrior','hunter','mage']){
+ for(const kind of ['warrior','hunter','mage','glasscannon','summoner','alchemist']){
   const normal=impactStyle(kind,false,false),heavy=impactStyle(kind,true,true);
   assert.ok(heavy.count>normal.count);
   assert.ok(heavy.radius>normal.radius);
@@ -71,7 +71,7 @@ test('the third warrior swing generates a special readable impact without instan
  const g=new Game(defaultProgress(),input);g.start('warrior',22);
  const p=g.player;const e={type:'slime',x:p.x+48,y:p.y,hp:550,maxHp:550,radius:18,flash:0,knock:{x:0,y:0},homeRoom:0};
  g.enemies=[e];p.direction={x:1,y:0};
- for(let i=0;i<3;i++){g.attack();g.updateKnightAction(1);}
+ for(let i=0;i<3;i++){g.attack();g.updateHeroAction(1);g.updateKnightAction(1);}
  const impacts=g.effects.filter(x=>x.type==='impact');
  assert.equal(impacts.length,3);
  assert.ok(impacts.at(-1).finisher);
@@ -83,7 +83,7 @@ test('mage collisions create magical impact and trail particle cues',()=>{
  const p=g.player;
  const e={type:'mushroom',x:p.x+90,y:p.y,hp:1000,maxHp:1000,radius:18,flash:0,knock:{x:0,y:0},homeRoom:0};
  g.enemies=[e];p.direction={x:1,y:0};
- g.attack();
+ g.attack();g.updateHeroAction(1);
  for(let i=0;i<10;i++)g.updateProjectiles(.016);
  assert.ok(g.effects.some(x=>x.type==='ember'));
  assert.ok(g.effects.some(x=>x.type==='impact'&&x.kind==='mage'));

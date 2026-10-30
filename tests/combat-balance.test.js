@@ -68,7 +68,7 @@ test('warrior gains a 3-hit combo with a readable stronger finisher',()=>{
   knock:{x:0,y:0},flash:0,homeRoom:0};
  g.enemies=[e];p.direction={x:1,y:0};
  const changes=[];
- for(let i=0;i<3;i++){const before=e.hp;g.attack();g.updateKnightAction(1);changes.push(before-e.hp)}
+ for(let i=0;i<3;i++){const before=e.hp;g.attack();g.updateHeroAction(1);g.updateKnightAction(1);changes.push(before-e.hp)}
  assert.deepEqual([1,2,3],[1,2,3].map((_,i)=>i+1));
  assert.equal(p.comboStep,3);
  assert.ok(changes[2]>changes[0],'finisher should do more damage');
@@ -78,7 +78,7 @@ test('holding hunter attack charges a piercing precision shot while keeping norm
  const inp=input();let held=false;inp.attacking=()=>held;
  const g=new Game(defaultProgress(),inp);g.start('hunter',55);
  g.player.hunterCharge=.92;held=true;
- g.update(1/60);
+ g.update(1/60);g.updateHeroAction(1);
  const arrow=g.projectiles.find(x=>x.charged);
  assert.ok(arrow,'long press should fire a charged shot');
  assert.equal(arrow.pierce,3);assert.ok(arrow.damage>g.player.damage*2);

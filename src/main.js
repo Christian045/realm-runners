@@ -2,8 +2,8 @@ import {CLASSES} from './data.js?v=0.23.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.21.0';
 import {ENEMY_NAMES,totalKills,formatPlayTime} from './statistics.js?v=0.21.0';
 import {Input} from './input.js?v=0.23.0';
-import {Game} from './game.js?v=0.27.0';
-import {Renderer} from './render.js?v=0.27.0';
+import {Game} from './game.js?v=0.28.0';
+import {Renderer} from './render.js?v=0.28.0';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.21.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.21.0';
 import {installTouchGuard} from './touch-guard.js';
@@ -17,8 +17,8 @@ import {SPECIALIZATIONS,specializationUnlocked} from './specializations.js?v=0.2
 const $=id=>document.getElementById(id);
 const canvas=$('gameCanvas');
 installTouchGuard(canvas);
-const renderer=new Renderer(canvas),input=new Input(canvas);
 const progress=loadProgress();
+const renderer=new Renderer(canvas,progress.selectedClass),input=new Input(canvas);
 const game=new Game(progress,input,()=>refreshPanel());
 const audio=new AudioFeedback();game.sound=id=>audio.play(id);
 let selected=progress.selectedClass,menuTab='play';
@@ -84,6 +84,7 @@ function renderStatistics(){
 
 function refreshPanel(){
  const overlay=$('overlay'),panel=$('panelContent'),playing=game.mode==='playing';
+ if(game.mode==='menu'){renderer.selectHero(selected);lastMenuPreview=-1;}
  const panelShell=overlay.querySelector('.panel'),isMenu=game.mode==='menu';
  // Keep advanced tabs, the selected item and the scroll position when a
  // purchase, equipment change or mode choice causes a full panel re-render.
@@ -96,7 +97,7 @@ function refreshPanel(){
  }:null;
  if(overlay.dataset.renderMode!==game.mode)input.resetTransient();
  overlay.dataset.renderMode=game.mode;
- overlay.classList.toggle('hidden',playing||(game.mode==='dead'&&game.player?.kind==='warrior'&&(game.player.knightDeathElapsed||0)<1.04));
+ overlay.classList.toggle('hidden',playing||(game.mode==='dead'&&game.player&&((game.player.kind==='warrior'?game.player.knightDeathElapsed:game.player.heroDeathElapsed)||0)<1.04));
  overlay.classList.toggle('castle-menu',isMenu);
  overlay.classList.toggle('stats-tab',isMenu&&menuTab==='stats');
  // Menu typography is intentionally cinematic; gameplay decisions use compact dialogs.
@@ -403,17 +404,19 @@ function updateHud(){
   hint.classList.toggle('hidden',!boss.transitioning&&!boss.attack);
  }
 }
-let last=0,accumulator=0,hudTime=0,lastMenuPreview=-1;
+let last=0,accumulator=0,hudTime=0,lastMenuPreview=-1,lastMenuArt=-1;
 function animateMenuPreviews(now){
  if(game.mode!=='menu'||document.hidden)return;
  const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
  const tick=reducedMotion?0:Math.floor(now/380);
- if(tick===lastMenuPreview)return;
- lastMenuPreview=tick;
+ const art=Object.keys(renderer.heroes.previews).length+(renderer.knight?.ready?10:0);
+ if(tick===lastMenuPreview&&art===lastMenuArt)return;
+ lastMenuPreview=tick;lastMenuArt=art;
  for(const preview of document.querySelectorAll('#panelContent canvas[data-hero]')){
-  if(preview.dataset.hero==='warrior'&&renderer.knight.ready){
+  if(preview.dataset.hero==='warrior'&&renderer.knight?.ready){
    renderer.knight.preview(preview.getContext('2d'),preview.width,preview.height,now/1000);continue;
   }
+  if(renderer.heroes.preview(preview.getContext('2d'),preview.dataset.hero,preview.width,preview.height,now/1000))continue;
   const sprite=renderer.sprites.frame(preview.dataset.hero,'idle',tick%4,'down');
   const paint=preview.getContext('2d');
   if(!sprite||!paint)continue;
@@ -430,9 +433,10 @@ function frame(now){
   while(accumulator>=1/60&&steps<4){renderer.updateCamera(game);game.update(1/60,game.camera);accumulator-=1/60;steps++}
   if(steps===4)accumulator=0;
  }else accumulator=0;
- if(game.mode==='dead'&&game.player?.kind==='warrior'){
-  game.player.knightDeathElapsed=Math.min(1.04,(game.player.knightDeathElapsed||0)+delta);
-  $('overlay').classList.toggle('hidden',game.player.knightDeathElapsed<1.04);
+ if(game.mode==='dead'&&game.player){
+  const clock=game.player.kind==='warrior'?'knightDeathElapsed':'heroDeathElapsed';
+  game.player[clock]=Math.min(1.04,(game.player[clock]||0)+delta);
+  $('overlay').classList.toggle('hidden',game.player[clock]<1.04);
  }
  renderer.updateCamera(game);
  renderer.draw(game);

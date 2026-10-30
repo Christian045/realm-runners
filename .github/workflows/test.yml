@@ -21,3 +21,4 @@ jobs:
           sleep 2
           npm run test:browser
           npm run test:knight-browser
+          npm run test:heroes-browser

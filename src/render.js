@@ -1,3 +1,4 @@
+import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.28.0';
 import {KnightSpriteAtlas,drawKnightEffect} from './knight-sprites.js?v=0.27.0';
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.23.0';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js?v=0.26.0';
@@ -6,15 +7,23 @@ import {drawTowerVictory} from './tower-visuals.js';
 import {PixelSpriteAtlas,spriteIdentity} from './sprites.js?v=0.23.0';
 import {PixelTileAtlas,tileTheme,tileVariant} from './tileset.js?v=0.18.1';
 import {drawArchitecturalDepth,drawAnchoredDressings,drawDynamicLighting} from './visual-world.js?v=0.26.0';
-import {drawImpact,drawMagicTrail} from './visual-impact.js?v=0.14.0';
+import {drawImpact,drawMagicTrail} from './visual-impact.js?v=0.28.0';
 import {drawWarriorSword,drawMageStaff,drawCrystalRifle,drawSummonerTome,weaponFacing} from './weapon-visuals.js?v=0.23.0';
 const hash=(x,y,seed=0)=>{let a=Math.imul(x+seed,374761393)+Math.imul(y,668265263);a=Math.imul(a^(a>>>13),1274126177);return (a^(a>>>16))>>>0};
 const fill=(ctx,color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h)};
 export class Renderer {
- constructor(canvas){
+ constructor(canvas,selectedKind='warrior'){
   this.canvas=canvas;this.ctx=canvas.getContext('2d',{alpha:false});this.ctx.imageSmoothingEnabled=false;
-  this.sprites=new PixelSpriteAtlas();this.knight=new KnightSpriteAtlas();this.tiles=new PixelTileAtlas();
+  this.sprites=new PixelSpriteAtlas();this.knight=null;this.heroes=new HeroSpriteAtlas();this.selectHero(selectedKind);this.tiles=new PixelTileAtlas();
   this.resize();window.addEventListener('resize',()=>this.resize());
+ }
+ selectHero(kind){
+  if(kind==='warrior'){
+   if(this.heroes.kind)this.heroes.release();
+   if(!this.knight)this.knight=new KnightSpriteAtlas();
+  }else{
+   this.knight=null;this.heroes.select(kind);
+  }
  }
  resize(){
   const dpr=Math.min(2,window.devicePixelRatio||1);
@@ -33,6 +42,7 @@ export class Renderer {
  }
  draw(game){
   const c=this.ctx,canvas=this.canvas;
+  if(game.mode!=='menu'&&game.player)this.selectHero(game.player.kind);
   c.setTransform(1,0,0,1,0,0);
   fill(c,'#09161b',0,0,canvas.width,canvas.height);
   if(!game.dungeon){this.titleBackground();return}
@@ -243,6 +253,11 @@ export class Renderer {
   if(!p)return;
   const c=this.ctx,k=CLASSES[p.kind],f=p.direction||{x:0,y:1};
   const face=weaponFacing(f);
+  if(p.kind!=='warrior'&&this.heroes?.ready&&this.heroes.kind===p.kind){
+   this.shadow(p.x,p.y,p.radius+5);this.heroes.draw(c,p,time);
+   if(p.shield>0){c.save();c.strokeStyle='#bfb0ee';c.globalAlpha=.5;c.lineWidth=2;c.beginPath();c.arc(p.x,p.y,26,0,Math.PI*2);c.stroke();c.restore();}
+   return;
+  }
   if(p.kind==='warrior'&&this.knight?.ready){
    this.shadow(p.x,p.y,p.radius+5);
    this.knight.draw(c,p,time);
@@ -416,7 +431,9 @@ export class Renderer {
  effect(e){
   const c=this.ctx,alpha=clamp(e.life/e.maxLife,0,1);
   c.save();c.globalAlpha=alpha;c.strokeStyle=e.color;c.fillStyle=e.color;
-  if(e.type==='knight-slash'||e.type==='knight-whirl'){
+  if(e.type==='hero-release'){
+   c.restore();drawHeroRelease(c,e,alpha);return;
+  }else if(e.type==='knight-slash'||e.type==='knight-whirl'){
    c.restore();drawKnightEffect(c,e,alpha);return;
   }else if(e.type==='death'){
    const sprite=this.sprites.frame(e.kind,'death',0,'down',e.phaseTwo);

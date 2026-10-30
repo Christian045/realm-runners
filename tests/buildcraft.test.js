@@ -68,13 +68,13 @@ test('mastery powers are applied once at run start and never alter the old base 
  const g=makeGame('mage',p);
  assert.deepEqual(g.player.masteries,['ignite','warding']);
  const before=g.player.damage;
- g.ability();
+ g.ability();g.updateHeroAction(1);
  assert.ok(g.player.shield>=13);
  assert.equal(g.player.damage,before);
  g.mode='playing';
  const e=dummy(g);
  g.enemies=[e];g.player.direction={x:1,y:0};
- g.attack();
+ g.attack();g.updateHeroAction(1);
  for(let frame=0;frame<20;frame++)g.updateProjectiles(.016);
  assert.ok(e.burn>=2.3,'magic impact from mastery should cause status effect');
 });
@@ -82,10 +82,10 @@ test('warrior counter mastery consumes its bonus exactly once',()=>{
  const p=defaultProgress();p.talents.warrior.steel=2;p.talents.warrior.counter=1;
  const g=makeGame('warrior',p);
  const e=dummy(g);g.enemies=[e];g.player.crit=0;
- const baseline=e.hp;g.attack();g.updateKnightAction(1);const normal=baseline-e.hp;
+ const baseline=e.hp;g.attack();g.updateHeroAction(1);g.updateKnightAction(1);const normal=baseline-e.hp;
  g.player.invulnerable=0;g.hurt(5,{x:1,y:0});
  assert.ok(g.player.counterReady>0);
- const before=e.hp;g.attack();g.updateKnightAction(1);
+ const before=e.hp;g.attack();g.updateHeroAction(1);g.updateKnightAction(1);
  assert.ok(before-e.hp>normal*1.2);
  assert.equal(g.player.counterReady,0);
 });
@@ -124,7 +124,7 @@ test('hunter charged arrow benefits from permanent mastery and run power, retain
  const p=defaultProgress();p.talents.hunter.focus=2;p.talents.hunter.sharpEye=1;
  const g=makeGame('hunter',p);
  g.player.upgradeIds.push('trueshot');
- g.player.direction={x:1,y:0};g.attack(true);
+ g.player.direction={x:1,y:0};g.attack(true);g.updateHeroAction(1);
  const arrow=g.projectiles.find(x=>x.charged);
  assert.ok(arrow&&arrow.pierce===4);
  assert.ok(buildDamageFactor(g.player,{charged:true})>1.5);
@@ -133,8 +133,8 @@ test('mage wildfire build burns, and class-specific gameplay upgrades remain bou
  const g=makeGame('mage');
  g.player.upgradeIds.push('wildfire','arcaneBloom');
  const target=dummy(g,900);g.enemies=[target];g.player.direction={x:1,y:0};
- g.attack();for(let i=0;i<20;i++)g.updateProjectiles(.016);
+ g.attack();g.updateHeroAction(1);for(let i=0;i<20;i++)g.updateProjectiles(.016);
  assert.ok(target.burn>3);
- g.ability();
+ g.ability();g.updateHeroAction(1);
  assert.ok(g.effects.some(e=>e.type==='ring'&&e.radius===175));
 });

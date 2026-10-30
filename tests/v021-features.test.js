@@ -98,9 +98,9 @@ test('summoner picks one of three servants and alchemist cycles potion effects',
  assert.equal(g.servant.kind,'spirit');
  g.update(1/60);
  assert.ok(Number.isFinite(g.servant.x));
- const a=fresh('alchemist');a.attack();
+ const a=fresh('alchemist');a.attack();a.updateHeroAction(1);
  assert.equal(a.projectiles.at(-1).alchemy,'burn');
- a.attack();assert.equal(a.projectiles.at(-1).alchemy,'poison');
+ a.attack();a.updateHeroAction(1);assert.equal(a.projectiles.at(-1).alchemy,'poison');
 });
 test('magician and archer have distinct three-way style choices',()=>{
  assert.ok(SPECIALIZATIONS.mage.some(x=>x.id==='pyromancer'));

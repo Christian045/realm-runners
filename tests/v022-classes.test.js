@@ -60,7 +60,7 @@ test('spirit independently fires magic projectiles rather than only healing',()=
 
 test('giant is strong, distinct from permanent pet and expires after 3.8 seconds',()=>{
  const g=newGame('summoner');
- const original=g.servant;g.ability();
+ const original=g.servant;g.ability();g.updateHeroAction(1);
  assert.equal(g.giant.kind,'giant');
  assert.equal(g.giant.life,3.8);
  assert.equal(g.servant,original,'ability cannot replace selected servant');
@@ -76,7 +76,7 @@ test('alchemist throws an arcing bomb that detonates on the ground, not on first
  const g=newGame('alchemist');
  // Cursor target for the tests. The projectile must land at the target.
  g.input={...input,target:(p,camera,r)=>({x:p.x+175,y:p.y+20})};
- g.attack();
+ g.attack();g.updateHeroAction(1);
  const bomb=g.projectiles.at(-1);
  assert.equal(bomb.flask,true);
  assert.equal(bomb.alchemy,'burn');

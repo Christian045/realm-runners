@@ -22,7 +22,7 @@ test('all six heroes have exactly 100 base HP; glass cannon rifle balances damag
  }
  const g=fresh('glasscannon');
  g.player.direction={x:1,y:0};
- g.attack();
+ g.attack();g.updateHeroAction(1);
  const shot=g.projectiles.at(-1);
  assert.equal(shot.rifle,true);
  assert.equal(shot.magic,false);
@@ -126,6 +126,8 @@ test('alchemist holds a visible target, throws exactly once on release and cance
  assert.equal(g.projectiles.length,0,'no flask may leave the hand before release');
  held=false;released=true;
  g.update(1/60);
+ assert.equal(g.projectiles.length,0,'the flask stays in the hand during windup');
+ g.updateHeroAction(g.player.heroAction.duration/2);
  assert.equal(g.projectiles.length,1,'one flask flies on release');
  assert.equal(g.projectiles[0].flask,true);
  g.update(1/60);
