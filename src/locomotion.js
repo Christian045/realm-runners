@@ -39,11 +39,13 @@ export function drawLocomotion(ctx,p,pose,kit,image,drawBody){
  const action=pose.clip.startsWith('attack')||pose.clip==='special';
  if(!kit||!image||!p.moving||p.hp<=0||!(pose.clip==='walk'||action)){drawBody();return;}
  drawLocomotionLegs(ctx,p,pose,kit,image);
- // Keep the torso and held items above the hip line. The knight's long blade
- // can extend outside the leg region below it; no old boots survive the mask.
+ // Keep the torso and held items above the hip line. Preserve the outer cloth
+ // panels below it as well: the old 15px strips sliced long robes and capes
+ // into detached horizontal ribbons while the replacement legs moved.
  ctx.save();ctx.beginPath();ctx.rect(p.x-512,p.y-512,1024,pose.face==='up'?498:494);
- // Preserve the outer cape/robe tails without retaining the source boots.
- ctx.rect(p.x-512,p.y-18,488,15);ctx.rect(p.x+24,p.y-18,488,15);
+ // The animated legs occupy the centre. Keep the full height of the original
+ // side cloth visible so every class retains a continuous silhouette.
+ ctx.rect(p.x-512,p.y-18,488,64);ctx.rect(p.x+24,p.y-18,488,64);
  ctx.clip();drawBody();ctx.restore();
  if(p.kind==='warrior')drawBody(true);
 }

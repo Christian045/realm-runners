@@ -1,4 +1,9 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.30.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.30.1)
+
+## Alpha 0.30.1 – Roben bleiben beim Laufen geschlossen
+
+- Die gemeinsame Laufmaske bewahrt jetzt die seitlichen Stoffbahnen über die gesamte Saumlänge. Lange Roben und Umhänge werden nicht mehr an der Hüfte in schmale Streifen abgeschnitten.
+- Aktualisierte Modul-Cachekennung für die Laufdarstellung der Helden und des Ritters.
 
 ## Alpha 0.30.0 – Beschwörer-Gefährten
 

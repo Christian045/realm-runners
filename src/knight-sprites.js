@@ -1,4 +1,4 @@
-import {drawLocomotion} from './locomotion.js?v=0.29.0';
+import {drawLocomotion} from './locomotion.js?v=0.30.1';
 import {knightPose} from './knight-animation.js?v=0.29.0';
 
 // Four compact, decoded-once PNG atlases. Source frames include the sword;

@@ -1,4 +1,4 @@
-import {drawLocomotion} from './locomotion.js?v=0.29.0';
+import {drawLocomotion} from './locomotion.js?v=0.30.1';
 import {heroShot} from './hero-aim.js?v=0.29.0';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.29.0';
 
