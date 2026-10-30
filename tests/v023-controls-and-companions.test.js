@@ -109,3 +109,29 @@ test('crystal rifle renders with a visible muzzle flash without borrowing mage s
  drawCrystalRifle(ctx,{kind:'glasscannon',x:100,y:100,direction:{x:1,y:0},attackTimer:.17});
  assert.ok(calls.length>=12,'rifle receiver, stock, long barrel and flash');
 });
+
+test('alchemist holds a visible target, throws exactly once on release and cancels without throwing',()=>{
+ let held=true,released=false;
+ const actionInput={
+  ...idle,
+  attacking:()=>held,
+  lobTarget:(p)=>({x:p.x+150,y:p.y+20}),
+  target:(p)=>({x:p.x+150,y:p.y+20}),
+  consumeLobRelease:()=>{const result=released;released=false;return result},
+  clearLobAim:()=>{}
+ };
+ const g=new Game(defaultProgress(),actionInput);g.start('alchemist',172);
+ g.update(1/60);
+ assert.equal(g.alchemyAiming,true);
+ assert.equal(g.projectiles.length,0,'no flask may leave the hand before release');
+ held=false;released=true;
+ g.update(1/60);
+ assert.equal(g.projectiles.length,1,'one flask flies on release');
+ assert.equal(g.projectiles[0].flask,true);
+ g.update(1/60);
+ assert.equal(g.projectiles.length,1,'the released shot is not repeated');
+ const cancel=new Game(defaultProgress(),actionInput);
+ held=true;released=false;cancel.start('alchemist',173);cancel.update(1/60);
+ held=false;cancel.update(1/60);
+ assert.equal(cancel.projectiles.length,0,'cancelled touch or lost focus must not shoot');
+});
