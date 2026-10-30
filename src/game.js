@@ -10,6 +10,7 @@ import {CHALLENGES,challengeUnlocked,applyRunChallenge,enemyExtraCount,challenge
 import {validSpecialization,specializationUnlocked,applySpecialization} from './specializations.js?v=0.21.0';
 import {enemySteering,hasLineOfSight,findSpawnPosition,findPath} from './navigation.js?v=0.23.0';
 import {normalEncounterPlan,pickNormalEnemy} from './encounter-planner.js?v=0.24.0';
+import {separateEnemies,flankVector,lockEnemyAim,meleeArcContains} from './combat-tactics.js?v=0.25.0';
 import {towerStage,towerFloorSeed,towerDifficulty,towerWinReward,TOWER_LENGTH} from './tower.js?v=0.17.0';
 import {createTowerBossState,applyTowerBossDamage} from './tower-boss.js?v=0.18.0';
 import {updateTowerEnemy,towerEnemyDamage,towerRoomHazard} from './tower-enemies.js?v=0.18.0';
@@ -995,7 +996,7 @@ export class Game {
       // The enemy deliberately stops just outside physical collision distance.
       // A short, visible swing must still connect with a stationary player.
       const reach=e.radius+p.radius+18;
-      if(distance(e,p)<=reach&&hasLineOfSight(this.dungeon,e.x,e.y,p.x,p.y,true)){
+      if(meleeArcContains(e,p,e.lockedAim,reach)&&hasLineOfSight(this.dungeon,e.x,e.y,p.x,p.y,true)){
        const before=p.hp;
        this.hurt(e.damage,normalized(p.x-e.x,p.y-e.y));
        if(e.eliteMod==='vampiric'&&p.hp<before)e.hp=Math.min(e.maxHp,e.hp+8);
@@ -1011,27 +1012,31 @@ export class Game {
       this.createEffect('ring',e.x,e.y,'#ff789e',.55,95);
      }else if(e.type==='archer'||e.type==='cultist'||rangedEncounterType(e.type)){
       if(hasLineOfSight(this.dungeon,e.x,e.y,p.x,p.y,true)){
-       this.spawnProjectile(e.x,e.y,dir,e.damage,false,true);e.attackTimer=.24;
+       this.spawnProjectile(e.x,e.y,e.lockedAim||dir,e.damage,false,true);e.attackTimer=.24;
       }
      }
+     e.lockedAim=null;e.windupMax=0;
      e.cooldown=e.type==='boss'?2.3:this.tower?towerEnemyRecovery(this.floorDepth,true):1.75;
     }
    }else{
     const ranged=['archer','cultist'].includes(e.type)||rangedEncounterType(e.type);
-    const steering=enemySteering(this,e,p,dt,ranged);
+    let steering=enemySteering(this,e,p,dt,ranged);
+    if(!ranged)steering=flankVector(this,e,p,steering,dt);
+    const separated=separateEnemies(this,e,steering);
     const reposition=ranged?(!steering.clear||dist<165||dist>300||e.elapsed%2.8<1.35):
      dist>e.radius+p.radius+8;
     if(reposition){
      const amount=e.speed*dt*(e.speedBuff>0?1.28:1);
      const speedFactor=e.slow>0?.58:1;
-     const nx=steering.x*amount*speedFactor+e.knock.x*dt,ny=steering.y*amount*speedFactor+e.knock.y*dt;
+     const nx=separated.x*amount*speedFactor+e.knock.x*dt,
+      ny=separated.y*amount*speedFactor+e.knock.y*dt;
      // Enemies do not cross walls or sealed doors.
      this.move(e,nx,ny);
     }
     if(e.cooldown<=0){
      if(ranged&&dist<500&&steering.clear){
       e.windup=e.type==='boss'?.8:this.tower?towerEnemyWindup(this.floorDepth):.58;
-      e.cooldown=99;
+      e.windupMax=e.windup;lockEnemyAim(e,p);e.cooldown=99;
       this.createEffect('ring',e.x,e.y,e.type==='boss'?'#ff6f83':'#ecc5ff',e.windup,37);
      }else if(!ranged&&
       dist<=e.radius+p.radius+18&&
@@ -1039,7 +1044,8 @@ export class Game {
       // Attack windup is independent of movement or player input.
       // Previously enemies stopped at +8px, but contact damage required +3px:
       // standing still made them wait forever without attacking.
-      e.attackType='melee';e.windup=this.tower?Math.max(.26,.30-(this.floorDepth-1)*.004):.3;e.castTimer=e.windup;e.cooldown=99;
+      e.attackType='melee';e.windup=this.tower?Math.max(.26,.30-(this.floorDepth-1)*.004):.3;
+      e.windupMax=e.windup;lockEnemyAim(e,p);e.castTimer=e.windup;e.cooldown=99;
       this.createEffect('ring',e.x,e.y,'#ffb887',.32,e.radius+17);
      }
     }
