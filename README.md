@@ -1,4 +1,15 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.24.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.25.0)
+
+## Alpha 0.25.0 – Gegner-KI & Bossmechaniken
+
+- **Weniger Gegnerknäuel:** Normale Gegner halten beim Vorwärtslaufen Abstand zu verbündeten Kreaturen. Der Abstandseinfluss ist auf höchstens sieben Nachbarn begrenzt, um iPhone-Performance zu schonen. Schattenläufer, Goblins und Geister setzen häufiger seitlich an; schwere Schildwachen bleiben als Frontlinie ausgerichtet.
+- **Lesbare, faire Angriffe:** Nahkampf-Ausholen und normale Fernkampfschüsse merken sich die Richtung bereits zu Beginn des Windups. Seitliches Ausweichen oder rechtzeitiges Umrunden belohnt Timing, ohne dass die Geschosse erst im letzten Moment auf die Spielerposition springen. Gezielte Warnlinien zeigen die festgelegte Richtung sowie den verbleibenden Ausholfortschritt. Besondere Gegnertypen behalten ihre bisherigen Mechaniken.
+- **Schleimkönig:** Phase II nutzt den neuen **Nachschlag** bereits früh. Er markiert drei verbundene Aufschlagszonen und schlägt erst in der Mitte, dann zeitversetzt seitlich zu. Die Gefahren erscheinen nach einer sichtbaren Vorwarnung und lassen offene Ausweichwege.
+- **Runenwächter:** Phase II nutzt früh den neuen **Runenkäfig**. Vier markierte Runenflächen schließen die Spielerposition ein, lassen aber eine sichere Mitte und diagonale Lücken. Die Zielposition wird so begrenzt, dass alle vier Runen auch nahe an den Bossraumwänden entstehen.
+- **Balance:** Keine pauschalen Boss-LP-Buffs, keine neue unvorhersehbare Trefferquelle. Turmboss-Phasen, No-Hit, Beute und die sechs Klassen behalten ihre bisherigen Werte.
+- **Tests:** Neue Regressionstests für Gegnerabstände, Flankenverhalten, festgelegte Schlag-/Schussrichtung, Bosswarnungen und sichere Felder. Die Runenkäfig-Geometrie wurde direkt für 600 Seed-/Spielerpositions-Kombinationen geprüft. Vollständige Browser-Suite und Long-Run-Balance sind noch nicht bestätigt.
+
+
 
 ## Alpha 0.24.0 – Vielseitigere Dungeons und anspruchsvollere Kämpfe
 
