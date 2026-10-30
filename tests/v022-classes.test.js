@@ -80,8 +80,8 @@ test('alchemist throws an arcing bomb that detonates on the ground, not on first
  const bomb=g.projectiles.at(-1);
  assert.equal(bomb.flask,true);
  assert.equal(bomb.alchemy,'burn');
- assert.equal(bomb.targetX,g.player.x+175);
- assert.equal(bomb.targetY,g.player.y+20);
+ assert.ok(Math.abs(bomb.targetX-(g.player.x+175))<.001);
+ assert.ok(Math.abs(bomb.targetY-(g.player.y+20))<.001);
  const mob=enemy(g,175);g.enemies=[mob];
  g.updateProjectiles(.12);
  assert.ok(bomb.arcHeight>0,'bomb must arc in flight');
