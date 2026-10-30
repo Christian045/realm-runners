@@ -1,5 +1,5 @@
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.23.0';
-import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.24.0';
+import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.26.0';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js?v=0.21.0';
 import {defaultStatistics,newRunStatistics,recordEnemyKill,recordDamage,finishRunStatistics} from './statistics.js?v=0.21.0';
 import {createBossState, updateBoss, startPhaseTwo, isBossInvulnerable, PHASE_TWO_AT} from './boss.js?v=0.25.0';
@@ -8,7 +8,7 @@ import {generateItem,equipItem,applyTalents,buyTalent} from './loot.js?v=0.21.0'
 import {hasAffix,onDash,beforeHit,afterHit,onHurt,onKill,statusTick} from './affixes.js?v=0.21.0';
 import {CHALLENGES,challengeUnlocked,applyRunChallenge,enemyExtraCount,challengeScale,challengeReward,awardAchievements} from './motivation.js?v=0.21.0';
 import {validSpecialization,specializationUnlocked,applySpecialization} from './specializations.js?v=0.21.0';
-import {enemySteering,hasLineOfSight,findSpawnPosition,findPath} from './navigation.js?v=0.23.0';
+import {enemySteering,hasLineOfSight,findSpawnPosition,findPath} from './navigation.js?v=0.26.0';
 import {normalEncounterPlan,pickNormalEnemy} from './encounter-planner.js?v=0.24.0';
 import {separateEnemies,flankVector,lockEnemyAim,meleeArcContains} from './combat-tactics.js?v=0.25.0';
 import {towerStage,towerFloorSeed,towerDifficulty,towerWinReward,TOWER_LENGTH} from './tower.js?v=0.17.0';
