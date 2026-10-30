@@ -2,7 +2,7 @@ import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.22.0';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js?v=0.21.0';
 import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js?v=0.18.1';
 import {drawTowerVictory} from './tower-visuals.js';
-import {PixelSpriteAtlas,spriteIdentity} from './sprites.js?v=0.21.0';
+import {PixelSpriteAtlas,spriteIdentity} from './sprites.js?v=0.22.0';
 import {PixelTileAtlas,tileTheme,tileVariant} from './tileset.js?v=0.18.1';
 import {drawArchitecturalDepth,drawAnchoredDressings,drawDynamicLighting} from './visual-world.js?v=0.21.0';
 import {drawImpact,drawMagicTrail} from './visual-impact.js?v=0.14.0';
