@@ -110,6 +110,9 @@ export function generateDungeon(seed=1,options={}){
  const biomes=['crypt','fungal','flooded'];
  for(const room of rooms){
   const tier=dist[room.id]/Math.max(1,dist[bossId]);
+  // Graph depth gives the deeper wings distinct pressure and environmental cues.
+  room.encounterTier=Math.min(4,Math.floor(tier*4.999));
+  room.sceneSeed=Math.floor(random()*0x7fffffff);
   room.biome=options.tower&&['crypt','fungal','flooded'].includes(options.biome)?options.biome:biomes[Math.min(2,Math.floor(tier*2.9))];
   room.eventKind=room.type==='event'?(random()<.5?'forge':'trial'):null;
   // A room's battle identity follows its architecture. This makes each
