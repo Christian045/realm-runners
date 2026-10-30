@@ -106,6 +106,23 @@ export function roomDressings(d,room){
   const p=subset[hash(i,room.id+9,d.seed)%subset.length];
   points.push({kind:p.kind,x:(x+.5)*TILE,y:(y+.5)*TILE,colors:p});
  }
+ // Floor markings reflect each room's fighting style, always painted onto
+ // real walkable tiles. They do not create collision or block any doorway.
+ const identity=['combat','elite'].includes(room.type)?room.encounterStyle:
+  room.type==='boss'?'throne':room.type==='shop'?'merchant':
+  room.type==='shrine'?'ritual':room.type==='trap'?'fracture':
+  room.theme==='fungal'?'organic':room.theme==='flooded'?'current':'fracture';
+ const positions=[[3,5],[11,5],[4,3],[10,7],[3,7],[11,3],[7,2],[7,8]];
+ const offset=(room.sceneSeed||room.id)%positions.length;
+ let count=0;
+ for(let i=0;i<positions.length&&count<3;i++){
+  const [px,py]=positions[(i+offset)%positions.length];
+  const tx=tileX+px,ty=tileY+py;
+  if(d.tileAt(tx,ty)!==0)continue;
+  points.push({kind:'groundmark',style:identity,x:(tx+.5)*TILE,y:(ty+.5)*TILE,
+   seed:(room.sceneSeed||room.id*33)+i,biome:room.biome});
+  count++;
+ }
  return points;
 }
 export function drawAnchoredDressings(c,game){
@@ -120,7 +137,44 @@ export function drawAnchoredDressings(c,game){
   for(const p of r.visualDressings){
    if(p.x<cam.x-90||p.x>cam.x+cam.w+90||p.y<cam.y-105||p.y>cam.y+cam.h+105)continue;
    const x=Math.round(p.x),y=Math.round(p.y);
-   if(p.kind==='fixture'){
+   if(p.kind==='groundmark'){
+    const k=p.style,h=hash(p.seed,r.id,d.seed);
+    c.save();c.translate(x,y);
+    c.globalAlpha=.39;c.lineWidth=2;
+    const hue=k==='arcane'||k==='ritual'?'#a5a2db':
+     k==='ranged'?'#d6c397':k==='fortified'||k==='merchant'?'#bcae8c':
+     k==='ambush'||k==='fracture'?'#848c90':
+     k==='throne'?'#be989a':k==='current'?'#8caebc':
+     k==='organic'?'#8cb68c':'#a2aa9d';
+    c.strokeStyle=hue;
+    if(k==='arcane'||k==='ritual'||k==='throne'){
+     c.beginPath();c.ellipse(0,0,18,11,0,0,Math.PI*2);c.stroke();
+     c.beginPath();c.moveTo(-12,0);c.lineTo(12,0);c.moveTo(0,-9);c.lineTo(0,9);c.stroke();
+     box(c,hue,-3,-3,6,6);
+    }else if(k==='ranged'){
+     c.beginPath();c.moveTo(-18,-9);c.lineTo(18,9);
+     c.moveTo(9,1);c.lineTo(18,9);c.lineTo(7,9);c.stroke();
+     c.beginPath();c.arc(-8,-4,5,0,Math.PI*2);c.stroke();
+    }else if(k==='fortified'||k==='merchant'){
+     c.strokeRect(-16,-11,32,22);
+     c.beginPath();c.moveTo(-16,0);c.lineTo(16,0);
+     c.moveTo(0,-11);c.lineTo(0,11);c.stroke();
+     box(c,hue,-3,-3,6,6);
+    }else if(k==='ambush'||k==='fracture'){
+     c.beginPath();c.moveTo(-18,-12);c.lineTo(-7,-3);c.lineTo(1,-8);
+     c.lineTo(8,3);c.lineTo(17,1);c.moveTo(-7,-3);
+     c.lineTo(-12,11);c.moveTo(8,3);c.lineTo(11,12);c.stroke();
+    }else if(k==='current'||k==='organic'){
+     for(let n=0;n<3;n++){
+      c.beginPath();c.moveTo(-16,n*7-8);
+      c.quadraticCurveTo((h%5)-5,n*7-17,17,n*7-7);c.stroke();
+     }
+    }else{
+     c.beginPath();c.moveTo(-17,-8);c.lineTo(4,0);
+     c.lineTo(17,9);c.moveTo(-12,8);c.lineTo(10,-9);c.stroke();
+    }
+    c.restore();
+   }else if(p.kind==='fixture'){
     wallFixture(c,x,y,p.style,r.type==='boss'?'#f5a37e':r.theme==='fungal'?'#99d6a2':'#efc58b',game.time,p.seed);
    }else if(p.kind==='urn'){
     box(c,'#0918207a',x-13,y+8,30,7);
