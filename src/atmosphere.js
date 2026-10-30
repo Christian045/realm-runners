@@ -281,6 +281,7 @@ export function drawBossWarnings(ctx,game){
   const side={x:-t.dir.y,y:t.dir.x};
   for(const n of [0,-1,1]){
    const x=t.target.x+side.x*n*110,y=t.target.y+side.y*n*110;
+   if(!game.dungeon.canMove(x,y,12,true))continue;
    const r=n?57:66;
    ctx.globalAlpha=.17+(1-fraction)*.27;
    ctx.fillStyle='#f08eae';
