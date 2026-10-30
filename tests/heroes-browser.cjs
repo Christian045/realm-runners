@@ -12,7 +12,7 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
     const result=await page.evaluate(async kind=>{
      const [{HeroSpriteAtlas},{Game},{Renderer},{defaultProgress},{heroPose,beginHeroAction}]=await Promise.all([
       import('./src/hero-sprites.js?v=0.28.0'),import('./src/game.js?v=0.28.0'),import('./src/render.js?v=0.28.0'),import('./src/progression.js'),import('./src/hero-animation.js?v=0.28.0')]);
-     const atlas=new HeroSpriteAtlas();atlas.select(kind);await atlas.loading;await atlas.previewLoading;
+     const atlas=window.__heroTestAtlas??=new HeroSpriteAtlas();atlas.select(kind);await atlas.loading;await atlas.previewLoading;
      if(!atlas.ready)throw new Error('Failed atlas '+kind);
      const c=document.createElement('canvas');c.width=192;c.height=192;const ctx=c.getContext('2d');
      let minUnique=6,minPixels=1e9,edges=0;
@@ -32,7 +32,8 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
      const input={movement:()=>({x:0,y:0}),aiming:()=>({x:1,y:0}),attacking:()=>false,consumeDash:()=>false,consumeAbility:()=>false};
      const g=new Game(defaultProgress(),input);g.start(kind,5);const p=g.player;p.direction={x:1,y:0};
      g.attack();const before=g.projectiles.length;g.updateHeroAction(p.heroAction.duration/2);const after=g.projectiles.length,frame=heroPose(p).frame;
-     const scene=document.createElement('canvas'),r=new Renderer(scene,kind);await r.heroes.loading;
+     const r=window.__heroTestRenderer??=new Renderer(document.createElement('canvas'),kind);
+     r.selectHero(kind);await r.heroes.loading;const scene=r.canvas;
      g.enemies=[];g.projectiles=[];g.effects=[];p.heroAction=null;p.direction={x:0,y:1};
      r.updateCamera(g);g.camera.x=p.x-g.camera.w/2;g.camera.y=p.y-g.camera.h/2;r.draw(g);
      const screenshot=scene.toDataURL('image/png'),states=[];
@@ -52,7 +53,17 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
     fs.writeFileSync('test-output/'+kind+'-'+engine+'.png',Buffer.from(result.screenshot.split(',')[1],'base64'));
     result.states.forEach((data,i)=>fs.writeFileSync('test-output/'+kind+'-'+engine+'-'+i+'.png',Buffer.from(data.split(',')[1],'base64')));
     await page.evaluate(()=>new Promise(requestAnimationFrame));
-    if(mobile){await page.locator('#attackTouch').tap();await page.locator('#abilityTouch').tap();await page.locator('#dashTouch').tap();assert.equal(await page.evaluate(()=>visualViewport.scale),1);}
+    if(mobile){
+     // Fixed game buttons need real touchscreen coordinates, not WebKit's
+     // scroll-into-view machinery (which can stall on an animated viewport).
+     for(const id of ['attackTouch','abilityTouch','dashTouch']){
+      const button=page.locator('#'+id);assert.ok(await button.isVisible());
+      const box=await button.boundingBox(),viewport=page.viewportSize();
+      assert.ok(box&&box.x>=0&&box.y>=0&&box.x+box.width<=viewport.width&&box.y+box.height<=viewport.height);
+      await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);
+     }
+     assert.equal(await page.evaluate(()=>visualViewport.scale),1);
+    }
     else{await page.keyboard.press('KeyF');await page.keyboard.press('KeyQ');await page.keyboard.press('Space');}
     await page.screenshot({path:'test-output/'+kind+'-live-'+engine+'.png'});
     await page.locator('#pauseBtn').click();await page.locator('[data-action="menu"]').click();
