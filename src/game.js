@@ -304,7 +304,11 @@ export class Game {
     roster[Math.floor(this.random()*roster.length)]);
    const spec=ENEMY_DATA[type];
    const [ox,oy]=offsets[i%offsets.length];
-   const point=findSpawnPosition(this.dungeon,room,room.cx+ox,room.cy+oy,spec.radius,this.player);
+   // Bosses always materialise at the geometric centre of the boss arena.
+   // Ordinary monsters continue to use collision-aware spread-out positions.
+   const point=boss?{x:room.cx,y:room.cy}:
+    findSpawnPosition(this.dungeon,room,room.cx+ox,room.cy+oy,
+     spec.radius,this.player,this.enemies.filter(e=>e.hp>0&&e.homeRoom===room.id));
    const x=point.x,y=point.y;
    const elite=eliteRoom&&i===0;
    const eliteMods=['swift','guardian','arcane','volatile','vampiric'];
@@ -352,7 +356,8 @@ export class Game {
     i===0&&backline.length?backline[Math.floor(this.random()*backline.length)]:
     roster[Math.floor(this.random()*roster.length)];
    const spec=ENEMY_DATA[type],offset=offsets[i%offsets.length];
-   const point=findSpawnPosition(this.dungeon,room,room.cx+offset[0],room.cy+offset[1],spec.radius,this.player);
+   const point=findSpawnPosition(this.dungeon,room,room.cx+offset[0],room.cy+offset[1],
+    spec.radius,this.player,this.enemies.filter(e=>e.hp>0&&e.homeRoom===room.id));
    if(distance(point,this.player)<spec.radius+this.player.radius+72)continue;
    const hp=Math.round(spec.hp*(1+this.clearCount*(this.tower?.075:.10)+
     Math.max(0,this.floorDepth-1)*(this.tower?.115:.23))*challengeScale(this));
