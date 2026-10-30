@@ -156,7 +156,7 @@ export function generateDungeon(seed=1,options={}){
   // large combat spaces, rather than four similarly sized random squares.
   if(room.type==='combat'&&!options.tower){
    const fights=rooms.filter(r=>r.type==='combat')
-    .sort((a,b)=>a.encounterTier-b.encounterTier||a.id-b.id);
+    .sort((a,b)=>dist[a.id]-dist[b.id]||a.id-b.id);
    const stage=fights.findIndex(r=>r.id===room.id);
    room.shape=stage===0?'compact':
     stage===1?['long','tall','hourglass'][(seed+room.id)%3]:
