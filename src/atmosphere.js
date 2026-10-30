@@ -81,13 +81,25 @@ export function drawDungeonAtmosphere(ctx,game){
   const th=roomTheme(room),cx=room.cx,cy=room.cy;
   const interiorX=left+2*TILE,interiorY=top+2*TILE;
   const interiorW=(ROOM_W-4)*TILE,interiorH=(ROOM_H-4)*TILE;
-  // Glyphs, irregular tiled borders, and overgrown paths.
+  // Outline only walkable floor edges. The old 13x9 rectangular overlay
+  // made even the compact and crooked rooms look like giant rectangles.
   ctx.strokeStyle=th.accent+'55';ctx.lineWidth=2;
-  ctx.strokeRect(left+2.15*TILE,top+1.9*TILE,(ROOM_W-4.3)*TILE,(ROOM_H-3.8)*TILE);
+  ctx.beginPath();
+  const gx=room.gx*ROOM_W,gy=room.gy*ROOM_H;
+  for(let ly=1;ly<ROOM_H-1;ly++)for(let lx=1;lx<ROOM_W-1;lx++){
+   const tx=gx+lx,ty=gy+ly;
+   if(d.tileAt(tx,ty)!==0)continue;
+   const x=tx*TILE,y=ty*TILE;
+   if(d.tileAt(tx,ty-1)!==0){ctx.moveTo(x,y);ctx.lineTo(x+TILE,y)}
+   if(d.tileAt(tx,ty+1)!==0){ctx.moveTo(x,y+TILE);ctx.lineTo(x+TILE,y+TILE)}
+   if(d.tileAt(tx-1,ty)!==0){ctx.moveTo(x,y);ctx.lineTo(x,y+TILE)}
+   if(d.tileAt(tx+1,ty)!==0){ctx.moveTo(x+TILE,y);ctx.lineTo(x+TILE,y+TILE)}
+  }
+  ctx.stroke();
   for(let i=0;i<22;i++){
    const v=noise(d.seed+room.id*149,i),w=noise(d.seed+room.id*137,i+91);
    const x=interiorX+v*interiorW,y=interiorY+w*interiorH;
-   if(Math.hypot(x-cx,y-cy)<70)continue;
+   if(d.isBlocked(x,y,false)||Math.hypot(x-cx,y-cy)<70)continue;
    if(room.theme==='fungal'){
     if(i%4===0)drawMushroom(ctx,x,y,14+(i%3)*3,i%2?'#84c7a4':'#c4b1dd');
     else{rect(ctx,'#2e765d99',x,y,15,4);rect(ctx,'#4b9169a8',x+5,y-5,3,11)}
