@@ -666,3 +666,16 @@ canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
 .run-report span{display:block;font-size:11px;color:#c2ddd4;line-height:1.45}
 
 .castle-hero-title{display:block;margin-top:5px;font-size:10px;letter-spacing:.12em;font-weight:900;color:#f4c27f;text-shadow:0 1px 5px #000}
+
+/* Alpha 0.22.0 – summon timer and readable compact servant choices. */
+.status-hud span.giant{border-color:#d5bca0;color:#ffe1b8;background:#2f2530eb}
+.castle-servants{grid-template-columns:repeat(3,minmax(0,1fr));}
+.castle-servants .servant-card{min-width:0;overflow-wrap:anywhere;line-height:1.25;}
+.castle-servants .servant-card strong{color:#f0d6a9;letter-spacing:.035em}
+.castle-servants .servant-card.selected strong{color:#ffecbb}
+@media(max-width:700px){
+ .castle-servants{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+ .castle-servants .servant-card{padding:8px 4px;min-height:76px}
+ .castle-servants .servant-card strong{font-size:10px}
+ .castle-servants .servant-card small{font-size:9px}
+}
