@@ -1,4 +1,4 @@
-import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.22.0';
+import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.23.0';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js?v=0.21.0';
 import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js?v=0.18.1';
 import {drawTowerVictory} from './tower-visuals.js';
