@@ -6,7 +6,7 @@ import {normalBossWindup,normalBossRecovery} from './combat-balance.js?v=0.15.0'
 
 export const PHASE_TWO_AT = .55;
 const PHASE_ONE = Object.freeze(['volley','slam','charge']);
-const PHASE_TWO = Object.freeze(['volley','fracture','nova','charge','slam','summon']);
+const PHASE_TWO = Object.freeze(['volley','fracture','nova','charge','slam','summon','echo']);
 
 // A separate, inspectable state machine. No invisible instant-hit boss abilities.
 export function createBossState(){
@@ -36,7 +36,7 @@ export function beginBossAttack(game,enemy,forcedType=null){
  if(!s||s.transition>0||s.telegraph||s.charge)return false;
  const order=s.phase===2?PHASE_TWO:PHASE_ONE;
  const type=forcedType||order[s.attackIndex%order.length];
- if(!['volley','slam','charge','nova','summon','fracture'].includes(type))return false;
+ if(!['volley','slam','charge','nova','summon','fracture','echo'].includes(type))return false;
  s.attackIndex++;
  const p=game.player,dir=normalized(p.x-enemy.x,p.y-enemy.y);
  const duration=normalBossWindup(s.phase,type);
@@ -107,10 +107,22 @@ export function executeBossAttack(game,enemy){
    time:.7,maxTime:.7,damage:Math.round(enemy.damage*1.22),
    color:'#ffa2c2',source:'boss'});
   game.createEffect('ring',t.target.x,t.target.y,'#f2a4c7',.55,76);
+ }else if(t.type==='echo'){
+  // Locked impact with staggered side strikes. Visible safe paths remain.
+  const across={x:-t.dir.y,y:t.dir.x};
+  for(const side of [0,-1,1]){
+   const x=t.target.x+across.x*side*110,y=t.target.y+across.y*side*110;
+   if(!game.dungeon.canMove(x,y,12,true))continue;
+   const time=side?1.02:.68,radius=side?57:66;
+   game.hazards.push({x,y,radius,time,maxTime:time,
+    damage:Math.round(enemy.damage*(side?1.04:1.28)),
+    color:'#f6a7c9',source:'boss-echo'});
+   game.createEffect('ring',x,y,'#f9b1d1',time,radius);
+  }
  }else if(t.type==='summon'){
   summonAdds(game,enemy);
  }
- s.exposed=['fracture','slam','charge'].includes(t.type)?1.0:.44;
+ s.exposed=['fracture','slam','charge','echo'].includes(t.type)?1.0:.44;
  s.recovery=normalBossRecovery(s.phase);
  enemy.cooldown=s.recovery;
 }
