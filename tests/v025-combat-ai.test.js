@@ -60,7 +60,7 @@ test('actual enemy windup shoots in original direction, not at moving player',()
 
 test('Slime King phase two echo is telegraphed and has staggered, avoidable impacts',()=>{
  const {game,boss,room}=bossRoom(31);
- assert.equal(boss.boss.variant,'slimeking'||boss.boss.variant); // ordinary king
+ assert.notEqual(boss.boss.variant,'warden','seed must select Slime King');
  startPhaseTwo(game,boss);boss.boss.transition=0;
  boss.boss.telegraph=null;boss.boss.charge=null;
  const hp=game.player.hp;
