@@ -103,10 +103,21 @@ export function generateDungeon(seed=1,options={}){
  const bossId=dist.indexOf(Math.max(...dist));
  const rest=rooms.filter(r=>r.id!==0&&r.id!==bossId).sort((a,b)=>dist[b.id]-dist[a.id]||a.id-b.id);
  rooms[bossId].type='boss';
- // Later tower floors trade the guaranteed treasure chamber for another fight.
- // The seven-room floor length stays unchanged.
- const specials=options.tower?(options.floor>=4?['shrine','elite']:['shrine','treasure','elite']):SPECIAL_ROOMS;
- for(let i=0;i<specials.length;i++)rest[i].type=specials[i];
+ // The normal dungeon needs an actual combat arc. Assign four combat rooms
+ // across its depth, instead of placing every combat room near the entrance.
+ // All ten hand-picked special rooms are still present exactly once.
+ if(!options.tower){
+  const nearestFirst=[...rest].reverse();
+  const max=nearestFirst.length-1;
+  const combatIndex=new Set([0,Math.round(max/3),Math.round(2*max/3),max]);
+  const chambers=nearestFirst.filter((room,i)=>!combatIndex.has(i));
+  const story=['shrine','event','treasure','camp','shop','trap','library','vault','secret','elite'];
+  for(let i=0;i<story.length;i++)chambers[i].type=story[i];
+ }else{
+  // Tower encounter structure and seven-room length are unchanged.
+  const specials=options.floor>=4?['shrine','elite']:['shrine','treasure','elite'];
+  for(let i=0;i<specials.length;i++)rest[i].type=specials[i];
+ }
  const biomes=['crypt','fungal','flooded'];
  for(const room of rooms){
   const tier=dist[room.id]/Math.max(1,dist[bossId]);
