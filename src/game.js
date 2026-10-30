@@ -31,8 +31,9 @@ export class Game {
   this.towerRelics=[];this.towerRelicHits=0;this.towerRelicKills=0;this.towerPhoenixUsed=false;this.stageStartedAt=0;this.stageHazardClock=9;this.towerNewRecord=false;
   this.runStatistics=null;this.statisticsSaveClock=0;this.exitPortal=null;this.hitsTaken=0;this.shopStock=[];
   this.servantChoice='bat';this.servant=null;this.giant=null;this.puddles=[];this.ambientClock=9;
+  this.alchemyAiming=false;this.alchemyTarget=null;this.queuedAlchemyThrow=null;this.alchemyThrowTarget=null;
  }
- notify(){this.onChange(this)}
+ notify(){if(this.mode!=='playing'){this.alchemyAiming=false;this.queuedAlchemyThrow=null;}this.onChange(this)}
  saveStatistics(){return saveProgress(this.progress)}
  setServant(id){
   if(this.mode!=='menu'||!['bat','imp','spirit','guardian','ranger'].includes(id))return false;
@@ -177,6 +178,7 @@ export class Game {
   this.runCoins=0;this.clearCount=0;this.time=0;this.bossDefeated=false;this.exitPortal=null;this.hitsTaken=0;this.shopStock=[];this.upgradeChoices=[];this.bossMessage='';this.giant=null;this.puddles=[];
   this.runStatistics=newRunStatistics(kind,this.tower?'Turm':this.endless?'Endlos':'Dungeon');
   this.statisticsSaveClock=0;this.ambientClock=9;
+  this.alchemyAiming=false;this.alchemyTarget=null;this.queuedAlchemyThrow=null;this.alchemyThrowTarget=null;
   this.servant=kind==='summoner'?{kind:this.servantChoice,x:this.player.x-30,y:this.player.y-30,radius:11,cooldown:0,healClock:0,friendly:true,path:[],pathClock:0,stuckClock:0}:null;
   this.camera.x=this.player.x-this.camera.w/2;this.camera.y=this.player.y-this.camera.h/2;
   this.playSound('start');
@@ -467,6 +469,23 @@ export class Game {
     this.attack(charged);
     if(charged)p.hunterCharge=0;
    }
+  }else if(p.kind==='alchemist'){
+   // Hold for a live target preview, release to throw exactly once.
+   const released=this.input.consumeLobRelease?.()||false;
+   if(attacking){
+    this.alchemyAiming=true;
+    this.alchemyTarget=this.input.lobTarget?.(p,camera,260,this.enemies)||
+     this.input.target?.(p,camera,260)||{x:p.x+aim.x*235,y:p.y+aim.y*235};
+   }else if(released||this.alchemyAiming){
+    this.alchemyAiming=false;
+    const selected=this.input.lobTarget?.(p,camera,260,this.enemies)||this.alchemyTarget;
+    if(selected)this.queuedAlchemyThrow=selected;
+    this.input.clearLobAim?.();
+   }
+   if(!attacking&&this.queuedAlchemyThrow&&p.attackCooldown<=0){
+    this.alchemyThrowTarget=this.queuedAlchemyThrow;
+    this.queuedAlchemyThrow=null;this.attack();this.alchemyThrowTarget=null;
+   }
   }else if(attacking&&p.attackCooldown<=0)this.attack();
   if(this.input.consumeAbility()&&p.abilityCooldown<=0)this.ability();
   this.entrance(this.dungeon.roomAt(p.x,p.y));
@@ -659,7 +678,7 @@ export class Game {
  }
  throwFlask(recipe,damage,large=false){
   const p=this.player,aim=p.direction,maxRange=large?315:260;
-  const target=this.input.target?.(p,this.camera,maxRange)||
+  const target=(!large&&this.alchemyThrowTarget)||this.input.target?.(p,this.camera,maxRange)||
    {x:p.x+aim.x*maxRange,y:p.y+aim.y*maxRange};
   const dx=target.x-p.x,dy=target.y-p.y,len=Math.hypot(dx,dy);
   const range=Math.min(maxRange,Math.max(65,len));
