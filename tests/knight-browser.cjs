@@ -14,7 +14,7 @@ const fs=require('node:fs');
    await page.locator('#overlay').waitFor({state:'hidden'});
    const result=await page.evaluate(async()=>{
     const [{KnightSpriteAtlas},{Game},{Renderer},{defaultProgress},{beginKnightAction,knightPose}]=await Promise.all([
-     import('./src/knight-sprites.js?v=0.27.0'),import('./src/game.js?v=0.28.0'),import('./src/render.js?v=0.28.0'),
+     import('./src/knight-sprites.js?v=0.27.0'),import('./src/game.js?v=0.28.1'),import('./src/render.js?v=0.28.1'),
      import('./src/progression.js'),import('./src/knight-animation.js?v=0.27.0')]);
     const atlas=new KnightSpriteAtlas();await atlas.loading;
     if(!atlas.ready)throw new Error('Production knight atlas failed to decode');

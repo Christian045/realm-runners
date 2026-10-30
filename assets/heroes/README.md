@@ -44,3 +44,12 @@ and `npm run test:heroes-browser` (static server on port 8000). The hero suite
 checks all 840 entries in Chromium and WebKit, renders all states, exercises
 class switching and touch actions, and verifies projectiles at release. A
 physical iPhone hardware test is still recommended.
+
+
+## Layered aiming correction (0.28.1)
+
+`glasscannon/aim.png` and `hunter/aim.png` contain four rows of six weaponless attack bodies and a fifth row of six independent weapon poses. `atlas.json.aimRig` stores their cropped UVs and anchors. `tools/pack-aim-rigs.cjs` packs the transparent sources offline using Sharp. The browser loads only the selected class’s extra atlas.
+
+The body stays upright and uses real bracing/recoil/recovery poses. The weapon rotates independently around the hands; its emitting tip uses the same geometry as `src/hero-aim.js`. The release flash starts at that tip. Left-facing weapons flip vertically in local weapon coordinates so they remain upright. Hunter’s special uses the same bow origin for its intentional spread. Mage/summoner emit from their casting hands; alchemist’s existing lob starts from the throw hand and retains the selected floor destination.
+
+New raster layers were created with the built-in Imagegen tool, using each class’s existing right-facing sheet as the identity reference. Prompt set: preserve identity, clothing, palette and detailed fantasy pixel art; transparent 6-column/5-row sheet; rows 1–4 show down/right/up/left weaponless bodies in six distinct ready/brace/aim/release/settle/recover poses; row 5 shows detached right-pointing crystal rifles or longbows with gloved hands in corresponding loaded/release/recoil states; no labels, background, particles, or weapons on the body layers. Reviewed, cropped and packed into the project assets above.

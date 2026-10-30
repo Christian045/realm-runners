@@ -1,4 +1,5 @@
-import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.28.0';
+import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.28.1';
+import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.28.1';
 import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.27.0';
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.23.0';
 import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.26.0';
@@ -631,6 +632,7 @@ export class Game {
   this.attackSequence++;
   const action=beginHeroAction(p,'attack',Math.min(.52,p.attackCooldown));
   action.charged=charged;action.sequence=this.attackSequence;
+  if(this.input.mouse?.active&&p.kind!=='alchemist')action.target={...this.input.target(p,this.camera,10000)};
   if(p.kind==='alchemist')action.target={...(this.alchemyThrowTarget||this.input.target?.(p,this.camera,260)||
    {x:p.x+p.direction.x*260,y:p.y+p.direction.y*260})};
   return true;
@@ -642,7 +644,7 @@ export class Game {
   });
  }
  resolveHeroAttack(action){
-  const p=this.player,kind=p.kind,aim=action.direction,charged=action.charged;
+  const p=this.player,kind=p.kind,shot=heroShot(p,action),aim=shot.aim,charged=action.charged;
   this.playSound('shoot');this.heroReleaseEffect(action);
    const shotDamage=kind==='hunter'&&charged?p.damage*2.05:p.damage;
     // The rogue uses paired daggers whenever a target is within striking distance.
@@ -656,25 +658,25 @@ export class Game {
      }
     }
    if(kind==='glasscannon'){
-    this.spawnProjectile(p.x+aim.x*32,p.y+aim.y*32,aim,p.damage,false,false,1030);
+    this.spawnHeroProjectile(shot,aim,p.damage,false,false,1030);
     const bullet=this.projectiles.at(-1);bullet.rifle=true;bullet.radius=4;
-    this.createEffect('spark',p.x+aim.x*42,p.y+aim.y*42,'#efd0ff',.16,20);
+    this.createEffect('spark',shot.x,shot.y,'#efd0ff',.16,20);
     return;
    }
    if(kind==='alchemist'){
     const recipe=['burn','poison','frost'][(action.sequence-1)%3];
-    this.throwFlask(recipe,p.damage*.93,false,action.target,aim);
+    this.throwFlask(recipe,p.damage*.93,false,action.target,aim,shot);
     return;
    }
    const shotSpeed=kind==='hunter'&&charged?840:null;
-   this.spawnProjectile(p.x+aim.x*19,p.y+aim.y*19,aim,
+   this.spawnHeroProjectile(shot,aim,
     kind==='summoner'?p.damage*.32:shotDamage,
     ['mage','glasscannon','summoner'].includes(kind),false,shotSpeed);
    this.projectiles[this.projectiles.length-1].magicSplash=kind==='mage';
    if(kind==='hunter'&&p.specialization==='marksman'){
      const bolt=this.projectiles[this.projectiles.length-1];
      bolt.pierce=2;bolt.hitIds=new Set();bolt.charged=true;
-     this.createEffect('spark',p.x+aim.x*18,p.y+aim.y*18,'#ffcf93',.18,23);
+     this.createEffect('spark',shot.x,shot.y,'#ffcf93',.18,23);
     }
     if(kind==='hunter'&&charged){
     const arrow=this.projectiles[this.projectiles.length-1];
@@ -686,21 +688,30 @@ export class Game {
     if(p.volleyCount%4===0){
      for(const spread of [-.12,.12]){
       const a=Math.atan2(aim.y,aim.x)+spread;
-      this.spawnProjectile(p.x,p.y,{x:Math.cos(a),y:Math.sin(a)},p.damage*.62,false,false);
+      this.spawnHeroProjectile(shot,{x:Math.cos(a),y:Math.sin(a)},p.damage*.62,false,false);
      }
      this.createEffect('ring',p.x,p.y,'#bceea7',.20,27);
     }
    }
    if(hasAffix(p,'triple'))for(const delta of [-.15,.15]){
     const a=Math.atan2(aim.y,aim.x)+delta;
-    this.spawnProjectile(p.x,p.y,{x:Math.cos(a),y:Math.sin(a)},p.damage*.55,kind==='mage',false);
+    this.spawnHeroProjectile(shot,{x:Math.cos(a),y:Math.sin(a)},p.damage*.55,kind==='mage',false);
    }
-   this.createEffect('spark',p.x+aim.x*22,p.y+aim.y*22,CLASSES[kind].color,charged?.3:.19,charged?25:13);
+   this.createEffect('spark',shot.x,shot.y,CLASSES[kind].color,charged?.3:.19,charged?25:13);
+ }
+ spawnHeroProjectile(shot,direction,damage,magic=false,hostile=false,speed=null){
+  // Collision stays on the dungeon floor, while the visible projectile flies
+  // at hand height. A horizontal phone shot still hits an enemy on that row.
+  const height=HERO_PROJECTILE_HEIGHT;
+  this.spawnProjectile(shot.x,shot.y+height,direction,damage,magic,hostile,speed);
+  const bullet=this.projectiles.at(-1);bullet.visualHeight=height;
+  bullet.launchStart={x:shot.mount.x,y:shot.mount.y+height};
  }
  heroReleaseEffect(action){
-  const p=this.player;
-  this.effects.push({type:'hero-release',kind:p.kind,x:p.x+action.direction.x*20,y:p.y+action.direction.y*20,
-   angle:Math.atan2(action.direction.y,action.direction.x),life:.18,maxLife:.18});
+  const p=this.player,shot=heroShot(p,action);
+  if(action.clip==='special'&&['glasscannon','summoner'].includes(p.kind))return;
+  this.effects.push({type:'hero-release',kind:p.kind,x:shot.x,y:shot.y,
+   angle:shot.angle,life:.18,maxLife:.18});
  }
  updateKnightAction(dt){
   const p=this.player;
@@ -755,7 +766,9 @@ export class Game {
   const p=this.player;
   p.abilityCooldown=p.kind==='summoner'?14:p.kind==='alchemist'?10.5:p.specialization==='cryomancer'?6.5:7;
   const duration=p.kind==='summoner'?.66:p.kind==='mage'?.54:.48;
-  const action=beginHeroAction(p,'special',duration);p.castTimer=duration;p.attackTimer=0;
+  const action=beginHeroAction(p,'special',duration);
+  if(p.kind==='hunter'&&this.input.mouse?.active)action.target={...this.input.target(p,this.camera,10000)};
+  p.castTimer=duration;p.attackTimer=0;
   p.attackCooldown=Math.max(p.attackCooldown,duration);
   if(p.kind==='alchemist')action.target={...(this.input.target?.(p,this.camera,315)||
    {x:p.x+p.direction.x*315,y:p.y+p.direction.y*315})};
@@ -765,7 +778,7 @@ export class Game {
   return true;
  }
  resolveHeroSpecial(action){
-  const p=this.player,aim=action.direction;this.playSound('ability');this.heroReleaseEffect(action);
+  const p=this.player,shot=heroShot(p,action),aim=p.kind==='hunter'?shot.aim:action.direction;this.playSound('ability');this.heroReleaseEffect(action);
   if(p.kind==='glasscannon'){
    const center={x:p.x+aim.x*130,y:p.y+aim.y*130};
    this.createEffect('ring',center.x,center.y,'#eec1ff',.65,150);
@@ -783,11 +796,11 @@ export class Game {
    this.createEffect('text',x,y-70,'RIESENRUF','#f4d4a4',.9);
   }else if(p.kind==='alchemist'){
    const recipe=['burn','poison','frost'][this.attackSequence%3];
-   this.throwFlask(recipe,p.damage*1.30,true,action.target,aim);
+   this.throwFlask(recipe,p.damage*1.30,true,action.target,aim,shot);
   }else if(p.kind==='hunter'){
    for(let i=-3;i<=3;i++){
     const angle=Math.atan2(aim.y,aim.x)+i*.14;
-    this.spawnProjectile(p.x,p.y,{x:Math.cos(angle),y:Math.sin(angle)},p.damage*1.12,false,false);
+    this.spawnHeroProjectile(shot,{x:Math.cos(angle),y:Math.sin(angle)},p.damage*1.12,false,false);
    }
   }else{
    const center={x:p.x+aim.x*165,y:p.y+aim.y*165};
@@ -808,7 +821,7 @@ export class Game {
    }
   }
  }
- throwFlask(recipe,damage,large=false,targetOverride=null,aimOverride=null){
+ throwFlask(recipe,damage,large=false,targetOverride=null,aimOverride=null,socketOverride=null){
   const p=this.player,aim=aimOverride||p.direction,maxRange=large?315:260;
   const target=targetOverride||(!large&&this.alchemyThrowTarget)||this.input.target?.(p,this.camera,maxRange)||
    {x:p.x+aim.x*maxRange,y:p.y+aim.y*maxRange};
@@ -820,12 +833,12 @@ export class Game {
    const tx=p.x+dir.x*f,ty=p.y+dir.y*f;
    if(this.dungeon.canMove(tx,ty,12,false)){x=tx;y=ty;break}
   }
-  const flight=.52+range/1200;
-  this.projectiles.push({x:p.x,y:p.y,vx:0,vy:0,
+  const flight=.52+range/1200,socket=socketOverride||heroShot(p,{direction:aim}),startX=socket.x,startY=socket.y+9;
+  this.projectiles.push({x:startX,y:startY,vx:0,vy:0,
    damage,magic:false,hostile:false,life:flight+.2,radius:9,
-   alchemy:recipe,flask:true,startX:p.x,startY:p.y,targetX:x,targetY:y,
+   alchemy:recipe,flask:true,startX,startY,targetX:x,targetY:y,
    flight,flightTotal:flight,arcHeight:0,large});
-  this.createEffect('spark',p.x,p.y-15,'#f6e2b8',.18,12);
+  this.createEffect('spark',socket.x,socket.y,'#f6e2b8',.18,12);
  }
  detonateFlask(b){
   if(b.exploded)return;
@@ -1143,22 +1156,32 @@ export class Game {
     continue;
    }
    b.life-=dt;if(b.life<=0)continue;
+   const launch=b.launchStart;delete b.launchStart;
    b.x+=b.vx*dt;b.y+=b.vy*dt;
    if(b.magic&&!b.hostile){
     b.trailClock=(b.trailClock||0)-dt;
     if(b.trailClock<=0){
-     this.createEffect('ember',b.x-b.vx*.025,b.y-b.vy*.025,'#efad7c',.26,10);
+     this.createEffect('ember',b.x-b.vx*.025,b.y-(b.visualHeight||0)-b.vy*.025,'#efad7c',.26,10);
      b.trailClock=.078;
     }
    }
-   if(this.dungeon.isBlocked(b.x,b.y,this.enemies.length>0)){
+   if(this.dungeon.isBlocked(b.x,b.y,this.enemies.length>0)||
+     (launch&&!hasLineOfSight(this.dungeon,launch.x,launch.y,b.x,b.y,this.enemies.length>0))){
     if(b.magic&&!b.hostile)this.createEffect('burst',b.x,b.y,'#e4b5ff',.28,22);
     b.life=0;continue;
    }
    if(b.hostile){
     if(distance(b,p)<b.radius+p.radius){this.hurt(b.damage,normalized(b.vx,b.vy));b.life=0}
    }else{
-    for(const e of this.enemies)if(e.hp>0&&!b.hitIds?.has(e)&&distance(b,e)<b.radius+e.radius){
+    // Cover the barrel-to-muzzle gap on release, including point-blank foes.
+    const candidates=launch?[...this.enemies].sort((a,c)=>distance(a,launch)-distance(c,launch)):this.enemies;
+    const shotDistance=e=>{
+     if(!launch)return distance(b,e);
+     const dx=b.x-launch.x,dy=b.y-launch.y,len=dx*dx+dy*dy;
+     const t=len?clamp(((e.x-launch.x)*dx+(e.y-launch.y)*dy)/len,0,1):0;
+     return Math.hypot(e.x-launch.x-dx*t,e.y-launch.y-dy*t);
+    };
+    for(const e of candidates)if(e.hp>0&&!b.hitIds?.has(e)&&shotDistance(e)<b.radius+e.radius){
      this.hitEnemy(e,b.damage,normalized(b.vx,b.vy),{magic:b.magic,charged:b.charged});
       if(b.alchemy){
        this.createEffect('ring',e.x,e.y,b.alchemy==='burn'?'#ff9a61':b.alchemy==='poison'?'#a0e688':'#9fddff',.36,86);

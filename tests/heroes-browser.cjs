@@ -11,7 +11,7 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
     await page.locator('#overlay').waitFor({state:'hidden'});
     const result=await page.evaluate(async kind=>{
      const [{HeroSpriteAtlas},{Game},{Renderer},{defaultProgress},{heroPose,beginHeroAction}]=await Promise.all([
-      import('./src/hero-sprites.js?v=0.28.0'),import('./src/game.js?v=0.28.0'),import('./src/render.js?v=0.28.0'),import('./src/progression.js'),import('./src/hero-animation.js?v=0.28.0')]);
+      import('./src/hero-sprites.js?v=0.28.1'),import('./src/game.js?v=0.28.1'),import('./src/render.js?v=0.28.1'),import('./src/progression.js'),import('./src/hero-animation.js?v=0.28.1')]);
      const atlas=window.__heroTestAtlas??=new HeroSpriteAtlas();atlas.select(kind);await atlas.loading;await atlas.previewLoading;
      if(!atlas.ready)throw new Error('Failed atlas '+kind);
      const c=document.createElement('canvas');c.width=192;c.height=192;const ctx=c.getContext('2d');
@@ -32,6 +32,24 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
      const input={movement:()=>({x:0,y:0}),aiming:()=>({x:1,y:0}),attacking:()=>false,consumeDash:()=>false,consumeAbility:()=>false};
      const g=new Game(defaultProgress(),input);g.start(kind,5);const p=g.player;p.direction={x:1,y:0};
      g.attack();const before=g.projectiles.length;g.updateHeroAction(p.heroAction.duration/2);const after=g.projectiles.length,frame=heroPose(p).frame;
+     // Validate the actual layered renderer, not only the original full-body atlas.
+     const {heroShot}=await import('./src/hero-aim.js?v=0.28.1');
+     let rigFrames=0;
+     if(atlas.manifest.aimRig){
+      for(const f of [...Object.values(atlas.manifest.aimRig.frames).flat(),...atlas.manifest.aimRig.weapons]){
+       if(f.x<0||f.y<0||f.x+f.w>atlas.images.aim.width||f.y+f.h>atlas.images.aim.height)throw new Error('Invalid rig UV '+kind);
+       rigFrames++;
+      }
+      for(let n=0;n<8;n++){
+       const angle=n*Math.PI/4,actor={kind,x:96,y:110,hp:100,direction:{x:Math.cos(angle),y:Math.sin(angle)}};
+       beginHeroAction(actor,'attack',.6);actor.heroAction.elapsed=.3;
+       ctx.clearRect(0,0,192,192);atlas.draw(ctx,actor,0);
+       const shot=heroShot(actor);let nearMuzzle=0;
+       const pixels=ctx.getImageData(Math.round(shot.x)-5,Math.round(shot.y)-5,11,11).data;
+       for(let i=3;i<pixels.length;i+=4)if(pixels[i]>30)nearMuzzle++;
+       if(!nearMuzzle)throw new Error(kind+' projectile is detached from rendered weapon in direction '+n);
+      }
+     }
      const r=window.__heroTestRenderer??=new Renderer(document.createElement('canvas'),kind);
      r.selectHero(kind);await r.heroes.loading;const scene=r.canvas;
      g.enemies=[];g.projectiles=[];g.effects=[];p.heroAction=null;p.direction={x:0,y:1};
@@ -46,9 +64,10 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
       r.draw(g);states.push(scene.toDataURL('image/png'));
      }
      const activeKind=r.heroes.kind;r.heroes.release();atlas.release();
-     return {ready:true,minUnique,minPixels,edges,before,after,frame,preview:!!atlas.previews[kind],activeKind,screenshot,states};
+     return {ready:true,rigFrames,minUnique,minPixels,edges,before,after,frame,preview:!!atlas.previews[kind],activeKind,screenshot,states};
     },kind);
     assert.ok(result.minUnique>=4,kind+' needs real distinct poses in every clip');assert.ok(result.minPixels>500,kind+' empty/tiny frame');assert.equal(result.edges,0);
+    if(['hunter','glasscannon'].includes(kind))assert.equal(result.rigFrames,30);
     assert.equal(result.before,0);assert.equal(result.after,1);assert.equal(result.frame,3);assert.equal(result.activeKind,kind);assert.ok(result.preview);
     fs.writeFileSync('test-output/'+kind+'-'+engine+'.png',Buffer.from(result.screenshot.split(',')[1],'base64'));
     result.states.forEach((data,i)=>fs.writeFileSync('test-output/'+kind+'-'+engine+'-'+i+'.png',Buffer.from(data.split(',')[1],'base64')));

@@ -1,4 +1,4 @@
-import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.28.0';
+import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.28.1';
 import {KnightSpriteAtlas,drawKnightEffect} from './knight-sprites.js?v=0.27.0';
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.23.0';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js?v=0.26.0';
@@ -387,6 +387,7 @@ export class Renderer {
   c.fillStyle='#ffffff88';c.fillRect(-3,-5,4,7);c.restore();
  }
  projectile(b){
+  if(b.visualHeight)b={...b,y:b.y-b.visualHeight};
   const c=this.ctx;
   if(b.rifle){
    const a=Math.atan2(b.vy,b.vx);

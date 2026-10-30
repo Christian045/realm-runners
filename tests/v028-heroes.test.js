@@ -83,3 +83,54 @@ test('an alchemy throw released during dash is kept until the dodge finishes',()
  assert.equal(g.player.heroAction.clip,'attack');g.updateHeroAction(1);
  assert.equal(g.projectiles.length,1);assert.equal(g.projectiles[0].flask,true);assert.equal(g.queuedAlchemyThrow,null);
 });
+
+test('all ranged release poses share a visible hand/muzzle with their projectile and effect in eight directions',async()=>{
+ const {heroShot}=await import('../src/hero-aim.js');
+ for(const kind of HERO_KINDS)for(let n=0;n<8;n++){
+  const g=fresh(kind),p=g.player,a=n*Math.PI/4;p.direction={x:Math.cos(a),y:Math.sin(a)};
+  g.attack();const shot=heroShot(p);g.updateHeroAction(p.heroAction.duration/2);
+  const b=g.projectiles[0],effect=g.effects.find(e=>e.type==='hero-release');
+  assert.ok(Math.abs(b.x-shot.x)<1e-8,kind+' emission x');
+  assert.ok(Math.abs(b.y-(b.visualHeight||9)-shot.y)<1e-8,kind+' visible emission y');
+  assert.ok(Math.abs(effect.x-shot.x)<1e-8&&Math.abs(effect.y-shot.y)<1e-8,kind+' effect');
+  if(!b.flask){const speed=Math.hypot(b.vx,b.vy);assert.ok(Math.abs(b.vx/speed-shot.aim.x)<1e-8&&Math.abs(b.vy/speed-shot.aim.y)<1e-8);}
+ }
+});
+
+test('mouse shots converge on the captured cursor from the muzzle even after moving during windup',()=>{
+ for(const kind of ['glasscannon','hunter','mage','summoner'])for(let n=0;n<8;n++){
+  let cursor;const g=fresh(kind,{mouse:{active:true},target:()=>cursor}),p=g.player,a=n*Math.PI/4;
+  p.direction={x:Math.cos(a),y:Math.sin(a)};cursor={x:p.x+Math.cos(a)*220,y:p.y+Math.sin(a)*220-27};
+  const selected={...cursor};g.attack();cursor={x:p.x-500,y:p.y+500};p.x+=12;p.y-=9;
+  g.updateHeroAction(p.heroAction.duration/2);const b=g.projectiles[0];
+  const dx=selected.x-b.x,dy=selected.y-(b.y-b.visualHeight),cross=dx*b.vy-dy*b.vx;
+  assert.ok(Math.abs(cross)<1e-6,kind+' must follow exact cursor ray');
+  assert.ok(dx*b.vx+dy*b.vy>0,kind+' must travel toward cursor');
+ }
+});
+
+test('directional touch shots still hit floor hitboxes in all eight directions',()=>{
+ for(const kind of ['glasscannon','hunter','mage','summoner'])for(let n=0;n<8;n++){
+  const g=fresh(kind),p=g.player,a=n*Math.PI/4;p.direction={x:Math.cos(a),y:Math.sin(a)};
+  const e={hp:230,maxHp:230,x:p.x+Math.cos(a)*180,y:p.y+Math.sin(a)*180,type:'slime',radius:18,knock:{x:0,y:0},homeRoom:0,elite:false,flash:0};
+  g.enemies=[e];g.dungeon.isBlocked=()=>false;g.attack();g.updateHeroAction(1);
+  for(let i=0;i<100&&e.hp===230;i++)g.updateProjectiles(1/120);
+  assert.ok(e.hp<230,kind+' direction '+n+' still hits');
+ }
+});
+
+test('hunter fan and multishot launch from the bow instead of the feet',async()=>{
+ const {heroShot}=await import('../src/hero-aim.js');const g=fresh('hunter'),p=g.player;
+ g.ability();const shot=heroShot(p);g.updateHeroAction(1);assert.equal(g.projectiles.length,7);
+ for(const b of g.projectiles){assert.equal(b.x,shot.x);assert.equal(b.y-b.visualHeight,shot.y);}
+});
+
+test('rifle launch sweep hits point-blank foes and cannot skip a wall behind its muzzle',()=>{
+ const g=fresh('glasscannon'),p=g.player;
+ const e={hp:230,maxHp:230,x:p.x+20,y:p.y,type:'slime',radius:12,knock:{x:0,y:0},homeRoom:0,elite:false,flash:0};
+ g.enemies=[e];g.dungeon.isBlocked=()=>false;g.attack();g.updateHeroAction(1);g.updateProjectiles(1/120);
+ assert.ok(e.hp<230,'enemy before the muzzle still takes the shot');
+ p.heroAction=null;g.enemies=[];g.attack();g.updateHeroAction(1);
+ g.dungeon.isBlocked=x=>x>p.x+16&&x<p.x+40;
+ g.updateProjectiles(1/120);assert.equal(g.projectiles.length,0,'barrel cannot bypass a blocking wall');
+});

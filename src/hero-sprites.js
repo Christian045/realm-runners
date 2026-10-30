@@ -1,4 +1,5 @@
-import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.28.0';
+import {heroShot} from './hero-aim.js?v=0.28.1';
+import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.28.1';
 
 export class HeroSpriteAtlas{
  constructor(){
@@ -20,10 +21,11 @@ export class HeroSpriteAtlas{
   this.loading=(async()=>{
    try{
     const base=new URL('../assets/heroes/'+kind+'/',import.meta.url);
-    const response=await fetch(new URL('atlas.json?v=0.28.0',base));
+    const response=await fetch(new URL('atlas.json?v=0.28.1',base));
     if(!response.ok)throw new Error('Hero manifest unavailable: '+kind);
     const manifest=await response.json(),images={};
     await Promise.all(['down','right','up','left'].map(async face=>{images[face]=await this.loadImage(new URL(face+'.png?v=0.28.0',base));}));
+    if(manifest.aimRig)images.aim=await this.loadImage(new URL('aim.png?v=0.28.1',base));
     if(generation!==this.generation)return;
     this.images=images;this.manifest=manifest;this.ready=true;
    }catch(error){if(generation===this.generation){this.failed=true;console.warn('Hero graphics unavailable; retaining legacy fallback.',error);}}
@@ -32,12 +34,25 @@ export class HeroSpriteAtlas{
  release(){this.generation++;this.kind=null;this.ready=false;this.images={};this.manifest=null;}
  draw(ctx,p,time){
   if(!this.ready||p.kind!==this.kind)return false;
-  const pose=heroPose(p,time),f=this.manifest.frames[pose.face][pose.row*6+pose.frame];
+  const pose=heroPose(p,time);
+  const aiming=this.manifest.aimRig&&(pose.clip==='attack'||(p.kind==='hunter'&&pose.clip==='special'));
+  const f=aiming?this.manifest.aimRig.frames[pose.face][pose.frame]:this.manifest.frames[pose.face][pose.row*6+pose.frame];
+  const image=aiming?this.images.aim:this.images[pose.face];
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
-  if(f.flipX){ctx.translate(Math.round(p.x),Math.round(p.y));ctx.scale(-1,1);ctx.drawImage(this.images[pose.face],f.x,f.y,f.w,f.h,-f.anchorX,-f.anchorY,f.w,f.h);}
-  else ctx.drawImage(this.images[pose.face],f.x,f.y,f.w,f.h,Math.round(p.x-f.anchorX),Math.round(p.y-f.anchorY),f.w,f.h);
+  const shot=aiming?heroShot(p):null;
+  if(aiming&&shot.aim.y<-.3)this.drawWeapon(ctx,p,pose,shot);
+  if(f.flipX){ctx.translate(Math.round(p.x),Math.round(p.y));ctx.scale(-1,1);ctx.drawImage(image,f.x,f.y,f.w,f.h,-f.anchorX,-f.anchorY,f.w,f.h);}
+  else ctx.drawImage(image,f.x,f.y,f.w,f.h,Math.round(p.x-f.anchorX),Math.round(p.y-f.anchorY),f.w,f.h);
+  if(aiming&&shot.aim.y>=-.3)this.drawWeapon(ctx,p,pose,shot);
   ctx.restore();return true;
+ }
+ drawWeapon(ctx,p,pose,shot){
+  const f=this.manifest.aimRig.weapons[pose.frame];
+  ctx.save();ctx.translate(shot.mount.x,shot.mount.y);ctx.rotate(shot.angle);
+  if(shot.aim.x<0)ctx.scale(1,-1);
+  ctx.drawImage(this.images.aim,f.x,f.y,f.w,f.h,-f.anchorX,-f.anchorY,f.w,f.h);
+  ctx.restore();
  }
  preview(ctx,kind,width,height,time){
   const image=this.previews[kind];if(!image)return false;
@@ -51,18 +66,18 @@ export class HeroSpriteAtlas{
 const COLORS={hunter:['#daf1ba','#81b46d'],mage:['#f0dcff','#9a79dc'],glasscannon:['#fff0e1','#ca8fe9'],summoner:['#ddc5ff','#8761c7'],alchemist:['#eeffce','#9fcd6a']};
 export function drawHeroRelease(ctx,e,alpha){
  const colors=COLORS[e.kind]||COLORS.mage,t=1-alpha;
- ctx.save();ctx.translate(e.x,e.y-18);ctx.rotate(e.angle||0);ctx.globalAlpha=alpha;
+ ctx.save();ctx.translate(e.x,e.y);ctx.rotate(e.angle||0);ctx.globalAlpha=alpha;
  if(e.kind==='glasscannon'){
-  ctx.fillStyle=colors[1];ctx.beginPath();ctx.moveTo(15,-5);ctx.lineTo(37+t*12,0);ctx.lineTo(15,5);ctx.fill();
-  ctx.fillStyle=colors[0];ctx.fillRect(15,-2,16,4);
+  ctx.fillStyle=colors[1];ctx.beginPath();ctx.moveTo(0,-5);ctx.lineTo(22+t*12,0);ctx.lineTo(0,5);ctx.fill();
+  ctx.fillStyle=colors[0];ctx.fillRect(0,-2,16,4);
  }else if(e.kind==='hunter'){
-  ctx.strokeStyle=colors[0];ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(30+t*24,0);ctx.stroke();
+  ctx.strokeStyle=colors[0];ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(18+t*24,0);ctx.stroke();
  }else if(e.kind==='alchemist'){
-  for(let i=0;i<5;i++){ctx.fillStyle=i%2?colors[0]:colors[1];ctx.fillRect(10-t*18+i*3,Math.sin(i*2)*t*12,2,2);}
+  for(let i=0;i<5;i++){ctx.fillStyle=i%2?colors[0]:colors[1];ctx.fillRect(-t*18+i*3,Math.sin(i*2)*t*12,2,2);}
  }else{
-  ctx.strokeStyle=colors[1];ctx.lineWidth=3;ctx.beginPath();ctx.arc(18,0,6+t*11,0,Math.PI*2);ctx.stroke();
-  ctx.fillStyle=colors[0];ctx.fillRect(15,-2,6,4);
-  for(let i=0;i<5;i++){const a=i*2.4+t;ctx.fillRect(18+Math.cos(a)*t*22,Math.sin(a)*t*22,2,2);}
+  ctx.strokeStyle=colors[1];ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,6+t*11,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle=colors[0];ctx.fillRect(-3,-2,6,4);
+  for(let i=0;i<5;i++){const a=i*2.4+t;ctx.fillRect(Math.cos(a)*t*22,Math.sin(a)*t*22,2,2);}
  }
  ctx.restore();
 }

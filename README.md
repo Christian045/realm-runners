@@ -1,4 +1,12 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.28.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.28.1)
+
+## Alpha 0.28.1 – Waffenrichtung und Geschossaustritt
+
+- Glaskanonier und Jäger verwenden separate, detaillierte Körper- und Waffenebenen während des Angriffs. Gewehr und Bogen folgen der tatsächlichen Zielrichtung stufenlos; alle sechs Körperframes bleiben erhalten.
+- Geschoss, Waffenmündung und Abgabeeffekt teilen dieselben Koordinaten. Mausziele werden beim Angriff festgehalten und von der Mündung aus angepeilt, auch während einer Bewegung in der Ausholphase.
+- Magier, Beschwörer und Alchemist geben Geschosse beziehungsweise Fläschchen aus den sichtbaren Händen ab. Pfeilfächer und Zusatzpfeile starten ebenfalls am Bogen.
+- Die sichtbare Flughöhe ist von den Boden-Hitboxen getrennt. Touch-Schüsse treffen dadurch weiterhin Gegner in derselben Bewegungsrichtung.
+- Validierung: 206 Unit-Tests, einschließlich acht Schussrichtungen je Klasse, exakter Mauszielstrahlen, Treffer mit Touch-Richtungen, Nahdistanz-/Wandprüfung und Abgabepunkten; Chromium-/WebKit-Prüfung aller sechs Klassen und pixelbasierte Waffenmündungsprüfung.
 
 ## Alpha 0.28.0 – Alle Helden im neuen Grafik- und Animationssystem
 
