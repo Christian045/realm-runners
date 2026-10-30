@@ -1,7 +1,7 @@
 import { ENEMY_DATA, TILE, distance, normalized } from './data.js?v=0.15.0';
 import { ROOM_W,ROOM_H } from './dungeon.js';
 export function createWardenState(){return {variant:'warden',phase:1,transition:0,attackIndex:0,telegraph:null,charge:null,invulnerable:false}}
-const first=['lances','triple','charge'],second=['lances','sweep','spiral','charge','triple','summon'];
+const first=['lances','triple','charge'],second=['lances','sweep','spiral','charge','triple','summon','cage'];
 export function startWardenPhaseTwo(game,e){
  if(e.boss.phase!==1)return false;
  const s=e.boss;s.phase=2;s.transition=1.05;s.telegraph=null;s.charge=null;s.attackIndex=0;
@@ -14,7 +14,7 @@ export function beginWardenAttack(game,e,forced=null){
  const s=e.boss;if(s.transition>0||s.telegraph||s.charge)return false;
  const order=s.phase===2?second:first;
  const type=forced||order[s.attackIndex%order.length];
- if(![...first,'spiral','summon','sweep'].includes(type))return false;
+ if(![...first,'spiral','summon','sweep','cage'].includes(type))return false;
  const dir=normalized(game.player.x-e.x,game.player.y-e.y);
  const room=game.dungeon.rooms[e.homeRoom];
  const x=Math.max(room.gx*ROOM_W*TILE+100,Math.min((room.gx+1)*ROOM_W*TILE-100,game.player.x));
@@ -59,6 +59,15 @@ export function executeWardenAttack(game,e){
    x:t.target.x+offset,y:t.target.y,radius:55,time:.72,maxTime:.72,
    damage:Math.round(e.damage*1.25),source:'warden',color:'#8dcff6'});
   game.createEffect('ring',t.target.x,t.target.y,'#a6edfd',.6,72);
+ }else if(t.type==='cage'){
+  // Four directional rune blasts, but the center and diagonal corridors stay safe.
+  for(const [dx,dy] of [[-111,0],[111,0],[0,-111],[0,111]]){
+   const x=t.target.x+dx,y=t.target.y+dy;
+   if(!game.dungeon.canMove(x,y,14,true))continue;
+   game.hazards.push({x,y,radius:42,time:.82,maxTime:.82,
+    damage:Math.round(e.damage*1.16),color:'#8fc8ff',source:'warden-cage'});
+   game.createEffect('ring',x,y,'#9ed6ff',.82,42);
+  }
  }else if(t.type==='summon'){
   const room=game.dungeon.rooms[e.homeRoom];
   for(const [ox,oy] of [[-115,0],[115,0]]){
@@ -126,6 +135,12 @@ export function drawWardenWarnings(ctx,game,boss){
   ctx.translate(t.x,t.y);ctx.rotate(t.angle);ctx.fillRect(0,-46,485,92);ctx.strokeRect(0,-46,485,92);
  }else if(t.type==='spiral'){
   ctx.beginPath();ctx.arc(t.x,t.y,160,0,2*Math.PI);ctx.fill();ctx.stroke();
+ }else if(t.type==='cage'){
+  for(const [dx,dy] of [[-111,0],[111,0],[0,-111],[0,111]]){
+   ctx.beginPath();ctx.arc(t.target.x+dx,t.target.y+dy,42,0,2*Math.PI);
+   ctx.fill();ctx.stroke();
+   ctx.beginPath();ctx.arc(t.target.x+dx,t.target.y+dy,42*fraction,0,2*Math.PI);ctx.stroke();
+  }
  }else if(t.type==='summon'){
   for(const dx of [-115,115]){
    ctx.beginPath();ctx.arc(t.x+dx,t.y,42,0,2*Math.PI);ctx.fill();ctx.stroke();
