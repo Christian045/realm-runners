@@ -71,6 +71,21 @@ export class Input {
   }
   return this.aim;
  }
+ target(player,camera,maxRange=260){
+  // World-space cursor target for lobbed grenades; phones use directional aim.
+  const direction=this.aiming(player,camera);
+  if(this.mouse.active){
+   const rect=this.canvas.getBoundingClientRect();
+   if(rect.width&&rect.height&&camera.scale){
+    const x=(this.mouse.x-rect.left)*this.canvas.width/rect.width/camera.scale+camera.x;
+    const y=(this.mouse.y-rect.top)*this.canvas.height/rect.height/camera.scale+camera.y;
+    const dx=x-player.x,dy=y-player.y,len=Math.hypot(dx,dy);
+    if(len>0)return {x:player.x+dx/len*Math.min(maxRange,len),
+     y:player.y+dy/len*Math.min(maxRange,len)};
+   }
+  }
+  return {x:player.x+direction.x*maxRange,y:player.y+direction.y*maxRange};
+ }
  attacking(){return this.mouse.down||this.mobileAttack||this.keys.has('KeyF')||this.keys.has('KeyJ')}
  consumeDash(){const result=this.dashQueued;this.dashQueued=false;return result}
  consumeAbility(){const result=this.abilityQueued;this.abilityQueued=false;return result}
