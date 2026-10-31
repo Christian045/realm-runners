@@ -1,4 +1,13 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.31.1)
+# Realm Runners – Dungeon Reborn (Alpha 0.32.0)
+
+## Alpha 0.32.0 – Korrekte vollständige Laufanimation und Bodenkontakt
+
+- Die sechs Klassen verwenden zum Gehen ihre vollständigen handgezeichneten Original-Sprite-Frames in allen vier Blickrichtungen. Ritter: acht Frames; übrige Klassen: jeweils sechs Frames.
+- Jäger und Glaskanonen-Schütze erhalten wieder ihre **tatsächlichen Walk-Frames**. Die zuvor während der Bewegung irrtümlich gezeichneten Stand-/Zielposen aus dem Aim-Rig waren der Grund für fehlende Beinbewegung.
+- Beim erstmaligen Laden eines Charakter-Atlanten wird der Bodenkontakt für jedes Walk-Frame aus den sichtbaren Pixeln um den Körpermittelpunkt bestimmt. Der Renderer verschiebt nur das **gesamte** Bild; keine isolierten Beine, zertrennte Kleidung oder deformierte Umhänge.
+- Bestehende Kampf-, Treffer-, Waffen-, Begleiter- und iPhone-Steuerungslogik ist unverändert. Ausgiebige Lauf-/Bodenkontaktprüfungen mit allen Klassen und vier Richtungen in Chromium und WebKit waren erfolgreich.
+- **Grafikgrenze:** Dies ist eine gezielte Reparatur und Neuanbindung der bereits vorhandenen kompletten handgezeichneten Frames. Es ist **keine Neuzeichnung der Sprite-Atlanten**; die originalen Zeichnungen bestimmen weiterhin die tatsächlichen Beinposen.
+
 
 ## Alpha 0.31.1 – Korrektur der verzerrten Charaktere
 
