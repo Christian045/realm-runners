@@ -1,3 +1,4 @@
+import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.32.0';
 import {knightPose} from './knight-animation.js?v=0.31.0';
 
 // Four compact, decoded-once PNG atlases. Source frames include the sword;
@@ -21,6 +22,7 @@ export class KnightSpriteAtlas{
     if(image.decode)await image.decode();
     this.images[face]=image;
    }));
+   this.walkPivots=prepareWalkPivots(this.manifest,this.images,8);
    this.ready=true;
   }catch(error){this.failed=true;console.warn('Knight graphics unavailable; using cached fallback.',error);}
  }
@@ -37,7 +39,7 @@ export class KnightSpriteAtlas{
   // Never composite that experimental garment sheet over this character.
   const rootX=pose.clip==='walk'?(f.walkRootX??f.anchorX):f.anchorX;
   ctx.drawImage(image,f.x,f.y,f.w,f.h,
-   Math.round(p.x-rootX),Math.round(p.y-f.anchorY),f.w,f.h);
+   Math.round(p.x-rootX),Math.round(p.y-walkFrameAnchorY(this.walkPivots,pose,f)),f.w,f.h);
   ctx.restore();return true;
  }
  preview(ctx,width,height,time){
