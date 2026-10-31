@@ -1,4 +1,4 @@
-import {COMPANION_KINDS,companionPose} from './companion-animation.js?v=0.30.0';
+import {COMPANION_KINDS,companionPose} from './companion-animation.js?v=0.30.2';
 const COLORS={bat:['#dec7ff','#9470ce'],imp:['#ffedb5','#ff864d'],spirit:['#e7efff','#9689ee'],giant:['#ffe6b3','#b59ae8']};
 export class CompanionSpriteAtlas{
  constructor(){this.entries={};this.pending={};this.previews={};this.generation=0;this.kind=null;this.active=false;this.failed=new Set();}

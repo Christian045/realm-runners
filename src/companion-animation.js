@@ -1,4 +1,4 @@
-import {COMPANION_EMISSION} from './companion-emission.js?v=0.30.0';
+import {COMPANION_EMISSION} from './companion-emission.js?v=0.30.2';
 export const COMPANION_KINDS=Object.freeze(['bat','imp','spirit','giant']);
 export const COMPANION_ATTACKS=Object.freeze({bat:{duration:.36,cooldown:.7},imp:{duration:.30,cooldown:.48},spirit:{duration:.60,cooldown:1.05},giant:{duration:.54,cooldown:.68}});
 export function companionFacing(d={x:0,y:1}){return Math.abs(d.x)>Math.abs(d.y)?d.x<0?'left':'right':d.y<0?'up':'down';}

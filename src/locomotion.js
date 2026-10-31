@@ -35,17 +35,9 @@ export function drawLocomotionLegs(ctx,p,pose,kit,image){
   ctx.drawImage(image,f.x,f.y,f.w,f.h,-f.anchorX*scale*widthScale,0,f.w*scale*widthScale,leg.height);ctx.restore();
  }
 }
+// Complete authored poses keep garment hems, limbs and equipment connected.
+// Never splice generic legs into a rectangular hole in a fully painted body:
+// that removes the centre of robes and cuts capes at direction-dependent heights.
 export function drawLocomotion(ctx,p,pose,kit,image,drawBody){
- const action=pose.clip.startsWith('attack')||pose.clip==='special';
- if(!kit||!image||!p.moving||p.hp<=0||!(pose.clip==='walk'||action)){drawBody();return;}
- drawLocomotionLegs(ctx,p,pose,kit,image);
- // Keep the torso and held items above the hip line. Preserve the outer cloth
- // panels below it as well: the old 15px strips sliced long robes and capes
- // into detached horizontal ribbons while the replacement legs moved.
- ctx.save();ctx.beginPath();ctx.rect(p.x-512,p.y-512,1024,pose.face==='up'?498:494);
- // The animated legs occupy the centre. Keep the full height of the original
- // side cloth visible so every class retains a continuous silhouette.
- ctx.rect(p.x-512,p.y-18,488,64);ctx.rect(p.x+24,p.y-18,488,64);
- ctx.clip();drawBody();ctx.restore();
- if(p.kind==='warrior')drawBody(true);
+ drawBody();
 }

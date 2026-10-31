@@ -1,8 +1,8 @@
-import {beginCompanionAttack,advanceCompanion,companionShot} from './companion-animation.js?v=0.30.0';
-import {advanceLocomotion} from './locomotion.js?v=0.29.0';
-import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.29.0';
-import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.29.0';
-import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.29.0';
+import {beginCompanionAttack,advanceCompanion,companionShot} from './companion-animation.js?v=0.30.2';
+import {advanceLocomotion} from './locomotion.js?v=0.30.2';
+import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.30.2';
+import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.30.2';
+import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.30.2';
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.23.0';
 import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.26.0';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js?v=0.21.0';

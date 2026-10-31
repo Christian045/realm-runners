@@ -1,13 +1,13 @@
 const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
 (async()=>{
  fs.mkdirSync('test-output',{recursive:true});
- for(const [engine,type] of [['chromium',chromium],['webkit',webkit]]){
+ for(const [engine,type] of [['chromium',chromium],['webkit',webkit]].filter(([name])=>!process.env.BROWSER_ENGINE||process.env.BROWSER_ENGINE===name)){
   const browser=await type.launch({headless:true,args:engine==='chromium'?['--no-sandbox']:[]});
   try{
    const page=await browser.newPage({viewport:{width:1280,height:800}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto('http://127.0.0.1:8000/');
    const results=await page.evaluate(async()=>{
-    const [{HeroSpriteAtlas},{KnightSpriteAtlas},{WALK_STRIDE,drawLocomotionLegs},{beginHeroAction},{beginKnightAction}]=await Promise.all([
+    const [{HeroSpriteAtlas},{KnightSpriteAtlas},{WALK_STRIDE,drawLocomotionLegs},{beginHeroAction,heroPose},{beginKnightAction,knightPose}]=await Promise.all([
      import('./src/hero-sprites.js?v=0.29.0'),import('./src/knight-sprites.js?v=0.29.0'),import('./src/locomotion.js?v=0.29.0'),import('./src/hero-animation.js'),import('./src/knight-animation.js')]);
     const hero=new HeroSpriteAtlas(),knight=new KnightSpriteAtlas();await knight.loading;
     const c=document.createElement('canvas');c.width=256;c.height=192;const ctx=c.getContext('2d'),results=[];
@@ -23,6 +23,18 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
       for(let frame=0;frame<8;frame++){
        const p={kind,x:128,y:108,hp:100,direction:d,moving:true,heroMoveDirection:d,knightMoveDirection:d,walkDistance:frame*WALK_STRIDE/8,walkCycle:frame/8*.54*14};
        ctx.clearRect(0,0,256,192);atlas.draw(ctx,p,0);
+       // Compare the complete authored silhouette with the composed walking
+       // frame. A rectangular hip cut used to delete the centre of robes.
+       const pose=kind==='warrior'?knightPose(p,0):heroPose(p,0);
+       const rig=atlas.manifest.aimRig;
+       const f=rig?rig.frames[face][pose.frame]:atlas.manifest.frames[face][pose.row*(kind==='warrior'?8:6)+pose.frame];
+       const ref=document.createElement('canvas');ref.width=256;ref.height=192;
+       const rc=ref.getContext('2d');rc.imageSmoothingEnabled=false;
+       const scale=76/f.h,root=(f.walkRootX??f.anchorX)*scale;
+       if(f.flipX){rc.translate(p.x,p.y);rc.scale(-1,1);rc.drawImage(rig?atlas.images.aim:atlas.images[face],f.x,f.y,f.w,f.h,-root,-68,f.w*scale,f.h*scale);}
+       else rc.drawImage(rig?atlas.images.aim:atlas.images[face],f.x,f.y,f.w,f.h,Math.round(p.x-root),p.y-68,f.w*scale,f.h*scale);
+       const expected=rc.getImageData(0,0,256,192).data,actual=ctx.getImageData(0,0,256,192).data;
+       for(let i=3;i<expected.length;i+=4)if(expected[i]>200&&actual[i]<100)throw Error('Missing garment/body pixel '+kind+' '+face+' '+frame);
        const pixels=ctx.getImageData(0,0,256,192).data;
        
        let top=999;for(let y=25;y<68;y++)for(let x=118;x<138;x++)if(pixels[(y*256+x)*4+3]>60)top=Math.min(top,y);tops.push(top);
@@ -68,7 +80,7 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
    });
    for(const r of results){
     if(r.kind==='warrior'){assert.ok(r.bladeChecks.samples>20);assert.equal(r.bladeChecks.missing,0,'moving legs must not erase the sword');}
-    for(const [face,values] of Object.entries(r.directions)){assert.ok(values.unique>=7,r.kind+' '+face+' needs distinct complete strides');assert.ok(values.headDrift<=5,r.kind+' '+face+' torso jumps '+values.headDrift);assert.ok(r.movingAttacks[face]>=7,r.kind+' legs freeze during attacks '+face);}
+    for(const [face,values] of Object.entries(r.directions)){assert.ok(values.unique>=(r.kind==='warrior'?8:6),r.kind+' '+face+' needs distinct complete strides');assert.ok(values.headDrift<=5,r.kind+' '+face+' torso jumps '+values.headDrift);assert.equal(r.movingAttacks[face],1,r.kind+' fixed attack pose must remain intact '+face);}
     for(const [face,steps] of Object.entries(r.alternating)){
      assert.ok(steps.first[0]>=6&&steps.first[1]<=4,r.kind+' '+face+' left foot must support first: '+JSON.stringify(steps));
      assert.ok(steps.opposite[1]>=6&&steps.opposite[0]<=4,r.kind+' '+face+' right foot must support opposite: '+JSON.stringify(steps));

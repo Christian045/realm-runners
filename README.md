@@ -1,4 +1,9 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.30.1)
+# Realm Runners – Dungeon Reborn (Alpha 0.30.2)
+
+## Alpha 0.30.2 – Vollständige Körperposen
+
+- Entfernt die gemeinsame Hüftmaske und das Einsetzen fremder Beinsegmente für alle sechs Klassen. Vollständige gezeichnete Posen erhalten Roben, Umhänge, Beine und Waffen ohne rechteckige Ausschnitte.
+- Gehen bleibt an die tatsächlich zurückgelegte Strecke gebunden. Während eines Angriffs wird die vollständige Angriffspose verwendet; ein unabhängiger Beinschritt während dieser Pose entfällt zugunsten intakter Kleidung.
 
 ## Alpha 0.30.1 – Roben bleiben beim Laufen geschlossen
 
