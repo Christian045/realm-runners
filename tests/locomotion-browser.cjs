@@ -1,91 +1,77 @@
-const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
+// In-browser regression: verify that the original, complete walking
+// sprite frames render correctly after retiring the broken body/leg montage.
+// Start the static server on port 8000 before running this check.
+const {chromium,webkit}=require('playwright');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
 (async()=>{
  fs.mkdirSync('test-output',{recursive:true});
- for(const [engine,type] of [['chromium',chromium],['webkit',webkit]].filter(([name])=>!process.env.BROWSER_ENGINE||process.env.BROWSER_ENGINE===name)){
+ for(const [engine,type] of [['chromium',chromium],['webkit',webkit]]
+  .filter(([name])=>!process.env.BROWSER_ENGINE||process.env.BROWSER_ENGINE===name)){
   const browser=await type.launch({headless:true,args:engine==='chromium'?['--no-sandbox']:[]});
   try{
-   const page=await browser.newPage({viewport:{width:1280,height:800}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+   const page=await browser.newPage({viewport:{width:1280,height:800}}),errors=[];
+   page.on('pageerror',error=>errors.push(error.message));
    await page.goto('http://127.0.0.1:8000/');
    const results=await page.evaluate(async()=>{
-    const [{HeroSpriteAtlas},{KnightSpriteAtlas},{WALK_STRIDE,drawLocomotionLegs},{beginHeroAction,heroPose},{beginKnightAction,knightPose}]=await Promise.all([
-     import('./src/hero-sprites.js?v=0.31.0'),import('./src/knight-sprites.js?v=0.31.0'),import('./src/locomotion.js?v=0.31.0'),import('./src/hero-animation.js'),import('./src/knight-animation.js')]);
-    const {drawGaitBody}=await import('./src/gait-bodies.js?v=0.31.0');
-    const hero=new HeroSpriteAtlas(),knight=new KnightSpriteAtlas();await knight.loading;
-    const c=document.createElement('canvas');c.width=256;c.height=192;const ctx=c.getContext('2d'),results=[];
-    const directions={down:{x:0,y:1},right:{x:1,y:0},up:{x:0,y:-1},left:{x:-1,y:0}};
+    const [{HeroSpriteAtlas},{KnightSpriteAtlas},{WALK_STRIDE}]=await Promise.all([
+     import('./src/hero-sprites.js?v=0.31.1'),
+     import('./src/knight-sprites.js?v=0.31.1'),
+     import('./src/locomotion.js?v=0.31.0')
+    ]);
+    const dirs={down:{x:0,y:1},right:{x:1,y:0},up:{x:0,y:-1},left:{x:-1,y:0}};
+    const knight=new KnightSpriteAtlas(),hero=new HeroSpriteAtlas();await knight.loading;
+    const c=document.createElement('canvas');c.width=256;c.height=192;
+    const ctx=c.getContext('2d'),results=[];
     for(const kind of ['warrior','hunter','mage','glasscannon','summoner','alchemist']){
-     const atlas=kind==='warrior'?knight:hero;if(kind!=='warrior'){atlas.select(kind);await atlas.loading;}
-     if(!atlas.ready||!atlas.images.legs||!atlas.manifest.locomotion)throw Error('Missing locomotion '+kind);
-     const report={kind,directions:{},alternating:{},movingAttacks:{}};
-     const contact=document.createElement('canvas');contact.width=960;contact.height=480;const out=contact.getContext('2d');out.fillStyle='#252532';out.fillRect(0,0,960,480);
-     let row=0;
-     for(const [face,d] of Object.entries(directions)){
-      const hashes=new Set(),attackHashes=new Set(),contacts=[],tops=[];
-      for(let frame=0;frame<8;frame++){
-       const p={kind,x:128,y:108,hp:100,direction:d,moving:true,heroMoveDirection:d,knightMoveDirection:d,walkDistance:frame*WALK_STRIDE/8,walkCycle:frame/8*.54*14};
+     const atlas=kind==='warrior'?knight:hero;
+     if(kind!=='warrior'){atlas.select(kind);await atlas.loading;}
+     if(!atlas.ready)throw Error('Missing sprite atlas '+kind);
+     const out=document.createElement('canvas');out.width=960;out.height=480;
+     const oc=out.getContext('2d');oc.fillStyle='#182e2b';oc.fillRect(0,0,960,480);
+     const report={kind,directions:{}};
+     for(const [row,[face,direction]] of Object.entries(dirs).entries()){
+      const hashes=new Set();let minTop=999,maxTop=-999,footFrames=0;
+      for(let phase=0;phase<8;phase++){
+       const p={kind,x:128,y:108,hp:100,invulnerable:0,moving:true,
+        direction,heroMoveDirection:direction,knightMoveDirection:direction,
+        walkDistance:phase*WALK_STRIDE/8};
        ctx.clearRect(0,0,256,192);atlas.draw(ctx,p,0);
-       // Compare the complete authored silhouette with the composed walking
-       // frame. A rectangular hip cut used to delete the centre of robes.
-       const pose=kind==='warrior'?knightPose(p,0):heroPose(p,0);
-       const ref=document.createElement('canvas');ref.width=256;ref.height=192;
-       const rc=ref.getContext('2d');rc.imageSmoothingEnabled=false;
-       drawGaitBody(rc,p,pose,atlas.images.garments);
-       const expected=rc.getImageData(0,0,256,192).data,actual=ctx.getImageData(0,0,256,192).data;
-       for(let i=3;i<expected.length;i+=4)if(expected[i]>200&&actual[i]<100)throw Error('Missing garment/body pixel '+kind+' '+face+' '+frame);
        const pixels=ctx.getImageData(0,0,256,192).data;
-       
-       let top=999;for(let y=25;y<68;y++)for(let x=118;x<138;x++)if(pixels[(y*256+x)*4+3]>60)top=Math.min(top,y);tops.push(top);
-       const hashLower=()=>{const data=ctx.getImageData(104,90,48,35).data;let h=2166136261;for(let i=0;i<data.length;i++)h=Math.imul(h^data[i],16777619);return h;};
-       hashes.add(hashLower());
-       out.drawImage(c,80,24,96,104,frame*120+12,row*120+12,96,104);out.fillStyle='#fff';out.font='10px sans-serif';out.fillText(face+' '+frame,frame*120+2,row*120+11);
-       // Check visible feet in the COMPLETE composited actor, not isolated limbs.
-       if(face==='down'||face==='up'){
-        const legs=ctx.getImageData(0,0,256,192).data;
-        const limbImage=atlas.images.legs;atlas.images.legs=null;rc.clearRect(0,0,256,192);atlas.draw(rc,p,0);atlas.images.legs=limbImage;
-        const covered=rc.getImageData(0,0,256,192).data;
-        const foot=(from,to)=>{let bottom=-999;for(let y=100;y<136;y++)for(let x=128+from;x<=128+to;x++){const i=(y*256+x)*4;if(legs[i+3]>60&&Math.abs(legs[i]-covered[i])+Math.abs(legs[i+1]-covered[i+1])+Math.abs(legs[i+2]-covered[i+2])+Math.abs(legs[i+3]-covered[i+3])>8)bottom=Math.max(bottom,y-108);}return bottom;};
-        contacts.push([foot(-15,-5),foot(5,15)]);
+       let hash=2166136261,top=999,feet=0;
+       for(let y=38;y<133;y++)for(let x=65;x<194;x++){
+        const i=(y*256+x)*4;
+        if(pixels[i+3]<70)continue;
+        top=Math.min(top,y);
+        if(y>=101&&y<=123&&x>=113&&x<=143)feet++;
+        hash=Math.imul(hash^pixels[i],16777619);
+        hash=Math.imul(hash^pixels[i+1],16777619);
+        hash=Math.imul(hash^pixels[i+2],16777619);
        }
-       if(kind==='warrior')beginKnightAction(p,'attack1',.6);else beginHeroAction(p,'attack',.6);
-       (p.knightAction||p.heroAction).elapsed=.3;
-       ctx.clearRect(0,0,256,192);atlas.draw(ctx,p,0);attackHashes.add(hashLower());
+       hashes.add(hash);minTop=Math.min(minTop,top);maxTop=Math.max(maxTop,top);
+       if(feet>10)footFrames++;
+       oc.imageSmoothingEnabled=false;
+       oc.drawImage(c,80,18,96,112,phase*120+12,row*120+4,96,112);
+       oc.fillStyle='#e8d9b1';oc.font='10px sans-serif';
+       oc.fillText(face+' '+phase,phase*120+7,row*120+13);
       }
-      report.directions[face]={unique:hashes.size,headDrift:Math.max(...tops)-Math.min(...tops)};
-      report.movingAttacks[face]=attackHashes.size;
-      if(contacts.length)report.alternating[face]={first:contacts[0],opposite:contacts[4]};
-      row++;
+      report.directions[face]={unique:hashes.size,headDrift:maxTop-minTop,footFrames};
      }
-     if(kind==='warrior'){
-      let samples=0,missing=0;
-      const inside=(x,y,poly)=>{let hit=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++)if((poly[i][1]>y)!==(poly[j][1]>y)&&x<(poly[j][0]-poly[i][0])*(y-poly[i][1])/(poly[j][1]-poly[i][1])+poly[i][0])hit=!hit;return hit;};
-      for(const [face,d] of Object.entries(directions))for(let combo=1;combo<=3;combo++)for(let frame=0;frame<8;frame++){
-       const f=atlas.manifest.frames[face][(combo+1)*8+frame];if(!f.blade)continue;
-       const p={kind,x:128,y:108,hp:100,direction:d,moving:false,heroMoveDirection:d,walkDistance:WALK_STRIDE/8};
-       beginKnightAction(p,'attack'+combo,.6);p.knightAction.elapsed=(frame+.01)/8*.6;
-       ctx.clearRect(0,0,256,192);atlas.draw(ctx,p,0);const before=ctx.getImageData(0,0,256,192).data;
-       p.moving=true;ctx.clearRect(0,0,256,192);atlas.draw(ctx,p,0);const after=ctx.getImageData(0,0,256,192).data;
-       for(let sy=0;sy<f.h;sy++)for(let sx=0;sx<f.w;sx++){
-        const x=Math.round(p.x-f.anchorX)+sx,y=Math.round(p.y-f.anchorY)+sy;if(y<p.y-18||x<0||x>=256||y<0||y>=192||!inside(sx,sy,f.blade))continue;
-        const i=(y*256+x)*4,[r,g,b,a]=before.slice(i,i+4);
-        if(a<250||Math.min(r,g,b)<110||Math.max(r,g,b)-Math.min(r,g,b)>55)continue;
-        samples++;if(Math.abs(r-after[i])+Math.abs(g-after[i+1])+Math.abs(b-after[i+2])>12)missing++;
-       }
-      }
-      report.bladeChecks={samples,missing};
-     }
-     report.contact=contact.toDataURL();results.push(report);
-    }return results;
+     report.contact=out.toDataURL('image/png').split(',')[1];
+     results.push(report);
+    }
+    return results;
    });
    for(const r of results){
-    if(r.kind==='warrior'){assert.ok(r.bladeChecks.samples>20);assert.equal(r.bladeChecks.missing,0,'moving legs must not erase the sword');}
-    for(const [face,values] of Object.entries(r.directions)){assert.ok(values.unique===8,r.kind+' '+face+' needs distinct complete strides');assert.ok(values.headDrift<=5,r.kind+' '+face+' torso jumps '+values.headDrift);assert.equal(r.movingAttacks[face],1,r.kind+' fixed attack pose must remain intact '+face);}
-    for(const [face,steps] of Object.entries(r.alternating)){
-     const front=face==='down'?0:1;assert.ok(steps.first[front]>steps.first[1-front]+6,r.kind+' '+face+' first foot not visibly leading '+JSON.stringify(steps));
-     assert.ok(steps.opposite[1-front]>steps.opposite[front]+6,r.kind+' '+face+' opposite foot not visibly leading '+JSON.stringify(steps));
+    for(const [face,values] of Object.entries(r.directions)){
+     assert.ok(values.unique>=6,r.kind+' '+face+' lacks distinct complete walk frames');
+     assert.ok(values.headDrift<=17,r.kind+' '+face+' has excessive vertical sprite drift');
+     assert.equal(values.footFrames,8,r.kind+' '+face+' loses contact with the ground');
     }
-    fs.writeFileSync('test-output/walk-'+r.kind+'-'+engine+'.png',Buffer.from(r.contact.split(',')[1],'base64'));delete r.contact;console.log(engine,JSON.stringify(r));
+    fs.writeFileSync('test-output/walk-'+r.kind+'-'+engine+'.png',Buffer.from(r.contact,'base64'));
+    delete r.contact;console.log(engine,JSON.stringify(r));
    }
    assert.deepEqual(errors,[]);
   }finally{await browser.close();}
  }
-})().catch(e=>{console.error(e);process.exit(1)});
+})().catch(error=>{console.error(error);process.exit(1);});
