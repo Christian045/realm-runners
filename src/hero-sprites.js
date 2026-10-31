@@ -1,5 +1,3 @@
-import {loadGaitBodies,drawGaitBody} from './gait-bodies.js?v=0.31.0';
-import {drawLocomotion} from './locomotion.js?v=0.31.0';
 import {heroShot} from './hero-aim.js?v=0.31.0';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.31.0';
 
@@ -28,8 +26,6 @@ export class HeroSpriteAtlas{
     const manifest=await response.json(),images={};
     await Promise.all(['down','right','up','left'].map(async face=>{images[face]=await this.loadImage(new URL(face+'.png?v=0.28.0',base));}));
     if(manifest.aimRig)images.aim=await this.loadImage(new URL('aim.png?v=0.28.1',base));
-    if(manifest.locomotion)images.legs=await this.loadImage(new URL(manifest.locomotion.file+'?v=0.29.0',base));
-    if(manifest.locomotion)images.garments=await loadGaitBodies();
     if(generation!==this.generation)return;
     this.images=images;this.manifest=manifest;this.ready=true;
    }catch(error){if(generation===this.generation){this.failed=true;console.warn('Hero graphics unavailable; retaining legacy fallback.',error);}}
@@ -46,18 +42,17 @@ export class HeroSpriteAtlas{
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
   const shot=aiming?heroShot(p):null;
   if(aiming&&shot.aim.y<-.3)this.drawWeapon(ctx,p,pose,shot);
-  if((pose.clip==='walk'||pose.clip==='idle')&&this.images.garments){
-   drawLocomotion(ctx,p,pose,this.manifest.locomotion,this.images.legs,()=>drawGaitBody(ctx,p,pose,this.images.garments));
+  // Use each complete authored idle/walk/action frame. The independent
+  // procedural legs and static clothes atlas did not share a consistent hip
+  // pivot; they produced tiny feet, doubled seams and distorted robes.
+  // The dedicated aim rig is retained so ranged weapons keep their mount.
+  const rootX=pose.clip==='walk'?(f.walkRootX??f.anchorX):f.anchorX;
+  if(f.flipX){
+   ctx.translate(Math.round(p.x),Math.round(p.y));ctx.scale(-1,1);
+   ctx.drawImage(image,f.x,f.y,f.w,f.h,-rootX,-f.anchorY,f.w,f.h);
   }else{
-  drawLocomotion(ctx,p,pose,this.manifest.locomotion,this.images.legs,()=>{
-  if(f.flipX){const grounded=pose.clip==='walk'&&this.manifest.locomotion,scale=grounded?76/f.h:1;ctx.translate(Math.round(p.x),Math.round(p.y));ctx.scale(-1,1);ctx.drawImage(image,f.x,f.y,f.w,f.h,-(grounded?(f.walkRootX??f.anchorX):f.anchorX)*scale,grounded?-68:-f.anchorY,f.w*scale,f.h*scale);}
-  else{
-   const grounded=pose.clip==='walk'&&this.manifest.locomotion,scale=grounded?76/f.h:1;
-   const anchorX=(grounded?(f.walkRootX??f.anchorX):f.anchorX)*scale;
-   const anchorY=grounded?76-8:f.anchorY;
-   ctx.drawImage(image,f.x,f.y,f.w,f.h,Math.round(p.x-anchorX),Math.round(p.y-anchorY),f.w*scale,f.h*scale);
-  }
-  });
+   ctx.drawImage(image,f.x,f.y,f.w,f.h,
+    Math.round(p.x-rootX),Math.round(p.y-f.anchorY),f.w,f.h);
   }
   if(aiming&&shot.aim.y>=-.3)this.drawWeapon(ctx,p,pose,shot);
   ctx.restore();return true;
