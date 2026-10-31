@@ -1,3 +1,4 @@
+import {calibrateKnightWalk,drawKnightWalk} from './knight-walk.js?v=0.33.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.32.0';
 import {knightPose} from './knight-animation.js?v=0.31.0';
 
@@ -22,6 +23,18 @@ export class KnightSpriteAtlas{
     if(image.decode)await image.decode();
     this.images[face]=image;
    }));
+   // The new walk art is deliberately separate from attack/dash/death sheets.
+   // If it fails to decode we retain the original complete walk poses.
+   try{
+    const walk=imageFactory();walk.decoding='async';
+    await new Promise((resolve,reject)=>{
+     walk.onload=resolve;walk.onerror=reject;
+     walk.src=new URL('../assets/knight/walk-32.png?v=0.33.0',import.meta.url).href;
+    });
+    if(walk.decode)await walk.decode();
+    this.images.walk=walk;
+    this.newWalkPivots=calibrateKnightWalk(walk);
+   }catch(error){console.warn('New knight walk art unavailable; using original walk sprites.',error);}
    this.walkPivots=prepareWalkPivots(this.manifest,this.images,8);
    this.ready=true;
   }catch(error){this.failed=true;console.warn('Knight graphics unavailable; using cached fallback.',error);}
@@ -37,9 +50,11 @@ export class KnightSpriteAtlas{
   // static cape/torso from tiny procedural legs caused visible body seams and
   // made the legs disappear behind the clothing in side and back views.
   // Never composite that experimental garment sheet over this character.
-  const rootX=pose.clip==='walk'?(f.walkRootX??f.anchorX):f.anchorX;
-  ctx.drawImage(image,f.x,f.y,f.w,f.h,
-   Math.round(p.x-rootX),Math.round(p.y-walkFrameAnchorY(this.walkPivots,pose,f)),f.w,f.h);
+  if(!drawKnightWalk(ctx,p,pose,this.images.walk,this.newWalkPivots)){
+   const rootX=pose.clip==='walk'?(f.walkRootX??f.anchorX):f.anchorX;
+   ctx.drawImage(image,f.x,f.y,f.w,f.h,
+    Math.round(p.x-rootX),Math.round(p.y-walkFrameAnchorY(this.walkPivots,pose,f)),f.w,f.h);
+  }
   ctx.restore();return true;
  }
  preview(ctx,width,height,time){
