@@ -1,3 +1,4 @@
+import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.34.0';
 import {WALK_STRIDE} from './locomotion.js?v=0.31.0';
 // Action-local clocks: graphics and damage share the same frame boundary.
 export const KNIGHT_CLIPS=Object.freeze({
@@ -35,7 +36,10 @@ export function knightPose(p,time=0){
  if(p.hp<=0){clip='death';elapsed=p.knightDeathElapsed||0;duration=KNIGHT_CLIPS.death.duration;direction=p.knightDeathDirection||direction;}
  else if(p.knightAction){({clip,elapsed,duration,direction}=p.knightAction);}
  else if(p.hurtTimer>0){clip='hurt';elapsed=.34-p.hurtTimer;duration=.34;}
- else if(p.moving){clip='walk';duration=KNIGHT_CLIPS.walk.duration;elapsed=p.walkDistance===undefined?(p.walkCycle||0)/14:p.walkDistance/WALK_STRIDE*duration;direction=p.knightMoveDirection||direction;}
+ else if(p.moving){clip='walk';duration=KNIGHT_CLIPS.walk.duration;elapsed=p.knightWalkDistance===undefined?
+  (p.walkDistance===undefined?(p.walkCycle||0)/14:p.walkDistance/WALK_STRIDE*duration):
+  p.knightWalkDistance/KNIGHT_VISUAL_STRIDE*duration;
+  direction=p.knightMoveDirection||direction;}
  const spec=KNIGHT_CLIPS[clip];
  const progress=Math.max(0,elapsed/duration);
  const frame=spec.loop?Math.floor(progress*spec.frames)%spec.frames:Math.min(spec.frames-1,Math.floor(progress*spec.frames));
