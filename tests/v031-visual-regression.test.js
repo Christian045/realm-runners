@@ -32,15 +32,16 @@ test('all six classes draw one intact authored frame in idle and walk, all facin
     assert.equal(pose.clip,'walk');
     const frame=s.manifest.frames[face][pose.row*(kind==='warrior'?8:6)+pose.frame];
     const ops=[];
-    const ctx={save(){},restore(){},drawImage(...args){ops.push(args);},imageSmoothingEnabled:false};
+    const ctx={save(){},restore(){},translate(){},scale(){},drawImage(...args){ops.push(args);},imageSmoothingEnabled:false};
     assert.equal(s.draw(ctx,p,0),true);
     assert.equal(ops.length,1,kind+' '+face+' does not draw detached feet/body');
     const [img,sx,sy,sw,sh,dx,dy,dw,dh]=ops[0];
     assert.strictEqual(img,s.images[face]);
     assert.deepEqual([sx,sy,sw,sh],[frame.x,frame.y,frame.w,frame.h]);
-    assert.deepEqual([dx,dy,dw,dh],
-     [Math.round(p.x-(frame.walkRootX??frame.anchorX)),
-      Math.round(p.y-frame.anchorY),frame.w,frame.h]);
+    const rootX=frame.walkRootX??frame.anchorX;
+    assert.deepEqual([dx,dy,dw,dh],frame.flipX?
+     [-rootX,-frame.anchorY,frame.w,frame.h]:
+     [Math.round(p.x-rootX),Math.round(p.y-frame.anchorY),frame.w,frame.h]);
     clips.add(sx+':'+sy);
    }
    assert.ok(clips.size>=6,kind+' '+face+' lacks authored walk frames');
@@ -51,7 +52,7 @@ test('idle renders without procedural body and leg overlap',()=>{
  for(const kind of ['warrior','hunter','mage','glasscannon','summoner','alchemist']){
   const s=atlas(kind),direction={x:0,y:1};
   const p={kind,x:120,y:120,hp:100,invulnerable:0,moving:false,direction};
-  let calls=0;const ctx={save(){},restore(){},drawImage(){calls++;},imageSmoothingEnabled:false};
+  let calls=0;const ctx={save(){},restore(){},translate(){},scale(){},drawImage(){calls++;},imageSmoothingEnabled:false};
   assert.equal(s.draw(ctx,p,0),true);
   assert.equal(calls,1,kind+' idle should be a single intact sprite');
  }
