@@ -1,3 +1,4 @@
+import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.32.0';
 import {heroShot} from './hero-aim.js?v=0.31.0';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.31.0';
 
@@ -17,7 +18,7 @@ export class HeroSpriteAtlas{
  select(kind){
   if(!HERO_KINDS.includes(kind)){this.release();return;}
   if(this.kind===kind)return;
-  this.kind=kind;this.ready=false;this.failed=false;this.images={};const generation=++this.generation;
+  this.kind=kind;this.ready=false;this.failed=false;this.images={};this.walkPivots={};const generation=++this.generation;
   this.loading=(async()=>{
    try{
     const base=new URL('../assets/heroes/'+kind+'/',import.meta.url);
@@ -27,15 +28,18 @@ export class HeroSpriteAtlas{
     await Promise.all(['down','right','up','left'].map(async face=>{images[face]=await this.loadImage(new URL(face+'.png?v=0.28.0',base));}));
     if(manifest.aimRig)images.aim=await this.loadImage(new URL('aim.png?v=0.28.1',base));
     if(generation!==this.generation)return;
+    this.walkPivots=prepareWalkPivots(manifest,images,6);
     this.images=images;this.manifest=manifest;this.ready=true;
    }catch(error){if(generation===this.generation){this.failed=true;console.warn('Hero graphics unavailable; retaining legacy fallback.',error);}}
   })();
  }
- release(){this.generation++;this.kind=null;this.ready=false;this.images={};this.manifest=null;}
+ release(){this.generation++;this.kind=null;this.ready=false;this.images={};this.walkPivots={};this.manifest=null;}
  draw(ctx,p,time){
   if(!this.ready||p.kind!==this.kind)return false;
   const pose=heroPose(p,time);pose.gaitTime=time;
-  const aiming=this.manifest.aimRig&&(pose.clip==='idle'||pose.clip==='walk'||pose.clip==='attack'||(p.kind==='hunter'&&pose.clip==='special'));
+  const aiming=this.manifest.aimRig&&(pose.clip==='idle'||pose.clip==='attack'||(p.kind==='hunter'&&pose.clip==='special'));
+  // Walk uses the six complete hand-drawn leg strides. The aiming sheet is
+  // for standing/attacking: its bracing poses do not contain a real walk.
   const f=aiming?this.manifest.aimRig.frames[pose.face][pose.frame]:this.manifest.frames[pose.face][pose.row*6+pose.frame];
   const image=aiming?this.images.aim:this.images[pose.face];
   ctx.save();ctx.imageSmoothingEnabled=false;
@@ -49,10 +53,10 @@ export class HeroSpriteAtlas{
   const rootX=pose.clip==='walk'?(f.walkRootX??f.anchorX):f.anchorX;
   if(f.flipX){
    ctx.translate(Math.round(p.x),Math.round(p.y));ctx.scale(-1,1);
-   ctx.drawImage(image,f.x,f.y,f.w,f.h,-rootX,-f.anchorY,f.w,f.h);
+   ctx.drawImage(image,f.x,f.y,f.w,f.h,-rootX,-walkFrameAnchorY(this.walkPivots,pose,f),f.w,f.h);
   }else{
    ctx.drawImage(image,f.x,f.y,f.w,f.h,
-    Math.round(p.x-rootX),Math.round(p.y-f.anchorY),f.w,f.h);
+    Math.round(p.x-rootX),Math.round(p.y-walkFrameAnchorY(this.walkPivots,pose,f)),f.w,f.h);
   }
   if(aiming&&shot.aim.y>=-.3)this.drawWeapon(ctx,p,pose,shot);
   ctx.restore();return true;
