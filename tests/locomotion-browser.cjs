@@ -52,8 +52,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
         hash=Math.imul(hash^(j+raw[j]*11+raw[j+1]*7),16777619);
        }
        hashes.add(hash);
-       sc.drawImage(c,8+i*112,15+Object.keys(dirs).indexOf(face)*140,96,113,
-        8+i*112,15+Object.keys(dirs).indexOf(face)*140,96,113);
+       sc.drawImage(c,20,8,120,125,
+        8+i*112,10+Object.keys(dirs).indexOf(face)*140,96,120);
       }
       report.faces[face]={contacts,unique:hashes.size,sourceFrames:uniqueSources.size,
        drift:Math.max(...contacts)-Math.min(...contacts)};
