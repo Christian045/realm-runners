@@ -1,3 +1,19 @@
+# Superseded experimental locomotion assets (Alpha 0.31.0)
+
+**Not used in the production renderer since 0.31.1.** The synthetic
+leg-and-garment system below made side silhouettes disproportionate, hid the
+boots behind robes and gave incorrect gait animations when combined with aim
+poses. These files remain as archive material, not runtime dependencies.
+
+**Current 0.32.0 implementation:** Every class/direction uses its original
+hand-authored full-body walking PNG frames. The hunter and glasscannon no longer
+render aiming/attack sprites while walking. `src/grounded-walk.js` samples only
+foot contact around the body root when the atlas loads, aligning each complete
+walking sprite to the same ground plane without cutting, stretching or compositing
+the artwork. The active QA is `tests/locomotion-browser.cjs`.
+
+---
+
 # Layered locomotion · Alpha 0.31.0 (nicht aktiv in 0.31.1)
 
 **Status:** Die hier beschriebenen getrennten Kleidungs- und Bein-Ebenen werden in der aktuellen Version nicht mehr zur Charakterdarstellung verwendet. Die Live-Figuren nutzen wieder vollständige Walk-/Idle-Frames, weil der Mix aus statischen Gewändern und einzeln projizierten Beinen sichtbar unpassende Proportionen verursachte. Die Artefakte bleiben für eine spätere Überarbeitung im Repository, sind aber keine aktiv eingesetzten Spielgrafiken.
