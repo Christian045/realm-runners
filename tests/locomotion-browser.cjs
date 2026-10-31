@@ -13,7 +13,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
    const results=await page.evaluate(async()=>{
     const [{HeroSpriteAtlas},{KnightSpriteAtlas},{WALK_STRIDE},{findGroundContact}]=await Promise.all([
      import('./src/hero-sprites.js?v=0.32.0'),
-     import('./src/knight-sprites.js?v=0.32.0'),
+     import('./src/knight-sprites.js?v=0.33.0'),
      import('./src/locomotion.js?v=0.31.0'),
      import('./src/grounded-walk.js?v=0.32.0')]);
     const dirs={down:{x:0,y:1},right:{x:1,y:0},up:{x:0,y:-1},left:{x:-1,y:0}};
@@ -23,6 +23,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
      if(kind!=='warrior')atlas.select(kind);
      await atlas.loading;
      if(!atlas.ready)throw Error('Atlas unavailable: '+kind);
+     if(kind==='warrior'&&!atlas.images.walk)throw Error('New knight walk atlas failed to decode');
      const frames=kind==='warrior'?8:6;
      const report={kind,faces:{}};
      const sheet=document.createElement('canvas');sheet.width=frames*112;sheet.height=4*140;
@@ -37,9 +38,13 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
        const calls=[];
        const trace={save(){},restore(){},translate(){},scale(){},drawImage(...args){calls.push(args);},imageSmoothingEnabled:false};
        atlas.draw(trace,p,0);
-       if(calls.length!==1||calls[0][0]!==atlas.images[face]||
-        calls[0][1]!==frame.x||calls[0][2]!==frame.y)throw Error(kind+' '+face+' '+i+': not a complete authored walk sprite');
-       uniqueSources.add(frame.x+':'+frame.y);
+       const sourceImage=kind==='warrior'?atlas.images.walk:atlas.images[face];
+       const sourceX=kind==='warrior'?i*80:frame.x;
+       const sourceY=kind==='warrior'?({down:0,up:1,left:2,right:3}[face])*80:frame.y;
+       if(calls.length!==1||calls[0][0]!==sourceImage||
+        calls[0][1]!==sourceX||calls[0][2]!==sourceY)
+        throw Error(kind+' '+face+' '+i+': incorrect full-body walk source');
+       uniqueSources.add(sourceX+':'+sourceY);
        const c=document.createElement('canvas');c.width=160;c.height=140;
        const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;
        atlas.draw(ctx,p,0);
@@ -71,7 +76,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
      assert.ok(v.drift<=4,report.kind+' '+face+' bounces at ground by '+v.drift+' px');
      assert.ok(v.contacts.every(y=>y>=107&&y<=117),report.kind+' '+face+' feet float away from shadow '+v.contacts);
     }
-    fs.writeFileSync('test-output/walk-v032-'+report.kind+'-'+engine+'.png',Buffer.from(report.preview.split(',')[1],'base64'));
+    fs.writeFileSync('test-output/walk-v033-'+report.kind+'-'+engine+'.png',Buffer.from(report.preview.split(',')[1],'base64'));
     delete report.preview;
     console.log(engine,JSON.stringify(report));
    }

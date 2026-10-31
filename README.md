@@ -1,4 +1,12 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.32.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.33.0)
+
+## Alpha 0.33.0 – Neu illustrierte Laufanimation des Ritters
+
+- Der Ritter besitzt ein eigenes, neu illustriertes und freigestelltes 8×4-Spritesheet (32 Vollkörperbilder) für Vorne/Hinten/Links/Rechts. Die acht Bilder pro Richtung zeigen wechselnde Beinpositionen mit rotem Umhang.
+- Der Renderer lädt das 640×320-Pixel-Atlas `assets/knight/walk-32.png` und zeichnet beim Laufen pro Frame genau ein vollständiges 80×80-Pixel-Bild. Der bestehende Atlas bleibt unverändert für Idle, Attacke, Spezialfähigkeit, Dash, Treffer und Tod.
+- Jede Laufgrafik erhält beim Laden einen eigenen aus der Silhouette berechneten Bodenkontakt. Keine losen Bein-Overlays, keine zerschnittenen Roben oder aufgedehnten Schuhe.
+- Bei Ladeproblemen wird wieder das bisherige komplette Laufbild benutzt. Der Fuß-/Kampftakt und das bestehende Gameplay ändern sich nicht.
+- Validierung: 32-Framen-Regressionstest plus Chromium/WebKit-Spriteprüfung und realer Renderpfad. Die anderen fünf Klassen bleiben unverändert. Das künstlerische Ergebnis sollte zusätzlich auf dem Gerät visuell geprüft werden.
 
 ## Alpha 0.32.0 – Korrekte vollständige Laufanimation und Bodenkontakt
 
