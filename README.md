@@ -1,4 +1,12 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.32.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.34.0)
+
+## Alpha 0.34.0 – Ritter-Laufanimation zur Ingame-Abnahme
+
+- 32 neu aufbereitete vollständige Laufbilder: acht pro Blickrichtung (vorne, rechts, hinten, links) in `assets/knight/walk-v034.png`; 96 × 96 Pixel pro Frame. Rechts werden die sauber getrennten Bilder aus der korrigierten v3-Vorschau verwendet, die übrigen Richtungen aus der neueren Bildtafel.
+- Nur die Laufdarstellung des Ritters ist neu. Stehen, Angreifen, Dash, Treffer, Tod sowie alle anderen Klassen bleiben unverändert. Der alte Laufatlas bleibt als Notfall-Fallback erhalten.
+- Die Laufanimation folgt einer eigenen, langsameren Schrittphase (224 Weltpixel pro Zyklus, bei 210 Pixel/s etwa 133 ms je Frame). Die Spielbewegung und Angriffsmechanik bleiben unverändert.
+- Testvergleich: `?oldKnightWalk=1` schaltet die alte Rittergrafik ein, ohne Speicherstände zu ändern. Zum neuen Ritter normal ohne Query-Parameter öffnen.
+- Die Tests prüfen das Assetformat, den Renderpfad, 32 Laufrichtungsframes und die Trennung von Kampfanimationen. Die optische Bewertung erfolgt anhand von Ingame-Gameplay.
 
 ## Alpha 0.32.0 – Korrekte vollständige Laufanimation und Bodenkontakt
 
