@@ -1,4 +1,4 @@
-import {heroFacing} from './hero-animation.js?v=0.30.2';
+import {heroFacing} from './hero-animation.js?v=0.31.0';
 
 // World-space coordinates shared by the weapon renderer and combat simulation.
 // Body sprites are grounded at the feet; hands sit above that origin.

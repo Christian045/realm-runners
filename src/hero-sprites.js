@@ -1,6 +1,7 @@
-import {drawLocomotion} from './locomotion.js?v=0.30.2';
-import {heroShot} from './hero-aim.js?v=0.30.2';
-import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.30.2';
+import {loadGaitBodies,drawGaitBody} from './gait-bodies.js?v=0.31.0';
+import {drawLocomotion} from './locomotion.js?v=0.31.0';
+import {heroShot} from './hero-aim.js?v=0.31.0';
+import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.31.0';
 
 export class HeroSpriteAtlas{
  constructor(){
@@ -28,6 +29,7 @@ export class HeroSpriteAtlas{
     await Promise.all(['down','right','up','left'].map(async face=>{images[face]=await this.loadImage(new URL(face+'.png?v=0.28.0',base));}));
     if(manifest.aimRig)images.aim=await this.loadImage(new URL('aim.png?v=0.28.1',base));
     if(manifest.locomotion)images.legs=await this.loadImage(new URL(manifest.locomotion.file+'?v=0.29.0',base));
+    if(manifest.locomotion)images.garments=await loadGaitBodies();
     if(generation!==this.generation)return;
     this.images=images;this.manifest=manifest;this.ready=true;
    }catch(error){if(generation===this.generation){this.failed=true;console.warn('Hero graphics unavailable; retaining legacy fallback.',error);}}
@@ -36,14 +38,17 @@ export class HeroSpriteAtlas{
  release(){this.generation++;this.kind=null;this.ready=false;this.images={};this.manifest=null;}
  draw(ctx,p,time){
   if(!this.ready||p.kind!==this.kind)return false;
-  const pose=heroPose(p,time);
-  const aiming=this.manifest.aimRig&&(pose.clip==='walk'||pose.clip==='attack'||(p.kind==='hunter'&&pose.clip==='special'));
+  const pose=heroPose(p,time);pose.gaitTime=time;
+  const aiming=this.manifest.aimRig&&(pose.clip==='idle'||pose.clip==='walk'||pose.clip==='attack'||(p.kind==='hunter'&&pose.clip==='special'));
   const f=aiming?this.manifest.aimRig.frames[pose.face][pose.frame]:this.manifest.frames[pose.face][pose.row*6+pose.frame];
   const image=aiming?this.images.aim:this.images[pose.face];
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
   const shot=aiming?heroShot(p):null;
   if(aiming&&shot.aim.y<-.3)this.drawWeapon(ctx,p,pose,shot);
+  if((pose.clip==='walk'||pose.clip==='idle')&&this.images.garments){
+   drawLocomotion(ctx,p,pose,this.manifest.locomotion,this.images.legs,()=>drawGaitBody(ctx,p,pose,this.images.garments));
+  }else{
   drawLocomotion(ctx,p,pose,this.manifest.locomotion,this.images.legs,()=>{
   if(f.flipX){const grounded=pose.clip==='walk'&&this.manifest.locomotion,scale=grounded?76/f.h:1;ctx.translate(Math.round(p.x),Math.round(p.y));ctx.scale(-1,1);ctx.drawImage(image,f.x,f.y,f.w,f.h,-(grounded?(f.walkRootX??f.anchorX):f.anchorX)*scale,grounded?-68:-f.anchorY,f.w*scale,f.h*scale);}
   else{
@@ -53,11 +58,12 @@ export class HeroSpriteAtlas{
    ctx.drawImage(image,f.x,f.y,f.w,f.h,Math.round(p.x-anchorX),Math.round(p.y-anchorY),f.w*scale,f.h*scale);
   }
   });
+  }
   if(aiming&&shot.aim.y>=-.3)this.drawWeapon(ctx,p,pose,shot);
   ctx.restore();return true;
  }
  drawWeapon(ctx,p,pose,shot){
-  const f=this.manifest.aimRig.weapons[pose.clip==='walk'?0:pose.frame];
+  const f=this.manifest.aimRig.weapons[(pose.clip==='walk'||pose.clip==='idle')?0:pose.frame];
   ctx.save();ctx.translate(shot.mount.x,shot.mount.y);ctx.rotate(shot.angle);
   if(shot.aim.x<0)ctx.scale(1,-1);
   ctx.drawImage(this.images.aim,f.x,f.y,f.w,f.h,-f.anchorX,-f.anchorY,f.w,f.h);

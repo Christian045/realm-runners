@@ -1,8 +1,8 @@
-import {beginCompanionAttack,advanceCompanion,companionShot} from './companion-animation.js?v=0.30.2';
-import {advanceLocomotion} from './locomotion.js?v=0.30.2';
-import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.30.2';
-import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.30.2';
-import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.30.2';
+import {beginCompanionAttack,advanceCompanion,companionShot} from './companion-animation.js?v=0.31.0';
+import {advanceLocomotion} from './locomotion.js?v=0.31.0';
+import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.31.0';
+import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.31.0';
+import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.31.0';
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.23.0';
 import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.26.0';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js?v=0.21.0';
@@ -514,7 +514,7 @@ export class Game {
    p.dashTimer=Math.max(0,p.dashTimer-dt);
    if(this.random()<.65)this.createEffect('spark',p.x,p.y,'#c1e9e4',.28,7);
   }else if(!(p.statuses?.stun>0))this.move(p,move.x*p.speed*dt*(p.statuses?.slow>0?.60:1),move.y*p.speed*dt*(p.statuses?.slow>0?.60:1));
-  advanceLocomotion(p,moveFromX,moveFromY,locomotionDash);
+  advanceLocomotion(p,moveFromX,moveFromY,locomotionDash,dt);
   if(p.kind==='warrior')this.updateKnightAction(dt);else this.updateHeroAction(dt);
   const attacking=this.input.attacking();
   if(p.kind==='hunter'){

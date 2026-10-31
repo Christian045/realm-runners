@@ -1,4 +1,4 @@
-import {WALK_STRIDE} from './locomotion.js?v=0.30.2';
+import {WALK_STRIDE} from './locomotion.js?v=0.31.0';
 // Action-local clocks: graphics and damage share the same frame boundary.
 export const KNIGHT_CLIPS=Object.freeze({
  idle:{row:0,frames:8,duration:1.6,loop:true},

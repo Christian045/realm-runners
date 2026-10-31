@@ -1,4 +1,12 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.30.2)
+# Realm Runners – Dungeon Reborn (Alpha 0.31.0)
+
+## Alpha 0.31.0 – Laufanimationen mit vollständiger Kleidung
+
+- Alle sechs Klassen verwenden beim Stehen und Laufen eigene vollständige Körper-/Kleidungsebenen ohne eingebrannte Beine. Zwei gegeneinander versetzte Beinzyklen bleiben unter Roben und Umhängen sichtbar; es wird nichts mehr auf Hüfthöhe ausgeschnitten.
+- Angepasste Fußbahnen mit Stand- und Schwungphase: Der Stützfuß bleibt relativ zum Boden stehen, der andere Fuß hebt ab. Stiefel behalten ihre Abmessungen. Die Spiegelung nach links berücksichtigt nun auch die Bewegungsrichtung korrekt.
+- Kurzer Übergang zwischen Stand und Schritt, maximal ein Pixel Gewichtsverlagerung und leicht bewegter Stoff. Acht unterscheidbare Schrittphasen in jeder Richtung, vom tatsächlichen Bewegungsweg gesteuert.
+- Gezeichnete Angriffs-, Spezial-, Ausweich-, Treffer- und Todesposen sowie ihre Schadenszeitpunkte bleiben erhalten. Die neuen Körpergrafiken betreffen die Stand- und Laufdarstellung.
+- Neue Prüfungen betrachten die fertig zusammengesetzte Figur statt nur freigestellter Beine: erhaltene Kleidung, sichtbar wechselnde Füße, Bodenkontakt und gespiegelte Fußbewegung. Zusätzlich gibt es eine Vorschau bei Spielgeschwindigkeit mit bewegtem Boden.
 
 ## Alpha 0.30.2 – Vollständige Körperposen
 

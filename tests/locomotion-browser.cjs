@@ -8,7 +8,8 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
    await page.goto('http://127.0.0.1:8000/');
    const results=await page.evaluate(async()=>{
     const [{HeroSpriteAtlas},{KnightSpriteAtlas},{WALK_STRIDE,drawLocomotionLegs},{beginHeroAction,heroPose},{beginKnightAction,knightPose}]=await Promise.all([
-     import('./src/hero-sprites.js?v=0.30.2'),import('./src/knight-sprites.js?v=0.30.2'),import('./src/locomotion.js?v=0.30.2'),import('./src/hero-animation.js'),import('./src/knight-animation.js')]);
+     import('./src/hero-sprites.js?v=0.31.0'),import('./src/knight-sprites.js?v=0.31.0'),import('./src/locomotion.js?v=0.31.0'),import('./src/hero-animation.js'),import('./src/knight-animation.js')]);
+    const {drawGaitBody}=await import('./src/gait-bodies.js?v=0.31.0');
     const hero=new HeroSpriteAtlas(),knight=new KnightSpriteAtlas();await knight.loading;
     const c=document.createElement('canvas');c.width=256;c.height=192;const ctx=c.getContext('2d'),results=[];
     const directions={down:{x:0,y:1},right:{x:1,y:0},up:{x:0,y:-1},left:{x:-1,y:0}};
@@ -26,13 +27,9 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
        // Compare the complete authored silhouette with the composed walking
        // frame. A rectangular hip cut used to delete the centre of robes.
        const pose=kind==='warrior'?knightPose(p,0):heroPose(p,0);
-       const rig=atlas.manifest.aimRig;
-       const f=rig?rig.frames[face][pose.frame]:atlas.manifest.frames[face][pose.row*(kind==='warrior'?8:6)+pose.frame];
        const ref=document.createElement('canvas');ref.width=256;ref.height=192;
        const rc=ref.getContext('2d');rc.imageSmoothingEnabled=false;
-       const scale=76/f.h,root=(f.walkRootX??f.anchorX)*scale;
-       if(f.flipX){rc.translate(p.x,p.y);rc.scale(-1,1);rc.drawImage(rig?atlas.images.aim:atlas.images[face],f.x,f.y,f.w,f.h,-root,-68,f.w*scale,f.h*scale);}
-       else rc.drawImage(rig?atlas.images.aim:atlas.images[face],f.x,f.y,f.w,f.h,Math.round(p.x-root),p.y-68,f.w*scale,f.h*scale);
+       drawGaitBody(rc,p,pose,atlas.images.garments);
        const expected=rc.getImageData(0,0,256,192).data,actual=ctx.getImageData(0,0,256,192).data;
        for(let i=3;i<expected.length;i+=4)if(expected[i]>200&&actual[i]<100)throw Error('Missing garment/body pixel '+kind+' '+face+' '+frame);
        const pixels=ctx.getImageData(0,0,256,192).data;
@@ -41,11 +38,12 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
        const hashLower=()=>{const data=ctx.getImageData(104,90,48,35).data;let h=2166136261;for(let i=0;i<data.length;i++)h=Math.imul(h^data[i],16777619);return h;};
        hashes.add(hashLower());
        out.drawImage(c,80,24,96,104,frame*120+12,row*120+12,96,104);out.fillStyle='#fff';out.font='10px sans-serif';out.fillText(face+' '+frame,frame*120+2,row*120+11);
-       // Probe the real limb raster before a down-pointing weapon can occlude it.
+       // Check visible feet in the COMPLETE composited actor, not isolated limbs.
        if(face==='down'||face==='up'){
-        ctx.clearRect(0,0,256,192);drawLocomotionLegs(ctx,p,{face,direction:d},atlas.manifest.locomotion,atlas.images.legs);
         const legs=ctx.getImageData(0,0,256,192).data;
-        const foot=(from,to)=>{let bottom=-999;for(let y=100;y<128;y++)for(let x=128+from;x<=128+to;x++)if(legs[(y*256+x)*4+3]>60)bottom=Math.max(bottom,y-108);return bottom;};
+        const limbImage=atlas.images.legs;atlas.images.legs=null;rc.clearRect(0,0,256,192);atlas.draw(rc,p,0);atlas.images.legs=limbImage;
+        const covered=rc.getImageData(0,0,256,192).data;
+        const foot=(from,to)=>{let bottom=-999;for(let y=100;y<136;y++)for(let x=128+from;x<=128+to;x++){const i=(y*256+x)*4;if(legs[i+3]>60&&Math.abs(legs[i]-covered[i])+Math.abs(legs[i+1]-covered[i+1])+Math.abs(legs[i+2]-covered[i+2])+Math.abs(legs[i+3]-covered[i+3])>8)bottom=Math.max(bottom,y-108);}return bottom;};
         contacts.push([foot(-15,-5),foot(5,15)]);
        }
        if(kind==='warrior')beginKnightAction(p,'attack1',.6);else beginHeroAction(p,'attack',.6);
@@ -80,10 +78,10 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
    });
    for(const r of results){
     if(r.kind==='warrior'){assert.ok(r.bladeChecks.samples>20);assert.equal(r.bladeChecks.missing,0,'moving legs must not erase the sword');}
-    for(const [face,values] of Object.entries(r.directions)){assert.ok(values.unique>=(r.kind==='warrior'?8:6),r.kind+' '+face+' needs distinct complete strides');assert.ok(values.headDrift<=5,r.kind+' '+face+' torso jumps '+values.headDrift);assert.equal(r.movingAttacks[face],1,r.kind+' fixed attack pose must remain intact '+face);}
+    for(const [face,values] of Object.entries(r.directions)){assert.ok(values.unique===8,r.kind+' '+face+' needs distinct complete strides');assert.ok(values.headDrift<=5,r.kind+' '+face+' torso jumps '+values.headDrift);assert.equal(r.movingAttacks[face],1,r.kind+' fixed attack pose must remain intact '+face);}
     for(const [face,steps] of Object.entries(r.alternating)){
-     assert.ok(steps.first[0]>=6&&steps.first[1]<=4,r.kind+' '+face+' left foot must support first: '+JSON.stringify(steps));
-     assert.ok(steps.opposite[1]>=6&&steps.opposite[0]<=4,r.kind+' '+face+' right foot must support opposite: '+JSON.stringify(steps));
+     const front=face==='down'?0:1;assert.ok(steps.first[front]>steps.first[1-front]+6,r.kind+' '+face+' first foot not visibly leading '+JSON.stringify(steps));
+     assert.ok(steps.opposite[1-front]>steps.opposite[front]+6,r.kind+' '+face+' opposite foot not visibly leading '+JSON.stringify(steps));
     }
     fs.writeFileSync('test-output/walk-'+r.kind+'-'+engine+'.png',Buffer.from(r.contact.split(',')[1],'base64'));delete r.contact;console.log(engine,JSON.stringify(r));
    }

@@ -1,5 +1,6 @@
-import {drawLocomotion} from './locomotion.js?v=0.30.2';
-import {knightPose} from './knight-animation.js?v=0.30.2';
+import {loadGaitBodies,drawGaitBody} from './gait-bodies.js?v=0.31.0';
+import {drawLocomotion} from './locomotion.js?v=0.31.0';
+import {knightPose} from './knight-animation.js?v=0.31.0';
 
 // Four compact, decoded-once PNG atlases. Source frames include the sword;
 // never draw the old floating weapon on top of this character.
@@ -27,15 +28,20 @@ export class KnightSpriteAtlas{
     await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/locomotion/steel.png?v=0.29.0',import.meta.url).href;});
     if(image.decode)await image.decode();this.images.legs=image;
    }
+   this.images.garments=await loadGaitBodies(imageFactory);
    this.ready=true;
   }catch(error){this.failed=true;console.warn('Knight graphics unavailable; using cached fallback.',error);}
  }
  draw(ctx,p,time){
   if(!this.ready)return false;
   const pose=knightPose(p,time),f=this.manifest.frames[pose.face][pose.row*8+pose.frame];
+  pose.gaitTime=time;
   const image=this.images[pose.face];
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
+  if((pose.clip==='walk'||pose.clip==='idle')&&this.images.garments){
+   drawLocomotion(ctx,p,pose,this.manifest.locomotion,this.images.legs,()=>drawGaitBody(ctx,p,pose,this.images.garments));
+  }else{
   drawLocomotion(ctx,p,pose,this.manifest.locomotion,this.images.legs,(weaponOnly=false)=>{
    if(weaponOnly&&!f.blade)return;
    const grounded=pose.clip==='walk'&&this.manifest.locomotion,scale=grounded?76/f.h:1;
@@ -45,6 +51,7 @@ export class KnightSpriteAtlas{
    ctx.drawImage(image,f.x,f.y,f.w,f.h,x,y,f.w*scale,f.h*scale);
    ctx.restore();
   });
+  }
   ctx.restore();return true;
  }
  preview(ctx,width,height,time){
