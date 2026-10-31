@@ -1,4 +1,6 @@
-# Layered locomotion · Alpha 0.31.0
+# Layered locomotion · Alpha 0.31.0 (nicht aktiv in 0.31.1)
+
+**Status:** Die hier beschriebenen getrennten Kleidungs- und Bein-Ebenen werden in der aktuellen Version nicht mehr zur Charakterdarstellung verwendet. Die Live-Figuren nutzen wieder vollständige Walk-/Idle-Frames, weil der Mix aus statischen Gewändern und einzeln projizierten Beinen sichtbar unpassende Proportionen verursachte. Die Artefakte bleiben für eine spätere Überarbeitung im Repository, sind aber keine aktiv eingesetzten Spielgrafiken.
 
 `garments.png` contains 24 complete, leg-free body/garment layers: six classes, four directions. Their natural alpha silhouettes retain the centre and hem of robes and the complete capes. No rectangular hip mask is used. `src/gait-body-frames.js` records the UVs and stable roots. `tools/pack-gait-bodies.cjs` extracts and packs this layer sheet, removing disconnected source-cell fragments. The shared 448×672 palette PNG is approximately 67 KiB.
 
