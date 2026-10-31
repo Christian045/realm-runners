@@ -11,7 +11,7 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
     await page.locator('#overlay').waitFor({state:'hidden'});
     const result=await page.evaluate(async kind=>{
      const [{HeroSpriteAtlas},{Game},{Renderer},{defaultProgress},{heroPose,beginHeroAction}]=await Promise.all([
-      import('./src/hero-sprites.js?v=0.29.0'),import('./src/game.js?v=0.30.0'),import('./src/render.js?v=0.30.0'),import('./src/progression.js'),import('./src/hero-animation.js?v=0.29.0')]);
+      import('./src/hero-sprites.js?v=0.30.2'),import('./src/game.js?v=0.30.2'),import('./src/render.js?v=0.30.2'),import('./src/progression.js'),import('./src/hero-animation.js?v=0.30.2')]);
      const atlas=window.__heroTestAtlas??=new HeroSpriteAtlas();atlas.select(kind);await atlas.loading;await atlas.previewLoading;
      if(!atlas.ready)throw new Error('Failed atlas '+kind);
      const c=document.createElement('canvas');c.width=192;c.height=192;const ctx=c.getContext('2d');
@@ -33,7 +33,7 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
      const g=new Game(defaultProgress(),input);g.start(kind,5);const p=g.player;p.direction={x:1,y:0};
      g.attack();const before=g.projectiles.length;g.updateHeroAction(p.heroAction.duration/2);const after=g.projectiles.length,frame=heroPose(p).frame;
      // Validate the actual layered renderer, not only the original full-body atlas.
-     const {heroShot}=await import('./src/hero-aim.js?v=0.29.0');
+     const {heroShot}=await import('./src/hero-aim.js?v=0.30.2');
      let rigFrames=0;
      if(atlas.manifest.aimRig){
       for(const f of [...Object.values(atlas.manifest.aimRig.frames).flat(),...atlas.manifest.aimRig.weapons]){

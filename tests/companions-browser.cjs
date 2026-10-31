@@ -12,7 +12,7 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
    assert.ok(!requests.some(url=>/companions\/(imp|spirit)\/atlas.png/.test(url)),'unselected full companions remain lazy');
    await page.screenshot({path:'test-output/companions-menu-'+engine+'.png'});
    const result=await page.evaluate(async()=>{
-    const [{CompanionSpriteAtlas},{beginCompanionAttack,companionPose,companionShot}]=await Promise.all([import('./src/companion-sprites.js?v=0.30.0'),import('./src/companion-animation.js?v=0.30.0')]);
+    const [{CompanionSpriteAtlas},{beginCompanionAttack,companionPose,companionShot}]=await Promise.all([import('./src/companion-sprites.js?v=0.30.2'),import('./src/companion-animation.js?v=0.30.2')]);
     const atlas=new CompanionSpriteAtlas(),c=document.createElement('canvas');c.width=224;c.height=224;const ctx=c.getContext('2d'),reports=[];
     const dirs={down:{x:0,y:1},right:{x:1,y:0},up:{x:0,y:-1},left:{x:-1,y:0}};
     for(const kind of ['bat','imp','spirit','giant']){

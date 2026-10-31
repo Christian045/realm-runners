@@ -8,7 +8,7 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
    await page.goto('http://127.0.0.1:8000/');
    const results=await page.evaluate(async()=>{
     const [{HeroSpriteAtlas},{KnightSpriteAtlas},{WALK_STRIDE,drawLocomotionLegs},{beginHeroAction,heroPose},{beginKnightAction,knightPose}]=await Promise.all([
-     import('./src/hero-sprites.js?v=0.29.0'),import('./src/knight-sprites.js?v=0.29.0'),import('./src/locomotion.js?v=0.29.0'),import('./src/hero-animation.js'),import('./src/knight-animation.js')]);
+     import('./src/hero-sprites.js?v=0.30.2'),import('./src/knight-sprites.js?v=0.30.2'),import('./src/locomotion.js?v=0.30.2'),import('./src/hero-animation.js'),import('./src/knight-animation.js')]);
     const hero=new HeroSpriteAtlas(),knight=new KnightSpriteAtlas();await knight.loading;
     const c=document.createElement('canvas');c.width=256;c.height=192;const ctx=c.getContext('2d'),results=[];
     const directions={down:{x:0,y:1},right:{x:1,y:0},up:{x:0,y:-1},left:{x:-1,y:0}};
