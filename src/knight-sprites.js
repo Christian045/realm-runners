@@ -1,3 +1,4 @@
+import {drawKnightWalk} from './knight-walk.js?v=0.34.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.32.0';
 import {knightPose} from './knight-animation.js?v=0.31.0';
 
@@ -6,6 +7,7 @@ import {knightPose} from './knight-animation.js?v=0.31.0';
 export class KnightSpriteAtlas{
  constructor(imageFactory=()=>new Image()){
   this.images={};this.ready=false;this.failed=false;this.manifest=null;
+  this.useLegacyWalk=typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('oldKnightWalk');
   this.loading=this.load(imageFactory);
  }
  async load(imageFactory){
@@ -22,6 +24,19 @@ export class KnightSpriteAtlas{
     if(image.decode)await image.decode();
     this.images[face]=image;
    }));
+   // ?oldKnightWalk=1 compares the previous full-body art without affecting saves.
+   if(!this.useLegacyWalk){
+    try{
+     const walk=imageFactory();walk.decoding='async';
+     await new Promise((resolve,reject)=>{
+      walk.onload=resolve;walk.onerror=reject;
+      walk.src=new URL('../assets/knight/walk-v034.png?v=0.34.0',import.meta.url).href;
+     });
+     if(walk.decode)await walk.decode();
+     if(walk.width!==768||walk.height!==384)throw new Error('Invalid knight walk dimensions');
+     this.images.walk=walk;
+    }catch(error){console.warn('New knight walk unavailable; using previous art.',error);}
+   }
    this.walkPivots=prepareWalkPivots(this.manifest,this.images,8);
    this.ready=true;
   }catch(error){this.failed=true;console.warn('Knight graphics unavailable; using cached fallback.',error);}
@@ -37,9 +52,11 @@ export class KnightSpriteAtlas{
   // static cape/torso from tiny procedural legs caused visible body seams and
   // made the legs disappear behind the clothing in side and back views.
   // Never composite that experimental garment sheet over this character.
-  const rootX=pose.clip==='walk'?(f.walkRootX??f.anchorX):f.anchorX;
-  ctx.drawImage(image,f.x,f.y,f.w,f.h,
-   Math.round(p.x-rootX),Math.round(p.y-walkFrameAnchorY(this.walkPivots,pose,f)),f.w,f.h);
+  if(!drawKnightWalk(ctx,p,pose,this.images.walk)){
+   const rootX=pose.clip==='walk'?(f.walkRootX??f.anchorX):f.anchorX;
+   ctx.drawImage(image,f.x,f.y,f.w,f.h,
+    Math.round(p.x-rootX),Math.round(p.y-walkFrameAnchorY(this.walkPivots,pose,f)),f.w,f.h);
+  }
   ctx.restore();return true;
  }
  preview(ctx,width,height,time){
