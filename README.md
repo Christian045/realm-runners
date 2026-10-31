@@ -1,4 +1,12 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.31.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.31.1)
+
+## Alpha 0.31.1 – Korrektur der verzerrten Charaktere
+
+- Die experimentelle Montage eines weitgehend statischen Oberkörpers mit separat gezeichneten Miniaturbeinen wurde **deaktiviert**. Sie verursachte zu große Oberkörper, kaum sichtbare Beine und unnatürliche Überschneidungen mit Roben und Schwertern.
+- Im Spiel werden wieder die gezeichneten vollständigen Idle-/Laufposen in allen vier Blickrichtungen angezeigt (Ritter: acht, andere Klassen: sechs Walk-Frames), mit konsistenter Verankerung am Boden. Angriffe, Begleiter und Waffenlogik bleiben erhalten.
+- Die Schrittphase hängt weiterhin an realer Bewegung. Eine vollständig neu gezeichnete, anatomisch korrekte Laufanimation mit klar getrennt bewegten Beinen ist **noch nicht umgesetzt**; dafür müssen die Original-Sprites neu erstellt werden, statt fehlerhaft übereinandergelegt zu werden.
+- Browserprüfungen untersuchen die vollständigen Lauf-Frames; ein zusätzlicher Unit-Test deckt alle sechs Klassen und vier Richtungen ab.
+
 
 ## Alpha 0.31.0 – Laufanimationen mit vollständiger Kleidung
 
