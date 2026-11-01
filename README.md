@@ -1,4 +1,12 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.35.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.35.1)
+
+## Alpha 0.35.1 – Standanimationen von Magier und Beschwörer angeglichen
+
+- **Gleicher Charakter im Stand und beim Gehen:** Magier und Beschwörer verwenden jetzt auch im Idle dieselben neuen Vollkörperbilder wie in Alpha 0.35.0, statt in den alten Charakterstil zurückzuspringen.
+- Die frontale, rechte, hintere und linke Standpose bleibt stabil und wird nicht als Laufanimation abgespielt; die Füße bleiben auf der bisherigen Bodenlinie.
+- Auch die Klassenauswahl zeigt bei beiden Robenklassen nun das neue Modell. Alte Grafiken bleiben nur als Fallback, falls ein Atlas nicht geladen werden kann.
+- Angriffs-, Spezial-, Treffer-, Ausweich- und Todesanimationen behalten vorerst ihr bisheriges Artwork; hier kann ein weiterer Stilwechsel sichtbar sein. Die Kampflogik bleibt unverändert.
+- Mit `?oldRobedWalk=1` können die alten Vollkörpergrafiken für Stand/Laufen weiterhin verglichen werden.
 
 ## Alpha 0.35.0 – Neue Laufanimationen für Beschwörer und Magier
 
