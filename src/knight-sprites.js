@@ -1,4 +1,4 @@
-import {drawKnightWalk} from './knight-walk.js?v=0.34.0';
+import {drawKnightWalk} from './knight-walk.js?v=0.36.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.32.0';
 import {knightPose} from './knight-animation.js?v=0.31.0';
 
@@ -61,9 +61,15 @@ export class KnightSpriteAtlas{
  }
  preview(ctx,width,height,time){
   if(!this.ready)return false;
+  ctx.clearRect(0,0,width,height);ctx.imageSmoothingEnabled=false;
+  if(this.images.walk){
+   const scale=Math.min(width/96,height/90);
+   ctx.drawImage(this.images.walk,0,0,96,96,Math.round(width/2-48*scale),
+    Math.round(height*.87-78*scale),96*scale,96*scale);
+   return true;
+  }
   const frame=Math.floor(time*5)%8,f=this.manifest.frames.down[frame];
   const scale=Math.min(width/100,height/90);
-  ctx.clearRect(0,0,width,height);ctx.imageSmoothingEnabled=false;
   ctx.drawImage(this.images.down,f.x,f.y,f.w,f.h,
    Math.round(width/2-f.anchorX*scale),Math.round(height*.87-f.anchorY*scale),f.w*scale,f.h*scale);
   return true;
