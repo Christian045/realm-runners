@@ -27,19 +27,19 @@ for(const kind of ['mage','summoner']){
   }
   assert.equal(seen.size,32);
  });
- test(kind+' uses old drawing for idle/attacks/dash/hurt/death',()=>{
+ test(kind+' uses matching idle art but original attack/hurt/death clips',()=>{
   const source=JSON.parse(readFileSync(new URL('../assets/heroes/'+kind+'/atlas.json',import.meta.url),'utf8'));
   const image={},atlas=Object.create(HeroSpriteAtlas.prototype);
   atlas.ready=true;atlas.kind=kind;atlas.manifest={...source,aimRig:null};
   atlas.images={down:{},right:{},up:{},left:{},walk:image};
   const p={kind,x:120,y:110,hp:100,moving:false,direction:directions.down,invulnerable:0};
   const ctx={calls:[],save(){},restore(){},drawImage(...a){this.calls.push(a);},imageSmoothingEnabled:false};
-  assert.ok(atlas.draw(ctx,p,0));assert.strictEqual(ctx.calls[0][0],atlas.images.down);
+  assert.ok(atlas.draw(ctx,p,0));assert.strictEqual(ctx.calls[0][0],image);
   ctx.calls=[];p.moving=true;p.heroMoveDirection=directions.down;p.robedWalkDistance=0;
   assert.ok(atlas.draw(ctx,p,0));assert.strictEqual(ctx.calls[0][0],image);
   ctx.calls=[];beginHeroAction(p,'attack',.6);
   assert.ok(atlas.draw(ctx,p,0));assert.strictEqual(ctx.calls[0][0],atlas.images.down);
-  for(const clip of ['idle','attack','special','dash','hurt','death']){
+  for(const clip of ['attack','special','dash','hurt','death']){
    assert.equal(drawRobedWalk({drawImage(){throw Error('wrong art');}},p,{face:'down',frame:0,clip},image),false);
   }
  });
