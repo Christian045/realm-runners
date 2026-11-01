@@ -1,12 +1,12 @@
 {
  "name": "realm-runners-dungeon-reborn",
- "version": "0.34.0",
+ "version": "0.35.0",
  "type": "module",
  "private": true,
  "description": "HTML5 Canvas top-down roguelite / hack and slash",
  "scripts": {
   "start": "python3 -m http.server 8000",
-  "test": "node --test tests/core.test.js tests/boss.test.js tests/expansion.test.js tests/polish.test.js tests/visual.test.js tests/dungeon-overhaul.test.js tests/tower.test.js tests/tower-polish.test.js tests/enemy-attack-regression.test.js tests/real-encounter.test.js tests/combat-balance.test.js tests/visual-overhaul.test.js tests/v015-enemy-design.test.js tests/buildcraft.test.js tests/gameplay-feedback.test.js tests/tower-progression.test.js tests/hero-visual-polish.test.js tests/ui-flow.test.js tests/hud-cleanliness.test.js tests/statistics.test.js tests/v021-features.test.js tests/v022-classes.test.js tests/v023-controls-and-companions.test.js tests/v024-encounter-design.test.js tests/v025-combat-ai.test.js tests/v026-room-scale.test.js tests/v027-knight.test.js tests/v028-heroes.test.js tests/v029-locomotion.test.js tests/v030-companions.test.js tests/v031-visual-regression.test.js tests/v032-grounded-walk.test.js tests/v034-knight-walk.test.js",
+  "test": "node --test tests/core.test.js tests/boss.test.js tests/expansion.test.js tests/polish.test.js tests/visual.test.js tests/dungeon-overhaul.test.js tests/tower.test.js tests/tower-polish.test.js tests/enemy-attack-regression.test.js tests/real-encounter.test.js tests/combat-balance.test.js tests/visual-overhaul.test.js tests/v015-enemy-design.test.js tests/buildcraft.test.js tests/gameplay-feedback.test.js tests/tower-progression.test.js tests/hero-visual-polish.test.js tests/ui-flow.test.js tests/hud-cleanliness.test.js tests/statistics.test.js tests/v021-features.test.js tests/v022-classes.test.js tests/v023-controls-and-companions.test.js tests/v024-encounter-design.test.js tests/v025-combat-ai.test.js tests/v026-room-scale.test.js tests/v027-knight.test.js tests/v028-heroes.test.js tests/v029-locomotion.test.js tests/v030-companions.test.js tests/v031-visual-regression.test.js tests/v032-grounded-walk.test.js tests/v034-knight-walk.test.js tests/v035-robed-walk.test.js",
   "test:browser": "node tests/browser.cjs",
   "test:knight-browser": "node tests/knight-browser.cjs",
   "test:heroes-browser": "node tests/heroes-browser.cjs",
