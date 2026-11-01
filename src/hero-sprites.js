@@ -1,5 +1,5 @@
 import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.36.0';
-import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.32.0';
+import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';
 import {heroShot} from './hero-aim.js?v=0.31.0';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.31.0';
 
