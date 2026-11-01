@@ -12,7 +12,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
    await page.goto('http://127.0.0.1:8000/');
    const results=await page.evaluate(async()=>{
     const [{HeroSpriteAtlas},{KnightSpriteAtlas},{WALK_STRIDE},{findGroundContact}]=await Promise.all([
-     import('./src/hero-sprites.js?v=0.32.0'),
+     import('./src/hero-sprites.js?v=0.35.0'),
      import('./src/knight-sprites.js?v=0.34.0'),
      import('./src/locomotion.js?v=0.31.0'),
      import('./src/grounded-walk.js?v=0.32.0')]);
@@ -23,8 +23,9 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
      if(kind!=='warrior')atlas.select(kind);
      await atlas.loading;
      if(!atlas.ready)throw Error('Atlas unavailable: '+kind);
+     if(['mage','summoner'].includes(kind)&&!atlas.images.walk)throw Error('New robed walk sheet unavailable: '+kind);
      if(kind==='warrior'&&!atlas.images.walk)throw Error('New knight walk sheet was not decoded');
-     const frames=kind==='warrior'?8:6;
+     const frames=['warrior','mage','summoner'].includes(kind)?8:6;
      const report={kind,faces:{}};
      const sheet=document.createElement('canvas');sheet.width=frames*112;sheet.height=4*140;
      const sc=sheet.getContext('2d');sc.imageSmoothingEnabled=false;
@@ -33,14 +34,17 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
       for(let i=0;i<frames;i++){
        const p={kind,x:80,y:103,hp:100,invulnerable:0,moving:true,
         direction:d,heroMoveDirection:d,knightMoveDirection:d,
-        walkDistance:WALK_STRIDE*i/frames};
-       const frame=atlas.manifest.frames[face][frames+i];
+        walkDistance:WALK_STRIDE*i/frames,
+        robedWalkDistance:240*i/frames};
+       const originalFrames=kind==='warrior'?8:6;
+       const frame=atlas.manifest.frames[face][originalFrames+Math.min(i,originalFrames-1)];
        const calls=[];
        const trace={save(){},restore(){},translate(){},scale(){},drawImage(...args){calls.push(args);},imageSmoothingEnabled:false};
        atlas.draw(trace,p,0);
-       const image=kind==='warrior'?atlas.images.walk:atlas.images[face];
-       const sourceX=kind==='warrior'?i*96:frame.x;
-       const sourceY=kind==='warrior'?({down:0,right:1,up:2,left:3}[face])*96:frame.y;
+       const newAtlas=['warrior','mage','summoner'].includes(kind);
+       const image=newAtlas?atlas.images.walk:atlas.images[face];
+       const sourceX=newAtlas?i*96:frame.x;
+       const sourceY=newAtlas?({down:0,right:1,up:2,left:3}[face])*96:frame.y;
        if(calls.length!==1||calls[0][0]!==image||
         calls[0][1]!==sourceX||calls[0][2]!==sourceY)
         throw Error(kind+' '+face+' '+i+': incorrect walk sprite source');
@@ -76,7 +80,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
      assert.ok(v.drift<=4,report.kind+' '+face+' bounces at ground by '+v.drift+' px');
      assert.ok(v.contacts.every(y=>y>=107&&y<=117),report.kind+' '+face+' feet float away from shadow '+v.contacts);
     }
-    fs.writeFileSync('test-output/walk-v034-'+report.kind+'-'+engine+'.png',Buffer.from(report.preview.split(',')[1],'base64'));
+    fs.writeFileSync('test-output/walk-v035-'+report.kind+'-'+engine+'.png',Buffer.from(report.preview.split(',')[1],'base64'));
     delete report.preview;
     console.log(engine,JSON.stringify(report));
    }
