@@ -36,19 +36,25 @@ test('knight steps only while actually moving and the other classes keep their g
  const hunter={kind:'hunter',x:10,y:0,walkDistance:0};
  advanceLocomotion(hunter,0,0);assert.equal(hunter.knightWalkDistance,undefined);
 });
-test('idle, attacks and death continue using original knight art',()=>{
+test('every knight state retains the same new character model',()=>{
  const img={};
- for(const clip of ['idle','attack1','attack2','attack3','special','dash','hurt','death'])
-  assert.equal(drawKnightWalk({drawImage(){throw Error('new walk displayed during action');}},
-    {x:0,y:0},{face:'down',frame:0,clip},img),false);
  const manifest=JSON.parse(readFileSync(new URL('../assets/knight/atlas.json',import.meta.url),'utf8'));
  const a=Object.create(KnightSpriteAtlas.prototype);
  a.ready=true;a.manifest=manifest;a.images={down:{},up:{},right:{},left:{},walk:img};
  const p={kind:'warrior',hp:100,x:100,y:100,invulnerable:0,direction:dirs.down,moving:false};
- const ctx={calls:[],save(){},restore(){},drawImage(...args){this.calls.push(args);},imageSmoothingEnabled:false};
+ const ctx={calls:[],save(){},restore(){},translate(){},rotate(){},
+  drawImage(...args){this.calls.push(args);},imageSmoothingEnabled:false};
+ for(const clip of ['idle','walk','attack1','attack2','attack3','special','dash','hurt','death']){
+  p.hp=100;p.hurtTimer=0;p.knightAction=null;p.moving=clip==='walk';
+  p.knightMoveDirection=dirs.down;p.knightWalkDistance=0;
+  if(clip==='hurt')p.hurtTimer=.2;
+  else if(clip==='death'){p.hp=0;p.knightDeathElapsed=.4;}
+  else if(!['idle','walk'].includes(clip))beginKnightAction(p,clip,.6);
+  ctx.calls=[];a.draw(ctx,p,0);
+  assert.equal(ctx.calls.length,1,clip);
+  assert.strictEqual(ctx.calls[0][0],img,'art switches model in '+clip);
+ }
+ // If the new atlas is unavailable, the old complete sprites remain usable.
+ delete a.images.walk;ctx.calls=[];p.hp=100;p.moving=false;p.knightAction=null;
  a.draw(ctx,p,0);assert.strictEqual(ctx.calls[0][0],a.images.down);
- ctx.calls=[];p.moving=true;p.knightMoveDirection=dirs.down;p.knightWalkDistance=0;
- a.draw(ctx,p,0);assert.strictEqual(ctx.calls[0][0],img);
- ctx.calls=[];beginKnightAction(p,'attack1',.6);a.draw(ctx,p,0);
- assert.strictEqual(ctx.calls[0][0],a.images.down);
 });
