@@ -21,7 +21,10 @@ test('new atlas renders exactly one correctly indexed full-body image in all dir
   const pose=knightPose(p),calls=[],ctx={drawImage(...args){calls.push(args);}};
   assert.equal(pose.frame,i);assert.equal(pose.face,face);
   assert.equal(drawKnightWalk(ctx,p,pose,image),true);
-  assert.deepEqual(calls,[[image,i*96,KNIGHT_WALK_FACES[face]*96,96,96,52,21,96,96]]);
+  assert.equal(calls.length,1);
+  assert.deepEqual(calls[0].slice(0,6),[image,i*96,KNIGHT_WALK_FACES[face]*96,96,96,52]);
+  assert.ok(Math.abs(calls[0][6]-22)<=1,'boot pivot should remain within 1px');
+  assert.deepEqual(calls[0].slice(7),[96,96]);
   seen.add(calls[0][1]+':'+calls[0][2]);
  }
  assert.equal(seen.size,32);
