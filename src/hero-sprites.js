@@ -1,4 +1,4 @@
-import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.35.1';
+import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.36.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.32.0';
 import {heroShot} from './hero-aim.js?v=0.31.0';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.31.0';
@@ -65,8 +65,8 @@ export class HeroSpriteAtlas{
   const image=aiming?this.images.aim:this.images[pose.face];
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
-  // Walking AND standing share the same full-body 96px art, so there is
-  // no sudden character-model swap on stopping; actions remain unchanged.
+  // All clips share the same full-body 96px character model. Damage timing,
+  // aim geometry and release VFX remain in the separate gameplay engine.
   if(drawRobedWalk(ctx,p,pose,this.images.walk)){ctx.restore();return true;}
   const shot=aiming?heroShot(p):null;
   if(aiming&&shot.aim.y<-.3)this.drawWeapon(ctx,p,pose,shot);
