@@ -15,5 +15,6 @@ export function robedWalkFrame(p){
 }
 
 export function drawRobedWalk(ctx,p,pose,image){
+ if(!isRobedWalker(p.kind))return false;
  return drawUnifiedBody(ctx,p,pose,image,p.kind,robedWalkFrame(p));
 }
