@@ -1,5 +1,5 @@
 import {drawKnightWalk} from './knight-walk.js?v=0.36.0';
-import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.32.0';
+import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';
 import {knightPose} from './knight-animation.js?v=0.31.0';
 
 // Four compact, decoded-once PNG atlases. Source frames include the sword;
