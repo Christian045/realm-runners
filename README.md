@@ -1,4 +1,13 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.35.1)
+# Realm Runners – Dungeon Reborn (Alpha 0.36.0)
+
+## Alpha 0.36.0 – Einheitlicher Charakter-Look in sämtlichen Animationszuständen
+
+- **Ritter, Magier und Beschwörer:** In Stand, Lauf, Attacke, Spezialangriff, Dash, Treffer und Tod wird dasselbe moderne Vollkörpermodell gezeichnet. Die frühere Umschaltung zum alten Charaktermodell entfällt. Zusätzliche Bewegungen/Körperneigungen werden ausschließlich am vollständigen Sprite ausgeführt, ohne Robe oder Beine abzutrennen.
+- **Ritter:** Die Menüfigur nutzt jetzt ebenfalls das neuere Modell. Außerdem stabilisiert die per Frame gemessene Fußlinie den rechten Laufzyklus, besonders den sechsten rechten Schritt.
+- **Jäger, Glaskanonier und Alchemist:** Ihre bisherigen zusammengehörenden Clip-Atlanten, Waffenpositionen und Klassenmechaniken bleiben unverändert; sie durchlaufen dieselben zusätzlichen visuellen Zustandstests. Für diese drei sind noch keine neuen handgezeichneten Vollkörper-Atlanten entstanden.
+- **Einschränkung:** Die neuen Kampf-, Treffer- und Todesposen der ersten drei Klassen sind derzeit technisch aus denselben vollständigen Pixel-Art-Sprites abgeleitet, nicht eigenständig für jede Aktion neu gezeichnet. Damit ist der auffällige Stilbruch behoben, aber noch keine aufwendige Frame-für-Frame-Kampfanimation geschaffen.
+- Die Angriffstreffer, Projektile, Cooldowns, Begleiter und Spielerwerte werden nicht verändert. Bei fehlenden neuen Texturen bleiben die bisherigen vollständigen Sprite-Atlanten als Fallback verfügbar.
+- Rückvergleich: `?oldKnightWalk=1&oldRobedWalk=1` schaltet die bisherigen Charakterbilder ein. Der sechs-Klassen-Browsertest deckt insgesamt 176 Richtungs-/Zustandskombinationen ab.
 
 ## Alpha 0.35.1 – Standanimationen von Magier und Beschwörer angeglichen
 

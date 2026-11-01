@@ -53,7 +53,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
        const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;
        atlas.draw(ctx,p,0);
        const raw=ctx.getImageData(0,0,160,140).data;
-       const contact=findGroundContact(raw,160,140,p.x);
+       // Complete 96px art can plant a boot 30+ pixels from the body pivot.
+       const contact=findGroundContact(raw,160,140,p.x,newAtlas?35:21);
        if(contact===null)throw Error('No grounded foot '+kind+' '+face+' '+i);
        contacts.push(contact);
        let hash=2166136261;
@@ -75,12 +76,12 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
    });
    for(const report of results){
     for(const [face,v] of Object.entries(report.faces)){
-     assert.equal(v.sourceFrames,report.kind==='warrior'?8:6,report.kind+' '+face+' walk source frames missing');
+     assert.equal(v.sourceFrames,['warrior','mage','summoner'].includes(report.kind)?8:6,report.kind+' '+face+' walk source frames missing');
      assert.ok(v.unique>=(report.kind==='warrior'?7:5),report.kind+' '+face+' feet/cloth not animating');
      assert.ok(v.drift<=4,report.kind+' '+face+' bounces at ground by '+v.drift+' px');
      assert.ok(v.contacts.every(y=>y>=107&&y<=117),report.kind+' '+face+' feet float away from shadow '+v.contacts);
     }
-    fs.writeFileSync('test-output/walk-v035-'+report.kind+'-'+engine+'.png',Buffer.from(report.preview.split(',')[1],'base64'));
+    fs.writeFileSync('test-output/walk-v036-'+report.kind+'-'+engine+'.png',Buffer.from(report.preview.split(',')[1],'base64'));
     delete report.preview;
     console.log(engine,JSON.stringify(report));
    }
