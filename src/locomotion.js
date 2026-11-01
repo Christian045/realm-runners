@@ -1,3 +1,4 @@
+import {ROBED_WALK_STRIDE,isRobedWalker} from './robed-walk.js?v=0.35.0';
 import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.34.0';
 // A complete stride advances with distance actually travelled, never key state.
 export const WALK_STRIDE=72;
@@ -14,6 +15,7 @@ export function advanceLocomotion(p,fromX,fromY,dashing=false,dt=1/60){
  p.walkCycle=p.walkDistance/WALK_STRIDE*.54*14;
  // Knight art follows actual movement, but at a slower visual stride.
  if(p.kind==='warrior')p.knightWalkDistance=((p.knightWalkDistance||0)+distance)%KNIGHT_VISUAL_STRIDE;
+ if(isRobedWalker(p.kind))p.robedWalkDistance=((p.robedWalkDistance||0)+distance)%ROBED_WALK_STRIDE;
  p.heroMoveDirection={x:dx/distance,y:dy/distance};
  p.knightMoveDirection={...p.heroMoveDirection};
 }

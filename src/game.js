@@ -1,5 +1,5 @@
 import {beginCompanionAttack,advanceCompanion,companionShot} from './companion-animation.js?v=0.31.0';
-import {advanceLocomotion} from './locomotion.js?v=0.31.0';
+import {advanceLocomotion} from './locomotion.js?v=0.35.0';
 import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.31.0';
 import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.31.0';
 import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.31.0';

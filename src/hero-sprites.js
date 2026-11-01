@@ -1,3 +1,4 @@
+import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.35.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.32.0';
 import {heroShot} from './hero-aim.js?v=0.31.0';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.31.0';
@@ -5,6 +6,7 @@ import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.31.0';
 export class HeroSpriteAtlas{
  constructor(){
   this.kind=null;this.ready=false;this.failed=false;this.images={};this.previews={};this.generation=0;
+  this.useLegacyRobedWalk=typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('oldRobedWalk');
   this.previewLoading=Promise.all(['warrior',...HERO_KINDS].map(async kind=>{
    try{const image=await this.loadImage(new URL(kind==='warrior'?'../assets/knight/preview.png?v=0.28.0':'../assets/heroes/'+kind+'/preview.png?v=0.28.0',import.meta.url));this.previews[kind]=image;}
    catch{/* Menus retain the small legacy preview on an asset failure. */}
@@ -27,6 +29,16 @@ export class HeroSpriteAtlas{
     const manifest=await response.json(),images={};
     await Promise.all(['down','right','up','left'].map(async face=>{images[face]=await this.loadImage(new URL(face+'.png?v=0.28.0',base));}));
     if(manifest.aimRig)images.aim=await this.loadImage(new URL('aim.png?v=0.28.1',base));
+    // Optional full-body art for the two robe classes. Keep the original
+    // manifest sheets as a safe fallback and for every other action clip.
+    if(isRobedWalker(kind)&&!this.useLegacyRobedWalk){
+     try{
+      const walk=await this.loadImage(new URL('walk-v035.png?v=0.35.0',base));
+      if(walk.naturalWidth!==768||walk.naturalHeight!==384)
+       throw new Error('Unexpected 8×4 robe walk sheet dimensions');
+      images.walk=walk;
+     }catch(error){console.warn('Robe walk art unavailable, retaining old walking frames.',error);}
+    }
     if(generation!==this.generation)return;
     this.walkPivots=prepareWalkPivots(manifest,images,6);
     this.images=images;this.manifest=manifest;this.ready=true;
@@ -44,6 +56,9 @@ export class HeroSpriteAtlas{
   const image=aiming?this.images.aim:this.images[pose.face];
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
+  // Walking is a single complete 96px image with aligned boots and hem.
+  // Do not composite legs or animate the robe independently.
+  if(drawRobedWalk(ctx,p,pose,this.images.walk)){ctx.restore();return true;}
   const shot=aiming?heroShot(p):null;
   if(aiming&&shot.aim.y<-.3)this.drawWeapon(ctx,p,pose,shot);
   // Use each complete authored idle/walk/action frame. The independent
