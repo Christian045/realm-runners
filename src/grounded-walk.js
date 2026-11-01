@@ -7,8 +7,9 @@ export const WALK_FACES=Object.freeze(['down','right','up','left']);
 // Find the lowest substantial visible part of the feet in a narrow strip
 // around the body pivot. Weapons, bows, swinging capes and rifle muzzles
 // outside that strip must not define the actor's floor contact.
-export function findGroundContact(pixels,width,height,rootX){
- const center=Math.round(rootX),lo=Math.max(0,center-21),hi=Math.min(width-1,center+21);
+export function findGroundContact(pixels,width,height,rootX,footRadius=21){
+ const center=Math.round(rootX),radius=Math.max(8,Math.min(40,footRadius));
+ const lo=Math.max(0,center-radius),hi=Math.min(width-1,center+radius);
  const start=Math.max(0,Math.floor(height*.55));
  for(let y=height-1;y>=start;y--){
   let pixelsOnRow=0,neighbours=0,previous=false;
