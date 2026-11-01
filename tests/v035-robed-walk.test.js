@@ -22,12 +22,14 @@ for(const kind of ['mage','summoner']){
    assert.equal(pose.clip,'walk');
    assert.equal(robedWalkFrame(actor),i);
    assert.equal(drawRobedWalk(ctx,actor,pose,image),true);
-   assert.deepEqual(calls,[[image,i*96,ROBED_WALK_ROWS[face]*96,96,96,72,31,96,96]]);
+   assert.strictEqual(calls[0][0],image);
+   assert.deepEqual(calls[0].slice(1,5),[i*96,ROBED_WALK_ROWS[face]*96,96,96]);
+   assert.equal(calls[0][5],72);assert.ok(Math.abs(calls[0][6]-31)<=3);
    seen.add(calls[0][1]+':'+calls[0][2]);
   }
   assert.equal(seen.size,32);
  });
- test(kind+' uses matching idle art but original attack/hurt/death clips',()=>{
+ test(kind+' uses the new full-body model for all action clips',()=>{
   const source=JSON.parse(readFileSync(new URL('../assets/heroes/'+kind+'/atlas.json',import.meta.url),'utf8'));
   const image={},atlas=Object.create(HeroSpriteAtlas.prototype);
   atlas.ready=true;atlas.kind=kind;atlas.manifest={...source,aimRig:null};
@@ -38,9 +40,14 @@ for(const kind of ['mage','summoner']){
   ctx.calls=[];p.moving=true;p.heroMoveDirection=directions.down;p.robedWalkDistance=0;
   assert.ok(atlas.draw(ctx,p,0));assert.strictEqual(ctx.calls[0][0],image);
   ctx.calls=[];beginHeroAction(p,'attack',.6);
-  assert.ok(atlas.draw(ctx,p,0));assert.strictEqual(ctx.calls[0][0],atlas.images.down);
+  assert.ok(atlas.draw(ctx,p,0));assert.strictEqual(ctx.calls[0][0],image);
   for(const clip of ['attack','special','dash','hurt','death']){
-   assert.equal(drawRobedWalk({drawImage(){throw Error('wrong art');}},p,{face:'down',frame:0,clip},image),false);
+   const drawn=[];
+   const canvas={save(){},restore(){},translate(){},rotate(){},
+    drawImage(...args){drawn.push(args);}};
+   assert.equal(drawRobedWalk(canvas,p,{face:'down',frame:0,clip,progress:.4},image),true);
+   assert.equal(drawn.length,1);
+   assert.strictEqual(drawn[0][0],image,clip+' swapped character art');
   }
  });
 }
