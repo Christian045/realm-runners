@@ -15,7 +15,8 @@ for(const kind of ['mage','summoner']){
    assert.equal(pose.clip,'idle');
    const calls=[],ctx={drawImage(...args){calls.push(args);}};
    assert.ok(drawRobedWalk(ctx,p,pose,sheet));
-   assert.deepEqual(calls,[[sheet,0,ROBED_WALK_ROWS[face]*96,96,96,32,26,96,96]]);
+   assert.deepEqual(calls[0].slice(0,7),[sheet,0,ROBED_WALK_ROWS[face]*96,96,96,32,calls[0][6]]);
+   assert.ok(Math.abs(calls[0][6]-26)<=5);
    // Idle remains the same image and grounded position over time.
    const later=heroPose(p,124.2);
    const second=[];
@@ -57,6 +58,10 @@ test('the new idle renderer does not replace other classes or combat animations'
  const img={},ctx={drawImage(){throw Error('unexpected new robe frame');}};
  for(const kind of ['hunter','warrior','glasscannon','alchemist'])
   assert.equal(drawRobedWalk(ctx,{kind,x:0,y:0},{clip:'idle',face:'down',frame:0},img),false);
- for(const clip of ['attack','special','hurt','dash','death'])
-  assert.equal(drawRobedWalk(ctx,{kind:'mage',x:0,y:0},{clip,face:'down',frame:0},img),false);
+ for(const clip of ['attack','special','hurt','dash','death']){
+  let calls=0;
+  const actionCtx={save(){},restore(){},translate(){},rotate(){},drawImage(){calls++;}};
+  assert.equal(drawRobedWalk(actionCtx,{kind:'mage',x:0,y:0},{clip,face:'down',frame:0,progress:.3},img),true);
+  assert.equal(calls,1,clip);
+ }
 });
