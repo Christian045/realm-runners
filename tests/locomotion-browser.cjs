@@ -76,7 +76,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
    });
    for(const report of results){
     for(const [face,v] of Object.entries(report.faces)){
-     assert.equal(v.sourceFrames,report.kind==='warrior'?8:6,report.kind+' '+face+' walk source frames missing');
+     assert.equal(v.sourceFrames,['warrior','mage','summoner'].includes(report.kind)?8:6,report.kind+' '+face+' walk source frames missing');
      assert.ok(v.unique>=(report.kind==='warrior'?7:5),report.kind+' '+face+' feet/cloth not animating');
      assert.ok(v.drift<=4,report.kind+' '+face+' bounces at ground by '+v.drift+' px');
      assert.ok(v.contacts.every(y=>y>=107&&y<=117),report.kind+' '+face+' feet float away from shadow '+v.contacts);
