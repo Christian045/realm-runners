@@ -1,5 +1,5 @@
 import {CompanionSpriteAtlas,drawCompanionEffect,drawCompanionProjectile} from './companion-sprites.js?v=0.31.0';
-import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.32.0';
+import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.35.0';
 import {KnightSpriteAtlas,drawKnightEffect} from './knight-sprites.js?v=0.34.0';
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.23.0';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js?v=0.26.0';
