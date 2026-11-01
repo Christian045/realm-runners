@@ -50,15 +50,16 @@ export function fullBodyFrame(kind,pose,walkFrame){
 }
 
 function actionMotion(kind,pose){
+ const progress=Number.isFinite(pose.progress)?Math.max(0,Math.min(1,pose.progress)):0;
  const attack=pose.clip.startsWith('attack'),special=pose.clip==='special';
  if(attack||special){
-  const peak=pose.progress<=.5?pose.progress*2:(1-pose.progress)*2;
+  const peak=progress<=.5?progress*2:(1-progress)*2;
   return {forward:(kind==='warrior'?4:2)*peak,dy:kind==='warrior'?-2*peak:-1*peak,
    angle:(kind==='warrior'?.13:.055)*peak};
  }
  if(pose.clip==='hurt')return {forward:-3,dy:0,angle:-.06};
  if(pose.clip==='dash')return {forward:3,dy:-1,angle:.05};
- if(pose.clip==='death')return {forward:0,dy:0,angle:Math.max(0,Math.min(1,pose.progress))*1.20};
+ if(pose.clip==='death')return {forward:0,dy:0,angle:progress*1.20};
  return {forward:0,dy:0,angle:0};
 }
 
