@@ -1,4 +1,13 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.34.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.35.0)
+
+## Alpha 0.35.0 – Neue Laufanimationen für Beschwörer und Magier
+
+- **Beschwörer und Magier:** zwei transparente, eigene 768×384-Pixel-Laufatlanten mit jeweils 32 vollständigen 96×96-Pixel-Posen (vier Richtungen, acht Phasen).
+- Die Robe wird nicht aus Körperteilen zusammengesetzt. Unter den Stoffbahnen bleiben echte Stiefelposen sichtbar, der Beschwörer hält sein Buch und der Magier seinen Stab.
+- Eigener distanzabhängiger Laufzyklus mit 240 Weltpixeln je vollständiger Runde (bei den Basisgeschwindigkeiten etwa 130–141 Millisekunden je Frame), stoppt an Hindernissen.
+- Alte Idle-, Kampf-, Zauber-, Dash-, Treffer- und Todesanimationen bleiben unverändert. Die Klassen Ritter, Jäger, Glaskanonier und Alchemist werden nicht verändert.
+- Bei einem Fehler beim Laden des neuen Grafik-Atlanten verwendet das Spiel automatisch die bisherige Laufgrafik. Mit `?oldRobedWalk=1` lassen sich die alten Laufgrafiken für beide Robenklassen gezielt vergleichen.
+- Zusätzliche Tests prüfen 64 neue Frame-Rechtecke und den tatsächlichen Pixelausstoß im Browser. Die Optik bleibt nach Ingame-Test bei Bedarf korrigierbar.
 
 ## Alpha 0.34.0 – Ritter-Laufanimation zur Ingame-Abnahme
 
