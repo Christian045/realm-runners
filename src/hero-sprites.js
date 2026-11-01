@@ -1,4 +1,4 @@
-import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.35.0';
+import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.35.1';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.32.0';
 import {heroShot} from './hero-aim.js?v=0.31.0';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.31.0';
@@ -8,8 +8,17 @@ export class HeroSpriteAtlas{
   this.kind=null;this.ready=false;this.failed=false;this.images={};this.previews={};this.generation=0;
   this.useLegacyRobedWalk=typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('oldRobedWalk');
   this.previewLoading=Promise.all(['warrior',...HERO_KINDS].map(async kind=>{
-   try{const image=await this.loadImage(new URL(kind==='warrior'?'../assets/knight/preview.png?v=0.28.0':'../assets/heroes/'+kind+'/preview.png?v=0.28.0',import.meta.url));this.previews[kind]=image;}
-   catch{/* Menus retain the small legacy preview on an asset failure. */}
+   try{
+    // Class selection uses the same character design as walking and idle.
+    const path=kind==='warrior'?'../assets/knight/preview.png?v=0.28.0':'../assets/heroes/'+kind+'/preview.png?v=0.28.0';
+    const legacy=await this.loadImage(new URL(path,import.meta.url));
+    this.previews[kind]=legacy;
+    if(isRobedWalker(kind)&&!this.useLegacyRobedWalk){
+     try{
+      this.previews[kind]=await this.loadImage(new URL('../assets/heroes/'+kind+'/walk-v035.png?v=0.35.0',import.meta.url));
+     }catch{/* Legacy menu portrait remains when new artwork is unavailable. */}
+    }
+   }catch{/* Menus retain the small legacy preview on an asset failure. */}
   }));
  }
  async loadImage(url){
@@ -56,8 +65,8 @@ export class HeroSpriteAtlas{
   const image=aiming?this.images.aim:this.images[pose.face];
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
-  // Walking is a single complete 96px image with aligned boots and hem.
-  // Do not composite legs or animate the robe independently.
+  // Walking AND standing share the same full-body 96px art, so there is
+  // no sudden character-model swap on stopping; actions remain unchanged.
   if(drawRobedWalk(ctx,p,pose,this.images.walk)){ctx.restore();return true;}
   const shot=aiming?heroShot(p):null;
   if(aiming&&shot.aim.y<-.3)this.drawWeapon(ctx,p,pose,shot);
@@ -85,8 +94,15 @@ export class HeroSpriteAtlas{
  }
  preview(ctx,kind,width,height,time){
   const image=this.previews[kind];if(!image)return false;
-  const frame=Math.floor(time*4)%6,size=image.height,scale=Math.min(width/96,height/88);
   ctx.clearRect(0,0,width,height);ctx.imageSmoothingEnabled=false;
+  if(isRobedWalker(kind)&&image.naturalWidth===768&&image.naturalHeight===384){
+   const scale=Math.min(width/96,height/90);
+   // Class selection shows the same front-facing resting figure as the dungeon.
+   ctx.drawImage(image,0,0,96,96,Math.round(width/2-48*scale),
+    Math.round(height*.87-79*scale),96*scale,96*scale);
+   return true;
+  }
+  const frame=Math.floor(time*4)%6,size=image.height,scale=Math.min(width/96,height/88);
   ctx.drawImage(image,frame*size,0,size,size,Math.round(width/2-size*scale/2),Math.round(height*.87-80*scale),size*scale,size*scale);
   return true;
  }
