@@ -36,6 +36,8 @@ export function fullBodyFrame(kind,pose,walkFrame){
  if(pose.clip==='walk')return ((walkFrame%8)+8)%8;
  if(pose.clip==='idle'||pose.clip==='hurt'||pose.clip==='death')return 0;
  const stage=pose.frame|0;
+ // Robes stay fixed; actual casting is drawn by the upper-body gesture layer.
+ if((kind==='mage'||kind==='summoner')&&(pose.clip==='attack'||pose.clip==='special'))return 0;
  if(kind==='warrior'){
   if(pose.clip==='attack1')return KNIGHT_ATTACK[stage]??0;
   if(pose.clip==='attack2')return KNIGHT_REVERSE[stage]??0;
@@ -52,6 +54,8 @@ export function fullBodyFrame(kind,pose,walkFrame){
 function actionMotion(kind,pose){
  const progress=Number.isFinite(pose.progress)?Math.max(0,Math.min(1,pose.progress)):0;
  const attack=pose.clip.startsWith('attack'),special=pose.clip==='special';
+ if((kind==='mage'||kind==='summoner')&&(attack||special))
+  return {forward:0,dy:0,angle:0};
  if(attack||special){
   const peak=progress<=.5?progress*2:(1-progress)*2;
   return {forward:(kind==='warrior'?4:2)*peak,dy:kind==='warrior'?-2*peak:-1*peak,
