@@ -1,4 +1,4 @@
-import {drawUnifiedBody} from './unified-body.js?v=0.36.0';
+import {drawUnifiedBody} from './unified-body.js?v=0.38.0';
 // Dedicated whole-body knight walk: 8 frames in each of four directions.
 // No separate leg/robe compositing and no animation of the combat sheet.
 export const KNIGHT_WALK_SIZE=96;
