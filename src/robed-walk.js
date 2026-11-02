@@ -1,4 +1,4 @@
-import {drawUnifiedBody} from './unified-body.js?v=0.36.0';
+import {drawUnifiedBody} from './unified-body.js?v=0.38.0';
 // Shared full-body art for both walking and standing on the two robe-wearing classes.
 // Rows (front/right/back/left) are entire figures with boots and garments.
 // No procedural limb masks, overlays, animation blending or reflected weapons.
