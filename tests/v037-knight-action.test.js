@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {drawKnightAction,knightActionFrame,KNIGHT_ACTION_FACES,KNIGHT_ACTION_CLIPS} from '../src/knight-action-sprites.js';
+import {drawKnightAction,knightSwordAngle,knightActionFrame,KNIGHT_ACTION_FACES,KNIGHT_ACTION_CLIPS} from '../src/knight-action-sprites.js';
 import {KnightSpriteAtlas} from '../src/knight-sprites.js';
 import {knightPose,beginKnightAction,KNIGHT_CLIPS,advanceKnightAction} from '../src/knight-animation.js';
 const dirs={down:{x:0,y:1},right:{x:1,y:0},up:{x:0,y:-1},left:{x:-1,y:0}};
@@ -26,31 +26,30 @@ test('idle has eight time-keyed poses in all directions, without walk clock',()=
   assert.equal(used.size,8);
  }
 });
-test('three combo attacks use distinct authored sheets, 8 frames and original hit events',()=>{
- for(const [face,d] of Object.entries(dirs))for(const clip of ['attack1','attack2','attack3']){
-  const p={kind:'warrior',x:120,y:130,hp:100,direction:d};
-  const sheet={clip},images={[clip]:sheet},frames=new Set(),xs=new Set();
-  beginKnightAction(p,clip,.8,d);
-  for(let i=0;i<8;i++){
-   p.knightAction.elapsed=(i+.02)*.1;
-   const pose=knightPose(p),draws=[];
-   const ctx={drawImage(...args){draws.push(args);}};
-   assert.ok(drawKnightAction(ctx,p,pose,images));
-   assert.equal(draws.length,1);
-   assert.strictEqual(draws[0][0],sheet);
-   assert.deepEqual(draws[0].slice(1,5),[i*96,KNIGHT_ACTION_FACES[face]*96,96,96]);
-   assert.equal(draws[0][5],72);
-   assert.deepEqual(draws[0].slice(7),[96,96]);
-   xs.add(draws[0][6]);frames.add(pose.frame);
+test('three combo attacks retain one idle body, articulate the sword and keep original hit events',()=>{
+ const trajectories=[];
+ for(const clip of ['attack1','attack2','attack3']){
+  trajectories.push(Array.from({length:8},(_,i)=>knightSwordAngle(clip,i/8)));
+  for(const [face,d] of Object.entries(dirs)){
+   const p={kind:'warrior',x:120,y:130,hp:100,direction:d},sheet={},images={idle:sheet};
+   beginKnightAction(p,clip,.8,d);
+   for(let i=0;i<8;i++){
+    p.knightAction.elapsed=(i+.02)*.1;const pose=knightPose(p),draws=[],rotations=[];
+    const ctx={drawImage(...a){draws.push(a)},save(){},restore(){},translate(){},scale(){},
+     rotate(a){rotations.push(a)},beginPath(){},moveTo(){},lineTo(){},stroke(){},fillRect(){},fill(){},closePath(){},rect(){},clip(){}};
+    assert.ok(drawKnightAction(ctx,p,pose,images));assert.equal(draws.length,1);
+    assert.strictEqual(draws[0][0],sheet);
+    assert.deepEqual(draws[0].slice(1,5),[0,KNIGHT_ACTION_FACES[face]*96,96,96]);
+    assert.equal(rotations.length,1,'only the weapon rotates');
+    assert.equal(rotations[0],knightSwordAngle(clip,pose.progress));
+   }
+   let damage=0;beginKnightAction(p,clip,.8,d);const hit=.8*KNIGHT_CLIPS[clip].hitFrame/8;
+   advanceKnightAction(p,hit-.0001,()=>damage++);assert.equal(damage,0);
+   advanceKnightAction(p,.0001,()=>damage++);assert.equal(damage,1);
+   advanceKnightAction(p,1,()=>damage++);assert.equal(damage,1);
   }
-  assert.equal(frames.size,8);
-  assert.equal(xs.size,1,'feet must not bounce across sword swing');
-  let damage=0;const action=beginKnightAction(p,clip,.8,d);
-  const t=.8*KNIGHT_CLIPS[clip].hitFrame/8;
-  advanceKnightAction(p,t-.0001,()=>damage++);assert.equal(damage,0);
-  advanceKnightAction(p,.0001,()=>damage++);assert.equal(damage,1);
-  advanceKnightAction(p,1,()=>damage++);assert.equal(damage,1);
  }
+ assert.notDeepEqual(trajectories[0],trajectories[1]);assert.notDeepEqual(trajectories[0],trajectories[2]);
 });
 test('knight atlas draws dedicated action when present and keeps old walk untouched',()=>{
  const image={};

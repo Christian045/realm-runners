@@ -88,7 +88,7 @@ test('all ranged release poses share a visible hand/muzzle with their projectile
  const {heroShot}=await import('../src/hero-aim.js');
  for(const kind of HERO_KINDS)for(let n=0;n<8;n++){
   const g=fresh(kind),p=g.player,a=n*Math.PI/4;p.direction={x:Math.cos(a),y:Math.sin(a)};
-  g.attack();const shot=heroShot(p);g.updateHeroAction(p.heroAction.duration/2);
+  g.attack();g.updateHeroAction(p.heroAction.duration/2);const shot=heroShot(p);
   const b=g.projectiles[0],effect=g.effects.find(e=>e.type==='hero-release');
   assert.ok(Math.abs(b.x-shot.x)<1e-8,kind+' emission x');
   assert.ok(Math.abs(b.y-(b.visualHeight||9)-shot.y)<1e-8,kind+' visible emission y');

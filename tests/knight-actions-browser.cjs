@@ -20,7 +20,7 @@ const fs=require('node:fs');
     let tested=0;
     const summary=[];
     for(const [clipIndex,clip] of clips.entries()){
-     const image=a.images[clip];
+     const image=a.images[clip]||a.images.idle;
      if(!image||image.naturalWidth!==768||image.naturalHeight!==384)
       throw Error('Missing 8x4 sprite art '+clip);
      const sheet=document.createElement('canvas');
