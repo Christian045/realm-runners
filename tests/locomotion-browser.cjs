@@ -1,3 +1,4 @@
+// Regression coverage for the retained fallback atlases; new production rigs have their own suite.
 // Pixel-level QA of the production full-body run cycles in Chromium and WebKit.
 // Full authored strides, not synthetic procedural legs or aiming-only attack poses.
 const {chromium,webkit}=require('playwright');
@@ -9,7 +10,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
   try{
    const page=await browser.newPage({viewport:{width:1280,height:800}}),errors=[];
    page.on('pageerror',err=>errors.push(err.message));
-   await page.goto('http://127.0.0.1:8000/');
+   await page.goto('http://127.0.0.1:8000/?legacyHeroArt=1');
    const results=await page.evaluate(async()=>{
     const [{HeroSpriteAtlas},{KnightSpriteAtlas},{WALK_STRIDE},{findGroundContact}]=await Promise.all([
      import('./src/hero-sprites.js?v=0.35.0'),

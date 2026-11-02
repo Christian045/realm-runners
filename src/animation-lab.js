@@ -1,8 +1,9 @@
-import {HeroSpriteAtlas} from './hero-sprites.js?v=0.38.0';
-import {KnightSpriteAtlas} from './knight-sprites.js?v=0.38.0';
+import {heroRigReady,articulatedPose,RIG_ROWS} from './articulated-hero.js?v=0.39.0';
+import {HeroSpriteAtlas} from './hero-sprites.js?v=0.39.0';
+import {KnightSpriteAtlas} from './knight-sprites.js?v=0.39.0';
 import {heroPose,HERO_CLIPS} from './hero-animation.js?v=0.31.0';
 import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.31.0';
-import {heroShot} from './hero-aim.js?v=0.38.0';
+import {heroShot} from './hero-aim.js?v=0.39.0';
 import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.34.0';
 import {CLASSES} from './data.js?v=0.23.0';
 
@@ -32,13 +33,14 @@ export function labSample(kind,state,direction,seconds,moving=false){
  return {player:p,pose,release,progress:elapsed,shot:knight?null:heroShot(p)};
 }
 let active=null;
+export const animationLabOpen=()=>active!==null;
 export async function openAnimationLab(){
  if(active){active.focus();return;}
  const returnFocus=document.activeElement;
  const dialog=document.createElement('dialog');dialog.className='animation-lab';active=dialog;
  dialog.setAttribute('aria-labelledby','animation-lab-title');
  dialog.innerHTML=`<header><div><p class="lab-eyebrow">REALM RUNNERS · ANIMATIONEN</p><h2 id="animation-lab-title">Die Trainingshalle</h2></div><button type="button" data-lab="close" aria-label="Testszene schließen">Schließen ✕</button></header>
- <p class="lab-description">Alle sechs Klassen mit dem Renderer des Spiels. Diese Szene verändert weder Spielstände noch Statistiken. Diagonale Zielrichtungen nutzen derzeit die vorhandenen vier Sprite-Ansichten.</p>
+ <p class="lab-description">Alle sechs Klassen mit dem Renderer des Spiels. Diese Szene verändert weder Spielstände noch Statistiken. Die neuen Figuren besitzen acht Ansichten und gemeinsam animierte Körper-, Arm- und Waffenteile.</p>
  <div class="lab-controls"><label>Animation<select data-lab="state">${Object.entries(LAB_STATES).map(([id,name])=>`<option value="${id}">${name}</option>`).join('')}</select></label><label>Tempo<select data-lab="speed"><option value="0.25">¼ ×</option><option value="0.5">½ ×</option><option value="1" selected>1 ×</option></select></label>
  <label><input type="checkbox" data-lab="moving"> Gleichzeitig laufen</label><label><input type="checkbox" data-lab="anchors"> Anker anzeigen</label></div>
  <div class="lab-directions" role="group" aria-label="Blick- und Zielrichtung">${LAB_DIRECTIONS.map((d,i)=>`<button type="button" data-direction="${i}" aria-pressed="${i===4}">${d.name}</button>`).join('')}</div>
@@ -46,34 +48,37 @@ export async function openAnimationLab(){
  <div class="lab-grid">${LAB_KINDS.map(kind=>`<section class="lab-card"><h3>${CLASSES[kind].name}</h3><canvas width="256" height="176" data-kind="${kind}" aria-label="${CLASSES[kind].name}: Animationsvorschau"></canvas><p data-info="${kind}">Grafik wird geladen …</p></section>`).join('')}</div>
  <p class="lab-description">Ein Prüfzyklus dauert bei 1× für alle Klassen 1,2 Sekunden. „Vorbereitung“ und „Rückbewegung“ zeigen Abschnitte des Angriffs. Angriff 2/3 sind beim Ritter eigene Kombos; die anderen Klassen zeigen ihren normalen Angriff. Türkis: Ursprung · Gold: Auslösezeitpunkt. Treffer und Projektile werden hier nicht gegen Gegner berechnet.</p>`;
  document.body.append(dialog);dialog.showModal();
- const atlases=new Map(),errors=new Set();let closed=false,raf=0,last=null,clock=0,paused=false;
+ const atlases=new Map(),errors=new Set();let closed=false,raf=0,last=null,clock=0,paused=false,dirty=true,lastPaint=0;
  const state={clip:'idle',direction:4,speed:1,moving:false,anchors:false};
  const seek=dialog.querySelector('[data-lab="seek"]'),pause=dialog.querySelector('[data-lab="pause"]');
  const close=()=>{if(closed)return;closed=true;cancelAnimationFrame(raf);for(const atlas of atlases.values())atlas.release?.();dialog.remove();active=null;returnFocus?.focus?.({preventScroll:true});};
- const setPaused=value=>{paused=value;pause.textContent=paused?'Abspielen':'Pause';};
+ const setPaused=value=>{dirty=true;paused=value;pause.textContent=paused?'Abspielen':'Pause';};
  dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
  dialog.addEventListener('click',e=>{
-  const button=e.target.closest('button');if(!button)return;
+  const button=e.target.closest('button');if(!button)return;dirty=true;
   if(button.dataset.direction!==undefined){state.direction=Number(button.dataset.direction);for(const b of dialog.querySelectorAll('[data-direction]'))b.setAttribute('aria-pressed',String(b===button));}
   if(button.dataset.lab==='close')close();
   if(button.dataset.lab==='pause')setPaused(!paused);
   if(button.dataset.lab==='step'){setPaused(true);clock=Math.min(1,clock+1/24);}
  });
  dialog.addEventListener('input',e=>{
-  const control=e.target;
+  const control=e.target;dirty=true;
   if(control.dataset.lab==='state'){state.clip=control.value;clock=0;}
   if(control.dataset.lab==='speed')state.speed=Number(control.value);
   if(control.dataset.lab==='moving')state.moving=control.checked;
   if(control.dataset.lab==='anchors')state.anchors=control.checked;
   if(control.dataset.lab==='seek'){setPaused(true);clock=Number(control.value)/1000;}
  });
+ const cards=LAB_KINDS.map(kind=>({kind,canvas:dialog.querySelector(`[data-kind="${kind}"]`),info:dialog.querySelector(`[data-info="${kind}"]`)}));
  function draw(now){
   if(closed)return;
   const dt=last===null?0:Math.min(.05,(now-last)/1000);last=now;
-  if(!paused&&!document.hidden)clock=(clock+dt*state.speed/1.2)%1;
+  if(!paused&&!document.hidden){clock=(clock+dt*state.speed/1.2)%1;if(now-lastPaint>=1000/24)dirty=true;}
+  if(!dirty||document.hidden){raf=requestAnimationFrame(draw);return;}
+  dirty=false;lastPaint=now;
   seek.value=String(Math.round(clock*1000));dialog.querySelector('[data-lab="clock"]').textContent=Math.round(clock*100)+' %';
-  for(const kind of LAB_KINDS){
-   const canvas=dialog.querySelector(`[data-kind="${kind}"]`),c=canvas.getContext('2d'),atlas=atlases.get(kind),info=dialog.querySelector(`[data-info="${kind}"]`);
+  for(const {kind,canvas,info} of cards){
+   const c=canvas.getContext('2d'),atlas=atlases.get(kind);
    c.clearRect(0,0,canvas.width,canvas.height);c.fillStyle='#121a22';c.fillRect(0,0,256,176);
    c.strokeStyle='#27333e';c.lineWidth=1;for(let x=0;x<256;x+=16){c.beginPath();c.moveTo(x,0);c.lineTo(x,176);c.stroke();}for(let y=9;y<176;y+=16){c.beginPath();c.moveTo(0,y);c.lineTo(256,y);c.stroke();}
    c.fillStyle='#080d14';c.beginPath();c.ellipse(128,130,27,8,0,0,Math.PI*2);c.fill();
@@ -87,7 +92,7 @@ export async function openAnimationLab(){
     if(sample.shot){const s=sample.shot;c.setLineDash([3,4]);c.beginPath();c.moveTo(s.x,s.y);c.lineTo(s.x+s.aim.x*65,s.y+s.aim.y*65);c.stroke();c.setLineDash([]);}
    }
    if(releasing){c.strokeStyle='#ebc582';c.strokeRect(1,1,254,174);}
-   info.textContent=`${sample.pose.clip} · ${sample.pose.face} · Bild ${sample.pose.frame+1}${releasing?' · AUSLÖSEN':''}`;
+   info.textContent=`${sample.pose.clip} · ${heroRigReady(kind)?RIG_ROWS[articulatedPose(sample.player).row]:sample.pose.face} · Bild ${sample.pose.frame+1}${releasing?' · AUSLÖSEN':''}`;
   }
   raf=requestAnimationFrame(draw);
  }
@@ -96,6 +101,6 @@ export async function openAnimationLab(){
   const atlas=kind==='warrior'?new KnightSpriteAtlas():new HeroSpriteAtlas();atlases.set(kind,atlas);
   if(kind!=='warrior')atlas.select(kind);
   try{await atlas.loading;if(!atlas.ready)errors.add(kind);}catch{errors.add(kind);}
-  if(closed)atlas.release?.();
+  dirty=true;if(closed)atlas.release?.();
  }));
 }

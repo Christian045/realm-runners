@@ -1,10 +1,10 @@
-import {openAnimationLab} from './animation-lab.js?v=0.39.0';
+import {openAnimationLab,animationLabOpen} from './animation-lab.js?v=0.39.0';
 import {CLASSES} from './data.js?v=0.23.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.21.0';
 import {ENEMY_NAMES,totalKills,formatPlayTime} from './statistics.js?v=0.21.0';
 import {Input} from './input.js?v=0.23.0';
-import {Game} from './game.js?v=0.38.0';
-import {Renderer} from './render.js?v=0.38.0';
+import {Game} from './game.js?v=0.39.0';
+import {Renderer} from './render.js?v=0.39.0';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.21.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.21.0';
 import {installTouchGuard} from './touch-guard.js';
@@ -431,6 +431,7 @@ function animateMenuPreviews(now){
 }
 function frame(now){
  const delta=Math.min(.05,(now-last)/1000||0);last=now;
+ if(animationLabOpen()){requestAnimationFrame(frame);return;}
  if(game.mode==='playing'){
   accumulator+=delta;
   let steps=0;

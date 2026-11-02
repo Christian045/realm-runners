@@ -19,7 +19,7 @@ Use dark colored outlines and small opaque pixel clusters, with three to five ma
 
 All actors need N, NE, E, SE, S, SW, W and NW views. Do not mirror the right hand into the left hand, shields or asymmetrical straps. Idle, walk, attack, special, hurt, dash and death must share the same complete character identity. Cast and recovery can be named phases of an attack rather than duplicated clips. The knight needs three authored attacks.
 
-Every frame has explicit foot, pelvis, shoulder, hand and weapon-tip anchors. Source coordinates and anchor coordinates are integers. Every cell needs transparent padding beyond the largest weapon/cape extent. No visible pixel may touch the atlas boundary; no cell may contain a neighboring character. Asset validation must reject empty, cut-off or differently scaled frames.
+The production atlas stores eight directional rows of torso, garment, upper arm, forearm, off arm, two legs and weapon. A connected-component index records the exact transparent source bounds; generated art is not assumed to follow a perfect grid. Runtime poses supply foot, pelvis, shoulder, hand and weapon-tip anchors. The same source parts are reused throughout each direction. Tests render on a padded 256×256 canvas and reject empty or clipped output. The artwork is sampled with smoothing disabled.
 
 The event contract remains knight hit frame 3/8 for attack 1, 4/8 for attacks 2/3, and ranged release frame 3/6. Artwork may have additional presentation frames, but gameplay must continue to trigger exactly once at the same normalized time unless a separately tested balance change is intended.
 

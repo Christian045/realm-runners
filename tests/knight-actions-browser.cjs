@@ -1,3 +1,4 @@
+// Regression coverage for the retained fallback atlases; new production rigs have their own suite.
 const {chromium,webkit}=require('playwright');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -8,7 +9,7 @@ const fs=require('node:fs');
   try{
    const page=await browser.newPage({viewport:{width:1200,height:760}}),errors=[];
    page.on('pageerror',e=>errors.push(e.message));
-   await page.goto('http://127.0.0.1:8000/');
+   await page.goto('http://127.0.0.1:8000/?legacyHeroArt=1');
    const report=await page.evaluate(async()=>{
     const [{KnightSpriteAtlas},{beginKnightAction}]=await Promise.all([
      import('./src/knight-sprites.js?v=0.37.0'),

@@ -1,3 +1,4 @@
+import {heroRigReady,articulatedShot} from './articulated-hero.js?v=0.39.0';
 import {heroFacing} from './hero-animation.js?v=0.31.0';
 
 // Weapon/hand origin is shared by rendering, projectile collision and VFX.
@@ -24,6 +25,7 @@ export function castingIntensity(action){
   progress<.64?1:Math.cos((progress-.64)/.36*Math.PI/2);
 }
 export function heroShot(p,action=p.heroAction){
+ if(heroRigReady(p.kind))return articulatedShot(p,action);
  const direction=action?.direction||p.direction||{x:1,y:0},face=heroFacing(direction);
  const rig=AIM_RIGS[p.kind],hand=HANDS[p.kind]?.[face]||[0,-27];
  let ox=rig?.x??hand[0],oy=rig?.y??hand[1];
