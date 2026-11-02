@@ -1,4 +1,14 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.36.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.37.0)
+
+## Alpha 0.37.0 – Ritter bekommt eigene Idle- und Schwertanimations-Frames
+
+- **Laufanimation bleibt unverändert**: Der bisherige Ritter-Walk von Alpha 0.34.0 sowie Bewegung und Bodenkontakt werden beibehalten.
+- **Echte separate Sprite-Bilder für Stehen und Angreifen**: Vier transparente neue Atlanten `idle-v037.png`, `attack1-v037.png`, `attack2-v037.png`, `attack3-v037.png`. Jedes hat 8 Phasen in 4 Richtungen, 96×96px pro Bild. Das Modell, die Rüstung und der rote Umhang entsprechen der bereits verwendeten neuen Laufgrafik.
+- **Idle**: Langsamer achtphasiger Atemzyklus, feststehende Stiefel statt Laufen auf der Stelle, eigenes neutrales Schwert. Der Menü-Ritter zeigt dieselbe Figur.
+- **Angriffe**: Drei unterschiedliche, durchgängige Schwertbogen-Animationen mit Ausholen, aktivem Schlag und Nachschwung, statt des zuvor sichtbaren Rotierens von Laufposen. Die handbearbeitete Pixelgrafik benutzt den neuen Ritterkörper mit separat bewegtem Arm und Schwert. Es handelt sich nicht um komplett von Hand neu gezeichnete Rüstung und Körper in jedem Frame.
+- Die bestehenden Angriffstreffer (Combo 1 = Frame 3, Combo 2/3 = Frame 4), Kombomechanik, Cooldowns, Sounds, Treffer-Effekte und restlichen Klassen bleiben unverändert. Fehlende neue Grafikdateien führen automatisch zum bisherigen Atlas zurück.
+- **Vergleich**: `?oldKnightActions=1` aktiviert die vorherigen aus Laufbildern abgeleiteten Ritter-Idle-/Attack-Grafiken; `?oldKnightWalk=1` bleibt für den älteren Laufstil vorhanden.
+- Ergänzte Node- und Chromium/WebKit-Pixeltests verifizieren alle vier Himmelsrichtungen und Animationsphasen. Spezialangriff, Dash, Treffer und Tod behalten vorerst die bestehenden 0.36-Modelle und sind in diesem Update nicht neu illustriert.
 
 ## Alpha 0.36.0 – Einheitlicher Charakter-Look in sämtlichen Animationszuständen
 

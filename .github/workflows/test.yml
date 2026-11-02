@@ -23,6 +23,7 @@ jobs:
           npm run test:robed-idle-browser
           npm run test:browser
           npm run test:knight-browser
+          npm run test:knight-actions-browser
           npm run test:heroes-browser
           npm run test:locomotion-browser
           npm run test:companions-browser

@@ -11,7 +11,7 @@ const assert=require('node:assert/strict');
    const result=await page.evaluate(async()=>{
     const [{HeroSpriteAtlas},{KnightSpriteAtlas},{heroPose,beginHeroAction},{knightPose,beginKnightAction}]=await Promise.all([
      import('./src/hero-sprites.js?v=0.36.0'),
-     import('./src/knight-sprites.js?v=0.36.0'),
+     import('./src/knight-sprites.js?v=0.37.0'),
      import('./src/hero-animation.js?v=0.31.0'),
      import('./src/knight-animation.js?v=0.31.0')
     ]);
@@ -45,12 +45,16 @@ const assert=require('node:assert/strict');
         drawImage(...args){this.ops.push(args);},imageSmoothingEnabled:false,globalAlpha:1};
        if(!atlas.draw(trace,p,.5)||!trace.ops.length)throw Error(kind+' '+face+' '+clip+': empty frame');
        const source=trace.ops[0][0];
-       if(modern.includes(kind)&&(trace.ops.length!==1||source!==atlas.images.walk))
+       const actionArt=kind==='warrior'&&['idle','attack1','attack2','attack3'].includes(clip);
+       const expectedArt=actionArt?atlas.images[clip]:atlas.images.walk;
+       if(modern.includes(kind)&&(trace.ops.length!==1||source!==(expectedArt||atlas.images.walk)))
         throw Error(kind+' '+face+' '+clip+': incorrect character model');
        if(!modern.includes(kind)){
         if(!Object.values(atlas.images).includes(source))throw Error(kind+' '+clip+': unrelated source texture');
        }
-       if(modern.includes(kind)&&['idle','walk'].includes(clip)){
+       // The knight has a distinct authored idle sheet; robe classes still
+       // deliberately use the same first walking frame as idle.
+       if(modern.includes(kind)&&kind!=='warrior'&&['idle','walk'].includes(clip)){
         if(previous.idle&&!trace.ops.every((args,i)=>JSON.stringify(args.slice(1))===JSON.stringify(previous.idle[i].slice(1))))
          throw Error(kind+' '+face+': idle/walk transition jumps at stride start');
         previous[clip]=trace.ops;
