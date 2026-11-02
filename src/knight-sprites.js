@@ -1,4 +1,4 @@
-import {drawKnightAction,KNIGHT_ACTION_CLIPS} from './knight-action-sprites.js?v=0.37.0';
+import {drawKnightAction,KNIGHT_ACTION_CLIPS} from './knight-action-sprites.js?v=0.38.0';
 import {drawKnightWalk} from './knight-walk.js?v=0.36.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';
 import {knightPose} from './knight-animation.js?v=0.31.0';
@@ -102,15 +102,24 @@ export class KnightSpriteAtlas{
 export function drawKnightEffect(ctx,e,alpha){
  const t=1-alpha,whirl=e.type==='knight-whirl',finisher=e.step===3;
  ctx.save();ctx.translate(e.x,e.y-10);ctx.rotate(e.angle||0);
- ctx.globalAlpha=alpha*.78;
  const r=e.radius*(.78+t*.22),reverse=e.step===2?-1:1;
  ctx.scale(1,.64);ctx.lineCap='round';
+ if(!whirl){
+  // Thin directional impact arc only. The actual sword is already attached
+  // to the knight's hand, so a giant rotating halo would look like a second sword.
+  ctx.globalAlpha=alpha*.48;
+  for(let i=0;i<2;i++){
+   ctx.lineWidth=i===0?4:2;
+   ctx.strokeStyle=i?'#e8f4eb':finisher?'#efc77e':'#8fb5c3';
+   ctx.beginPath();ctx.arc(0,0,r-i*4,-.57,.57,reverse<0);ctx.stroke();
+  }
+  ctx.restore();return;
+ }
+ ctx.globalAlpha=alpha*.78;
  for(let i=0;i<3;i++){
-  ctx.lineWidth=(whirl?10:finisher?9:6)-i*2;
-  ctx.strokeStyle=i===2?'#fff8e4':finisher||whirl?'#e8ba70':'#a5c8d5';
-  ctx.beginPath();
-  ctx.arc(0,0,r-i*4,whirl?t*3:-.95*reverse,whirl?t*3+Math.PI*1.65:1.05*reverse,reverse<0);
-  ctx.stroke();
+  ctx.lineWidth=10-i*2;
+  ctx.strokeStyle=i===2?'#fff8e4':'#e8ba70';
+  ctx.beginPath();ctx.arc(0,0,r-i*4,t*3,t*3+Math.PI*1.65);ctx.stroke();
  }
  if(finisher||whirl){
   for(let i=0;i<12;i++){
