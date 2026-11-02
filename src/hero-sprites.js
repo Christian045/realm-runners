@@ -67,7 +67,10 @@ export class HeroSpriteAtlas{
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
   // All clips share the same full-body 96px character model. Damage timing,
   // aim geometry and release VFX remain in the separate gameplay engine.
-  if(drawRobedWalk(ctx,p,pose,this.images.walk)){ctx.restore();return true;}
+  if(drawRobedWalk(ctx,p,pose,this.images.walk)){
+   this.drawCasterGesture(ctx,p,pose);
+   ctx.restore();return true;
+  }
   const shot=aiming?heroShot(p):null;
   if(aiming&&shot.aim.y<-.3)this.drawWeapon(ctx,p,pose,shot);
   // Use each complete authored idle/walk/action frame. The independent
@@ -84,6 +87,55 @@ export class HeroSpriteAtlas{
   }
   if(aiming&&shot.aim.y>=-.3)this.drawWeapon(ctx,p,pose,shot);
   ctx.restore();return true;
+ }
+ // Robe-safe cast layer: only sleeve/hand or staff focus moves.
+ // The character remains the same authored standing sprite throughout.
+ drawCasterGesture(ctx,p,pose){
+  if(!['mage','summoner'].includes(p.kind)||
+     !['attack','special'].includes(pose.clip))return;
+  const shot=heroShot(p),face=pose.face,progress=Math.max(0,Math.min(1,pose.progress));
+  const focus=progress<.5?progress*2:Math.max(0,(1-progress)*2);
+  const mx=shot.mount.x,my=shot.mount.y;
+  ctx.save();ctx.imageSmoothingEnabled=false;
+  if(p.kind==='mage'){
+   // The blue crystal belongs to the original staff artwork.
+   // Channel light along that staff and emit at the very same crystal.
+   const grip={
+    down:[21,-38],right:[23,-39],up:[-21,-39],left:[-23,-39]
+   }[face];
+   const sx=p.x+grip[0],sy=p.y+grip[1];
+   ctx.globalAlpha=.22+.42*focus;
+   ctx.lineCap='square';ctx.strokeStyle='#74deff';ctx.lineWidth=3;
+   ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(mx,my);ctx.stroke();
+   ctx.globalAlpha=.7+.3*focus;
+   ctx.strokeStyle='#a6d9ff';ctx.lineWidth=2;
+   ctx.beginPath();ctx.arc(mx,my,4+4*focus,0,Math.PI*2);ctx.stroke();
+   ctx.fillStyle='#edfdff';ctx.fillRect(Math.round(mx-2),Math.round(my-2),4,4);
+   ctx.fillStyle='#ae91f9';
+   ctx.fillRect(Math.round(mx+8*focus),Math.round(my-5*focus),3,3);
+   ctx.fillRect(Math.round(mx-7*focus),Math.round(my+6*focus),2,2);
+  }else{
+   const shoulder={
+    down:[14,-45],right:[15,-44],up:[-14,-45],left:[-15,-44]
+   }[face];
+   const sx=p.x+shoulder[0],sy=p.y+shoulder[1];
+   // Sleeve stays attached to the shoulder while the hand extends.
+   ctx.lineCap='square';ctx.strokeStyle='#21172f';ctx.lineWidth=13;
+   ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(mx,my);ctx.stroke();
+   ctx.strokeStyle='#624977';ctx.lineWidth=9;
+   ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(mx-2*(face==='left'?-1:1),my+1);ctx.stroke();
+   ctx.strokeStyle='#a58aa4';ctx.lineWidth=3;
+   ctx.beginPath();ctx.moveTo(sx,sy-2);ctx.lineTo(mx, my-2);ctx.stroke();
+   ctx.fillStyle='#c9a88d';ctx.fillRect(Math.round(mx-4),Math.round(my-4),8,8);
+   ctx.fillStyle='#f0d2ad';ctx.fillRect(Math.round(mx-3),Math.round(my-4),5,5);
+   // A compact orb centered precisely on the projectile spawn.
+   ctx.globalAlpha=.45+.5*focus;
+   ctx.strokeStyle='#a5eed9';ctx.lineWidth=2;
+   ctx.beginPath();ctx.arc(mx,my,5+4*focus,0,Math.PI*2);ctx.stroke();
+   ctx.fillStyle='#b8ffee';ctx.fillRect(Math.round(mx-2),Math.round(my-2),4,4);
+   ctx.fillStyle='#e5dcff';ctx.fillRect(Math.round(mx+7*focus),Math.round(my-3*focus),2,2);
+  }
+  ctx.restore();
  }
  drawWeapon(ctx,p,pose,shot){
   const f=this.manifest.aimRig.weapons[(pose.clip==='walk'||pose.clip==='idle')?0:pose.frame];
