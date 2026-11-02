@@ -111,7 +111,7 @@ export function drawKnightEffect(ctx,e,alpha){
   for(let i=0;i<2;i++){
    ctx.lineWidth=i===0?4:2;
    ctx.strokeStyle=i?'#e8f4eb':finisher?'#efc77e':'#8fb5c3';
-   ctx.beginPath();ctx.arc(0,0,r-i*4,-.57,.57,reverse<0);ctx.stroke();
+   ctx.beginPath();ctx.arc(0,0,r-i*4,reverse<0?.57:-.57,reverse<0?-.57:.57,reverse<0);ctx.stroke();
   }
   ctx.restore();return;
  }
