@@ -11,6 +11,7 @@
   "test:robed-idle-browser": "node tests/robed-idle-browser.cjs",
   "test:browser": "node tests/browser.cjs",
   "test:knight-browser": "node tests/knight-browser.cjs",
+  "test:knight-actions-browser": "node tests/knight-actions-browser.cjs",
   "test:heroes-browser": "node tests/heroes-browser.cjs",
   "test:locomotion-browser": "node tests/locomotion-browser.cjs",
   "test:companions-browser": "node tests/companions-browser.cjs"
