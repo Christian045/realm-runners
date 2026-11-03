@@ -58,8 +58,10 @@ export function articulatedSockets(p,pose=articulatedPose(p)){
   reach=39.36;
  }else if(p.kind==='summoner'){
   if(motion.active){
-   wrist={x:shoulderBase.x+d.x*(3+amount*22),
-    y:shoulderBase.y+16+d.y*(3+amount*19)-amount*11-motion.lift};
+   // Present the palm in front of the chest when facing the camera.
+   // Keeping it at the left hip concealed the actual casting gesture.
+   wrist={x:shoulderBase.x+d.x*(3+amount*23)-side.x*17*amount,
+    y:shoulderBase.y+15+d.y*(3+amount*19)-amount*12-motion.lift};
    other={x:otherBase.x-d.x*(4+amount*7),y:otherBase.y+24-motion.wind*7};
   }else{
    wrist={x:shoulderBase.x+d.x*(4+amount*20),y:shoulderBase.y+17+d.y*amount*15-amount*7};
@@ -176,11 +178,16 @@ export class ArticulatedHeroAtlas{
    if(p.kind!=='warrior'||!s.motion.active||Math.abs(t-s.hit)>.19)return;
    const previous=articulatedSockets(p,{...pose,progress:Math.max(0,t-.075)});
    const strength=Math.max(0,1-Math.abs(t-s.hit)/.19);
-   ctx.save();ctx.globalAlpha*=strength*.82;
-   ctx.strokeStyle='#f5dba6';ctx.lineWidth=4;ctx.lineCap='round';
-   ctx.beginPath();ctx.moveTo(previous.tip.x,previous.tip.y);
-   ctx.quadraticCurveTo(s.tip.x+pose.direction.x*4,s.tip.y+pose.direction.y*4,s.tip.x,s.tip.y);ctx.stroke();
-   ctx.strokeStyle='#fff5d8';ctx.lineWidth=1.5;ctx.stroke();ctx.restore();
+   // Only a short glint follows the real blade tip. The old long curve
+   // looked like a second bent sword next to the actual weapon.
+   const delta={x:s.tip.x-previous.tip.x,y:s.tip.y-previous.tip.y};
+   const distance=Math.hypot(delta.x,delta.y),length=Math.min(9,distance*.25);
+   if(distance<.5)return;
+   ctx.save();ctx.globalAlpha*=strength*.55;
+   ctx.strokeStyle='#e8c17a';ctx.lineWidth=2;ctx.lineCap='round';
+   ctx.beginPath();ctx.moveTo(s.tip.x,s.tip.y);
+   ctx.lineTo(s.tip.x-delta.x/distance*length,s.tip.y-delta.y/distance*length);
+   ctx.stroke();ctx.restore();
   };
   const back=pose.face.y<-.25;
   offArm();if(back){arm();attackTrail();weapon();}
