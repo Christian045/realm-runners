@@ -16,6 +16,7 @@ const assert=require('node:assert/strict');
     const pure=new KnightPaintedAtlas(),production=new KnightSpriteAtlas();
     await production.loading;
     if(!production.painted)throw new Error('Knight is still using the puppet rig');
+    if(!production.painted.imageReady)throw new Error('New original art atlas missing');
     const cellW=112,cellH=120,canvas=document.createElement('canvas');
     canvas.width=cellW*8;canvas.height=cellH*11;
     const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
