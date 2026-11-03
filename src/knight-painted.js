@@ -297,7 +297,7 @@ export class KnightIllustratedAtlas extends KnightPaintedAtlas {
   // anchor when authored, regardless of the sword's silhouette.
   c.save();
   if(mirrored)c.scale(-1,1);
-  const x=mirrored?48:-48;
+  const x=-48;
   c.drawImage(this.image,sourceColumn*96,sourceRow*96,96,96,x,-77,96,96);
   c.restore();
   if(isFight&&rear){
