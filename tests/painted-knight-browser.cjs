@@ -8,7 +8,7 @@ const assert=require('node:assert/strict');
   try{
    const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errors=[];
    page.on('pageerror',error=>errors.push(error.message));
-   await page.goto('http://127.0.0.1:8000/');
+   await page.goto('http://127.0.0.1:8000/?newKnight=1');
    const report=await page.evaluate(async()=>{
     const [{KnightPaintedAtlas,KNIGHT_SWINGS},{KnightSpriteAtlas}]=await Promise.all([
      import('./src/knight-painted.js?v=0.41.0'),import('./src/knight-sprites.js?v=0.41.0')
