@@ -1,12 +1,12 @@
-// Original compact pixel-art knight. A complete 80x80 raster frame is
+// Original compact pixel-art knight. A complete 128x128 padded raster frame is
 // composed ONCE per state/direction/frame and cached as a sprite. Gameplay
 // never rotates or stretches a limb, a head, a boot or a sword texture.
 // The eight facings and three strike silhouettes share one coherent model.
 import {knightPose} from './knight-animation.js?v=0.31.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
 
-export const KNIGHT_PIXEL_SIZE=80;
-export const KNIGHT_PIXEL_ANCHOR=Object.freeze({x:40,y:62});
+export const KNIGHT_PIXEL_SIZE=128;
+export const KNIGHT_PIXEL_ANCHOR=Object.freeze({x:64,y:88});
 export const KNIGHT_PIXEL_CLIPS=Object.freeze(['idle','walk','attack1','attack2','attack3','special','dash','hurt','death']);
 const PAL=Object.freeze({
  ink:'#151923',back:'#25232d',cape:'#253e6a',capeShade:'#172946',
