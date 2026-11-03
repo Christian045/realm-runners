@@ -16,15 +16,29 @@ const fs=require('node:fs');
    await page.waitForFunction(()=>[...document.querySelectorAll('[data-info]')].every(p=>p.textContent.includes('Bild')));
    assert.equal(await page.locator('[data-kind]').count(),6);
    await click('[data-lab="pause"]');
-   for(const state of ['idle','walk','attack','attack2','attack3','special','cast','recovery','hurt','dash','death']){
-    await page.selectOption('[data-lab="state"]',state);
-    for(let direction=0;direction<8;direction++){
-     await click(`[data-direction="${direction}"]`);
-     await page.locator('[data-lab="seek"]').evaluate(el=>{el.value='500';el.dispatchEvent(new Event('input',{bubbles:true}));});
-     await page.evaluate(()=>new Promise(requestAnimationFrame));
-     const texts=await page.locator('[data-info]').allTextContents();assert.ok(texts.every(t=>t.includes('Bild')),texts.join('\n'));
+   // Exercise the real dialog input handlers and Canvas loop in one browser
+   // evaluation. 528 cross-process locator round trips overloaded mobile WebKit
+   // and could close the renderer even though every frame was rendered correctly.
+   const tested=await page.evaluate(async()=>{
+    const dialog=document.querySelector('.animation-lab');
+    const clip=dialog.querySelector('[data-lab="state"]');
+    const seek=dialog.querySelector('[data-lab="seek"]');
+    let frames=0;
+    for(const state of ['idle','walk','attack','attack2','attack3','special','cast','recovery','hurt','dash','death']){
+     clip.value=state;clip.dispatchEvent(new Event('input',{bubbles:true}));
+     for(let direction=0;direction<8;direction++){
+      dialog.querySelector(`[data-direction="${direction}"]`).click();
+      seek.value='500';seek.dispatchEvent(new Event('input',{bubbles:true}));
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      const texts=[...dialog.querySelectorAll('[data-info]')].map(el=>el.textContent);
+      if(texts.length!==6||texts.some(t=>!t.includes('Bild')||t.includes('Darstellungsfehler')))
+       throw new Error(state+' '+direction+': invalid preview '+texts.join(' | '));
+      frames+=texts.length;
+     }
     }
-   }
+    return frames;
+   });
+   assert.equal(tested,528);
    await page.selectOption('[data-lab="state"]','attack');await click('[data-direction="4"]');await page.locator('[data-lab="anchors"]').check();
    await page.screenshot({path:`test-output/${name}-animation-lab-${mobile?'mobile':'desktop'}.png`});
    const bounds=await dialog.boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=(mobile?390:1280)+1);
