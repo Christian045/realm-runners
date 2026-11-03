@@ -18,6 +18,7 @@ export class KnightSpriteAtlas{
  }
  async load(imageFactory){
   try{
+   await this.painted?.loading;
    await this.rig?.loading;
    const response=await fetch(new URL('../assets/knight/atlas.json?v=0.29.0',import.meta.url));
    if(!response.ok)throw new Error('Knight atlas manifest unavailable');
