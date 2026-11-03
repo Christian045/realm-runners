@@ -25,35 +25,39 @@ const fs=require('node:fs');
      if(!image||image.naturalWidth!==768||image.naturalHeight!==384)
       throw Error('Missing 8x4 sprite art '+clip);
      const sheet=document.createElement('canvas');
-     sheet.width=8*96;sheet.height=4*116;
+     sheet.width=8*160;sheet.height=4*164;
      const sc=sheet.getContext('2d');sc.imageSmoothingEnabled=false;
      for(const [row,[face,direction]] of Object.entries(faces).entries()){
       const hashes=new Set(),anchors=new Set();
       for(let frame=0;frame<8;frame++){
-       const p={kind:'warrior',x:48,y:80,hp:100,invulnerable:0,
+       const p={kind:'warrior',x:80,y:102,hp:100,invulnerable:0,
         moving:false,direction,knightWalkDistance:0};
        if(clip!=='idle'){beginKnightAction(p,clip,.8,direction);p.knightAction.elapsed=(frame+.02)*.1;}
-       const c=document.createElement('canvas');c.width=96;c.height=105;
+       const c=document.createElement('canvas');c.width=160;c.height=148;
        const cx=c.getContext('2d');cx.imageSmoothingEnabled=false;
        const drawn=a.draw(cx,p,clip==='idle'?(frame+.02)*1.6/8:0);
        if(!drawn)throw Error('Failed drawing '+clip+' '+face+' '+frame);
        // Source uses the actual production decoder. All image frames
        // must be distinct for attacks; idle is intentionally subtle.
-       const raw=cx.getImageData(0,0,96,105).data;
-       let hash=2166136261,pixels=0,minX=96,maxX=-1,minY=105,maxY=-1;
-       for(let y=0;y<105;y++)for(let x=0;x<96;x++){
-        const i=(y*96+x)*4;
+       const raw=cx.getImageData(0,0,160,148).data;
+       let hash=2166136261,pixels=0,minX=160,maxX=-1,minY=148,maxY=-1,footY=-1;
+       for(let y=0;y<148;y++)for(let x=0;x<160;x++){
+        const i=(y*160+x)*4;
         if(raw[i+3]>96){
          pixels++;minX=Math.min(minX,x);maxX=Math.max(maxX,x);
          minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+         // Measure the planted boots below the torso, excluding sword pixels
+         // outside the body's narrow foot corridor.
+         if(x>=64&&x<=96&&y>=90)footY=Math.max(footY,y);
          hash=Math.imul(hash^(x*13+y*17+raw[i]+raw[i+1]*11),16777619);
         }
        }
        if(pixels<1200)throw Error('Empty cropped knight action frame '+clip+' '+face+' '+frame);
-       if(minX===0||maxX===95)throw Error('Sword is clipped at frame boundary '+clip+' '+face+' '+frame);
+       if(minX===0||maxX===159||minY===0||maxY===147)throw Error('Sword or body is clipped at padded frame boundary '+clip+' '+face+' '+frame);
+       if(footY<90)throw Error('Knight feet missing '+clip+' '+face+' '+frame);
        hashes.add(hash);
-       anchors.add(maxY);
-       sc.drawImage(c,frame*96,row*116+10);
+       anchors.add(footY);
+       sc.drawImage(c,frame*160,row*164+8);
        tested++;
       }
       if(hashes.size<(clip==='idle'?2:6))throw Error('Insufficient real poses '+clip+' '+face+': '+hashes.size);
