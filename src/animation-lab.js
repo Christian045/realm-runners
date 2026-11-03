@@ -102,7 +102,7 @@ export async function openAnimationLab(){
   // The preview uses the very same production rig as gameplay. Do not load
   // six additional, superseded full-body fallback atlases on mobile: WebKit
   // can exhaust its graphics process with that duplicate decoding workload.
-  const rig=kind==='warrior'?getKnightPainted():getHeroRig(kind);
+  const rig=kind==='warrior'&&new URLSearchParams(location.search).has('newKnight')?getKnightPainted():getHeroRig(kind);
   try{await rig?.loading;}catch{/* Keep the legacy decoder as a safe fallback. */}
   if(rig?.ready){
    atlases.set(kind,rig);dirty=true;return;
