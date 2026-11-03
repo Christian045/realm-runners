@@ -113,11 +113,15 @@ function drawFullKnight(c,row,clip,frame){
  if(clip==='death'){
   if(frame>=4){
    const x=-15+frame, y=-6;
-   poly(c,PAL.capeShade,[[x-4,y-8],[x+16,y-9],[x+23,y-2],[x-10,y+1]]);
-   rect(c,PAL.steelDark,x,y-13,22,9);
-   rect(c,PAL.steel,x+4,y-15,11,8);
-   rect(c,PAL.gold,x+6,y-15,5,2);
-   rect(c,PAL.boot,x-9,y-2,10,3);rect(c,PAL.boot,x+18,y-2,10,3);
+   poly(c,PAL.ink,[[x-16,y-11],[x+20,y-12],[x+30,y-5],[x+28,y+3],[x-14,y+3]]);
+   poly(c,PAL.capeShade,[[x-13,y-10],[x+19,y-10],[x+28,y-4],[x+26,y+1],[x-12,y+1]]);
+   rect(c,PAL.cape,x-9,y-9,26,8);
+   rect(c,PAL.steelDark,x-3,y-14,27,12);
+   rect(c,PAL.steel,x+2,y-15,18,9);
+   rect(c,PAL.steelLight,x+5,y-14,9,2);
+   rect(c,PAL.gold,x+5,y-12,9,2);
+   rect(c,PAL.goldDark,x+2,y-5,22,3);
+   rect(c,PAL.boot,x-12,y-2,11,4);rect(c,PAL.boot,x+21,y-2,11,4);
    return;
   }
   lean=-frame*3;raise=frame*4;
