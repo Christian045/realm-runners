@@ -215,12 +215,12 @@ function drawFullKnight(c,row,clip,frame){
  }
 }
 export class KnightPaintedAtlas {
- constructor(){this.frames=new Map();this.ready=true;}
+ constructor(canvasFactory=null){this.frames=new Map();this.ready=true;this.canvasFactory=canvasFactory;}
  frame(row,clip,frame){
   const key=row+':'+clip+':'+frame;
   if(this.frames.has(key))return this.frames.get(key);
-  const canvas=typeof OffscreenCanvas!=='undefined'?
-   new OffscreenCanvas(WR,WR):document.createElement('canvas');
+  const canvas=this.canvasFactory?this.canvasFactory(WR,WR):
+   typeof OffscreenCanvas!=='undefined'?new OffscreenCanvas(WR,WR):document.createElement('canvas');
   canvas.width=WR;canvas.height=WR;
   const g=canvas.getContext('2d',{alpha:true});g.imageSmoothingEnabled=false;
   g.translate(KNIGHT_PIXEL_ANCHOR.x,KNIGHT_PIXEL_ANCHOR.y);
