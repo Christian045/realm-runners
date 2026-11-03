@@ -1,3 +1,4 @@
+// Regression coverage for the retained fallback atlases; new production rigs have their own suite.
 // This guards against the visual bug where idle and walk were different
 // characters despite all source frames decoding and the generic tests passing.
 const {chromium,webkit}=require('playwright');
@@ -9,7 +10,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
   try{
    const page=await browser.newPage({viewport:{width:1024,height:720}}),errors=[];
    page.on('pageerror',e=>errors.push(e.message));
-   await page.goto('http://127.0.0.1:8000/');
+   await page.goto('http://127.0.0.1:8000/?legacyHeroArt=1');
    const result=await page.evaluate(async()=>{
     const {HeroSpriteAtlas}=await import('./src/hero-sprites.js?v=0.35.1');
     const directions={down:{x:0,y:1},right:{x:1,y:0},up:{x:0,y:-1},left:{x:-1,y:0}};

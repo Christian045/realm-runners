@@ -35,7 +35,7 @@ for(const kind of ['mage','summoner']){
   atlas.ready=true;atlas.kind=kind;atlas.manifest={...source,aimRig:null};
   atlas.images={down:{},right:{},up:{},left:{},walk:image};
   const p={kind,x:120,y:110,hp:100,moving:false,direction:directions.down,invulnerable:0};
-  const ctx={calls:[],save(){},restore(){},drawImage(...a){this.calls.push(a);},imageSmoothingEnabled:false};
+  const ctx={calls:[],save(){},restore(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},arc(){},fillRect(){},drawImage(...a){this.calls.push(a);},imageSmoothingEnabled:false};
   assert.ok(atlas.draw(ctx,p,0));assert.strictEqual(ctx.calls[0][0],image);
   ctx.calls=[];p.moving=true;p.heroMoveDirection=directions.down;p.robedWalkDistance=0;
   assert.ok(atlas.draw(ctx,p,0));assert.strictEqual(ctx.calls[0][0],image);
@@ -43,7 +43,7 @@ for(const kind of ['mage','summoner']){
   assert.ok(atlas.draw(ctx,p,0));assert.strictEqual(ctx.calls[0][0],image);
   for(const clip of ['attack','special','dash','hurt','death']){
    const drawn=[];
-   const canvas={save(){},restore(){},translate(){},rotate(){},
+   const canvas={save(){},restore(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},arc(){},fillRect(){},translate(){},rotate(){},
     drawImage(...args){drawn.push(args);}};
    assert.equal(drawRobedWalk(canvas,p,{face:'down',frame:0,clip,progress:.4},image),true);
    assert.equal(drawn.length,1);

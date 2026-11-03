@@ -1,9 +1,10 @@
+import {openAnimationLab,animationLabOpen} from './animation-lab.js?v=0.39.0';
 import {CLASSES} from './data.js?v=0.23.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.21.0';
 import {ENEMY_NAMES,totalKills,formatPlayTime} from './statistics.js?v=0.21.0';
 import {Input} from './input.js?v=0.23.0';
-import {Game} from './game.js?v=0.38.0';
-import {Renderer} from './render.js?v=0.38.0';
+import {Game} from './game.js?v=0.39.0';
+import {Renderer} from './render.js?v=0.39.0';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.21.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.21.0';
 import {installTouchGuard} from './touch-guard.js';
@@ -39,7 +40,7 @@ const numberText=value=>Math.floor(Number(value)||0).toLocaleString('de-DE');
 function statisticsNavigation(){
  return '<nav class="castle-tabs" aria-label="Menübereiche">'+
   '<button type="button" data-action="menuTab:play" aria-pressed="'+(menuTab==='play')+'" class="'+(menuTab==='play'?'selected':'')+'">⚔ SPIELEN</button>'+
-  '<button type="button" data-action="menuTab:stats" aria-pressed="'+(menuTab==='stats')+'" class="'+(menuTab==='stats'?'selected':'')+'">▤ STATISTIKEN</button></nav>';
+  '<button type="button" data-action="menuTab:stats" aria-pressed="'+(menuTab==='stats')+'" class="'+(menuTab==='stats'?'selected':'')+'">▤ STATISTIKEN</button><button type="button" data-action="animationLab">ANIMATIONEN</button></nav>';
 }
 function renderStatistics(){
  const stats=progress.statistics;
@@ -323,6 +324,7 @@ function refreshPanel(){
 $('panelContent').addEventListener('click',e=>{
  const element=e.target.closest('button[data-action]');if(!element)return;
  const [action,value,extra]=element.dataset.action.split(':');
+ if(action==='animationLab'){void openAnimationLab();return;}
  if(action==='menuTab'){
   if(game.mode==='menu'&&['play','stats'].includes(value)){
    menuTab=value;
@@ -429,6 +431,7 @@ function animateMenuPreviews(now){
 }
 function frame(now){
  const delta=Math.min(.05,(now-last)/1000||0);last=now;
+ if(animationLabOpen()){requestAnimationFrame(frame);return;}
  if(game.mode==='playing'){
   accumulator+=delta;
   let steps=0;

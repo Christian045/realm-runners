@@ -15,9 +15,13 @@ export function beginHeroAction(p,clip,duration,direction=p.direction){
 }
 export function advanceHeroAction(p,dt,onRelease){
  const a=p.heroAction;if(!a)return;
- a.elapsed=Math.min(a.duration,a.elapsed+Math.max(0,dt));
- const spec=HERO_CLIPS[a.clip];
- if(!a.fired&&spec.releaseFrame!==undefined&&a.elapsed+1e-9>=a.duration*spec.releaseFrame/spec.frames){a.fired=true;onRelease(a);}
+ const nextElapsed=Math.min(a.duration,a.elapsed+Math.max(0,dt));
+ const spec=HERO_CLIPS[a.clip],eventTime=spec.releaseFrame===undefined?Infinity:a.duration*spec.releaseFrame/spec.frames;
+ if(!a.fired&&nextElapsed+1e-9>=eventTime){
+  // Sample moving hands at the exact authored release, even after a long frame.
+  a.elapsed=eventTime;a.fired=true;onRelease(a);
+ }
+ a.elapsed=nextElapsed;
  if(p.heroAction===a&&a.elapsed+1e-9>=a.duration)p.heroAction=null;
 }
 export function heroPose(p,time=0){

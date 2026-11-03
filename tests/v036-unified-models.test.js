@@ -38,7 +38,7 @@ function actor(kind,d,clip){
 }
 function mockContext(){
  const ops=[];
- const ctx={ops,save(){},restore(){},translate(){},rotate(){},scale(){},globalAlpha:1,
+ const ctx={ops,save(){},restore(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},arc(){},fillRect(){},translate(){},rotate(){},scale(){},globalAlpha:1,
   drawImage(...args){ops.push(args);},imageSmoothingEnabled:false};
  return ctx;
 }

@@ -1,10 +1,12 @@
-import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.38.0';
+import {getHeroRig,previewHeroRig} from './articulated-hero.js?v=0.39.0';
+import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.39.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';
-import {heroShot} from './hero-aim.js?v=0.38.0';
+import {heroShot} from './hero-aim.js?v=0.39.0';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.31.0';
 
 export class HeroSpriteAtlas{
  constructor(){
+  this.rigs=Object.fromEntries(['warrior',...HERO_KINDS].map(kind=>[kind,getHeroRig(kind)]));
   this.kind=null;this.ready=false;this.failed=false;this.images={};this.previews={};this.generation=0;
   this.useLegacyRobedWalk=typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('oldRobedWalk');
   this.previewLoading=Promise.all(['warrior',...HERO_KINDS].map(async kind=>{
@@ -32,6 +34,7 @@ export class HeroSpriteAtlas{
   this.kind=kind;this.ready=false;this.failed=false;this.images={};this.walkPivots={};const generation=++this.generation;
   this.loading=(async()=>{
    try{
+    await this.rigs?.[kind]?.loading;
     const base=new URL('../assets/heroes/'+kind+'/',import.meta.url);
     const response=await fetch(new URL('atlas.json?v=0.29.0',base));
     if(!response.ok)throw new Error('Hero manifest unavailable: '+kind);
@@ -56,6 +59,7 @@ export class HeroSpriteAtlas{
  }
  release(){this.generation++;this.kind=null;this.ready=false;this.images={};this.walkPivots={};this.manifest=null;}
  draw(ctx,p,time){
+  if(this.rigs?.[p.kind]?.draw(ctx,p,time))return true;
   if(!this.ready||p.kind!==this.kind)return false;
   const pose=heroPose(p,time);pose.gaitTime=time;
   const aiming=this.manifest.aimRig&&(pose.clip==='idle'||pose.clip==='attack'||(p.kind==='hunter'&&pose.clip==='special'));
@@ -145,6 +149,7 @@ export class HeroSpriteAtlas{
   ctx.restore();
  }
  preview(ctx,kind,width,height,time){
+  if(previewHeroRig(ctx,this.rigs?.[kind],width,height,time))return true;
   const image=this.previews[kind];if(!image)return false;
   ctx.clearRect(0,0,width,height);ctx.imageSmoothingEnabled=false;
   if(isRobedWalker(kind)&&image.naturalWidth===768&&image.naturalHeight===384){

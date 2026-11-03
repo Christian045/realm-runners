@@ -48,11 +48,27 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
     }return reports;
    });
    for(const r of result){assert.equal(r.frames,60);assert.ok(r.minimumUnique>=5,r.kind+' needs distinct painted poses');assert.ok(r.minimumPixels>15);assert.equal(r.edgePixels,0);fs.writeFileSync('test-output/companion-'+r.kind+'-'+engine+'.png',Buffer.from(r.contact.split(',')[1],'base64'));delete r.contact;console.log(engine,JSON.stringify(r));}
+   // Release the raster/atlas preview context before loading three complete
+   // dungeons. WebKit can otherwise exhaust its GPU process during screenshot.
+   await page.close();
    for(const kind of ['bat','imp','spirit']){
-    await page.locator('[data-action="servant:'+kind+'"]').click();await page.locator('[data-action="start"]').click();await page.locator('#overlay').waitFor({state:'hidden'});
-    if(mobile){const box=await page.locator('#abilityTouch').boundingBox();await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);}else await page.keyboard.press('KeyQ');
-    await page.waitForTimeout(800);await page.screenshot({path:'test-output/companion-'+kind+'-live-'+engine+'.png'});
-    assert.equal(await page.evaluate(()=>visualViewport.scale),1);await page.locator('#pauseBtn').click();await page.locator('[data-action="menu"]').click();
+    const live=await browser.newPage({viewport:mobile?{width:390,height:844}:{width:1280,height:800},
+     isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1});
+    live.on('pageerror',e=>errors.push(e.message));
+    try{
+     await live.goto('http://127.0.0.1:8000/');
+     await live.locator('[data-action="class:summoner"]').click();
+     await live.locator('[data-action="servant:'+kind+'"]').click();
+     await live.locator('[data-action="start"]').click();
+     await live.locator('#overlay').waitFor({state:'hidden'});
+     if(mobile){const box=await live.locator('#abilityTouch').boundingBox();await live.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);}
+     else await live.keyboard.press('KeyQ');
+     await live.waitForTimeout(800);
+     await live.screenshot({path:'test-output/companion-'+kind+'-live-'+engine+'.png'});
+     assert.equal(await live.evaluate(()=>visualViewport.scale),1);
+     await live.locator('#pauseBtn').click();
+     await live.locator('[data-action="menu"]').click();
+    }finally{await live.close();}
    }
    assert.deepEqual(errors,[]);
   }finally{await browser.close();}

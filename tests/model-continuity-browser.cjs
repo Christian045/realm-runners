@@ -1,3 +1,4 @@
+// Regression coverage for the retained fallback atlases; new production rigs have their own suite.
 const {chromium,webkit}=require('playwright');
 const assert=require('node:assert/strict');
 
@@ -7,7 +8,7 @@ const assert=require('node:assert/strict');
   try{
    const page=await browser.newPage({viewport:{width:1000,height:700}});
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.goto('http://127.0.0.1:8000/');
+   await page.goto('http://127.0.0.1:8000/?legacyHeroArt=1');
    const result=await page.evaluate(async()=>{
     const [{HeroSpriteAtlas},{KnightSpriteAtlas},{heroPose,beginHeroAction},{knightPose,beginKnightAction}]=await Promise.all([
      import('./src/hero-sprites.js?v=0.36.0'),
@@ -42,11 +43,15 @@ const assert=require('node:assert/strict');
         else{beginHeroAction(p,clip,.6,d);p.heroAction.elapsed=.3;}
        }
        const trace={ops:[],save(){},restore(){},translate(){},scale(){},rotate(){},
-        drawImage(...args){this.ops.push(args);},imageSmoothingEnabled:false,globalAlpha:1};
+        beginPath(){},closePath(){},moveTo(){},lineTo(){},arc(){},rect(){},clip(){},
+        stroke(){},fill(){},fillRect(){},drawImage(...args){this.ops.push(args);},
+        imageSmoothingEnabled:false,globalAlpha:1};
        if(!atlas.draw(trace,p,.5)||!trace.ops.length)throw Error(kind+' '+face+' '+clip+': empty frame');
        const source=trace.ops[0][0];
        const actionArt=kind==='warrior'&&['idle','attack1','attack2','attack3'].includes(clip);
-       const expectedArt=actionArt?atlas.images[clip]:atlas.images.walk;
+       // All three fallback knight attacks now reuse the *same* idle character
+       // while painting the moving sword separately; no per-combo PNG is loaded.
+       const expectedArt=actionArt?atlas.images.idle:atlas.images.walk;
        if(modern.includes(kind)&&(trace.ops.length!==1||source!==(expectedArt||atlas.images.walk)))
         throw Error(kind+' '+face+' '+clip+': incorrect character model');
        if(!modern.includes(kind)){

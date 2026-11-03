@@ -23,11 +23,13 @@ export function beginKnightAction(p,clip,duration,direction=p.direction){
 }
 export function advanceKnightAction(p,dt,onHit){
  const a=p.knightAction;if(!a)return;
- a.elapsed=Math.min(a.duration,a.elapsed+Math.max(0,dt));
- const clip=KNIGHT_CLIPS[a.clip];
- if(!a.fired&&clip.hitFrame!==undefined&&a.elapsed+1e-9>=a.duration*clip.hitFrame/clip.frames){
-  a.fired=true;onHit(a);
+ const nextElapsed=Math.min(a.duration,a.elapsed+Math.max(0,dt));
+ const spec=KNIGHT_CLIPS[a.clip],eventTime=spec.hitFrame===undefined?Infinity:a.duration*spec.hitFrame/spec.frames;
+ if(!a.fired&&nextElapsed+1e-9>=eventTime){
+  // Sample moving hands at the exact authored release, even after a long frame.
+  a.elapsed=eventTime;a.fired=true;onHit(a);
  }
+ a.elapsed=nextElapsed;
  if(p.knightAction===a&&a.elapsed+1e-9>=a.duration)p.knightAction=null;
 }
 export function knightPose(p,time=0){

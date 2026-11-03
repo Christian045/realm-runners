@@ -1,6 +1,6 @@
 import {beginCompanionAttack,advanceCompanion,companionShot} from './companion-animation.js?v=0.31.0';
 import {advanceLocomotion} from './locomotion.js?v=0.35.0';
-import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.38.0';
+import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.39.0';
 import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.31.0';
 import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.31.0';
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.23.0';
@@ -632,6 +632,17 @@ export class Game {
   const action=beginHeroAction(p,'attack',Math.min(.52,p.attackCooldown));
   action.charged=charged;action.sequence=this.attackSequence;
   if(this.input.mouse?.active&&p.kind!=='alchemist')action.target={...this.input.target(p,this.camera,10000)};
+  // Touch/keyboard casts converge on the first enemy intersecting the aimed
+  // floor ray. A raised staff tip otherwise shoots over point-blank targets.
+  if(!this.input.mouse?.active&&['mage','summoner'].includes(p.kind)){
+   const d=normalized(action.direction.x,action.direction.y);
+   const candidates=this.enemies.filter(e=>e.hp>0).map(e=>{
+    const dx=e.x-p.x,dy=e.y-p.y;
+    return {e,along:dx*d.x+dy*d.y,across:Math.abs(dx*d.y-dy*d.x)};
+   }).filter(({e,along,across})=>along>0&&along<=260&&across<=e.radius&&hasLineOfSight(this.dungeon,p.x,p.y,e.x,e.y))
+    .sort((a,b)=>a.along-b.along);
+   if(candidates.length){const e=candidates[0].e;action.target={x:e.x,y:e.y-HERO_PROJECTILE_HEIGHT};}
+  }
   if(p.kind==='alchemist')action.target={...(this.alchemyThrowTarget||this.input.target?.(p,this.camera,260)||
    {x:p.x+p.direction.x*260,y:p.y+p.direction.y*260})};
   return true;
