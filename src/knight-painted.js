@@ -249,5 +249,85 @@ export class KnightPaintedAtlas {
   return true;
  }
 }
-const single=new KnightPaintedAtlas();
+// A separately generated, original image atlas supplies the finished
+// painted armour/helmet/cape. Source material is new Realm Runners artwork,
+// not extracted Hammerwatch assets. It contains full body states rather than
+// a live skeletal or mesh rig. The procedural renderer above is a fallback.
+export class KnightIllustratedAtlas extends KnightPaintedAtlas {
+ constructor(){
+  super();
+  this.image=null;
+  this.imageReady=false;
+  this.loading=this.loadImage();
+ }
+ async loadImage(){
+  if(typeof Image==='undefined')return;
+  try{
+   const image=new Image();image.decoding='async';
+   await new Promise((resolve,reject)=>{
+    image.onload=resolve;image.onerror=reject;
+    image.src=new URL('../assets/knight/painted-041.png?v=0.41.0',import.meta.url).href;
+   });
+   if(image.decode)await image.decode();
+   if(image.width!==768||image.height!==576)throw Error('Knight art atlas dimensions changed');
+   this.image=image;this.imageReady=true;this.frames.clear();
+  }catch(e){console.warn('New knight artwork unavailable; using first-pass pixel frames.',e);}
+ }
+ frame(row,clip,frame){
+  if(!this.imageReady)return super.frame(row,clip,frame);
+  const key=row+':'+clip+':'+frame;
+  if(this.frames.has(key))return this.frames.get(key);
+  const sheet=this.canvasFactory?this.canvasFactory(WR,WR):
+   typeof OffscreenCanvas!=='undefined'?new OffscreenCanvas(WR,WR):document.createElement('canvas');
+  sheet.width=WR;sheet.height=WR;
+  const c=sheet.getContext('2d',{alpha:true});c.imageSmoothingEnabled=false;
+  c.translate(KNIGHT_PIXEL_ANCHOR.x,KNIGHT_PIXEL_ANCHOR.y);
+  let sourceRow=0,sourceColumn=row,mirrored=false;
+  const isFight=clip.startsWith('attack')||clip==='special',rear=row===3||row===4||row===5;
+  if(isFight&&!rear){
+   sourceRow=clip==='attack1'?2:clip==='attack2'||clip==='special'?3:4;
+   sourceColumn=frame;
+   mirrored=row===1||row===2;
+  }else if(clip==='walk'&&(row===2||row===6)){
+   sourceRow=1;sourceColumn=frame;mirrored=row===2;
+  }else if(clip==='walk'&&row===0){
+   sourceRow=5;sourceColumn=frame;
+  }
+  // Every image cell was aligned to the same 96px canvas and 77px boot
+  // anchor when authored, regardless of the sword's silhouette.
+  c.save();
+  if(mirrored)c.scale(-1,1);
+  const x=mirrored?48:-48;
+  c.drawImage(this.image,sourceColumn*96,sourceRow*96,96,96,x,-77,96,96);
+  c.restore();
+  if(isFight&&rear){
+   // Rear-facing footage was not present in the art-direction reference.
+   // Retain the coherent rear armour image and bake a restrained blade into
+   // the resulting complete frame rather than swapping to a frontal knight.
+   const pose=KNIGHT_SWINGS[clip]||KNIGHT_SWINGS.attack1;
+   const angle=Math.PI/2+row*Math.PI/4-Math.PI/2+pose.sword[frame];
+   const x=12+pose.handX[frame]*.25,y=-30+pose.handY[frame]*.18;
+   drawBlade(c,x,y,angle,frame,pose.impact===frame);
+  }
+  if(clip==='hurt'&&frame>=1&&frame<=4){
+   c.save();c.globalCompositeOperation='source-atop';c.globalAlpha=.18;
+   rect(c,'#f16c62',-48,-77,96,96);c.restore();
+  }
+  if(clip==='dash'){
+   c.save();c.globalCompositeOperation='source-atop';c.globalAlpha=.12;
+   rect(c,'#99def2',-48,-77,96,96);c.restore();
+  }
+  if(clip==='death'){
+   // Rotating one complete body silhouette at authoring time avoids an
+   // abrupt palette/model swap to the deprecated procedural corpse.
+   c.clearRect(-64,-88,128,128);
+   c.save();c.translate(0,-12);c.rotate(Math.min(1,frame/5)*Math.PI*.47);
+   c.drawImage(this.image,row*96,0,96,96,-48,-65,96,96);
+   c.restore();
+  }
+  this.frames.set(key,sheet);
+  return sheet;
+ }
+}
+const single=typeof Image!=='undefined'?new KnightIllustratedAtlas():new KnightPaintedAtlas();
 export const getKnightPainted=()=>single;
