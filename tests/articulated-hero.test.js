@@ -1,3 +1,4 @@
+import {rigWalkFeet,RIG_WALK_STRIDE} from '../src/rig-walk.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -45,5 +46,25 @@ test('projectiles and render sockets agree at the exact release in every view',(
  for(const kind of RIG_KINDS.filter(k=>k!=='warrior'))for(let row=0;row<8;row++)for(const clip of ['attack','special']){
   const p=actor(kind,clip,row,.5),s=articulatedSockets(p,articulatedPose(p)),shot=articulatedShot(p);
   assert.equal(shot.x,p.x+s.tip.x);assert.equal(shot.y,p.y+s.tip.y);assert.ok(Math.abs(Math.hypot(shot.aim.x,shot.aim.y)-1)<1e-10);
+ }
+});
+
+test('grounded gait takes one complete left/right step per real locomotion stride',()=>{
+ assert.equal(RIG_WALK_STRIDE,72);
+ for(let row=0;row<8;row++){
+  const angle=Math.PI/2+row*Math.PI/4,d={x:Math.cos(angle),y:Math.sin(angle)};
+  for(const t of [0,.125,.25,.375,.5,.625,.75,.875]){
+   const feet=rigWalkFeet(t*RIG_WALK_STRIDE,d,true);
+   assert.equal(feet.length,2);
+   assert.equal(feet.filter(f=>f.airborne).length,1,'one planted foot at every phase');
+   assert.ok(feet.every(f=>f.lift>=-1e-10&&f.lift<=5.001),'only the swing foot rises');
+   assert.ok(feet.every(f=>Number.isFinite(f.dx)&&Number.isFinite(f.dy)));
+   const repeat=rigWalkFeet((t+1)*RIG_WALK_STRIDE,d,true);
+   feet.forEach((foot,i)=>{
+    assert.ok(Math.abs(foot.dx-repeat[i].dx)<1e-9);
+    assert.ok(Math.abs(foot.dy-repeat[i].dy)<1e-9);
+   });
+  }
+  assert.ok(rigWalkFeet(0,d,false).every(f=>f.dx===0&&f.dy===0&&f.lift===0),'stopped actors plant both boots');
  }
 });
