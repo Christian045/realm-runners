@@ -32,8 +32,8 @@ const fs=require('node:fs');
         gc.fillStyle='#122027';gc.fillRect(x,y,160,150);
         gc.fillStyle='#566872';gc.font='12px monospace';
         gc.fillText(kind+' '+['wind','hit','recover'][i]+' '+row,x+8,y+18);
-        const hero={...p,x:x+80,y:y+120},action=hero[kind==='warrior'?'knightAction':'heroAction'];
-        if(action)action.elapsed=phases[i];
+        const hero={...p,x:x+80,y:y+120},actionKey=kind==='warrior'?'knightAction':'heroAction';
+        if(hero[actionKey])hero[actionKey]={...hero[actionKey],elapsed:phases[i]};
         if(!atlas.draw(gc,hero,phases[i]))throw Error('Gallery draw missing '+kind);
        }
       }
