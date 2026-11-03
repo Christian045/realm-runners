@@ -112,3 +112,12 @@ test('three distinct contact-timed combat performances agree in all eight direct
  const swings=['attack1','attack2','attack3'].map(clip=>combatChoreography('warrior',clip,at,d).sword);
  assert.ok(new Set(swings.map(x=>x.toFixed(2))).size===3,'warrior combos use same sword silhouette');
 });
+
+test('camera-facing casts keep crystal clear of hood and palm outside robe, overhead finisher lifts blade',()=>{
+ const mage=actor('mage','attack',0,.5),m=articulatedSockets(mage,articulatedPose(mage));
+ assert.ok(m.tip.x>15&&m.tip.y< -30,'mage crystal should sit beside hood, not over face or boots');
+ const summoner=actor('summoner','attack',0,.5),c=articulatedSockets(summoner,articulatedPose(summoner));
+ assert.ok(c.hand.x>15,'summoner palm should extend visibly to camera-right of robe');
+ const overhead=combatChoreography('warrior','attack3',.28,{x:0,y:1});
+ assert.ok(overhead.sword< -2,'overhead wind-up should point sword above shoulder');
+});
