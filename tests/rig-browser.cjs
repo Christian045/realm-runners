@@ -11,7 +11,12 @@ const fs=require('node:fs');
     const [{HeroSpriteAtlas},{KnightSpriteAtlas},{articulatedPose,RIG_KINDS},{heroShot}]=await Promise.all([
      import('./src/hero-sprites.js?v=0.40.0'),import('./src/knight-sprites.js?v=0.40.0'),import('./src/articulated-hero.js?v=0.40.0'),import('./src/hero-aim.js?v=0.40.0')]);
     const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;const ctx=canvas.getContext('2d');let checked=0,sockets=0;
-    const gallery=document.createElement('canvas');gallery.width=1280;gallery.height=1350;const gc=gallery.getContext('2d');gc.imageSmoothingEnabled=false;
+    const gallery=capture?document.createElement('canvas'):null;
+    if(gallery){gallery.width=1280;gallery.height=1350;}
+    const gc=gallery?.getContext('2d');if(gc)gc.imageSmoothingEnabled=false;
+    const combos=capture?document.createElement('canvas'):null;
+    if(combos){combos.width=1280;combos.height=900;}
+    const cc=combos?.getContext('2d');if(cc)cc.imageSmoothingEnabled=false;
     const featured=['warrior','mage','summoner'];
     for(const kind of RIG_KINDS){
      const atlas=kind==='warrior'?new KnightSpriteAtlas():new HeroSpriteAtlas();if(kind!=='warrior')atlas.select(kind);await atlas.loading;
@@ -36,6 +41,16 @@ const fs=require('node:fs');
         if(hero[actionKey])hero[actionKey]={...hero[actionKey],elapsed:phases[i]};
         if(!atlas.draw(gc,hero,phases[i]))throw Error('Gallery draw missing '+kind);
        }
+       if(kind==='warrior')for(const [comboIndex,combo] of ['attack2','attack3'].entries()){
+        const cHit=.5,wind=combo==='attack2'?.25:.28;
+        for(let phase=0;phase<3;phase++){
+         const x=row*160,y=(comboIndex*3+phase)*150;
+         cc.fillStyle='#122027';cc.fillRect(x,y,160,150);
+         cc.fillStyle='#566872';cc.font='12px monospace';cc.fillText(combo+' '+['wind','hit','recover'][phase]+' '+row,x+6,y+18);
+         const actor={...p,x:x+80,y:y+120,knightAction:{...p.knightAction,clip:combo,elapsed:[wind,cHit,.68][phase]}};
+         if(!atlas.draw(cc,actor,[wind,cHit,.68][phase]))throw Error('Combo preview missing '+combo);
+        }
+       }
       }
       if(kind!=='warrior'&&clip==='attack'){
        const shot=heroShot(p),near=ctx.getImageData(Math.round(shot.x)-5,Math.round(shot.y)-5,11,11).data;
@@ -43,9 +58,13 @@ const fs=require('node:fs');
       }
      }
     }
-    return {checked,sockets,preview:capture?gallery.toDataURL('image/png'):null};
+    return {checked,sockets,preview:capture?gallery.toDataURL('image/png'):null,combos:capture?combos.toDataURL('image/png'):null};
    },{capture:name==='chromium'});assert.equal(result.checked,336);assert.equal(result.sockets,40);
-   if(result.preview){fs.mkdirSync('test-output',{recursive:true});fs.writeFileSync('test-output/combat-choreography-chromium.png',Buffer.from(result.preview.split(',')[1],'base64'));}
+   if(result.preview){
+    fs.mkdirSync('test-output',{recursive:true});
+    fs.writeFileSync('test-output/combat-choreography-chromium.png',Buffer.from(result.preview.split(',')[1],'base64'));
+    fs.writeFileSync('test-output/knight-combos-chromium.png',Buffer.from(result.combos.split(',')[1],'base64'));
+   }
    console.log(name,'production rigs:',{checked:result.checked,sockets:result.sockets});
   }finally{await browser.close();}
  }
