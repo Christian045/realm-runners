@@ -1,3 +1,4 @@
+import {rigWalkFeet,RIG_WALK_STRIDE} from './rig-walk.js?v=0.40.0';
 // Directional painted parts with stable anatomical anchors. Only limbs and the
 // weapon articulate; attack states never rotate or replace the whole character.
 export const RIG_KINDS=['warrior','mage','summoner','hunter','glasscannon','alchemist'];
@@ -16,7 +17,7 @@ export function articulatedPose(p,time=0){
  if(p.hp<=0){clip='death';progress=clamp((p.knightDeathElapsed??p.heroDeathElapsed??0)/1.04);}
  const direction=unit(action?.direction||(clip==='walk'?(p.heroMoveDirection||p.knightMoveDirection):null)||p.direction),row=rigFacing(direction);
  const face={x:Math.cos(Math.PI/2+row*Math.PI/4),y:Math.sin(Math.PI/2+row*Math.PI/4)};
- const phase=((p.walkDistance||0)/36)%1;
+ const phase=((p.walkDistance||0)/RIG_WALK_STRIDE)%1;
  return {clip,progress,direction,face,row,action,phase,moving:p.moving&&clip!=='dash'&&clip!=='death',time};
 }
 export function articulatedSockets(p,pose=articulatedPose(p)){
@@ -100,15 +101,28 @@ export class ArticulatedHeroAtlas{
    part(col,from.x,from.y,length+3,.5,Math.atan2(to.y-from.y,to.x-from.x)-Math.PI/2);
   };
   const move=unit(p.heroMoveDirection||p.knightMoveDirection||pose.direction);
-  const legs=[-1,1].map((side,i)=>{
-   const phase=(pose.phase+i*.5)%1,swing=phase>=.5;
-   const travel=pose.clip==='dash'?(i?-11:13)*Math.sin(t*Math.PI):pose.moving?(swing?-9+18*ease((phase-.5)*2):9-36*phase):0;
-   const lift=pose.moving&&swing?Math.sin((phase-.5)*2*Math.PI)*5:0;
-   return {col:5+i,x:side*(Math.abs(pose.face.x)>.9?3:6),dx:move.x*travel,dy:move.y*travel-lift};
-  }).sort((a,b)=>a.dy-b.dy);
+  const legSprite=(column,hip,foot)=>{
+   const f=frames[column],bootSource=Math.max(7,Math.round(f.h*.24)),upperSource=f.h-bootSource;
+   const bootHeight=8,ankle={x:foot.x,y:foot.y-bootHeight};
+   const distance=Math.hypot(ankle.x-hip.x,ankle.y-hip.y);
+   const width=Math.max(10,Math.min(17,f.w/f.h*28));
+   // The former one-piece leg rotated and stretched the boot with the shin,
+   // giving walking characters pointed, floating or disappearing feet.
+   ctx.save();ctx.translate(Math.round(hip.x),Math.round(hip.y));
+   ctx.rotate(Math.atan2(ankle.y-hip.y,ankle.x-hip.x)-Math.PI/2);
+   ctx.drawImage(this.image,f.x,f.y,f.w,upperSource,-width/2,0,width,distance+2);
+   ctx.restore();
+   // Boots retain their true silhouette, height and vertical world orientation.
+   ctx.drawImage(this.image,f.x,f.y+upperSource,f.w,bootSource,
+    Math.round(foot.x-width/2),Math.round(foot.y-bootHeight),width,bootHeight);
+  };
+  const legs=rigWalkFeet(p.walkDistance||0,move,pose.moving,p.gaitBlend??1)
+   .map(leg=>({...leg,col:5+leg.index,x:leg.side*(Math.abs(pose.face.x)>.9?3:6)}))
+   .sort((a,b)=>a.dy-b.dy);
   for(const leg of legs){
-   const hip={x:leg.x+bodyX,y:-21+bodyY*.35},foot={x:leg.x+leg.dx+death*leg.x*.7,y:5+leg.dy};
-   bone(leg.col,hip,foot);
+   const hip={x:leg.x+bodyX,y:-21+bodyY*.35};
+   const foot={x:leg.x+leg.dx+death*leg.x*.7,y:5+leg.dy};
+   legSprite(leg.col,hip,foot);
   }
   // Cloth hangs over the hip connection, never over the planted boot region.
   const cloth=pose.moving?Math.sin(pose.phase*Math.PI*2-1)*1.2:Math.sin(time*2)*.3;
