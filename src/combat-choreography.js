@@ -33,7 +33,7 @@ export function combatChoreography(kind,clip,t,direction){
   const twist=overhead?.065:special?.13:.17;
   const roll=sign*frame(time,[[0,0],[windEnd,-twist],[hit,twist*.72],[.64,twist],[1,0]]);
   const lunge=frame(time,[[0,0],[windEnd,-2],[hit,overhead?7:5],[.66,3],[1,0]]);
-  const sword=overhead?frame(time,[[0,.8],[windEnd,-.85],[hit,-.06],[.67,.28],[1,.8]]):
+  const sword=overhead?frame(time,[[0,.8],[windEnd,-2.35],[hit,-.06],[.67,.28],[1,.8]]):
    special?frame(time,[[0,.8],[windEnd,-2.0],[hit,0],[.65,1.7],[1,.8]]):
    reverse?frame(time,[[0,.8],[windEnd,1.48],[hit,0],[.64,-1.1],[1,.8]]):
    frame(time,[[0,.8],[windEnd,-1.55],[hit,0],[.64,1.2],[1,.8]]);
