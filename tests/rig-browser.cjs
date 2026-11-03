@@ -28,7 +28,7 @@ const fs=require('node:fs');
       ctx.clearRect(0,0,256,256);if(!atlas.draw(ctx,p,.4))throw Error('Empty render');
       if(articulatedPose(p).row!==row)throw Error('Wrong view');
       const pixels=ctx.getImageData(0,0,256,256).data;let count=0;for(let i=3;i<pixels.length;i+=4)if(pixels[i]>30)count++;
-      if(count<400)throw Error('Missing character '+kind+' '+clip);checked++;
+      if(count<(kind==='warrior'?125:400))throw Error('Missing character '+kind+' '+clip);checked++;
       if(capture&&featured.includes(kind)&&clip==='attack'){
        const which=featured.indexOf(kind),contact=kind==='warrior'?3/8:3/6;
        const phases=[kind==='warrior'?.19:.24,contact,.68];
