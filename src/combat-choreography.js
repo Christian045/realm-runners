@@ -48,7 +48,7 @@ export function combatChoreography(kind,clip,t,direction){
   const thrust=frame(time,[[0,0],[.24,-2],[hit,4],[.68,2],[1,0]]);
   // The tip faces the foe at release without turning the entire body or
   // flipping the staff upside-down in north-facing views.
-  const staffAim=Math.atan2(d.y*.78-.42,d.x+.35*(-side.x));
+  const staffAim=Math.atan2(d.y*.35-.9,d.x*.85+.35*(-side.x));
   const first=-Math.PI/2;
   const delta=Math.atan2(Math.sin(staffAim-first),Math.cos(staffAim-first));
   const staff=first+frame(time,[[0,0],[.24,-.35],[hit,delta],[.64,delta],[1,0]]);
