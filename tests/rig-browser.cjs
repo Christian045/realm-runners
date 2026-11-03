@@ -20,7 +20,7 @@ const fs=require('node:fs');
     const featured=['warrior','mage','summoner'];
     for(const kind of RIG_KINDS){
      const atlas=kind==='warrior'?new KnightSpriteAtlas():new HeroSpriteAtlas();if(kind!=='warrior')atlas.select(kind);await atlas.loading;
-     const rig=atlas.rig||atlas.rigs[kind];if(!rig?.ready)throw Error('New art missing: '+kind);
+     const rig=kind==='warrior'?atlas.painted:(atlas.rig||atlas.rigs[kind]);if(!rig?.ready)throw Error('New art missing: '+kind);
      for(let row=0;row<8;row++)for(const clip of ['idle','walk','attack','special','dash','hurt','death']){
       const a=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(a),y:Math.sin(a)},p={kind,x:128,y:128,hp:100,direction,moving:clip==='walk',walkDistance:23,heroMoveDirection:direction,knightMoveDirection:direction};
       if(clip==='death'){p.hp=0;p.heroDeathElapsed=.8;p.knightDeathElapsed=.8;}
