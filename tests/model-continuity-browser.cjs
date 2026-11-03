@@ -43,11 +43,15 @@ const assert=require('node:assert/strict');
         else{beginHeroAction(p,clip,.6,d);p.heroAction.elapsed=.3;}
        }
        const trace={ops:[],save(){},restore(){},translate(){},scale(){},rotate(){},
-        drawImage(...args){this.ops.push(args);},imageSmoothingEnabled:false,globalAlpha:1};
+        beginPath(){},closePath(){},moveTo(){},lineTo(){},arc(){},rect(){},clip(){},
+        stroke(){},fill(){},fillRect(){},drawImage(...args){this.ops.push(args);},
+        imageSmoothingEnabled:false,globalAlpha:1};
        if(!atlas.draw(trace,p,.5)||!trace.ops.length)throw Error(kind+' '+face+' '+clip+': empty frame');
        const source=trace.ops[0][0];
        const actionArt=kind==='warrior'&&['idle','attack1','attack2','attack3'].includes(clip);
-       const expectedArt=actionArt?atlas.images[clip]:atlas.images.walk;
+       // All three fallback knight attacks now reuse the *same* idle character
+       // while painting the moving sword separately; no per-combo PNG is loaded.
+       const expectedArt=actionArt?atlas.images.idle:atlas.images.walk;
        if(modern.includes(kind)&&(trace.ops.length!==1||source!==(expectedArt||atlas.images.walk)))
         throw Error(kind+' '+face+' '+clip+': incorrect character model');
        if(!modern.includes(kind)){
