@@ -2,6 +2,7 @@
 // the same floor-space coordinates as the painted rig and projectile sockets.
 // Timing must agree with KNIGHT_CLIPS.hitFrame and HERO_CLIPS.releaseFrame.
 export const COMBAT_HITS=Object.freeze({attack1:3/8,attack2:4/8,attack3:4/8,special:3/8,attack:3/6});
+export const combatContact=(kind,clip)=>clip==='special'&&kind!=='warrior'?.5:(COMBAT_HITS[clip]??.5);
 const clamp=t=>Math.max(0,Math.min(1,t));
 const smooth=t=>{t=clamp(t);return t*t*(3-2*t)};
 const frame=(time,keys)=>{
@@ -20,7 +21,7 @@ export function rotateCombatPoint(point,motion){
  return {x:motion.dx+dx*c-dy*s,y:-25+motion.dy+dx*s+dy*c};
 }
 export function combatChoreography(kind,clip,t,direction){
- const d=unit(direction),side={x:-d.y,y:d.x},hit=COMBAT_HITS[clip]??.5;
+ const d=unit(direction),side={x:-d.y,y:d.x},hit=combatContact(kind,clip);
  const idle={active:false,hit,roll:0,dx:0,dy:0,extend:0,wind:0,impact:0,sword:.8,staff:-Math.PI/2,lift:0,handSide:0};
  if(!/^(attack[123]?|special)$/.test(clip)||!['warrior','mage','summoner'].includes(kind))return idle;
  const time=clamp(t),windEnd=kind==='warrior'?(clip==='attack3'?.28:hit*.52):.24;
