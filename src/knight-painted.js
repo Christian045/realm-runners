@@ -329,5 +329,5 @@ export class KnightIllustratedAtlas extends KnightPaintedAtlas {
   return sheet;
  }
 }
-const single=typeof Image!=='undefined'?new KnightIllustratedAtlas():new KnightPaintedAtlas();
-export const getKnightPainted=()=>single;
+let single=null;
+export const getKnightPainted=()=>single??(single=typeof Image!=='undefined'?new KnightIllustratedAtlas():new KnightPaintedAtlas());
