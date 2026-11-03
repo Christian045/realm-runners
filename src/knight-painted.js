@@ -306,7 +306,7 @@ export class KnightIllustratedAtlas extends KnightPaintedAtlas {
    // the resulting complete frame rather than swapping to a frontal knight.
    const pose=KNIGHT_SWINGS[clip]||KNIGHT_SWINGS.attack1;
    const angle=Math.PI/2+row*Math.PI/4-Math.PI/2+pose.sword[frame];
-   const x=12+pose.handX[frame]*.25,y=-30+pose.handY[frame]*.18;
+   const x=10+pose.handX[frame]*.18,y=-21+pose.handY[frame]*.18;
    drawBlade(c,x,y,angle,frame,pose.impact===frame);
   }
   if(clip==='hurt'&&frame>=1&&frame<=4){
