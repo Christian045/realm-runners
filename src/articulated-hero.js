@@ -193,7 +193,9 @@ export class ArticulatedHeroAtlas{
    ctx.lineTo(s.tip.x-delta.x/distance*length,s.tip.y-delta.y/distance*length);
    ctx.stroke();ctx.restore();
   };
-  const back=pose.face.y<-.25;
+  // The overhead blade passes *above* the cape while winding up and landing,
+  // so do not hide that entire action behind the rear-view torso texture.
+  const back=pose.face.y<-.25&&!(p.kind==='warrior'&&pose.clip==='attack3');
   offArm();if(back){arm();attackTrail();weapon();}
   // Waist-driven torso weight transfer; the helmet/armor is not replaced
   // between wind-up, weapon contact and recovery frames.
