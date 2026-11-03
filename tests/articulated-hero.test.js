@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {ArticulatedHeroAtlas,RIG_KINDS,articulatedPose,articulatedSockets,articulatedShot,rigFacing} from '../src/articulated-hero.js';
-import {COMBAT_HITS,combatChoreography,rotateCombatPoint} from '../src/combat-choreography.js';
+import {COMBAT_HITS,combatContact,combatChoreography,rotateCombatPoint} from '../src/combat-choreography.js';
 const clips=['idle','walk','attack1','attack2','attack3','special','hurt','dash','death'];
 const atlases=new Map();
 for(const kind of RIG_KINDS){
@@ -73,7 +73,7 @@ test('grounded gait takes one complete left/right step per real locomotion strid
 test('three distinct contact-timed combat performances agree in all eight directions',()=>{
  const actions={warrior:['attack1','attack2','attack3'],mage:['attack','special'],summoner:['attack','special']};
  for(const [kind,clips] of Object.entries(actions))for(const clip of clips)for(let row=0;row<8;row++){
-  const hit=COMBAT_HITS[clip],angle=Math.PI/2+row*Math.PI/4;
+  const hit=combatContact(kind,clip),angle=Math.PI/2+row*Math.PI/4;
   const d={x:Math.cos(angle),y:Math.sin(angle)};
   const wind=kind==='warrior'&&clip==='attack3'?.28:kind==='warrior'?hit*.52:kind==='summoner'?.20:.24;
   const anticipation=combatChoreography(kind,clip,wind,d);
