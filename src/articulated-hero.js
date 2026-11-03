@@ -47,7 +47,8 @@ export function articulatedSockets(p,pose=articulatedPose(p)){
   wrist.x-=Math.cos(angle)*recoil;wrist.y-=Math.sin(angle)*recoil;reach=p.kind==='hunter'?24:38.94;
  }else if(p.kind==='mage'){
   if(motion.active){
-   wrist={x:shoulderBase.x+d.x*amount*13+side.x*(3+motion.handSide),
+   const frontBias=clamp((d.y-.75)*4);
+   wrist={x:shoulderBase.x+d.x*amount*13+side.x*(3+motion.handSide-8*amount*frontBias),
     y:shoulderBase.y+17-amount*9+d.y*amount*5-motion.lift};
    other={x:otherBase.x-d.x*(3+motion.wind*5),y:otherBase.y+24-motion.wind*7-motion.impact*4};
    angle=motion.staff;
