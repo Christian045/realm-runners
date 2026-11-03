@@ -11,7 +11,7 @@ export class KnightSpriteAtlas{
  constructor(imageFactory=()=>new Image()){
   const flags=typeof window!=='undefined'?new URLSearchParams(window.location.search):new URLSearchParams();
   this.painted=flags.has('newKnight')&&!flags.has('legacyHeroArt')&&!flags.has('oldKnightPixel')?getKnightPainted():null;
-  this.rig=typeof Image!=='undefined'?getHeroRig('warrior'):null;
+  this.rig=typeof Image!=='undefined'&&!this.painted?getHeroRig('warrior'):null;
   this.images={};this.ready=false;this.failed=false;this.manifest=null;
   this.useLegacyWalk=typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('oldKnightWalk');
   this.loading=this.load(imageFactory);
@@ -19,7 +19,7 @@ export class KnightSpriteAtlas{
  }
  async load(imageFactory){
   try{
-   await this.painted?.loading;
+   if(this.painted){await this.painted.loading;this.ready=true;return;}
    await this.rig?.loading;
    const response=await fetch(new URL('../assets/knight/atlas.json?v=0.29.0',import.meta.url));
    if(!response.ok)throw new Error('Knight atlas manifest unavailable');
