@@ -28,7 +28,10 @@ export function articulatedSockets(p,pose=articulatedPose(p)){
  const hit=motion.hit;
  const amount=motion.active?motion.extend:
   attacking?(t<hit?ease(t/hit):1-ease((t-.65)/.35)):0;
- const side={x:-f.y,y:f.x*.55},shoulderBase={x:side.x*12,y:-43+side.y*12};
+ // Summoner uses the visible right sleeve as its dominant casting hand in
+ // every state, so the palm can actually extend outside the robe silhouette.
+ const side={x:-f.y,y:f.x*.55},handedness=p.kind==='summoner'?-1:1;
+ const shoulderBase={x:side.x*12*handedness,y:-43+side.y*12*handedness};
  const otherBase={x:-shoulderBase.x,y:-43-(shoulderBase.y+43)};
  let wrist={x:shoulderBase.x+side.x*2,y:shoulderBase.y+23};
  let other={x:otherBase.x,y:otherBase.y+26},angle=-Math.PI/2,reach=0;
