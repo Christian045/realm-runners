@@ -1,8 +1,10 @@
+import {rigWalkFeet,RIG_WALK_STRIDE} from '../src/rig-walk.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {ArticulatedHeroAtlas,RIG_KINDS,articulatedPose,articulatedSockets,articulatedShot,rigFacing} from '../src/articulated-hero.js';
+import {COMBAT_HITS,combatContact,combatChoreography,rotateCombatPoint} from '../src/combat-choreography.js';
 const clips=['idle','walk','attack1','attack2','attack3','special','hurt','dash','death'];
 const atlases=new Map();
 for(const kind of RIG_KINDS){
@@ -46,4 +48,78 @@ test('projectiles and render sockets agree at the exact release in every view',(
   const p=actor(kind,clip,row,.5),s=articulatedSockets(p,articulatedPose(p)),shot=articulatedShot(p);
   assert.equal(shot.x,p.x+s.tip.x);assert.equal(shot.y,p.y+s.tip.y);assert.ok(Math.abs(Math.hypot(shot.aim.x,shot.aim.y)-1)<1e-10);
  }
+});
+
+test('grounded gait takes one complete left/right step per real locomotion stride',()=>{
+ assert.equal(RIG_WALK_STRIDE,72);
+ for(let row=0;row<8;row++){
+  const angle=Math.PI/2+row*Math.PI/4,d={x:Math.cos(angle),y:Math.sin(angle)};
+  for(const t of [0,.125,.25,.375,.5,.625,.75,.875]){
+   const feet=rigWalkFeet(t*RIG_WALK_STRIDE,d,true);
+   assert.equal(feet.length,2);
+   assert.equal(feet.filter(f=>f.airborne).length,1,'one planted foot at every phase');
+   assert.ok(feet.every(f=>f.lift>=-1e-10&&f.lift<=5.001),'only the swing foot rises');
+   assert.ok(feet.every(f=>Number.isFinite(f.dx)&&Number.isFinite(f.dy)));
+   const repeat=rigWalkFeet((t+1)*RIG_WALK_STRIDE,d,true);
+   feet.forEach((foot,i)=>{
+    assert.ok(Math.abs(foot.dx-repeat[i].dx)<1e-9);
+    assert.ok(Math.abs(foot.dy-repeat[i].dy)<1e-9);
+   });
+  }
+  assert.ok(rigWalkFeet(0,d,false).every(f=>f.dx===0&&f.dy===0&&f.lift===0),'stopped actors plant both boots');
+ }
+});
+
+test('three distinct contact-timed combat performances agree in all eight directions',()=>{
+ const actions={warrior:['attack1','attack2','attack3'],mage:['attack','special'],summoner:['attack','special']};
+ for(const [kind,clips] of Object.entries(actions))for(const clip of clips)for(let row=0;row<8;row++){
+  const hit=combatContact(kind,clip),angle=Math.PI/2+row*Math.PI/4;
+  const d={x:Math.cos(angle),y:Math.sin(angle)};
+  const wind=kind==='warrior'&&clip==='attack3'?.28:kind==='warrior'?hit*.52:kind==='summoner'?.20:.24;
+  const anticipation=combatChoreography(kind,clip,wind,d);
+  const contact=combatChoreography(kind,clip,hit,d);
+  const recovered=combatChoreography(kind,clip,1,d);
+  assert.equal(contact.hit,hit,kind+' '+clip);
+  assert.ok(Math.abs(anticipation.roll)>=.05,kind+' needs visible wind-up torso '+row);
+  assert.ok(Math.abs(contact.roll)>=.04,kind+' needs contact weight '+row);
+  assert.ok(contact.extend>.999,kind+' palm/weapon is not extended at hit');
+  assert.ok(contact.impact>.999,kind+' impact marker must align with damage');
+  assert.ok(Math.abs(recovered.roll)<1e-9,kind+' torso does not recover');
+  assert.ok(Math.abs(recovered.dx)<1e-9);assert.ok(Math.abs(recovered.dy)<1e-9);
+  const pivot=rotateCombatPoint({x:0,y:-25},contact);
+  assert.ok(Math.abs(pivot.x-contact.dx)<1e-8);
+  assert.ok(Math.abs(pivot.y+25-contact.dy)<1e-8);
+  const p=actor(kind,clip,row,hit),socket=articulatedSockets(p,articulatedPose(p));
+  assert.equal(socket.hit,hit);
+  assert.ok(Math.abs(socket.motion.roll-contact.roll)<1e-10);
+  assert.ok(Math.hypot(socket.hand.x-socket.shoulder.x,socket.hand.y-socket.shoulder.y)<34,
+   kind+' shoulder disconnected from wrist at hit in '+row);
+  if(kind==='warrior'){
+   assert.ok(socket.reach>=35,clip+' sword missing');
+   assert.ok(Math.hypot(socket.tip.x-socket.hand.x,socket.tip.y-socket.hand.y)>35);
+  }else{
+   const shot=articulatedShot(p);
+   assert.ok(Math.abs(shot.x-p.x-socket.tip.x)<1e-9,kind+' emission x detached '+row);
+   assert.ok(Math.abs(shot.y-p.y-socket.tip.y)<1e-9,kind+' emission y detached '+row);
+   assert.ok(Math.abs(shot.mount.x-p.x-socket.hand.x)<1e-9);
+   assert.ok(Math.abs(shot.mount.y-p.y-socket.hand.y)<1e-9);
+   if(kind==='mage')assert.ok(Math.abs(contact.staff+Math.PI/2)>.1,'staff did not cast');
+   if(kind==='summoner')assert.equal(socket.reach,0,'summoner must emit from palm');
+  }
+ }
+ // Combo arcs must be meaningfully different, not one swing replayed 3x.
+ const d={x:0,y:1},at=0.25;
+ const swings=['attack1','attack2','attack3'].map(clip=>combatChoreography('warrior',clip,at,d).sword);
+ assert.ok(new Set(swings.map(x=>x.toFixed(2))).size===3,'warrior combos use same sword silhouette');
+});
+
+test('camera-facing casts keep crystal clear of hood and palm outside robe, overhead finisher lifts blade',()=>{
+ const mage=actor('mage','attack',0,.5),m=articulatedSockets(mage,articulatedPose(mage));
+ assert.ok(m.tip.x>15&&m.tip.y< -30,'mage crystal should sit beside hood, not over face or boots');
+ const summoner=actor('summoner','attack',0,.5),c=articulatedSockets(summoner,articulatedPose(summoner));
+ assert.ok(c.hand.x>15,'summoner palm should extend visibly to camera-right of robe');
+ const overhead=combatChoreography('warrior','attack3',.28,{x:0,y:1});
+ assert.ok(overhead.sword< -2,'front overhead wind-up should point sword above shoulder');
+ const rear=actor('warrior','attack3',4,.28),blade=articulatedSockets(rear,articulatedPose(rear));
+ assert.ok(blade.tip.y<blade.hand.y-20,'rear overhead sword tip should rise above hand and cape');
 });

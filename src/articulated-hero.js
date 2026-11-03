@@ -1,3 +1,5 @@
+import {rigWalkFeet,RIG_WALK_STRIDE} from './rig-walk.js?v=0.40.0';
+import {combatChoreography,rotateCombatPoint} from './combat-choreography.js?v=0.40.0';
 // Directional painted parts with stable anatomical anchors. Only limbs and the
 // weapon articulate; attack states never rotate or replace the whole character.
 export const RIG_KINDS=['warrior','mage','summoner','hunter','glasscannon','alchemist'];
@@ -16,43 +18,69 @@ export function articulatedPose(p,time=0){
  if(p.hp<=0){clip='death';progress=clamp((p.knightDeathElapsed??p.heroDeathElapsed??0)/1.04);}
  const direction=unit(action?.direction||(clip==='walk'?(p.heroMoveDirection||p.knightMoveDirection):null)||p.direction),row=rigFacing(direction);
  const face={x:Math.cos(Math.PI/2+row*Math.PI/4),y:Math.sin(Math.PI/2+row*Math.PI/4)};
- const phase=((p.walkDistance||0)/36)%1;
+ const phase=((p.walkDistance||0)/RIG_WALK_STRIDE)%1;
  return {clip,progress,direction,face,row,action,phase,moving:p.moving&&clip!=='dash'&&clip!=='death',time};
 }
 export function articulatedSockets(p,pose=articulatedPose(p)){
  const {clip,progress:t,direction:d,face:f}=pose;
- const attacking=/attack|special|cast/.test(clip),hit=p.kind==='warrior'&&['attack1','special'].includes(clip)?.375:.5;
- const amount=attacking?(t<hit?ease(t/hit):1-ease((t-.65)/.35)):0;
- const side={x:-f.y,y:f.x*.55},shoulder={x:side.x*12,y:-43+side.y*12};
- let hand={x:shoulder.x+side.x*2,y:shoulder.y+23},angle=-Math.PI/2,reach=0;
+ const motion=combatChoreography(p.kind,clip,t,d);
+ const attacking=/attack|special|cast/.test(clip);
+ const hit=motion.hit;
+ const amount=motion.active?motion.extend:
+  attacking?(t<hit?ease(t/hit):1-ease((t-.65)/.35)):0;
+ // Summoner uses the visible right sleeve as its dominant casting hand in
+ // every state, so the palm can actually extend outside the robe silhouette.
+ const side={x:-f.y,y:f.x*.55},handedness=p.kind==='summoner'?-1:1;
+ const shoulderBase={x:side.x*12*handedness,y:-43+side.y*12*handedness};
+ const otherBase={x:-shoulderBase.x,y:-43-(shoulderBase.y+43)};
+ let wrist={x:shoulderBase.x+side.x*2,y:shoulderBase.y+23};
+ let other={x:otherBase.x,y:otherBase.y+26},angle=-Math.PI/2,reach=0;
  if(p.kind==='warrior'){
-  const aimAngle=Math.atan2(d.y,d.x),reverse=clip==='attack2',overhead=clip==='attack3';
-  let swing=.85;
-  if(attacking){
-   const windup=reverse?1.45:-1.55,finish=reverse?-1.0:1.0;
-   swing=t<.18?mix(.85,windup,ease(t/.18)):t<hit?mix(windup,0,ease((t-.18)/(hit-.18))):t<.65?mix(0,finish,ease((t-hit)/(.65-hit))):mix(finish,.85,ease((t-.65)/.35));
-  }
-  angle=aimAngle+swing;
-  if(clip==='special')swing=t<hit?mix(-2.1,0,ease(t/hit)):mix(0,2.1,ease((t-hit)/(1-hit)));
-  angle=aimAngle+swing;
-  const lift=(overhead||clip==='special')&&attacking?Math.sin(Math.min(1,t/hit)*Math.PI)*11:0;
-  hand={x:shoulder.x+d.x*(7+amount*11),y:shoulder.y+10+d.y*(7+amount*8)-lift};reach=36;
+  const swordOffset=motion.active?motion.sword:.85;
+  angle=Math.atan2(d.y,d.x)+swordOffset;
+  const extra=motion.active?motion.handSide:0;
+  wrist={x:shoulderBase.x+d.x*(7+amount*9)+side.x*(2+extra),
+   y:shoulderBase.y+12+d.y*(5+amount*9)-(motion.active?motion.lift:0)};
+  other={x:otherBase.x-d.x*(3+motion.impact*3),y:otherBase.y+22+motion.wind*3};
+  reach=36;
  }else if(['hunter','glasscannon'].includes(p.kind)){
-  hand={x:0,y:-38};angle=Math.atan2(d.y,d.x);
-  if(pose.action?.target)angle=Math.atan2(pose.action.target.y-p.y-hand.y,pose.action.target.x-p.x-hand.x);
+  wrist={x:0,y:-38};angle=Math.atan2(d.y,d.x);
+  if(pose.action?.target)angle=Math.atan2(pose.action.target.y-p.y-wrist.y,pose.action.target.x-p.x-wrist.x);
   const recoil=p.kind==='glasscannon'&&attacking&&t>.5?4*Math.sin(clamp((t-.5)/.2)*Math.PI):0;
-  hand.x-=Math.cos(angle)*recoil;hand.y-=Math.sin(angle)*recoil;reach=p.kind==='hunter'?24:38.94;
+  wrist.x-=Math.cos(angle)*recoil;wrist.y-=Math.sin(angle)*recoil;reach=p.kind==='hunter'?24:38.94;
  }else if(p.kind==='mage'){
-  hand={x:shoulder.x+d.x*amount*12,y:shoulder.y+17-amount*7};angle=-Math.PI/2+d.x*amount*.8;reach=39.36;
+  if(motion.active){
+   const frontBias=clamp((d.y-.75)*4);
+   wrist={x:shoulderBase.x+d.x*amount*13+side.x*(3+motion.handSide-8*amount*frontBias),
+    y:shoulderBase.y+17-amount*9+d.y*amount*5-motion.lift};
+   other={x:otherBase.x-d.x*(3+motion.wind*5),y:otherBase.y+24-motion.wind*7-motion.impact*4};
+   angle=motion.staff;
+  }else{
+   wrist={x:shoulderBase.x+d.x*amount*12,y:shoulderBase.y+17-amount*7};
+   angle=-Math.PI/2+d.x*amount*.8;
+  }
+  reach=39.36;
  }else if(p.kind==='summoner'){
-  hand={x:shoulder.x+d.x*(4+amount*20),y:shoulder.y+17+d.y*amount*15-amount*7};
+  if(motion.active){
+   // Present the palm in front of the chest when facing the camera.
+   // Keeping it at the left hip concealed the actual casting gesture.
+   wrist={x:shoulderBase.x+d.x*(3+amount*23)-side.x*11*amount,
+    y:shoulderBase.y+15+d.y*(3+amount*19)-amount*14-motion.lift};
+   other={x:otherBase.x-d.x*(4+amount*7),y:otherBase.y+24-motion.wind*7};
+  }else{
+   wrist={x:shoulderBase.x+d.x*(4+amount*20),y:shoulderBase.y+17+d.y*amount*15-amount*7};
+  }
  }else{
-  hand={x:shoulder.x+d.x*mix(-10,20,amount),y:shoulder.y+mix(-7,16,amount)};
+  wrist={x:shoulderBase.x+d.x*mix(-10,20,amount),y:shoulderBase.y+mix(-7,16,amount)};
  }
+ // All casting/muzzle coordinates use the same waist pivot as the torso art.
+ const map=motion.active?pt=>rotateCombatPoint(pt,motion):pt=>pt;
+ const shoulder=map(shoulderBase),offShoulder=map(otherBase),hand=map(wrist),offHand=map(other);
+ angle+=motion.roll;
  const tip={x:hand.x+Math.cos(angle)*reach,y:hand.y+Math.sin(angle)*reach};
  const target=pose.action?.target||{x:p.x+d.x*260,y:p.y+d.y*260-27};
  const aim=unit({x:target.x-p.x-tip.x,y:target.y-p.y-tip.y});
- return {shoulder,hand,tip,angle,aim,reach,amount,hit};
+ return {shoulder,offShoulder,hand,offHand,tip,angle,aim,reach,amount,hit,motion};
 }
 export function articulatedShot(p,action=p.heroAction){
  const pose=articulatedPose({...p,heroAction:action}),s=articulatedSockets(p,pose);
@@ -81,12 +109,12 @@ export class ArticulatedHeroAtlas{
   if(!this.ready)return false;
   const pose=articulatedPose(p,time),s=articulatedSockets(p,pose),frames=this.manifest.frames[pose.row];
   const t=pose.progress,death=pose.clip==='death'?ease(t):0,hurt=pose.clip==='hurt'?Math.sin(t*Math.PI):0;
-  const recoil=pose.clip==='dash'?6*Math.sin(t*Math.PI):0,bodyX=-hurt*pose.direction.x*3,bodyY=death*19+recoil+Math.sin(time*Math.PI*2/1.6)*.8;
+  const recoil=pose.clip==='dash'?6*Math.sin(t*Math.PI):0,bodyX=-hurt*pose.direction.x*3,bodyY=death*19+recoil+(s.motion.active?0:Math.sin(time*Math.PI*2/1.6)*.8);
   const collapseAngle=death*Math.PI/2*(pose.face.x<0?-1:1);
   const bodyPoint=point=>{const x=point.x,y=point.y+25;return {x:bodyX+x*Math.cos(collapseAngle)-y*Math.sin(collapseAngle),y:-25+bodyY+x*Math.sin(collapseAngle)+y*Math.cos(collapseAngle)};};
-  const shoulder=bodyPoint(s.shoulder);
-  let hand=death?{x:shoulder.x-8,y:mix(shoulder.y+16,4,death)}:s.hand;
-  if(p.kind==='hunter'&&!death)hand={x:s.hand.x+Math.cos(s.angle)*(18-12*s.amount),y:s.hand.y+Math.sin(s.angle)*(18-12*s.amount)};
+  const shoulder=death?bodyPoint(s.shoulder):{x:s.shoulder.x+bodyX,y:s.shoulder.y+bodyY};
+  let hand=death?{x:shoulder.x-8,y:mix(shoulder.y+16,4,death)}:{x:s.hand.x+bodyX,y:s.hand.y+bodyY};
+  if(p.kind==='hunter'&&!death)hand={x:hand.x+Math.cos(s.angle)*(18-12*s.amount),y:hand.y+Math.sin(s.angle)*(18-12*s.amount)};
   ctx.save();ctx.translate(Math.round(p.x),Math.round(p.y));ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
   const part=(column,x,y,height,pivot=.5,angle=0,width=null)=>{
@@ -100,23 +128,38 @@ export class ArticulatedHeroAtlas{
    part(col,from.x,from.y,length+3,.5,Math.atan2(to.y-from.y,to.x-from.x)-Math.PI/2);
   };
   const move=unit(p.heroMoveDirection||p.knightMoveDirection||pose.direction);
-  const legs=[-1,1].map((side,i)=>{
-   const phase=(pose.phase+i*.5)%1,swing=phase>=.5;
-   const travel=pose.clip==='dash'?(i?-11:13)*Math.sin(t*Math.PI):pose.moving?(swing?-9+18*ease((phase-.5)*2):9-36*phase):0;
-   const lift=pose.moving&&swing?Math.sin((phase-.5)*2*Math.PI)*5:0;
-   return {col:5+i,x:side*(Math.abs(pose.face.x)>.9?3:6),dx:move.x*travel,dy:move.y*travel-lift};
-  }).sort((a,b)=>a.dy-b.dy);
+  const legSprite=(column,hip,foot)=>{
+   const f=frames[column],bootSource=Math.max(7,Math.round(f.h*.24)),upperSource=f.h-bootSource;
+   const bootHeight=8,ankle={x:foot.x,y:foot.y-bootHeight};
+   const distance=Math.hypot(ankle.x-hip.x,ankle.y-hip.y);
+   const width=Math.max(10,Math.min(17,f.w/f.h*28));
+   // The former one-piece leg rotated and stretched the boot with the shin,
+   // giving walking characters pointed, floating or disappearing feet.
+   ctx.save();ctx.translate(Math.round(hip.x),Math.round(hip.y));
+   ctx.rotate(Math.atan2(ankle.y-hip.y,ankle.x-hip.x)-Math.PI/2);
+   ctx.drawImage(this.image,f.x,f.y,f.w,upperSource,-width/2,0,width,distance+2);
+   ctx.restore();
+   // Boots retain their true silhouette, height and vertical world orientation.
+   ctx.drawImage(this.image,f.x,f.y+upperSource,f.w,bootSource,
+    Math.round(foot.x-width/2),Math.round(foot.y-bootHeight),width,bootHeight);
+  };
+  const legs=rigWalkFeet(p.walkDistance||0,move,pose.moving,p.gaitBlend??1)
+   .map(leg=>({...leg,col:5+leg.index,x:leg.side*(Math.abs(pose.face.x)>.9?3:6)}))
+   .sort((a,b)=>a.dy-b.dy);
   for(const leg of legs){
-   const hip={x:leg.x+bodyX,y:-21+bodyY*.35},foot={x:leg.x+leg.dx+death*leg.x*.7,y:5+leg.dy};
-   bone(leg.col,hip,foot);
+   const hip={x:leg.x+bodyX,y:-21+bodyY*.35};
+   const foot={x:leg.x+leg.dx+death*leg.x*.7,y:5+leg.dy};
+   legSprite(leg.col,hip,foot);
   }
   // Cloth hangs over the hip connection, never over the planted boot region.
   const cloth=pose.moving?Math.sin(pose.phase*Math.PI*2-1)*1.2:Math.sin(time*2)*.3;
-  part(1,bodyX+cloth,-28+bodyY*.7,15);
-  const offShoulder=bodyPoint({x:-s.shoulder.x,y:-43-(s.shoulder.y+43)});
-  let offHand={x:offShoulder.x,y:mix(offShoulder.y+26,3,death)};
-  if(!death&&['hunter','glasscannon'].includes(p.kind)){const grip=p.kind==='hunter'?24:16;offHand={x:s.hand.x+Math.cos(s.angle)*grip,y:s.hand.y+Math.sin(s.angle)*grip+3};}
-  if(pose.clip==='special'&&['mage','summoner'].includes(p.kind))offHand={x:offShoulder.x-pose.direction.x*15,y:offShoulder.y-9*s.amount};
+  part(1,bodyX+s.motion.dx*.25+cloth,-28+bodyY*.7+s.motion.dy*.2,15);
+  const offShoulder=death?bodyPoint(s.offShoulder):{x:s.offShoulder.x+bodyX,y:s.offShoulder.y+bodyY};
+  let offHand=death?{x:offShoulder.x,y:mix(offShoulder.y+26,3,death)}:
+   {x:s.offHand.x+bodyX,y:s.offHand.y+bodyY};
+  if(!death&&['hunter','glasscannon'].includes(p.kind)){const grip=p.kind==='hunter'?24:16;offHand={x:hand.x+Math.cos(s.angle)*grip,y:hand.y+Math.sin(s.angle)*grip+3};}
+  if(!s.motion.active&&pose.clip==='special'&&['mage','summoner'].includes(p.kind))
+   offHand={x:offShoulder.x-pose.direction.x*15,y:offShoulder.y-9*s.amount};
   const arm=()=>{const elbow=elbowFor(shoulder,hand,15,16,pose.face.x<0?-1:1);bone(2,shoulder,elbow);bone(3,elbow,hand);};
   const offArm=()=>bone(4,offShoulder,offHand);
   const weapon=()=>{
@@ -135,14 +178,42 @@ export class ArticulatedHeroAtlas{
    ctx.save();ctx.translate(Math.round(hand.x),Math.round(hand.y));ctx.rotate(s.angle);
    const height=f.h/f.w*width;ctx.drawImage(this.image,f.x,f.y,f.w,f.h,-width*grip,-height/2,width,height);ctx.restore();
   };
-  const back=pose.face.y<-.25;
-  offArm();if(back){arm();weapon();}
-  // A fixed torso and helmet across every state, including the three attacks.
-  ctx.save();ctx.translate(bodyX,-25+bodyY);ctx.rotate(collapseAngle);part(0,0,-45,45);ctx.restore();
-  if(!back){arm();weapon();}
-  if(['mage','summoner'].includes(p.kind)&&/attack|special/.test(pose.clip)){
-   const color=p.kind==='mage'?'#a8dff5':'#a7e6cd',r=2+Math.round(s.amount*3);ctx.fillStyle=color;
-   ctx.fillRect(Math.round(s.tip.x-r),Math.round(s.tip.y),r*2+1,1);ctx.fillRect(Math.round(s.tip.x),Math.round(s.tip.y-r),1,r*2+1);
+  const attackTrail=()=>{
+   if(p.kind!=='warrior'||!s.motion.active||Math.abs(t-s.hit)>.19)return;
+   const previous=articulatedSockets(p,{...pose,progress:Math.max(0,t-.075)});
+   const strength=Math.max(0,1-Math.abs(t-s.hit)/.19);
+   // Only a short glint follows the real blade tip. The old long curve
+   // looked like a second bent sword next to the actual weapon.
+   const delta={x:s.tip.x-previous.tip.x,y:s.tip.y-previous.tip.y};
+   const distance=Math.hypot(delta.x,delta.y),length=Math.min(9,distance*.25);
+   if(distance<.5)return;
+   ctx.save();ctx.globalAlpha*=strength*.55;
+   ctx.strokeStyle='#e8c17a';ctx.lineWidth=2;ctx.lineCap='round';
+   ctx.beginPath();ctx.moveTo(s.tip.x,s.tip.y);
+   ctx.lineTo(s.tip.x-delta.x/distance*length,s.tip.y-delta.y/distance*length);
+   ctx.stroke();ctx.restore();
+  };
+  // The overhead blade passes *above* the cape while winding up and landing,
+  // so do not hide that entire action behind the rear-view torso texture.
+  const back=pose.face.y<-.25&&!(p.kind==='warrior'&&pose.clip==='attack3');
+  offArm();if(back){arm();attackTrail();weapon();}
+  // Waist-driven torso weight transfer; the helmet/armor is not replaced
+  // between wind-up, weapon contact and recovery frames.
+  ctx.save();ctx.translate(bodyX+s.motion.dx,-25+bodyY+s.motion.dy);
+  ctx.rotate(collapseAngle+s.motion.roll);part(0,0,-45,45);ctx.restore();
+  if(!back){arm();attackTrail();weapon();}
+  if(['mage','summoner'].includes(p.kind)&&s.motion.active){
+   // Charging grows at the weapon crystal or extended palm, not at the
+   // character's chest. This is the very same origin used by projectiles.
+   const x=Math.round(s.tip.x),y=Math.round(s.tip.y);
+   const radius=2+Math.round(s.amount*5),color=p.kind==='mage'?'#9cdeff':'#a0efce';
+   ctx.save();ctx.globalAlpha*=.35+.65*Math.max(s.amount,s.motion.wind*.5);
+   ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.stroke();
+   ctx.fillStyle='#efffff';ctx.fillRect(x-1,y-1,3,3);
+   if(s.motion.impact>.25){
+    const glow=Math.round(4+s.motion.impact*7);ctx.beginPath();ctx.moveTo(x-glow,y);ctx.lineTo(x+glow,y);
+    ctx.moveTo(x,y-glow);ctx.lineTo(x,y+glow);ctx.stroke();
+   }ctx.restore();
   }
   ctx.restore();return true;
  }
