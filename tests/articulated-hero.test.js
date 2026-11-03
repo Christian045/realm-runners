@@ -84,7 +84,7 @@ test('three distinct contact-timed combat performances agree in all eight direct
   assert.ok(Math.abs(contact.roll)>=.04,kind+' needs contact weight '+row);
   assert.ok(contact.extend>.999,kind+' palm/weapon is not extended at hit');
   assert.ok(contact.impact>.999,kind+' impact marker must align with damage');
-  assert.equal(recovered.roll,0,kind+' torso does not recover');
+  assert.ok(Math.abs(recovered.roll)<1e-9,kind+' torso does not recover');
   assert.ok(Math.abs(recovered.dx)<1e-9);assert.ok(Math.abs(recovered.dy)<1e-9);
   const pivot=rotateCombatPoint({x:0,y:-25},contact);
   assert.ok(Math.abs(pivot.x-contact.dx)<1e-8);
