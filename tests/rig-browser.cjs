@@ -6,7 +6,7 @@ const fs=require('node:fs');
   const browser=await engine.launch({headless:true});
   try{
    const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
-   await page.goto('http://127.0.0.1:8000/');
+   await page.goto('http://127.0.0.1:8000/?newKnight=1');
    const result=await page.evaluate(async({capture})=>{
     const [{HeroSpriteAtlas},{KnightSpriteAtlas},{articulatedPose,RIG_KINDS},{heroShot}]=await Promise.all([
      import('./src/hero-sprites.js?v=0.40.0'),import('./src/knight-sprites.js?v=0.41.0'),import('./src/articulated-hero.js?v=0.40.0'),import('./src/hero-aim.js?v=0.40.0')]);
