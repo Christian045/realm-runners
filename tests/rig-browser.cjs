@@ -8,7 +8,7 @@ const assert=require('node:assert/strict');
    await page.goto('http://127.0.0.1:8000/');
    const result=await page.evaluate(async()=>{
     const [{HeroSpriteAtlas},{KnightSpriteAtlas},{articulatedPose,RIG_KINDS},{heroShot}]=await Promise.all([
-     import('./src/hero-sprites.js?v=0.39.0'),import('./src/knight-sprites.js?v=0.39.0'),import('./src/articulated-hero.js?v=0.39.0'),import('./src/hero-aim.js?v=0.39.0')]);
+     import('./src/hero-sprites.js?v=0.40.0'),import('./src/knight-sprites.js?v=0.40.0'),import('./src/articulated-hero.js?v=0.40.0'),import('./src/hero-aim.js?v=0.40.0')]);
     const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;const ctx=canvas.getContext('2d');let checked=0,sockets=0;
     for(const kind of RIG_KINDS){
      const atlas=kind==='warrior'?new KnightSpriteAtlas():new HeroSpriteAtlas();if(kind!=='warrior')atlas.select(kind);await atlas.loading;
