@@ -119,5 +119,7 @@ test('camera-facing casts keep crystal clear of hood and palm outside robe, over
  const summoner=actor('summoner','attack',0,.5),c=articulatedSockets(summoner,articulatedPose(summoner));
  assert.ok(c.hand.x>15,'summoner palm should extend visibly to camera-right of robe');
  const overhead=combatChoreography('warrior','attack3',.28,{x:0,y:1});
- assert.ok(overhead.sword< -2,'overhead wind-up should point sword above shoulder');
+ assert.ok(overhead.sword< -2,'front overhead wind-up should point sword above shoulder');
+ const rear=actor('warrior','attack3',4,.28),blade=articulatedSockets(rear,articulatedPose(rear));
+ assert.ok(blade.tip.y<blade.hand.y-20,'rear overhead sword tip should rise above hand and cape');
 });
