@@ -9,7 +9,8 @@ import {knightPose} from './knight-animation.js?v=0.31.0';
 // never draw the old floating weapon on top of this character.
 export class KnightSpriteAtlas{
  constructor(imageFactory=()=>new Image()){
-  this.painted=typeof window!=='undefined'&&!new URLSearchParams(window.location.search).has('legacyHeroArt')&&!new URLSearchParams(window.location.search).has('oldKnightPixel')?getKnightPainted():null;
+  const flags=typeof window!=='undefined'?new URLSearchParams(window.location.search):new URLSearchParams();
+  this.painted=flags.has('newKnight')&&!flags.has('legacyHeroArt')&&!flags.has('oldKnightPixel')?getKnightPainted():null;
   this.rig=typeof Image!=='undefined'?getHeroRig('warrior'):null;
   this.images={};this.ready=false;this.failed=false;this.manifest=null;
   this.useLegacyWalk=typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('oldKnightWalk');
