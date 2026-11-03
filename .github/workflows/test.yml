@@ -19,6 +19,7 @@ jobs:
         run: |
           python3 -m http.server 8000 &
           sleep 2
+          node tests/painted-knight-browser.cjs
           node tests/rig-browser.cjs
           node tests/animation-lab-browser.cjs
           npm run test:model-continuity-browser
