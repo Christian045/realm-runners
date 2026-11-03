@@ -1,4 +1,4 @@
-import {heroRigReady,articulatedPose,RIG_ROWS} from './articulated-hero.js?v=0.39.0';
+import {heroRigReady,articulatedPose,RIG_ROWS,getHeroRig} from './articulated-hero.js?v=0.39.0';
 import {HeroSpriteAtlas} from './hero-sprites.js?v=0.39.0';
 import {KnightSpriteAtlas} from './knight-sprites.js?v=0.39.0';
 import {heroPose,HERO_CLIPS} from './hero-animation.js?v=0.31.0';
@@ -98,7 +98,16 @@ export async function openAnimationLab(){
  }
  raf=requestAnimationFrame(draw);
  await Promise.all(LAB_KINDS.map(async kind=>{
-  const atlas=kind==='warrior'?new KnightSpriteAtlas():new HeroSpriteAtlas();atlases.set(kind,atlas);
+  // The preview uses the very same production rig as gameplay. Do not load
+  // six additional, superseded full-body fallback atlases on mobile: WebKit
+  // can exhaust its graphics process with that duplicate decoding workload.
+  const rig=getHeroRig(kind);
+  try{await rig?.loading;}catch{/* Keep the legacy decoder as a safe fallback. */}
+  if(rig?.ready){
+   atlases.set(kind,rig);dirty=true;return;
+  }
+  const atlas=kind==='warrior'?new KnightSpriteAtlas():new HeroSpriteAtlas();
+  atlases.set(kind,atlas);
   if(kind!=='warrior')atlas.select(kind);
   try{await atlas.loading;if(!atlas.ready)errors.add(kind);}catch{errors.add(kind);}
   dirty=true;if(closed)atlas.release?.();
