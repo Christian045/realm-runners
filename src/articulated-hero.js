@@ -60,8 +60,8 @@ export function articulatedSockets(p,pose=articulatedPose(p)){
   if(motion.active){
    // Present the palm in front of the chest when facing the camera.
    // Keeping it at the left hip concealed the actual casting gesture.
-   wrist={x:shoulderBase.x+d.x*(3+amount*23)-side.x*17*amount,
-    y:shoulderBase.y+15+d.y*(3+amount*19)-amount*12-motion.lift};
+   wrist={x:shoulderBase.x+d.x*(3+amount*23)-side.x*11*amount,
+    y:shoulderBase.y+15+d.y*(3+amount*19)-amount*14-motion.lift};
    other={x:otherBase.x-d.x*(4+amount*7),y:otherBase.y+24-motion.wind*7};
   }else{
    wrist={x:shoulderBase.x+d.x*(4+amount*20),y:shoulderBase.y+17+d.y*amount*15-amount*7};
