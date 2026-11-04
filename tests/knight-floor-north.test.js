@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {
  KnightIllustratedAtlas,KNIGHT_SOURCE_FOOT_Y,KNIGHT_GROUND_OFFSET,
- KNIGHT_REAR_ATTACK_ANGLES,KNIGHT_PIXEL_ANCHOR,knightFramePlacement
+ KNIGHT_REAR_ATTACK_ANGLES,KNIGHT_PIXEL_ANCHOR,knightFramePlacement,knightSourceCenterCorrection
 } from '../src/knight-painted.js';
 import {KNIGHT_CLIPS} from '../src/knight-animation.js';
 
@@ -34,6 +34,13 @@ test('all source boot lines are placed on one stable world ground baseline',()=>
   assert.equal(p.y+KNIGHT_SOURCE_FOOT_Y[row][col],5);
   assert.equal(p.x,-48);
  }
+});
+test('lateral pose corrections center attacks without moving their planted feet',()=>{
+ assert.equal(knightSourceCenterCorrection(2,3),12);
+ assert.equal(knightSourceCenterCorrection(2,3,true),-12);
+ assert.equal(knightSourceCenterCorrection(1,0),5);
+ assert.equal(knightSourceCenterCorrection(1,7),-6);
+ assert.equal(knightSourceCenterCorrection(0,0),0);
 });
 test('illustrated knight retains visible boots with fixed floor contact in every facing and attack frame',async()=>{
  const atlas=await illustrated();
