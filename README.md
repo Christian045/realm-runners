@@ -1,4 +1,14 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.47.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.48.0)
+
+## Alpha 0.48.0 – Ritter von Grund auf neu gezeichnet
+- Neuer eigenständiger, vollständig gezeichneter 72-Pixel-Ritter mit Ritterhelm, Stahlplatten, blauem Waffenrock, Panzerhandschuhen, zwei sichtbaren Beinen und einem Einhandschwert. Keine alten Ritter-Sprites werden in der produktiven Version geladen oder wiederverwendet.
+- 560 komplette Pixel-Frames (9 Zustände × 8 Blickrichtungen): Idle, Walk, drei Schwert-Kombos, Spezial, Dash, Treffer, Tod. Alle Frames werden einmal beim Laden in 144-Pixel-Atlanten gemalt und ingame als fertige Gesamtbilder dargestellt.
+- Bewegungen aus echten Bein-, Rumpf- und Waffenposen; kein Schild und keine separat drehende Waffe im Spiel. Ausholen, Kontakt und Erholung des Schwertarms bleiben mit den Treffereignissen synchron.
+- Alle acht Richtungen teilen sich dieselben Rüstungsproportionen, denselben Bodenanker und dieselbe Waffenhand. Kämpfen und Laufen wechseln nicht zwischen verschiedenen Charaktergrafiken.
+- Änderungen greifen direkt im Spiel ohne Debug-Reiter. `?legacyHeroArt=1` bleibt als Diagnose-/Rollback-Option für die alte Grafik.
+- Neuer `tests/knight-redraw.test.js` prüft vollständig gezeichnete Frames, Schrittwechsel, Schwertverbindung und Kampf-Events. Browser-Suite prüft zusätzlich den echten Dungeonstart auf PC/WebKit.
+
+
 
 ## Alpha 0.47.0 – Ritter: ohne Schild, eine Waffenhand, vollständige Kampf-Frames
 - Ritter-Ingame-Renderer erzeugt jetzt beim Laden alle 320 vollständigen transparenten Pixel-Frames aus denselben gemalten Helm-/Rüstungs- und Beinvorlagen. Der live gerenderte Held wird nie aus separat gedrehten Schwert-/Arm-/Schild-Objekten zusammengesetzt.
