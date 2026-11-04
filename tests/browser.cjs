@@ -7,6 +7,7 @@ const assert=require('node:assert/strict');
   const page=await browser.newPage({viewport:{width:1280,height:800}});
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:8000/',{waitUntil:'load'});
+  assert.equal(await page.locator('[data-action="animationLab"]').count(),0,'debug laboratory must not appear in the regular menu');
   await page.locator('[data-action="start"]').waitFor({timeout:10000});
   assert.match(await page.title(),/Realm Runners/);
   assert.ok(await page.locator('#bossHud').count(),'boss HUD structure must exist');

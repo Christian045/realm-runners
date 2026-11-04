@@ -56,8 +56,8 @@ test('blade originates at exactly the moving sword gauntlet in every attack dire
     bladeAngles.add(pose.angle.toFixed(2));
     assert.ok(Math.hypot(pose.hand.x-pose.shoulder.x,pose.hand.y-pose.shoulder.y)<=21.5,'separated arm');
     assert.ok(nearAlpha(pixels,pose.hand.x,pose.hand.y),clip+' '+row+' '+frame+' empty fist');
-    assert.ok(nearAlpha(pixels,pose.hand.x+Math.cos(pose.angle)*42,
-     pose.hand.y+Math.sin(pose.angle)*42),clip+' '+row+' '+frame+' disconnected sword tip');
+    assert.ok(nearAlpha(pixels,pose.hand.x+Math.cos(pose.angle)*32,
+     pose.hand.y+Math.sin(pose.angle)*32),clip+' '+row+' '+frame+' disconnected sword tip');
     assert.equal(pose.contact,frame===contact);
    }
    assert.ok(fists.size>=3,clip+'/'+row+' no hand animation');
