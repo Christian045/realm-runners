@@ -83,6 +83,10 @@ export function knightRebornPose(row,clip,frame){
  const angleBase=-2.15;
  const rawAngle=attack?phaseTables[clip][frame]:angleBase+(walking?Math.sin(stride)*.08:0);
  const angle=facing===1?Math.PI-rawAngle:rawAngle;
+ // Draw the full blade inside the atlas even at the extreme return swing.
+ // Move the *gripped hand and its forearm*, never clip or rescale the sword.
+ hand.x=clamp(hand.x,9-Math.cos(angle)*25,63-Math.cos(angle)*25);
+ hand.y=clamp(hand.y,7-Math.sin(angle)*25,63-Math.sin(angle)*25);
  const legs=[0,1].map(i=>{
   const swing=walking?Math.sin(stride+i*Math.PI):0;
   const lift=walking?Math.max(0,swing)*4:0;
