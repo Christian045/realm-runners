@@ -5,7 +5,7 @@ import {loadImage,createCanvas} from '@napi-rs/canvas';
 import {KNIGHT_SHEET_CELL,KNIGHT_SHEET_ANCHOR,KNIGHT_SHEET_FRAMES,knightFinalFrame} from '../src/knight-final.js';
 import {KNIGHT_CLIPS,beginKnightAction,advanceKnightAction} from '../src/knight-animation.js';
 
-const base=new URL('../assets/knight/v044/',import.meta.url);
+const base=new URL('../assets/knight/v045/',import.meta.url);
 const hash=(data)=>{
  let h=2166136261;
  for(let i=0;i<data.length;i+=4)if(data[i+3]>30){
