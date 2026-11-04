@@ -1,0 +1,274 @@
+{
+  "schemaVersion": 1,
+  "status": "planned_artwork_only_not_playable",
+  "project": "Realm Runners — Dungeon Reborn",
+  "character": "knight",
+  "releaseTarget": "future-art-overhaul",
+  "sourceOfTruth": "docs/knight-sprite-production-map.md",
+  "model": {
+    "body": "heavy armored knight",
+    "handedness": "anatomical_right",
+    "weapon": "single_one_handed_sword",
+    "shield": false,
+    "lighting": "upper_left",
+    "camera": "top_down_three_quarter",
+    "colors": [
+      "steel",
+      "navy_blue",
+      "gold",
+      "dark_leather"
+    ]
+  },
+  "dimensions": {
+    "authoringPixelSize": [
+      72,
+      72
+    ],
+    "gamePixelSize": [
+      144,
+      144
+    ],
+    "renderScale": 2,
+    "filter": "nearest",
+    "footAnchorAuthor": [
+      36,
+      59
+    ],
+    "footAnchorGame": [
+      72,
+      118
+    ]
+  },
+  "sheet": {
+    "format": "png",
+    "transparent": true,
+    "rows": 8,
+    "directions": [
+      "S",
+      "SW",
+      "W",
+      "NW",
+      "N",
+      "NE",
+      "E",
+      "SE"
+    ],
+    "frameOrder": "left_to_right",
+    "rowOrder": "top_to_bottom",
+    "sourceFilePattern": "assets/knight/final/source/{direction}/{clip}/knight_{direction}_{clip}_f{frame_2digits}.png",
+    "outputFilePattern": "assets/knight/final/atlases/knight_{clip}.png",
+    "drawMode": "complete_body_per_frame_no_runtime_rotation"
+  },
+  "clips": [
+    {
+      "id": "idle",
+      "frames": 6,
+      "contactFrame": null,
+      "previewFrames": [
+        0,
+        2,
+        5
+      ],
+      "note": "ruhige Haltung/Atmung",
+      "cols": 6,
+      "rows": 8,
+      "atlasPixels": [
+        432,
+        576
+      ],
+      "file": "assets/knight/final/atlases/knight_idle.png"
+    },
+    {
+      "id": "walk",
+      "frames": 8,
+      "contactFrame": null,
+      "previewFrames": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "note": "abwechselnder links-rechts Schrittkontakt",
+      "cols": 8,
+      "rows": 8,
+      "atlasPixels": [
+        576,
+        576
+      ],
+      "file": "assets/knight/final/atlases/knight_walk.png"
+    },
+    {
+      "id": "attack1",
+      "frames": 8,
+      "contactFrame": 4,
+      "previewFrames": [
+        0,
+        2,
+        4,
+        6,
+        7
+      ],
+      "note": "kompakter Seitenschlag",
+      "cols": 8,
+      "rows": 8,
+      "atlasPixels": [
+        576,
+        576
+      ],
+      "file": "assets/knight/final/atlases/knight_attack1.png"
+    },
+    {
+      "id": "attack2",
+      "frames": 8,
+      "contactFrame": 4,
+      "previewFrames": [
+        0,
+        2,
+        4,
+        6,
+        7
+      ],
+      "note": "Gegenschlag",
+      "cols": 8,
+      "rows": 8,
+      "atlasPixels": [
+        576,
+        576
+      ],
+      "file": "assets/knight/final/atlases/knight_attack2.png"
+    },
+    {
+      "id": "attack3",
+      "frames": 10,
+      "contactFrame": 5,
+      "previewFrames": [
+        0,
+        3,
+        5,
+        7,
+        9
+      ],
+      "note": "Finisher von oben",
+      "cols": 10,
+      "rows": 8,
+      "atlasPixels": [
+        720,
+        576
+      ],
+      "file": "assets/knight/final/atlases/knight_attack3.png"
+    },
+    {
+      "id": "recovery",
+      "frames": 6,
+      "contactFrame": null,
+      "previewFrames": [
+        0,
+        2,
+        5
+      ],
+      "note": "kontrollierter Rückweg",
+      "cols": 6,
+      "rows": 8,
+      "atlasPixels": [
+        432,
+        576
+      ],
+      "file": "assets/knight/final/atlases/knight_recovery.png"
+    },
+    {
+      "id": "special",
+      "frames": 8,
+      "contactFrame": 4,
+      "previewFrames": [
+        0,
+        2,
+        4,
+        6,
+        7
+      ],
+      "note": "separate Spezialpose",
+      "cols": 8,
+      "rows": 8,
+      "atlasPixels": [
+        576,
+        576
+      ],
+      "file": "assets/knight/final/atlases/knight_special.png"
+    },
+    {
+      "id": "dash",
+      "frames": 6,
+      "contactFrame": null,
+      "previewFrames": [
+        0,
+        1,
+        3,
+        5
+      ],
+      "note": "sichtbarer Abstoß",
+      "cols": 6,
+      "rows": 8,
+      "atlasPixels": [
+        432,
+        576
+      ],
+      "file": "assets/knight/final/atlases/knight_dash.png"
+    },
+    {
+      "id": "hurt",
+      "frames": 5,
+      "contactFrame": null,
+      "previewFrames": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "note": "kurzer Rückstoß",
+      "cols": 5,
+      "rows": 8,
+      "atlasPixels": [
+        360,
+        576
+      ],
+      "file": "assets/knight/final/atlases/knight_hurt.png"
+    },
+    {
+      "id": "death",
+      "frames": 8,
+      "contactFrame": null,
+      "previewFrames": [
+        0,
+        2,
+        4,
+        6,
+        7
+      ],
+      "note": "Kniefall und Kollaps",
+      "cols": 8,
+      "rows": 8,
+      "atlasPixels": [
+        576,
+        576
+      ],
+      "file": "assets/knight/final/atlases/knight_death.png"
+    }
+  ],
+  "totalFramesPerDirection": 73,
+  "totalFrames": 584,
+  "acceptanceStages": [
+    "S_idle_approved",
+    "S_walk_approved",
+    "S_combo_and_recovery_approved",
+    "SW_SE_W_E_approved",
+    "NW_NE_N_approved",
+    "special_dash_hurt_death_approved",
+    "ingame_desktop_and_iphone_approved"
+  ],
+  "integration": {
+    "requiredAfterArtApproval": true,
+    "currentlyLiveVersion": "0.49.0",
+    "currentProceduralFrameTotal": 608,
+    "doNotSwitchRuntimeUntilSpriteSheetsValidated": true
+  }
+}
