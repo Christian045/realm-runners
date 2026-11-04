@@ -19,7 +19,14 @@ export class KnightSpriteAtlas{
  }
  async load(imageFactory){
   try{
-   if(this.painted){await this.painted.loading;this.ready=this.painted.ready;this.failed=!this.ready;return;}
+   if(this.painted){
+    await this.painted.loading;
+    if(this.painted.ready){this.ready=true;return;}
+    // A missing/cached PNG must never leave the player invisible. Fall back
+    // to the existing proven original character decoder if atlas loading fails.
+    this.painted=null;
+    this.rig=typeof Image!=='undefined'?getHeroRig('warrior'):null;
+   }
    await this.rig?.loading;
    const response=await fetch(new URL('../assets/knight/atlas.json?v=0.29.0',import.meta.url));
    if(!response.ok)throw new Error('Knight atlas manifest unavailable');
