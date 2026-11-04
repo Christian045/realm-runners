@@ -33,6 +33,17 @@ export const KNIGHT_SOURCE_FOOT_Y=Object.freeze([
  Object.freeze([76,76,77,77,76,76,76,76])
 ]);
 export const KNIGHT_GROUND_OFFSET=5;
+
+// The illustrated attack1 sprites were also authored 7–12px left of the
+// actual player root. Do not move the boots toward a detached torso: align
+// the *whole* source pose back to the player center, then paint planted boots.
+// The side-walk source strip drifts horizontally during its eight frames.
+export function knightSourceCenterCorrection(sourceRow,frame,mirrored=false){
+ let x=0;
+ if(sourceRow===2)x=[7,9,11,12,12,11,10,8][frame]||0;
+ else if(sourceRow===1)x=[5,5,4,3,0,-2,-4,-6][frame]||0;
+ return mirrored?-x:x;
+}
 export function knightFramePlacement(row,column,mirror=false){
  const foot=KNIGHT_SOURCE_FOOT_Y[row]?.[column];
  if(!Number.isFinite(foot))throw new RangeError('Unknown knight art cell');
@@ -372,7 +383,8 @@ export class KnightIllustratedAtlas extends KnightPaintedAtlas {
   c.save();
   if(mirrored)c.scale(-1,1);
   c.drawImage(this.image,sourceColumn*96,sourceRow*96,96,96,
-   placement.x,placement.y,96,96);
+   placement.x+knightSourceCenterCorrection(sourceRow,frame,mirrored)*(mirrored?-1:1),
+   placement.y,96,96);
   c.restore();
   // Every source strip has inconsistent/partly missing lower legs, not only
   // the north-facing cape. Repaint both greaves and boots on a fixed sole
