@@ -61,7 +61,27 @@ const assert=require('node:assert/strict');
    assert.deepEqual(errors,[]);
    if(result.screenshot)fs.writeFileSync('test-output/knight-v044-original-sprites.png',
     Buffer.from(result.screenshot.split(',')[1],'base64'));
-   console.log(name,'whole-frame knight state tests',result.checked);
+   // Test the actual main-menu -> dungeon path with the same opt-in
+   // renderer. A standalone atlas screenshot is insufficient acceptance:
+   // the previous versions passed sprite tests but displayed old art ingame.
+   await page.locator('[data-action="class:warrior"]').click();
+   await page.locator('[data-action="start"]').click();
+   await page.locator('#overlay').waitFor({state:'hidden'});
+   const live=await page.evaluate(async()=>{
+    const [{KnightSpriteAtlas},{KnightFinalAtlas}]=await Promise.all([
+     import('./src/knight-sprites.js?v=0.44.0'),
+     import('./src/knight-final.js?v=0.44.0')
+    ]);
+    const knight=new KnightSpriteAtlas();await knight.loading;
+    if(!(knight.painted instanceof KnightFinalAtlas)||!knight.painted.ready)
+     throw Error('Gameplay still selecting obsolete procedural knight');
+    const game=document.querySelector('#gameCanvas');
+    if(!game||!game.width||!game.height)throw Error('No live game canvas');
+    return {newArt:knight.painted.ready,canvas:game.width+'x'+game.height};
+   });
+   assert.equal(live.newArt,true);assert.deepEqual(errors,[]);
+   if(name==='chromium')await page.screenshot({path:'test-output/knight-v044-live-game.png'});
+   console.log(name,'whole-frame knight state tests',result.checked,'live game',live.canvas);
   }finally{await browser.close();}
  }
 })().catch(e=>{console.error(e);process.exitCode=1});
