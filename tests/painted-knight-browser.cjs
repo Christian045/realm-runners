@@ -11,8 +11,8 @@ const assert=require('node:assert/strict');
    await page.goto('http://127.0.0.1:8000/?newKnight=1');
    const result=await page.evaluate(async({capture})=>{
     const [{KnightSpriteAtlas},{KNIGHT_SHEET_CELL,KNIGHT_SHEET_FRAMES,knightFinalFrame}]=await Promise.all([
-     import('./src/knight-sprites.js?v=0.44.0'),
-     import('./src/knight-final.js?v=0.44.0')
+     import('./src/knight-sprites.js?v=0.45.0'),
+     import('./src/knight-final.js?v=0.45.0')
     ]);
     const atlas=new KnightSpriteAtlas();await atlas.loading;
     if(!atlas.painted?.imageReady)throw Error('Missing transparent real full-body sheets');
@@ -59,7 +59,7 @@ const assert=require('node:assert/strict');
    },{capture:name==='chromium'});
    assert.equal(result.checked,320);
    assert.deepEqual(errors,[]);
-   if(result.screenshot)fs.writeFileSync('test-output/knight-v044-original-sprites.png',
+   if(result.screenshot)fs.writeFileSync('test-output/knight-v045-original-sprites.png',
     Buffer.from(result.screenshot.split(',')[1],'base64'));
    // Test the actual main-menu -> dungeon path with the same opt-in
    // renderer. A standalone atlas screenshot is insufficient acceptance:
@@ -69,8 +69,8 @@ const assert=require('node:assert/strict');
    await page.locator('#overlay').waitFor({state:'hidden'});
    const live=await page.evaluate(async()=>{
     const [{KnightSpriteAtlas},{KnightFinalAtlas}]=await Promise.all([
-     import('./src/knight-sprites.js?v=0.44.0'),
-     import('./src/knight-final.js?v=0.44.0')
+     import('./src/knight-sprites.js?v=0.45.0'),
+     import('./src/knight-final.js?v=0.45.0')
     ]);
     const knight=new KnightSpriteAtlas();await knight.loading;
     if(!(knight.painted instanceof KnightFinalAtlas)||!knight.painted.ready)
@@ -80,7 +80,7 @@ const assert=require('node:assert/strict');
     return {newArt:knight.painted.ready,canvas:game.width+'x'+game.height};
    });
    assert.equal(live.newArt,true);assert.deepEqual(errors,[]);
-   if(name==='chromium')await page.screenshot({path:'test-output/knight-v044-live-game.png'});
+   if(name==='chromium')await page.screenshot({path:'test-output/knight-v045-live-game.png'});
    console.log(name,'whole-frame knight state tests',result.checked,'live game',live.canvas);
   }finally{await browser.close();}
  }
