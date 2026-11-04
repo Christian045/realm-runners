@@ -1,4 +1,4 @@
-import {knightPose} from './knight-animation.js?v=0.31.0';
+import {knightPose} from './knight-animation.js?v=0.46.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
 
 // These are five COMPLETE original transparent character animations. The
