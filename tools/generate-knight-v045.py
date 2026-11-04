@@ -44,7 +44,7 @@ HAND_MOTION={
  'attack3':((0,-4),(-2,-8),(-3,-12),(-3,-13),(5,-1),(7,2),(4,1),(2,0),(0,0),(0,-4))
 }
 # At the moment the hitbox fires the sword is on a strong readable silhouette.
-HIT={'attack1':3,'attack2':4,'attack3':4}
+HIT={'attack1':3,'attack2':4,'attack3':5}  # 10-frame finisher: damage at 4/8 = visual frame 5
 
 
 def draw_pixel_line(d,points,fill,width):
