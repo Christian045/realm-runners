@@ -136,7 +136,7 @@ const assert=require('node:assert/strict');
   // A versioned main module alone does not bust an imported ./game.js URL.
   // Prevent an old cached combat engine from running after a release.
   const currentCombat=await page.evaluate(()=>performance.getEntriesByType('resource')
-    .some(entry=>entry.name.includes('/src/game.js?v=0.48.0')));
+    .some(entry=>entry.name.includes('/src/game.js?v=0.49.0')));
   assert.ok(currentCombat,'the browser must load the versioned combat engine');
   const realBattle=await page.evaluate(async()=>{
    const [{Game},{defaultProgress}]=await Promise.all([
