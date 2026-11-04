@@ -8,7 +8,7 @@ const assert=require('node:assert/strict');
   try{
    const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.goto('http://127.0.0.1:8000/?newKnight=1');
+   await page.goto('http://127.0.0.1:8000/');
    const result=await page.evaluate(async({capture})=>{
     const [{KnightSpriteAtlas},{KNIGHT_SHEET_CELL,KNIGHT_SHEET_FRAMES,knightFinalFrame}]=await Promise.all([
      import('./src/knight-sprites.js?v=0.45.0'),
