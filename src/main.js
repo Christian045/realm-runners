@@ -1,10 +1,10 @@
-import {openAnimationLab,animationLabOpen} from './animation-lab.js?v=0.46.0';
+import {openAnimationLab,animationLabOpen} from './animation-lab.js?v=0.47.0';
 import {CLASSES} from './data.js?v=0.23.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.21.0';
 import {ENEMY_NAMES,totalKills,formatPlayTime} from './statistics.js?v=0.21.0';
 import {Input} from './input.js?v=0.23.0';
 import {Game} from './game.js?v=0.46.0';
-import {Renderer} from './render.js?v=0.46.0';
+import {Renderer} from './render.js?v=0.47.0';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.21.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.21.0';
 import {installTouchGuard} from './touch-guard.js';
@@ -23,6 +23,7 @@ const renderer=new Renderer(canvas,progress.selectedClass),input=new Input(canva
 const game=new Game(progress,input,()=>refreshPanel());
 const audio=new AudioFeedback();game.sound=id=>audio.play(id);
 let selected=progress.selectedClass,menuTab='play';
+const showAnimationDebug=new URLSearchParams(location.search).has('debugAnimations');
 const icons={warrior:'⚔',hunter:'➶',mage:'✦',glasscannon:'◇',summoner:'♜',alchemist:'⚗'};
 const label=key=>({vitality:'Lebenskraft',strength:'Waffenschmiede'})[key];
 const upgradeDescription=key=>key==='vitality'?'+12 LP pro Stufe':'+8% Schaden pro Stufe';
@@ -40,7 +41,7 @@ const numberText=value=>Math.floor(Number(value)||0).toLocaleString('de-DE');
 function statisticsNavigation(){
  return '<nav class="castle-tabs" aria-label="Menübereiche">'+
   '<button type="button" data-action="menuTab:play" aria-pressed="'+(menuTab==='play')+'" class="'+(menuTab==='play'?'selected':'')+'">⚔ SPIELEN</button>'+
-  '<button type="button" data-action="menuTab:stats" aria-pressed="'+(menuTab==='stats')+'" class="'+(menuTab==='stats'?'selected':'')+'">▤ STATISTIKEN</button><button type="button" data-action="animationLab">ANIMATIONEN</button></nav>';
+  '<button type="button" data-action="menuTab:stats" aria-pressed="'+(menuTab==='stats')+'" class="'+(menuTab==='stats'?'selected':'')+'">▤ STATISTIKEN</button>'+(showAnimationDebug?'<button type="button" data-action="animationLab">ANIMATIONEN</button>':'')+'</nav>';
 }
 function renderStatistics(){
  const stats=progress.statistics;
