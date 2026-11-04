@@ -24,7 +24,16 @@ const assert=require('node:assert/strict');
      const hashes=new Set();
      for(let frame=0;frame<8;frame++){
       const tile=production.painted.frame(row,clip,frame);
-      hashes.add(tile.toDataURL?.('image/png'));
+      // OffscreenCanvas has no toDataURL() in WebKit/Chromium. Hash raw
+      // pixels instead; otherwise every frame looks identical to the test.
+      const raw=tile.getContext('2d').getImageData(0,0,128,128).data;
+      let hash=2166136261;
+      for(let n=0;n<raw.length;n+=4)if(raw[n+3]>80){
+       hash=Math.imul(hash^raw[n],16777619);
+       hash=Math.imul(hash^raw[n+1],16777619);
+       hash=Math.imul(hash^(n>>>2),16777619);
+      }
+      hashes.add(hash>>>0);
       const t=tile.getContext('2d').getImageData(39,84,51,12).data;
       let contact=0;for(let n=3;n<t.length;n+=4)if(t[n]>90)contact++;
       if(contact<12)throw Error('Knight boots float in '+row+' '+clip+' '+frame);
