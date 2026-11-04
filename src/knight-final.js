@@ -1,6 +1,6 @@
-import {knightPose} from './knight-animation.js?v=0.48.0';
+import {knightPose} from './knight-animation.js?v=0.49.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
-import {KNIGHT_REBORN_FRAME_COUNTS,createKnightRebornSheets} from './knight-reborn.js?v=0.48.0';
+import {KNIGHT_REBORN_FRAME_COUNTS,createKnightRebornSheets} from './knight-reborn.js?v=0.49.0';
 
 // Completely redrawn knight. No previous image files, shields, or overlay
 // swords are used. Keeping the first five clip exports stable preserves the

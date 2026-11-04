@@ -2,7 +2,8 @@ import {beginCompanionAttack,advanceCompanion,companionShot} from './companion-a
 import {advanceLocomotion} from './locomotion.js?v=0.46.0';
 import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.40.0';
 import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.31.0';
-import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.48.0';
+import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.49.0';
+import {knightBladeTip} from './knight-reborn.js?v=0.49.0';
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.23.0';
 import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.26.0';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js?v=0.21.0';
@@ -736,7 +737,9 @@ export class Game {
   this.playSound('slash');
    const finisher=action.comboStep===3,reach=p.reach+(finisher?13:0)+(blade==='greatsword'?20:0);
    const angle=Math.atan2(aim.y,aim.x);
-   this.effects.push({type:'knight-slash',x:p.x,y:p.y,angle,radius:reach,step:action.comboStep,life:.20,maxLife:.20});
+   const tip=knightBladeTip(p,aim,action.clip);
+   this.effects.push({type:'knight-slash',x:tip.x,y:tip.y,angle,
+    radius:Math.min(26,reach*.35),step:action.comboStep,life:.18,maxLife:.18});
    if(finisher){
     this.createEffect('ring',p.x+aim.x*45,p.y+aim.y*45,'#ffe29d',.35,45);
     this.shake=Math.max(this.shake,4);

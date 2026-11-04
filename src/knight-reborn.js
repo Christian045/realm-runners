@@ -5,7 +5,7 @@
 export const KNIGHT_REBORN_SIZE=144;
 export const KNIGHT_REBORN_FRAME_COUNTS=Object.freeze({
  idle:6,walk:8,attack1:8,attack2:8,attack3:10,
- special:8,dash:8,hurt:6,death:8
+ special:8,dash:8,hurt:6,death:8,recovery:6
 });
 export const KNIGHT_REBORN_HITS=Object.freeze({attack1:3,attack2:4,attack3:5,special:3});
 export const KNIGHT_REBORN_FACINGS=Object.freeze(['S','SW','W','NW','N','NE','E','SE']);
@@ -43,6 +43,10 @@ const diagonalOffset=row=>row===1||row===3?-1:row===5||row===7?1:0;
 const sideView=row=>row===2||row===6;
 const footGround=60;
 const easing=t=>t*t*(3-2*t);
+const RECOVERY_ANGLES=[-1.35,-1.55,-1.80,-2.02,-2.15,-2.15];
+const RECOVERY_REACH=[3,2,1,0,0,0];
+const DEATH_DROP=[0,0,1,2,4,6,7,8];
+const DEATH_LEAN=[0,0,1,2,3,5,7,9];
 const phaseTables=Object.freeze({
  attack1:[-2.15,-2.55,-1.92,-.64,.20,.39,-.94,-2.15],
  attack2:[-2.15,-.78,.10,1.14,2.25,1.24,-.38,-2.15],
@@ -70,41 +74,46 @@ export function knightRebornPose(row,clip,frame){
  const walking=clip==='walk'||clip==='dash';
  const stride=walking?(frame/8)*TWO_PI:0;
  const attack=clip.startsWith('attack')||clip==='special';
- const reach=attack?handTravel[clip][frame]:0;
- const rise=attack?handLift[clip][frame]:0;
+ const recovering=clip==='recovery';
+ const dying=clip==='death';
+ const reach=attack?handTravel[clip][frame]:recovering?RECOVERY_REACH[frame]:0;
+ const rise=attack?handLift[clip][frame]:recovering?-Math.max(0,2-frame):0;
  const bob=walking?([0,-1,-2,-1,0,-1,-2,-1][frame]):clip==='idle'?(frame===2||frame===3?-1:0):0;
  const lunge=attack&&frame>=2&&frame<=5?(frame===4||frame===5?2:1):0;
  const recoil=clip==='hurt'?(frame===1||frame===2?-2:0):0;
- const torsoX=facing*lunge+recoil;
- const torsoY=bob;
+ const torsoX=facing*lunge+recoil+(dying?facing*DEATH_LEAN[frame]:0);
+ const torsoY=bob+(dying?DEATH_DROP[frame]:0);
  const shoulder={x:36+facing*11+torsoX,y:38+torsoY};
  const hand={
   x:36+facing*(14+reach)+torsoX,
   y:47+torsoY+rise
  };
  const angleBase=-2.15;
- const rawAngle=attack?phaseTables[clip][frame]:angleBase+(walking?Math.sin(stride)*.08:0);
+ const rawAngle=attack?phaseTables[clip][frame]:recovering?RECOVERY_ANGLES[frame]:
+  dying?[-2.15,-2.15,-2.10,-2,-1.75,-1.35,-.95,-.70][frame]:
+  angleBase+(walking?Math.sin(stride)*.08:0);
  const angle=facing===1?Math.PI-rawAngle:rawAngle;
  // Draw the full blade inside the atlas even at the extreme return swing.
  // Move the *gripped hand and its forearm*, never clip or rescale the sword.
- hand.x=clamp(hand.x,9-Math.cos(angle)*25,63-Math.cos(angle)*25);
- hand.y=clamp(hand.y,7-Math.sin(angle)*25,63-Math.sin(angle)*25);
+ hand.x=clamp(hand.x,5-Math.cos(angle)*25,67-Math.cos(angle)*25);
+ hand.y=clamp(hand.y,5-Math.sin(angle)*25,67-Math.sin(angle)*25);
  const legs=[0,1].map(i=>{
   const swing=walking?Math.sin(stride+i*Math.PI):0;
   const lift=walking?Math.max(0,swing)*4:0;
   const step=walking?Math.cos(stride+i*Math.PI)*4:0;
   const attackStep=attack&&i===0&&frame>=2&&frame<=6?(frame<=4?2:1):0;
+  const deathStep=dying?(i===0?-Math.min(4,frame):Math.min(4,frame)):0;
   return {
    hipX:36+(i?6:-6)+torsoX,
    hipY:48+torsoY,
    kneeX:36+(i?6:-6)+q(step*.58)+torsoX,
    kneeY:54+torsoY,
-   footX:36+(i?7:-7)+q(step)+facing*attackStep+torsoX,
+   footX:36+(i?7:-7)+q(step)+facing*attackStep+deathStep+(dying?facing*Math.floor(DEATH_LEAN[frame]/2):0)+torsoX-(dying?facing*DEATH_LEAN[frame]:0),
    footY:footGround-q(lift),
    lift:q(lift)
   };
  });
- return {row,clip,frame,facing,walking,attack,bob,torsoX,torsoY,
+ return {row,clip,frame,facing,walking,attack,recovering,dying,bob,torsoX,torsoY,
   shoulder,hand,angle,legs,contact:KNIGHT_REBORN_HITS[clip]===frame};
 }
 function cape(c,p){
@@ -191,7 +200,7 @@ function body(c,p){
  }
 }
 function helmet(c,p){
- const x=p.torsoX,y=p.torsoY,back=backView(p.row),side=sideView(p.row);
+ const x=p.torsoX+(p.dying?p.facing*Math.min(4,Math.floor(p.frame*.6)):0),y=p.torsoY,back=backView(p.row),side=sideView(p.row);
  const shift=side?(p.row===2?-2:2):diagonalOffset(p.row);
  // Fixed-width helm. Every animation keeps the exact same silhouette.
  poly(c,P.ink,[[30+x+shift,24+y],[33+x+shift,22+y],[39+x+shift,22+y],
@@ -274,13 +283,9 @@ function weapon(c,p){
 function paintOne(c,row,clip,frame){
  const p=knightRebornPose(row,clip,frame),back=backView(row);
  c.clearRect(0,0,C,C);c.imageSmoothingEnabled=false;
- const fall=clip==='death'?easing(frame/7):0;
+ // Death is drawn as distinct knee, torso and helmet poses; no full-character
+ // rotation or scaling that makes the entire knight shrink or spin.
  c.save();
- if(fall>0){
-  // Whole-body fall about the hip. No sprite disappears between frames.
-  c.translate(36,51);c.rotate(-p.facing*fall*1.25);
-  c.scale(1,1-fall*.16);c.translate(-36,-51);
- }
  cape(c,p);legs(c,p);
  // Arms sit behind the mail in rear view, in front in frontal view.
  const off={
@@ -328,4 +333,14 @@ export function renderKnightRebornFrame(c,row,clip,frame){
  paintOne(canvas.getContext('2d'),row,clip,frame);
  c.drawImage(canvas,0,0,C,C,0,0,144,144);
  c.restore();
+}
+// World-space sword tip for hit sparks. Uses exactly the same pose as the
+// production sprite frame, including weapon-side handedness in all 8 views.
+export function knightBladeTip(player,direction,clip){
+ const row=(Math.round((Math.atan2(direction?.y??1,direction?.x??0)-Math.PI/2)/(Math.PI/4))+8)%8;
+ const contact=KNIGHT_REBORN_HITS[clip]??0;
+ const pose=knightRebornPose(row,clip,contact);
+ return {x:player.x+(pose.hand.x+Math.cos(pose.angle)*22)*2-72,
+  y:player.y+(pose.hand.y+Math.sin(pose.angle)*22)*2-118,
+  row,contact};
 }
