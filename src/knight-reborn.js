@@ -36,7 +36,7 @@ function line(c,color,x0,y0,x1,y1,thickness=1){
 }
 // The anatomical right arm holds the only weapon. The left arm is bare.
 // Front view: right hand on the left side of the image. Back view reverses it.
-const rightHandFacing=row>=3&&row<=6?1:-1;
+const rightHandFacing=row=>row>=3&&row<=6?1:-1;
 const backView=row=>row>=3&&row<=5;
 const sideView=row=>row===2||row===6;
 const footGround=60;
