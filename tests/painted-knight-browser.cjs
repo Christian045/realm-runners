@@ -11,7 +11,7 @@ const assert=require('node:assert/strict');
    await page.goto('http://127.0.0.1:8000/?newKnight=1');
    const report=await page.evaluate(async()=>{
     const [{KnightPaintedAtlas,KNIGHT_SWINGS},{KnightSpriteAtlas}]=await Promise.all([
-     import('./src/knight-painted.js?v=0.42.0'),import('./src/knight-sprites.js?v=0.42.0')
+     import('./src/knight-painted.js?v=0.43.0'),import('./src/knight-sprites.js?v=0.43.0')
     ]);
     const pure=new KnightPaintedAtlas(),production=new KnightSpriteAtlas();
     await production.loading;
@@ -39,6 +39,18 @@ const assert=require('node:assert/strict');
       if(contact<12)throw Error('Knight boots float in '+row+' '+clip+' '+frame);
      }
      if(hashes.size<7)throw Error('Northern attack is still frozen: '+row+' '+clip);
+    }
+    // Check the leg pixels themselves, not only the moving upper body.
+    for(let row=0;row<8;row++){
+     const lower=new Set();
+     for(let frame=0;frame<8;frame++){
+      const tile=production.painted.frame(row,'walk',frame);
+      const px=tile.getContext('2d').getImageData(40,77,48,23).data;
+      let hash=2166136261;
+      for(let i=0;i<px.length;i+=4){hash=Math.imul(hash^px[i],16777619);hash=Math.imul(hash^px[i+3],16777619);}
+      lower.add(hash>>>0);
+     }
+     if(lower.size<5)throw Error('Frozen painted knight legs in view '+row);
     }
     const cellW=112,cellH=120,canvas=document.createElement('canvas');
     canvas.width=cellW*8;canvas.height=cellH*11;
