@@ -38,6 +38,8 @@ function line(c,color,x0,y0,x1,y1,thickness=1){
 // Front view: right hand on the left side of the image. Back view reverses it.
 const rightHandFacing=row=>row>=3&&row<=6?1:-1;
 const backView=row=>row>=3&&row<=5;
+const diagonalView=row=>row===1||row===3||row===5||row===7;
+const diagonalOffset=row=>row===1||row===3?-1:row===5||row===7?1:0;
 const sideView=row=>row===2||row===6;
 const footGround=60;
 const easing=t=>t*t*(3-2*t);
@@ -108,8 +110,8 @@ export function knightRebornPose(row,clip,frame){
 function cape(c,p){
  const x=p.torsoX,y=p.torsoY,back=backView(p.row),side=sideView(p.row);
  // Royal blue split cape, tethered behind the actual pauldrons.
- const sway=p.walking?Math.sin(p.frame*Math.PI/4)*2:
-   p.attack?-p.facing*Math.min(3,Math.abs(p.torsoX)):0;
+ const sway=(p.walking?Math.sin(p.frame*Math.PI/4)*2:
+   p.attack?-p.facing*Math.min(3,Math.abs(p.torsoX)):0)+diagonalOffset(p.row)*2;
  if(side){
   const tail=p.row===2?1:-1;
   poly(c,P.ink,[[36+x,35+y],[38+x,35+y],[42+x+tail*2,54+y],[37+x+tail*5+sway,59],[32+x+tail*2,55]]);
@@ -153,6 +155,9 @@ function legs(c,p){
 function body(c,p){
  const x=p.torsoX,y=p.torsoY,back=backView(p.row),side=sideView(p.row);
  const narrow=side?2:0;
+ // Diagonals reveal one flank and change the silhouette independently of
+ // straight S/N profiles, while preserving the same sprite anchor.
+ if(diagonalView(p.row))rect(c,P.deep,(p.row===1||p.row===3?29:42)+x,38+y,3,8);
  // Chain-mail silhouette and steel chestplate.
  poly(c,P.ink,[[27+narrow+x,35+y],[45-narrow+x,35+y],
   [47-narrow+x,47+y],[43+x,51+y],[29+x,51+y],[25+narrow+x,47+y]]);
@@ -187,7 +192,7 @@ function body(c,p){
 }
 function helmet(c,p){
  const x=p.torsoX,y=p.torsoY,back=backView(p.row),side=sideView(p.row);
- const shift=side?(p.row===2?-2:2):0;
+ const shift=side?(p.row===2?-2:2):diagonalOffset(p.row);
  // Fixed-width helm. Every animation keeps the exact same silhouette.
  poly(c,P.ink,[[30+x+shift,24+y],[33+x+shift,22+y],[39+x+shift,22+y],
   [43+x+shift,25+y],[44+x+shift,33+y],[41+x+shift,36+y],[31+x+shift,36+y],[28+x+shift,33+y]]);
@@ -210,6 +215,10 @@ function helmet(c,p){
   rect(c,P.steel,39+x+shift,30+y,2,1);
   rect(c,P.iron,34+x+shift,32+y,1,3);
   rect(c,P.gold,31+x+shift,34+y,11,1);
+ }
+ if(diagonalView(p.row)){
+  rect(c,P.shadow,(diagonalOffset(p.row)<0?40:30)+x+shift,27+y,2,6);
+  rect(c,P.light,(diagonalOffset(p.row)<0?31:39)+x+shift,25+y,1,5);
  }
  if(side){
   rect(c,P.ink,(p.row===2?29:41)+x+shift,30+y,2,3);
