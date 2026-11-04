@@ -374,7 +374,10 @@ export class KnightIllustratedAtlas extends KnightPaintedAtlas {
   c.drawImage(this.image,sourceColumn*96,sourceRow*96,96,96,
    placement.x,placement.y,96,96);
   c.restore();
-  if(rear)drawKnightBoots(c,frame,clip,row);
+  // Every source strip has inconsistent/partly missing lower legs, not only
+  // the north-facing cape. Repaint both greaves and boots on a fixed sole
+  // line for every walking, idle and combat frame.
+  if(clip!=='death')drawKnightBoots(c,frame,clip,row);
   if(isFight&&rear)drawRearAttack(c,row,clip,frame);
   if(clip==='attack3'&&!rear){
    // Three distinct contact-time-aligned overhand poses; painted into the
