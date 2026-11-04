@@ -2,9 +2,10 @@ import {knightPose} from './knight-animation.js?v=0.49.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
 import {KNIGHT_REBORN_FRAME_COUNTS,createKnightRebornSheets} from './knight-reborn.js?v=0.49.0';
 
-// Completely redrawn knight. No previous image files, shields, or overlay
-// swords are used. Keeping the first five clip exports stable preserves the
-// combat APIs, while all nine states have their own newly drawn frames.
+// The illustrated South-first PNGs are available for in-game review with
+// ?previewPaintedKnight=1. Until all eight facing actions are actually drawn,
+// normal gameplay retains the already-tested 0.49 renderer, avoiding frozen
+// attacks and walking in the other seven directions.
 export const KNIGHT_SHEET_CELL=144;
 export const KNIGHT_SHEET_ANCHOR=Object.freeze({x:72,y:118});
 export const KNIGHT_SHEET_FRAMES=Object.freeze({
@@ -76,6 +77,69 @@ export function prepareKnightWalkSheet(image,canvasFactory=null){
  return out;
 }
 
+
+// Illustrated knight art, extracted from the approved style direction.
+// The 73 individual South action poses are real raster art. The seven other
+// directions currently have their own painted base silhouettes, but NOT
+// unique action-frame sequences: do not describe this as 584 finished poses.
+export const KNIGHT_PAINTED_050=Object.freeze({
+ source:'assets/knight/painted-050/',
+ southFrames:73,distinctFacingIllustrations:8,
+ fullyAnimatedFacings:['S'],
+ incompleteFacings:['SW','W','NW','N','NE','E','SE']
+});
+const PAINTED_COUNTS=Object.freeze({
+ idle:6,walk:8,attack1:8,attack2:8,attack3:10,
+ recovery:6,special:8,dash:6,hurt:5,death:8
+});
+// The release clocks in 0.49 hit at frames 3/4/4/3. Place the
+// photographed contact pose at those SAME frames, without moving damage events.
+const PAINTED_FRAME_ORDER=Object.freeze({
+ attack1:[0,1,2,4,5,6,7,7],
+ attack3:[0,1,2,3,5,6,7,8,9,9],
+ special:[0,1,2,4,5,6,7,7],
+ dash:[0,1,2,3,4,5,5,5],
+ hurt:[0,1,2,3,4,4]
+});
+async function loadPaintedKnightSheets(factory){
+ const names=[...Object.keys(PAINTED_COUNTS),'facings'];
+ const images=await Promise.all(names.map(name=>new Promise((resolve,reject)=>{
+  const image=new Image();
+  image.decoding='async';
+  image.onload=()=>resolve([name,image]);
+  image.onerror=()=>reject(new Error('Illustrated knight asset missing: '+name));
+  image.src=new URL('../assets/knight/painted-050/'+name+'.png?v=0.50.0',import.meta.url).href;
+ })));
+ const originals=Object.fromEntries(images),out={};
+ const facings=originals.facings;
+ if((facings.naturalWidth||facings.width)!==72*8||
+    (facings.naturalHeight||facings.height)!==72)
+  throw new Error('The eight knight facing portraits have an invalid size');
+ for(const [clip,count] of Object.entries(KNIGHT_REBORN_FRAME_COUNTS)){
+  const picture=originals[clip],sourceFrames=PAINTED_COUNTS[clip];
+  if((picture.naturalWidth||picture.width)!==72*sourceFrames||
+     (picture.naturalHeight||picture.height)!==72)
+   throw new Error('Illustrated knight '+clip+' has wrong frame dimensions');
+  const sheet=factory();
+  sheet.width=count*72;sheet.height=8*72;
+  const ctx=sheet.getContext('2d');
+  if(!ctx)throw new Error('Knight illustrated sprite canvas unavailable');
+  ctx.imageSmoothingEnabled=false;
+  for(let frame=0;frame<count;frame++){
+   const index=PAINTED_FRAME_ORDER[clip]?.[frame]??Math.min(sourceFrames-1,frame);
+   // Paint the complete South body/frame, not individual rotated rectangles.
+   ctx.drawImage(picture,index*72,0,72,72,frame*72,0,72,72);
+   // All remaining headings stay visually consistent with their own authored
+   // directional portrait. A later art pass must replace these static cells.
+   for(let direction=1;direction<8;direction++)
+    ctx.drawImage(facings,direction*72,0,72,72,
+     frame*72,direction*72,72,72);
+  }
+  out[clip]=sheet;
+ }
+ return out;
+}
+
 export class KnightFinalAtlas {
  constructor(canvasFactory=null){
   this.images={};this.frames=new Map();this.imageReady=false;
@@ -90,7 +154,10 @@ export class KnightFinalAtlas {
    throw new Error('No drawing surface for the new knight');
   });
   try{
-   this.images=createKnightRebornSheets(factory);
+   const preview=typeof window!=='undefined'&&
+    new URLSearchParams(window.location.search).has('previewPaintedKnight');
+   this.images=preview&&typeof Image!=='undefined'?
+    await loadPaintedKnightSheets(factory):createKnightRebornSheets(factory);
    this.imageReady=true;this.ready=true;
   }catch(error){
    this.failed=true;this.ready=false;
