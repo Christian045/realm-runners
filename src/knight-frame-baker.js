@@ -96,7 +96,7 @@ export function knightBakedPose(clip,row,frame){
  return handPose(clip,row,frame);
 }
 function drawSword(c,hand,angle,impact){
- // A single 39px tempered-steel arming sword, held by one gauntlet.
+ // A single 31px tempered-steel arming sword, held by one gauntlet.
  // The guard and tang start at the EXACT hand position.
  c.save();c.translate(hand.x,hand.y);c.rotate(angle);
  c.fillStyle=COLORS.outline;c.fillRect(-7,-4,14,8);
@@ -106,14 +106,14 @@ function drawSword(c,hand,angle,impact){
  c.fillStyle=COLORS.edge;c.fillRect(6,-7,5,14);
  c.fillStyle=COLORS.gold;c.fillRect(7,-6,3,12);
  c.fillStyle=COLORS.bright;c.fillRect(8,-5,1,10);
- polygon(c,COLORS.edge,[[10,-3],[30,-3],[43,0],[30,3],[10,3]]);
- polygon(c,COLORS.steel,[[11,-2],[30,-2],[40,0],[30,2],[11,2]]);
- polygon(c,COLORS.shine,[[12,-2],[29,-2],[39,-1],[12,-1]]);
- polygon(c,COLORS.plate,[[12,1],[28,1],[37,0],[30,2],[12,2]]);
+ polygon(c,COLORS.edge,[[10,-3],[25,-3],[33,0],[25,3],[10,3]]);
+ polygon(c,COLORS.steel,[[11,-2],[25,-2],[31,0],[25,2],[11,2]]);
+ polygon(c,COLORS.shine,[[12,-2],[24,-2],[30,-1],[12,-1]]);
+ polygon(c,COLORS.plate,[[12,1],[24,1],[30,0],[25,2],[12,2]]);
  if(impact){
   // Small glint exactly on the sword tip; not a disconnected full-screen halo.
-  c.fillStyle=COLORS.bright;c.fillRect(41,-2,3,3);
-  c.fillStyle=COLORS.shine;c.fillRect(44,0,2,2);
+  c.fillStyle=COLORS.bright;c.fillRect(31,-2,2,2);
+  c.fillStyle=COLORS.shine;c.fillRect(33,0,2,2);
  }
  c.restore();
 }
