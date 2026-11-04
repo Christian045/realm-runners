@@ -18,6 +18,77 @@ const PAL=Object.freeze({
  spark:'#f3efe0',slash:'#badce4'
 });
 const WR=KNIGHT_PIXEL_SIZE;
+
+// The old version drew *every* 96px source cell at y=-77. Yet its painted
+// boot lines vary from y=62 to y=83: the idle knight floated 8–15px above
+// the shadow, while some attacks sank below it. These are source-foot pixels
+// (not bounding boxes of sword arcs). Every baked frame now lands at y=+5,
+// just above the renderer's shadow at player.y+10.
+export const KNIGHT_SOURCE_FOOT_Y=Object.freeze([
+ Object.freeze([69,65,69,69,62,69,69,69]),
+ Object.freeze([73,73,71,70,69,73,73,73]),
+ Object.freeze([75,75,75,77,75,75,76,75]),
+ Object.freeze([83,83,83,83,84,83,82,82]),
+ Object.freeze([76,76,76,76,76,76,76,76]),
+ Object.freeze([76,76,77,77,76,76,76,76])
+]);
+export const KNIGHT_GROUND_OFFSET=5;
+export function knightFramePlacement(row,column,mirror=false){
+ const foot=KNIGHT_SOURCE_FOOT_Y[row]?.[column];
+ if(!Number.isFinite(foot))throw new RangeError('Unknown knight art cell');
+ return {x:-48,y:KNIGHT_GROUND_OFFSET-foot,mirror};
+}
+// Rear-view animation was absent from the generated source sheet. These
+// three authored eight-frame arcs raise, contact and recover in different
+// directions, including the north-facing 3/8 or 4/8 damage event.
+export const KNIGHT_REAR_ATTACK_ANGLES=Object.freeze({
+ attack1:Object.freeze([-.65,-1.15,-1.7,-2.45,-3.25,-3.7,-4.1,-.65]),
+ attack2:Object.freeze([-2.55,-2.1,-1.4,-.65,-.08,.36,.72,-2.55]),
+ attack3:Object.freeze([-.4,-1.15,-1.45,-1.65,1.22,1.48,2.1,-.4]),
+ special:Object.freeze([-1,-1.65,-2.5,-3.25,-4,-4.85,-5.5,-1])
+});
+function drawKnightBoots(c,frame,clip,row){
+ // Both feet are legible beneath the rear-view cape in every walk/idle
+ // and attack pose; their sole line is fixed at y=+5.
+ const movement=clip==='walk'?[-1,-1,0,1,1,0,-1,0][frame]:0;
+ const attack=KNIGHT_SWINGS[clip],brace=attack?Math.sign(attack.step[frame]):0;
+ const xLeft=-8+movement-brace,xRight=4-movement+brace;
+ for(const x of [xLeft,xRight]){
+  rect(c,PAL.ink,x-1,-7,7,12);
+  rect(c,PAL.steelDark,x,-6,5,6);
+  rect(c,PAL.steel,x+1,-5,2,3);
+  rect(c,PAL.boot,x-1,0,9,5);
+  rect(c,PAL.bootLit,x,0,5,2);
+  rect(c,PAL.goldDark,x+3,-3,2,2);
+ }
+}
+function drawRearAttack(c,row,clip,frame){
+ const s=KNIGHT_SWINGS[clip]||KNIGHT_SWINGS.attack1;
+ const directionShift=row===3?-.2:row===5?.2:0;
+ const torso= s.lean[frame]||0;
+ const shoulderX=12+torso*.25,shoulderY=-32+Math.min(0,s.height[frame]*.5);
+ const handX=14+torso*.45+(s.handX[frame]-11)*.32;
+ const handY=-29+(s.handY[frame]+27)*.45;
+ // The shoulder, plate, forearm and gauntlet are new distinct pixel
+ // silhouettes per frame, baked once. This is not a static rear atlas with
+ // an unattached sword floating beside the helmet.
+ segment(c,PAL.ink,shoulderX,shoulderY,handX,handY,9);
+ segment(c,PAL.cloth,shoulderX,shoulderY,handX,handY,6);
+ rect(c,PAL.steelDark,shoulderX-3,shoulderY-5,8,6);
+ rect(c,PAL.steelLight,shoulderX-2,shoulderY-4,5,2);
+ rect(c,PAL.ink,handX-4,handY-4,8,9);
+ rect(c,PAL.gold,handX-3,handY-3,6,6);
+ rect(c,PAL.steelLight,handX-2,handY-2,3,3);
+ const angle=KNIGHT_REAR_ATTACK_ANGLES[clip][frame]+directionShift;
+ drawBlade(c,handX,handY,angle,frame,frame===s.impact);
+ // A small counter-shoulder movement makes the north attack read as a
+ // full body action, not simply a hovering rotating blade.
+ const braceX=-13-torso*.22,braceY=-29;
+ rect(c,PAL.ink,braceX-4,braceY-3,7,11);
+ rect(c,PAL.steelDark,braceX-3,braceY-2,5,8);
+ rect(c,PAL.goldDark,braceX-3,braceY+4,5,2);
+}
+
 const quant=(v)=>Math.round(v);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export function knightPixelRow(d){return rigFacing(d||{x:0,y:1});}
@@ -293,21 +364,27 @@ export class KnightIllustratedAtlas extends KnightPaintedAtlas {
   }else if(clip==='walk'&&row===0){
    sourceRow=5;sourceColumn=frame;
   }
-  // Every image cell was aligned to the same 96px canvas and 77px boot
-  // anchor when authored, regardless of the sword's silhouette.
+  // The damaged last strike row contains clipped helmets and word fragments.
+  // Build the finisher from the intact standing artwork until its dedicated
+  // transparent eight-way sprite sheet is ready; never show text as pixels.
+  if(clip==='attack3'&&!rear){sourceRow=0;sourceColumn=row;mirrored=false;}
+  const placement=knightFramePlacement(sourceRow,sourceColumn,mirrored);
   c.save();
   if(mirrored)c.scale(-1,1);
-  const x=-48;
-  c.drawImage(this.image,sourceColumn*96,sourceRow*96,96,96,x,-77,96,96);
+  c.drawImage(this.image,sourceColumn*96,sourceRow*96,96,96,
+   placement.x,placement.y,96,96);
   c.restore();
-  if(isFight&&rear){
-   // Rear-facing footage was not present in the art-direction reference.
-   // Retain the coherent rear armour image and bake a restrained blade into
-   // the resulting complete frame rather than swapping to a frontal knight.
-   const pose=KNIGHT_SWINGS[clip]||KNIGHT_SWINGS.attack1;
-   const angle=Math.PI/2+row*Math.PI/4-Math.PI/2+pose.sword[frame];
-   const x=10+pose.handX[frame]*.18,y=-21+pose.handY[frame]*.18;
-   drawBlade(c,x,y,angle,frame,pose.impact===frame);
+  if(rear)drawKnightBoots(c,frame,clip,row);
+  if(isFight&&rear)drawRearAttack(c,row,clip,frame);
+  if(clip==='attack3'&&!rear){
+   // Three distinct contact-time-aligned overhand poses; painted into the
+   // complete cached frame rather than a runtime arm-pivot or texture swap.
+   const pose=KNIGHT_SWINGS.attack3,lean=pose.lean[frame];
+   const x=13+lean*.45,y=-31+(pose.handY[frame]+27)*.34;
+   segment(c,PAL.ink,12,-32,x,y,7);
+   segment(c,PAL.steelDark,12,-32,x,y,5);
+   rect(c,PAL.gold,x-2,y-2,5,5);
+   drawBlade(c,x,y,pose.sword[frame]-Math.PI/3,frame,frame===pose.impact);
   }
   if(clip==='hurt'&&frame>=1&&frame<=4){
    c.save();c.globalCompositeOperation='source-atop';c.globalAlpha=.18;
