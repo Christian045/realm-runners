@@ -1,7 +1,7 @@
-import {getKnightPainted} from './knight-painted.js?v=0.43.0';
+import {getKnightFinal} from './knight-final.js?v=0.44.0';
 import {heroRigReady,articulatedPose,RIG_ROWS,getHeroRig} from './articulated-hero.js?v=0.40.0';
 import {HeroSpriteAtlas} from './hero-sprites.js?v=0.40.0';
-import {KnightSpriteAtlas} from './knight-sprites.js?v=0.43.0';
+import {KnightSpriteAtlas} from './knight-sprites.js?v=0.44.0';
 import {heroPose,HERO_CLIPS} from './hero-animation.js?v=0.31.0';
 import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.31.0';
 import {heroShot} from './hero-aim.js?v=0.40.0';
@@ -102,7 +102,7 @@ export async function openAnimationLab(){
   // The preview uses the very same production rig as gameplay. Do not load
   // six additional, superseded full-body fallback atlases on mobile: WebKit
   // can exhaust its graphics process with that duplicate decoding workload.
-  const rig=kind==='warrior'&&new URLSearchParams(location.search).has('newKnight')?getKnightPainted():getHeroRig(kind);
+  const rig=kind==='warrior'&&new URLSearchParams(location.search).has('newKnight')?getKnightFinal():getHeroRig(kind);
   try{await rig?.loading;}catch{/* Keep the legacy decoder as a safe fallback. */}
   if(rig?.ready){
    atlases.set(kind,rig);dirty=true;return;
