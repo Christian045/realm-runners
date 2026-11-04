@@ -11,12 +11,35 @@ const assert=require('node:assert/strict');
    await page.goto('http://127.0.0.1:8000/?newKnight=1');
    const report=await page.evaluate(async()=>{
     const [{KnightPaintedAtlas,KNIGHT_SWINGS},{KnightSpriteAtlas}]=await Promise.all([
-     import('./src/knight-painted.js?v=0.41.0'),import('./src/knight-sprites.js?v=0.41.0')
+     import('./src/knight-painted.js?v=0.42.0'),import('./src/knight-sprites.js?v=0.42.0')
     ]);
     const pure=new KnightPaintedAtlas(),production=new KnightSpriteAtlas();
     await production.loading;
     if(!production.painted)throw new Error('Knight is still using the puppet rig');
     if(!production.painted.imageReady)throw new Error('New original art atlas missing');
+    // Verify the actual browser/WebKit-decoded artwork, not just node-canvas:
+    // rear attacks must change silhouette and both soles must reach the
+    // shared player floor anchor instead of floating above the shadow.
+    for(const row of [3,4,5])for(const clip of ['attack1','attack2','attack3']){
+     const hashes=new Set();
+     for(let frame=0;frame<8;frame++){
+      const tile=production.painted.frame(row,clip,frame);
+      // OffscreenCanvas has no toDataURL() in WebKit/Chromium. Hash raw
+      // pixels instead; otherwise every frame looks identical to the test.
+      const raw=tile.getContext('2d').getImageData(0,0,128,128).data;
+      let hash=2166136261;
+      for(let n=0;n<raw.length;n+=4)if(raw[n+3]>80){
+       hash=Math.imul(hash^raw[n],16777619);
+       hash=Math.imul(hash^raw[n+1],16777619);
+       hash=Math.imul(hash^(n>>>2),16777619);
+      }
+      hashes.add(hash>>>0);
+      const t=tile.getContext('2d').getImageData(39,84,51,12).data;
+      let contact=0;for(let n=3;n<t.length;n+=4)if(t[n]>90)contact++;
+      if(contact<12)throw Error('Knight boots float in '+row+' '+clip+' '+frame);
+     }
+     if(hashes.size<7)throw Error('Northern attack is still frozen: '+row+' '+clip);
+    }
     const cellW=112,cellH=120,canvas=document.createElement('canvas');
     canvas.width=cellW*8;canvas.height=cellH*11;
     const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
