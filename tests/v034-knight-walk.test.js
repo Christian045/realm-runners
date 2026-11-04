@@ -32,7 +32,7 @@ test('new atlas renders exactly one correctly indexed full-body image in all dir
 test('knight steps only while actually moving and the other classes keep their gait',()=>{
  const p={kind:'warrior',x:100,y:0,walkDistance:0};
  advanceLocomotion(p,0,0);
- assert.equal(p.knightWalkDistance,100);
+ assert.equal(p.knightWalkDistance,100%KNIGHT_VISUAL_STRIDE);
  const phase=p.knightWalkDistance;
  advanceLocomotion(p,100,0);assert.equal(p.knightWalkDistance,phase);
  p.x=200;advanceLocomotion(p,100,0,true);assert.equal(p.knightWalkDistance,phase);

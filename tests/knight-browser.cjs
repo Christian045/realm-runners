@@ -8,7 +8,7 @@ const fs=require('node:fs');
   try{
    const page=await browser.newPage({viewport:mobile?{width:390,height:844}:{width:1280,height:800},isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1});
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.goto('http://127.0.0.1:8000/');
+   await page.goto('http://127.0.0.1:8000/?legacyHeroArt=1');
    await page.locator('[data-action="class:warrior"]').click();
    await page.locator('[data-action="start"]').click();
    await page.locator('#overlay').waitFor({state:'hidden'});

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createCanvas,loadImage} from '@napi-rs/canvas';
-import {KNIGHT_SHEET_CELL,KNIGHT_SHEET_FRAMES,KNIGHT_SHEET_ANCHOR,knightFinalFrame} from '../src/knight-final.js';
+import {KNIGHT_SHEET_CELL,KNIGHT_SHEET_FRAMES,KNIGHT_SHEET_ANCHOR,knightFinalFrame,prepareKnightWalkSheet} from '../src/knight-final.js';
 import {KNIGHT_CLIPS} from '../src/knight-animation.js';
 
 const root=new URL('../assets/knight/v045/',import.meta.url);
@@ -71,5 +71,34 @@ test('knight finisher impact frame uses existing combat trigger for every direct
   assert.equal(frameAt('attack1',row).index,3);
   assert.equal(frameAt('attack2',row).index,4);
   assert.equal(frameAt('attack3',row).index,5);
+ }
+});
+
+test('walk frames normalize the oversized stance change without clipping or losing boots',async()=>{
+ const original=await loadImage(await readFile(new URL('walk.png',root)));
+ const result=prepareKnightWalkSheet(original,()=>createCanvas(1,1));
+ assert.equal(result.width,144*8);assert.equal(result.height,144*8);
+ const sample=(sheet,row,frame)=>{
+  const canvas=createCanvas(144,144),ctx=canvas.getContext('2d');
+  ctx.drawImage(sheet,frame*144,row*144,144,144,0,0,144,144);
+  const pixels=ctx.getImageData(0,0,144,144).data;
+  let top=144,bottom=-1,edges=0,boots=0;
+  for(let y=0;y<144;y++)for(let x=0;x<144;x++){
+   const a=pixels[(y*144+x)*4+3];
+   if(a<70)continue;
+   top=Math.min(y,top);bottom=Math.max(y,bottom);
+   if(x===0||x===143||y===0||y===143)edges++;
+   if(y>=116&&y<=130&&x>=35&&x<=110)boots++;
+  }
+  return {height:bottom-top+1,edges,boots};
+ };
+ for(let row=0;row<8;row++){
+  const old=sample(original,row,0),fixed=sample(result,row,0);
+  const samples=Array.from({length:7},(_,i)=>sample(result,row,i+1));
+  const median=samples.map(p=>p.height).sort((a,b)=>a-b)[3];
+  assert.ok(fixed.height>=old.height,row+' lost pixels from the first frame');
+  assert.ok(fixed.height>=median*.75,row+' initial stance still shrinks abruptly');
+  assert.equal(fixed.edges,0,row+' enlarged sprite clipped');
+  assert.ok(fixed.boots>=5,row+' boot pixels lost');
  }
 });

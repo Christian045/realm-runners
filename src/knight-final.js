@@ -1,4 +1,4 @@
-import {knightPose} from './knight-animation.js?v=0.31.0';
+import {knightPose} from './knight-animation.js?v=0.46.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
 
 // These are five COMPLETE original transparent character animations. The
@@ -23,6 +23,55 @@ export function knightFinalFrame(p,time=0){
   :clamp(Math.floor(pose.progress*count),0,count-1);
  return {clip,row:rigFacing(pose.direction),index,count,pose};
 }
+// The earlier walking sheet contains a drastically undersized first frame in
+// some facings. Normalize it to the measured reference body *once at load*,
+// not by stretching a character on every draw. The other seven distinct gait
+// frames, including their alternating greaves, remain untouched.
+export function prepareKnightWalkSheet(image,canvasFactory=null){
+ if(!image||!canvasFactory&&typeof document==='undefined')return image;
+ const canvas=()=>canvasFactory?canvasFactory():document.createElement('canvas');
+ const source=canvas(),out=canvas(),cell=KNIGHT_SHEET_CELL;
+ source.width=out.width=cell*8;source.height=out.height=cell*8;
+ const ctx=source.getContext('2d',{willReadFrequently:true}),g=out.getContext('2d');
+ if(!ctx||!g)return image;
+ ctx.imageSmoothingEnabled=false;g.imageSmoothingEnabled=false;
+ ctx.drawImage(image,0,0);
+ // Each cell is transparent. Count alpha pixels to locate the full body,
+ // including both boots, without using a sword tip to calculate body height.
+ const bounds=(row,index)=>{
+  const data=ctx.getImageData(index*cell,row*cell,cell,cell).data;
+  let left=cell,top=cell,right=-1,bottom=-1;
+  for(let y=20;y<cell;y++)for(let x=20;x<cell-12;x++){
+   if(data[(y*cell+x)*4+3]<70)continue;
+   if(x<left)left=x;if(x>right)right=x;
+   if(y<top)top=y;if(y>bottom)bottom=y;
+  }
+  return right<left?null:{left,top,right,bottom,w:right-left+1,h:bottom-top+1,center:(left+right)/2};
+ };
+ const median=values=>values.sort((a,b)=>a-b)[Math.floor(values.length/2)];
+ for(let row=0;row<KNIGHT_SHEET_ROWS;row++){
+  const reference=Array.from({length:7},(_,i)=>bounds(row,i+1)).filter(Boolean);
+  if(!reference.length){g.drawImage(image,0,row*cell,8*cell,cell,0,row*cell,8*cell,cell);continue;}
+  const height=median(reference.map(b=>b.h)),
+    floor=median(reference.map(b=>b.bottom)),
+    center=median(reference.map(b=>b.center));
+  for(let frame=0;frame<8;frame++){
+   const b=bounds(row,frame);
+   if(!b)continue;
+   // A small first frame breaks gait continuity; reframe it to match the
+   // exact head/boot dimensions of adjacent hand-painted gait cells.
+   const scale=frame===0&&b.h<height*.87?
+    Math.min(1.6,height/b.h):1;
+   const dx=frame===0?center-b.center*scale:
+    Math.max(-3,Math.min(3,center-b.center));
+   const dy=frame===0?floor-b.bottom*scale:0;
+   g.drawImage(image,frame*cell,row*cell,cell,cell,
+    frame*cell+Math.round(dx),row*cell+Math.round(dy),cell*scale,cell*scale);
+  }
+ }
+ return out;
+}
+
 export class KnightFinalAtlas {
  constructor(imageFactory=null){
   this.images={};this.frames=new Map();this.imageReady=false;
@@ -46,7 +95,7 @@ export class KnightFinalAtlas {
     if((image.naturalWidth||image.width)!==width||
        (image.naturalHeight||image.height)!==height)
       throw new Error('Invalid knight '+clip+' sheet dimensions');
-    this.images[clip]=image;
+    this.images[clip]=clip==='walk'?prepareKnightWalkSheet(image):image;
    }));
    this.imageReady=true;this.ready=true;
   }catch(error){

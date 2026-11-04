@@ -1,5 +1,5 @@
 import {ROBED_WALK_STRIDE,isRobedWalker} from './robed-walk.js?v=0.35.0';
-import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.34.0';
+import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.46.0';
 // A complete stride advances with distance actually travelled, never key state.
 export const WALK_STRIDE=72;
 export const LEG_HEIGHTS=Object.freeze([27,26,25,24,19,17,21,25]);

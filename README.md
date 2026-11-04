@@ -1,4 +1,13 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.37.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.46.0)
+
+## Alpha 0.46.0 – Ritter mit Vollkörper-Pixel-Atlas als Standard
+- Der bereits vorhandene achtseitige v045-Atlas ist jetzt ohne zusätzlichen URL-Schalter im Spiel aktiv. Der vorherige prozedurale Renderer bleibt unter `?legacyHeroArt=1` als Rückfalloption verfügbar.
+- Der Schrittzyklus läuft jetzt über 96 statt 224 Weltpixel, sodass beide Beinbewegungen deutlich häufiger erscheinen.
+- Der zu kleine erste Walk-Frame wird beim Laden auf die umliegenden Körperproportionen normalisiert. Zusätzliche Regressionstests prüfen den Frame und den Bodenkontakt.
+- Versionierte Modulimporte wurden aktualisiert, damit der neue Renderer beim nächsten Seitenaufruf statt alter zwischengespeicherter Module geladen wird.
+- **Offen:** Die Angriffs-Sheets sind weiterhin die bisherigen v045-Rasterbilder. Vollständig neu gezeichnete, geprüfte Schwert-Keyframes sind in dieser Version nicht enthalten.
+
+
 
 ## Alpha 0.37.0 – Ritter bekommt eigene Idle- und Schwertanimations-Frames
 

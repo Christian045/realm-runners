@@ -1,16 +1,18 @@
-import {getKnightFinal} from './knight-final.js?v=0.45.0';
+import {getKnightFinal} from './knight-final.js?v=0.46.0';
 import {getHeroRig,previewHeroRig} from './articulated-hero.js?v=0.40.0';
 import {drawKnightAction,KNIGHT_ACTION_CLIPS} from './knight-action-sprites.js?v=0.39.0';
-import {drawKnightWalk} from './knight-walk.js?v=0.36.0';
+import {drawKnightWalk} from './knight-walk.js?v=0.46.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';
-import {knightPose} from './knight-animation.js?v=0.31.0';
+import {knightPose} from './knight-animation.js?v=0.46.0';
 
-// NewKnight mode uses original complete-body transparent sprite sheets. Its
+// The production knight uses complete-body transparent sprite sheets. Its
 // sword and legs are part of every frame; legacy art remains rollback-only.
 export class KnightSpriteAtlas{
  constructor(imageFactory=()=>new Image()){
   const flags=typeof window!=='undefined'?new URLSearchParams(window.location.search):new URLSearchParams();
-  this.painted=flags.has('newKnight')&&!flags.has('legacyHeroArt')&&!flags.has('oldKnightPixel')?getKnightFinal():null;
+  // Use the one-piece eight-direction pixel frames in the real game by default.
+  // Preserve a deliberate rollback switch for comparing older builds.
+  this.painted=!flags.has('legacyHeroArt')&&!flags.has('oldKnightPixel')?getKnightFinal():null;
   this.rig=typeof Image!=='undefined'&&!this.painted?getHeroRig('warrior'):null;
   this.images={};this.ready=false;this.failed=false;this.manifest=null;
   this.useLegacyWalk=typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('oldKnightWalk');
