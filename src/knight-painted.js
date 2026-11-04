@@ -1,3 +1,4 @@
+import {paintIntegratedKnight,knightIntegratedPose} from './knight-integrated.js?v=0.43.0';
 // Original compact pixel-art knight. A complete 128x128 padded raster frame is
 // composed ONCE per state/direction/frame and cached as a sprite. Gameplay
 // never rotates or stretches a limb, a head, a boot or a sword texture.
@@ -58,48 +59,6 @@ export const KNIGHT_REAR_ATTACK_ANGLES=Object.freeze({
  attack3:Object.freeze([-.4,-1.15,-1.45,-1.65,1.22,1.48,2.1,-.4]),
  special:Object.freeze([-1,-1.65,-2.5,-3.25,-4,-4.85,-5.5,-1])
 });
-function drawKnightBoots(c,frame,clip,row){
- // Both feet are legible beneath the rear-view cape in every walk/idle
- // and attack pose; their sole line is fixed at y=+5.
- const movement=clip==='walk'?[-1,-1,0,1,1,0,-1,0][frame]:0;
- const attack=KNIGHT_SWINGS[clip],brace=attack?Math.sign(attack.step[frame]):0;
- const xLeft=-8+movement-brace,xRight=4-movement+brace;
- for(const x of [xLeft,xRight]){
-  rect(c,PAL.ink,x-1,-7,7,12);
-  rect(c,PAL.steelDark,x,-6,5,6);
-  rect(c,PAL.steel,x+1,-5,2,3);
-  rect(c,PAL.boot,x-1,0,9,5);
-  rect(c,PAL.bootLit,x,0,5,2);
-  rect(c,PAL.goldDark,x+3,-3,2,2);
- }
-}
-function drawRearAttack(c,row,clip,frame){
- const s=KNIGHT_SWINGS[clip]||KNIGHT_SWINGS.attack1;
- const directionShift=row===3?-.2:row===5?.2:0;
- const torso= s.lean[frame]||0;
- const shoulderX=12+torso*.25,shoulderY=-32+Math.min(0,s.height[frame]*.5);
- const handX=14+torso*.45+(s.handX[frame]-11)*.32;
- const handY=-29+(s.handY[frame]+27)*.45;
- // The shoulder, plate, forearm and gauntlet are new distinct pixel
- // silhouettes per frame, baked once. This is not a static rear atlas with
- // an unattached sword floating beside the helmet.
- segment(c,PAL.ink,shoulderX,shoulderY,handX,handY,9);
- segment(c,PAL.cloth,shoulderX,shoulderY,handX,handY,6);
- rect(c,PAL.steelDark,shoulderX-3,shoulderY-5,8,6);
- rect(c,PAL.steelLight,shoulderX-2,shoulderY-4,5,2);
- rect(c,PAL.ink,handX-4,handY-4,8,9);
- rect(c,PAL.gold,handX-3,handY-3,6,6);
- rect(c,PAL.steelLight,handX-2,handY-2,3,3);
- const angle=KNIGHT_REAR_ATTACK_ANGLES[clip][frame]+directionShift;
- drawBlade(c,handX,handY,angle,frame,frame===s.impact);
- // A small counter-shoulder movement makes the north attack read as a
- // full body action, not simply a hovering rotating blade.
- const braceX=-13-torso*.22,braceY=-29;
- rect(c,PAL.ink,braceX-4,braceY-3,7,11);
- rect(c,PAL.steelDark,braceX-3,braceY-2,5,8);
- rect(c,PAL.goldDark,braceX-3,braceY+4,5,2);
-}
-
 const quant=(v)=>Math.round(v);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export function knightPixelRow(d){return rigFacing(d||{x:0,y:1});}
@@ -348,7 +307,7 @@ export class KnightIllustratedAtlas extends KnightPaintedAtlas {
    const image=new Image();image.decoding='async';
    await new Promise((resolve,reject)=>{
     image.onload=resolve;image.onerror=reject;
-    image.src=new URL('../assets/knight/painted-041.png?v=0.41.0',import.meta.url).href;
+    image.src=new URL('../assets/knight/painted-041.png?v=0.43.0',import.meta.url).href;
    });
    if(image.decode)await image.decode();
    if(image.width!==768||image.height!==576)throw Error('Knight art atlas dimensions changed');
@@ -364,58 +323,14 @@ export class KnightIllustratedAtlas extends KnightPaintedAtlas {
   sheet.width=WR;sheet.height=WR;
   const c=sheet.getContext('2d',{alpha:true});c.imageSmoothingEnabled=false;
   c.translate(KNIGHT_PIXEL_ANCHOR.x,KNIGHT_PIXEL_ANCHOR.y);
-  let sourceRow=0,sourceColumn=row,mirrored=false;
-  const isFight=clip.startsWith('attack')||clip==='special',rear=row===3||row===4||row===5;
-  if(isFight&&!rear){
-   sourceRow=clip==='attack1'?2:clip==='attack2'||clip==='special'?3:4;
-   sourceColumn=frame;
-   mirrored=row===1||row===2;
-  }else if(clip==='walk'&&(row===2||row===6)){
-   sourceRow=1;sourceColumn=frame;mirrored=row===2;
-  }else if(clip==='walk'&&row===0){
-   sourceRow=5;sourceColumn=frame;
-  }
-  // The damaged last strike row contains clipped helmets and word fragments.
-  // Build the finisher from the intact standing artwork until its dedicated
-  // transparent eight-way sprite sheet is ready; never show text as pixels.
-  if(clip==='attack3'&&!rear){sourceRow=0;sourceColumn=row;mirrored=false;}
-  const placement=knightFramePlacement(sourceRow,sourceColumn,mirrored);
-  c.save();
-  if(mirrored)c.scale(-1,1);
-  c.drawImage(this.image,sourceColumn*96,sourceRow*96,96,96,
-   placement.x+knightSourceCenterCorrection(sourceRow,frame,mirrored)*(mirrored?-1:1),
-   placement.y,96,96);
-  c.restore();
-  // Every source strip has inconsistent/partly missing lower legs, not only
-  // the north-facing cape. Repaint both greaves and boots on a fixed sole
-  // line for every walking, idle and combat frame.
-  if(clip!=='death')drawKnightBoots(c,frame,clip,row);
-  if(isFight&&rear)drawRearAttack(c,row,clip,frame);
-  if(clip==='attack3'&&!rear){
-   // Three distinct contact-time-aligned overhand poses; painted into the
-   // complete cached frame rather than a runtime arm-pivot or texture swap.
-   const pose=KNIGHT_SWINGS.attack3,lean=pose.lean[frame];
-   const x=13+lean*.45,y=-31+(pose.handY[frame]+27)*.34;
-   segment(c,PAL.ink,12,-32,x,y,7);
-   segment(c,PAL.steelDark,12,-32,x,y,5);
-   rect(c,PAL.gold,x-2,y-2,5,5);
-   drawBlade(c,x,y,pose.sword[frame]-Math.PI/3,frame,frame===pose.impact);
-  }
-  if(clip==='hurt'&&frame>=1&&frame<=4){
-   c.save();c.globalCompositeOperation='source-atop';c.globalAlpha=.18;
-   rect(c,'#f16c62',-48,-77,96,96);c.restore();
-  }
-  if(clip==='dash'){
-   c.save();c.globalCompositeOperation='source-atop';c.globalAlpha=.12;
-   rect(c,'#99def2',-48,-77,96,96);c.restore();
-  }
-  if(clip==='death'){
-   // Rotating one complete body silhouette at authoring time avoids an
-   // abrupt palette/model swap to the deprecated procedural corpse.
-   c.clearRect(-64,-88,128,128);
-   c.save();c.translate(0,-12);c.rotate(Math.min(1,frame/5)*Math.PI*.47);
-   c.drawImage(this.image,row*96,0,96,96,-48,-65,96,96);
+  if(clip==='death'&&frame>=3){
+   // Entire complete sprite falls together; unlike the removed overlays
+   // the greaves and blade are part of the same transform.
+   c.save();c.translate(0,-4);c.rotate(Math.min(1,(frame-2)/5)*Math.PI*.46);
+   paintIntegratedKnight(c,this.image,row,'idle',frame);
    c.restore();
+  }else{
+   paintIntegratedKnight(c,this.image,row,clip==='death'?'idle':clip,frame);
   }
   this.frames.set(key,sheet);
   return sheet;
