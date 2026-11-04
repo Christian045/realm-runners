@@ -66,6 +66,29 @@ def resample_base(img,clip,row,frame):
     return src.crop((index*CELL,row*CELL,(index+1)*CELL,(row+1)*CELL))
 
 
+
+def animate_walk_upper(sheet):
+    """Bake subtle torso/helmet bob into existing genuine alternating leg art.
+
+    The old walk rows 0/3/4/5 held the entire helmet and chest *pixel perfect*
+    still while the legs churned. Upper 111px now counter-moves 1px in the
+    passing poses. The shins/soles keep their original world floor anchor.
+    """
+    out=Image.new('RGBA',sheet.size)
+    offsets=((0,0),(0,-1),(0,-1),(1,0),(0,0),(0,-1),(0,-1),(-1,0))
+    for row in range(8):
+        for frame,(shift_x,shift_y) in enumerate(offsets):
+            tile=sheet.crop((frame*CELL,row*CELL,(frame+1)*CELL,(row+1)*CELL))
+            if shift_x==0 and shift_y==0:
+                new_tile=tile
+            else:
+                new_tile=Image.new('RGBA',(CELL,CELL))
+                # The legs and boots remain fixed to the ground.
+                new_tile.alpha_composite(tile.crop((0,110,CELL,CELL)),(0,110))
+                new_tile.alpha_composite(tile.crop((0,0,CELL,111)),(shift_x,shift_y))
+            out.alpha_composite(new_tile,(frame*CELL,row*CELL))
+    return out
+
 def pixel_bounds(img):
     return img.getchannel('A').getbbox()
 
@@ -180,6 +203,7 @@ def main():
     args=parser.parse_args()
     source=Path(args.source);destination=Path(args.output);destination.mkdir(parents=True,exist_ok=True)
     img={name:Image.open(source/f'{name}.png').convert('RGBA') for name in ['idle','walk']}
+    img['walk']=animate_walk_upper(img['walk'])
     frames_meta={}
     for clip,count in FRAMES.items():
         sheet=Image.new('RGBA',(count*CELL,8*CELL))
