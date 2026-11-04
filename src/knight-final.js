@@ -1,16 +1,14 @@
 import {knightPose} from './knight-animation.js?v=0.46.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
+import {bakeKnightFrames,KNIGHT_BAKED_FRAMES} from './knight-frame-baker.js?v=0.47.0';
 
 // These are five COMPLETE original transparent character animations. The
 // renderer only selects an atlas cell; no limb, boot, sword or slash is drawn
 // independently at runtime.
 export const KNIGHT_SHEET_CELL=144;
 export const KNIGHT_SHEET_ANCHOR=Object.freeze({x:72,y:118});
-export const KNIGHT_SHEET_FRAMES=Object.freeze({
- idle:6,walk:8,attack1:8,attack2:8,attack3:10
-});
+export const KNIGHT_SHEET_FRAMES=KNIGHT_BAKED_FRAMES;
 export const KNIGHT_SHEET_ROWS=8;
-const clips=Object.keys(KNIGHT_SHEET_FRAMES);
 const clipFor=clip=>Object.hasOwn(KNIGHT_SHEET_FRAMES,clip)?clip:
  clip==='special'?'attack3':clip==='dash'?'walk':'idle';
 const clamp=(x,min,max)=>Math.max(min,Math.min(max,x));
@@ -82,25 +80,33 @@ export class KnightFinalAtlas {
  async load(){
   if(typeof Image==='undefined'&&!this.imageFactory)return;
   try{
-   await Promise.all(clips.map(async clip=>{
+   const source={};
+   await Promise.all(['idle','walk'].map(async clip=>{
     const image=this.imageFactory?this.imageFactory():new Image();
     image.decoding='async';
     await new Promise((resolve,reject)=>{
      image.onload=resolve;image.onerror=reject;
-     image.src=new URL('../assets/knight/v045/'+clip+'.png?v=0.45.0',import.meta.url).href;
+     image.src=new URL('../assets/knight/v045/'+clip+'.png?v=0.47.0',import.meta.url).href;
     });
     if(image.decode)await image.decode();
     const width=KNIGHT_SHEET_FRAMES[clip]*KNIGHT_SHEET_CELL;
     const height=KNIGHT_SHEET_ROWS*KNIGHT_SHEET_CELL;
     if((image.naturalWidth||image.width)!==width||
        (image.naturalHeight||image.height)!==height)
-      throw new Error('Invalid knight '+clip+' sheet dimensions');
-    this.images[clip]=clip==='walk'?prepareKnightWalkSheet(image):image;
+     throw new Error('Invalid knight '+clip+' source dimensions');
+    source[clip]=image;
    }));
+   const create=()=>{
+    if(typeof OffscreenCanvas!=='undefined')return new OffscreenCanvas(1,1);
+    return document.createElement('canvas');
+   };
+   // Author every complete 8-way idle, step and combo frame once. No
+   // independent shield or weapon layer is animated inside the game loop.
+   this.images=bakeKnightFrames(source,create);
    this.imageReady=true;this.ready=true;
   }catch(error){
    this.failed=true;this.ready=false;
-   console.warn('New original knight art unavailable',error);
+   console.warn('Baked knight artwork unavailable',error);
   }
  }
  frame(row,clip,index){
