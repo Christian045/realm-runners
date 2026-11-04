@@ -1,4 +1,13 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.46.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.47.0)
+
+## Alpha 0.47.0 – Ritter: ohne Schild, eine Waffenhand, vollständige Kampf-Frames
+- Ritter-Ingame-Renderer erzeugt jetzt beim Laden alle 320 vollständigen transparenten Pixel-Frames aus denselben gemalten Helm-/Rüstungs- und Beinvorlagen. Der live gerenderte Held wird nie aus separat gedrehten Schwert-/Arm-/Schild-Objekten zusammengesetzt.
+- Das alte, eingebackene Schild der Vorderansicht/Diagonalen wird entfernt. Die freie Hand bekommt einen passenden Panzerhandschuh; ein einzelnes Stahlschwert ist mit Schulter, Unterarm und Faust der anderen Hand verbunden.
+- Drei 8-Richtungs-Schlagfolgen mit eigenen Aushol-, Kontakt- und Rückholposen; die Treffer-Frames sind an die unveränderten Spiel-Events gekoppelt.
+- Beim Laufen bleiben Kopf und Brustpanzer gleich groß und an Ort und Stelle, während die gemalten Beine eigenständig wechseln.
+- Der Diagnose-Reiter „Animationen“ ist nicht mehr im regulären Menü. Debug-Zugriff für Entwicklung: `?debugAnimations=1`.
+- Node- und Chromium-/WebKit-Tests überprüfen die tatsächlichen Spielgrafiken und Waffenankerpunkte.
+
 
 ## Alpha 0.46.0 – Ritter mit Vollkörper-Pixel-Atlas als Standard
 - Der bereits vorhandene achtseitige v045-Atlas ist jetzt ohne zusätzlichen URL-Schalter im Spiel aktiv. Der vorherige prozedurale Renderer bleibt unter `?legacyHeroArt=1` als Rückfalloption verfügbar.

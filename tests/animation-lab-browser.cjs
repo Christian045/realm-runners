@@ -9,7 +9,7 @@ const fs=require('node:fs');
   try{
    const page=await browser.newPage({viewport:mobile?{width:390,height:844}:{width:1280,height:900},isMobile:mobile,hasTouch:mobile});
    const click=async selector=>{const el=page.locator(selector);if(!mobile){await el.click();return;}await el.evaluate(node=>node.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'}));const box=await el.boundingBox();assert.ok(box);await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);};
-   const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:8000/');
+   const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:8000/?debugAnimations=1');
    const before=await page.evaluate(()=>JSON.stringify(localStorage));
    await click('[data-action="animationLab"]');
    const dialog=page.locator('.animation-lab');await dialog.waitFor({state:'visible'});
