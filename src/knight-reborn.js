@@ -297,11 +297,11 @@ export function createKnightRebornSheets(makeCanvas){
  const small=tile.getContext('2d',{willReadFrequently:false});
  if(!small)throw new Error('Cannot draw knight art');
  for(const [clip,count] of Object.entries(KNIGHT_REBORN_FRAME_COUNTS)){
-  const atlas=makeCanvas();atlas.width=144*count;atlas.height=144*8;
+  const atlas=makeCanvas();atlas.width=C*count;atlas.height=C*8;
   const out=atlas.getContext('2d');out.imageSmoothingEnabled=false;
   for(let row=0;row<8;row++)for(let frame=0;frame<count;frame++){
    paintOne(small,row,clip,frame);
-   out.drawImage(tile,0,0,C,C,frame*144,row*144,144,144);
+   out.drawImage(tile,0,0,C,C,frame*C,row*C,C,C);
   }
   sheets[clip]=atlas;
  }

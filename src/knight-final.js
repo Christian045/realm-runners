@@ -111,7 +111,7 @@ export class KnightFinalAtlas {
   canvas.width=canvas.height=144;
   const g=canvas.getContext('2d');g.imageSmoothingEnabled=false;
   const cell=KNIGHT_SHEET_CELL;
-  g.drawImage(this.images[clip],index*cell,row*cell,cell,cell,0,0,cell,cell);
+  g.drawImage(this.images[clip],index*72,row*72,72,72,0,0,cell,cell);
   if(this.frames.size>=16)this.frames.delete(this.frames.keys().next().value);
   this.frames.set(key,canvas);
   return canvas;
@@ -121,7 +121,7 @@ export class KnightFinalAtlas {
   const {clip,row,index}=knightFinalFrame(p,time),c=KNIGHT_SHEET_CELL;
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha*=.65;
-  ctx.drawImage(this.images[clip],index*c,row*c,c,c,
+  ctx.drawImage(this.images[clip],index*72,row*72,72,72,
    Math.round(p.x-KNIGHT_SHEET_ANCHOR.x),
    Math.round(p.y-KNIGHT_SHEET_ANCHOR.y),c,c);
   ctx.restore();
@@ -132,7 +132,7 @@ export class KnightFinalAtlas {
   const c=KNIGHT_SHEET_CELL,scale=Math.min(width/64,height/74);
   ctx.clearRect(0,0,width,height);
   ctx.save();ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(this.images.idle,(Math.floor(time*4)%6)*c,0,c,c,
+  ctx.drawImage(this.images.idle,(Math.floor(time*4)%6)*72,0,72,72,
    Math.round(width*.5-72*scale),
    Math.round(height*.86-118*scale),144*scale,144*scale);
   ctx.restore();return true;

@@ -14,7 +14,7 @@ const atlas=createKnightRebornSheets(()=>createCanvas(1,1));
 const tile=createCanvas(144,144),ctx=tile.getContext('2d');
 function pixels(clip,row,frame){
  ctx.clearRect(0,0,144,144);ctx.imageSmoothingEnabled=false;
- ctx.drawImage(atlas[clip],frame*144,row*144,144,144,0,0,144,144);
+ ctx.drawImage(atlas[clip],frame*72,row*72,72,72,0,0,144,144);
  return ctx.getImageData(0,0,144,144).data;
 }
 const opaque=(data,x,y)=>data[(Math.floor(y)*144+Math.floor(x))*4+3]||0;
@@ -31,8 +31,8 @@ test('all nine knight states are freshly redrawn in eight directions, not source
  assert.match(source,/createKnightRebornSheets/);
  assert.doesNotMatch(source,/assets\/knight\/v045/);
  for(const [clip,frames] of Object.entries(KNIGHT_REBORN_FRAME_COUNTS)){
-  assert.equal(atlas[clip].width,144*frames);
-  assert.equal(atlas[clip].height,1152);
+  assert.equal(atlas[clip].width,72*frames);
+  assert.equal(atlas[clip].height,576);
  }
 });
 test('all 560 fully drawn cells retain helmet, armor and boots with transparent margins',()=>{
