@@ -112,3 +112,18 @@ test('every one of the eight views is a genuinely different authored silhouette'
  }
  assert.equal(hashes.size,8,'different directions accidentally reuse the same front/back portrait');
 });
+
+// CI art acceptance gallery: the image is emitted only in Actions, not in the
+// game or developer console. It lets visual review check actual rendered
+// gameplay frames (not an unrelated mock-up).
+if(process.env.GITHUB_ACTIONS==='true'){
+ const sheet=createCanvas(576,360),g=sheet.getContext('2d');
+ g.imageSmoothingEnabled=false;
+ const samples=[['idle',0],['walk',2],['attack1',3],['attack2',4],['attack3',5]];
+ for(let i=0;i<samples.length;i++)for(let row=0;row<8;row++){
+  const [clip,f]=samples[i];
+  g.fillStyle='#111c26';g.fillRect(row*72,i*72,72,72);
+  g.drawImage(atlas[clip],f*72,row*72,72,72,row*72,i*72,72,72);
+ }
+ console.log('KNIGHT_PREVIEW_BASE64='+sheet.toBuffer('image/png').toString('base64'));
+}
