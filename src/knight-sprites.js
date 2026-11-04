@@ -15,11 +15,11 @@ export class KnightSpriteAtlas{
   this.images={};this.ready=false;this.failed=false;this.manifest=null;
   this.useLegacyWalk=typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('oldKnightWalk');
   this.loading=this.load(imageFactory);
-  if(this.painted)this.ready=true;
+
  }
  async load(imageFactory){
   try{
-   if(this.painted){await this.painted.loading;this.ready=true;return;}
+   if(this.painted){await this.painted.loading;this.ready=this.painted.ready;this.failed=!this.ready;return;}
    await this.rig?.loading;
    const response=await fetch(new URL('../assets/knight/atlas.json?v=0.29.0',import.meta.url));
    if(!response.ok)throw new Error('Knight atlas manifest unavailable');
@@ -70,7 +70,7 @@ export class KnightSpriteAtlas{
   }catch(error){this.failed=true;console.warn('Knight graphics unavailable; using cached fallback.',error);}
  }
  draw(ctx,p,time){
-  if(this.painted?.draw(ctx,p,time))return true;
+  if(this.painted)return this.painted.draw(ctx,p,time);
   if(this.rig?.draw(ctx,p,time))return true;
   if(!this.ready)return false;
   const pose=knightPose(p,time),f=this.manifest.frames[pose.face][pose.row*8+pose.frame];
@@ -91,7 +91,7 @@ export class KnightSpriteAtlas{
   ctx.restore();return true;
  }
  preview(ctx,width,height,time){
-  if(this.painted?.preview(ctx,width,height,time))return true;
+  if(this.painted)return this.painted.preview(ctx,width,height,time);
   if(previewHeroRig(ctx,this.rig,width,height,time))return true;
   if(!this.ready)return false;
   ctx.clearRect(0,0,width,height);ctx.imageSmoothingEnabled=false;
