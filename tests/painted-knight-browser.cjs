@@ -17,6 +17,20 @@ const assert=require('node:assert/strict');
     await production.loading;
     if(!production.painted)throw new Error('Knight is still using the puppet rig');
     if(!production.painted.imageReady)throw new Error('New original art atlas missing');
+    // Verify the actual browser/WebKit-decoded artwork, not just node-canvas:
+    // rear attacks must change silhouette and both soles must reach the
+    // shared player floor anchor instead of floating above the shadow.
+    for(const row of [3,4,5])for(const clip of ['attack1','attack2','attack3']){
+     const hashes=new Set();
+     for(let frame=0;frame<8;frame++){
+      const tile=production.painted.frame(row,clip,frame);
+      hashes.add(tile.toDataURL?.('image/png'));
+      const t=tile.getContext('2d').getImageData(39,84,51,12).data;
+      let contact=0;for(let n=3;n<t.length;n+=4)if(t[n]>90)contact++;
+      if(contact<12)throw Error('Knight boots float in '+row+' '+clip+' '+frame);
+     }
+     if(hashes.size<7)throw Error('Northern attack is still frozen: '+row+' '+clip);
+    }
     const cellW=112,cellH=120,canvas=document.createElement('canvas');
     canvas.width=cellW*8;canvas.height=cellH*11;
     const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
