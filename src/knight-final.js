@@ -2,9 +2,10 @@ import {knightPose} from './knight-animation.js?v=0.49.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
 import {KNIGHT_REBORN_FRAME_COUNTS,createKnightRebornSheets} from './knight-reborn.js?v=0.49.0';
 
-// Illustrated PNGs are the production renderer on browser builds. Legacy
-// procedural generation remains for headless test tooling only. Current art
-// is a South-first milestone, not a finished eight-direction animation set.
+// The illustrated South-first PNGs are available for in-game review with
+// ?previewPaintedKnight=1. Until all eight facing actions are actually drawn,
+// normal gameplay retains the already-tested 0.49 renderer, avoiding frozen
+// attacks and walking in the other seven directions.
 export const KNIGHT_SHEET_CELL=144;
 export const KNIGHT_SHEET_ANCHOR=Object.freeze({x:72,y:118});
 export const KNIGHT_SHEET_FRAMES=Object.freeze({
@@ -153,8 +154,10 @@ export class KnightFinalAtlas {
    throw new Error('No drawing surface for the new knight');
   });
   try{
-   this.images=typeof Image==='undefined'?
-    createKnightRebornSheets(factory):await loadPaintedKnightSheets(factory);
+   const preview=typeof window!=='undefined'&&
+    new URLSearchParams(window.location.search).has('previewPaintedKnight');
+   this.images=preview&&typeof Image!=='undefined'?
+    await loadPaintedKnightSheets(factory):createKnightRebornSheets(factory);
    this.imageReady=true;this.ready=true;
   }catch(error){
    this.failed=true;this.ready=false;
