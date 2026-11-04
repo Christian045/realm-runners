@@ -11,7 +11,7 @@ const assert=require('node:assert/strict');
    await page.goto('http://127.0.0.1:8000/?newKnight=1');
    const report=await page.evaluate(async()=>{
     const [{KnightPaintedAtlas,KNIGHT_SWINGS},{KnightSpriteAtlas}]=await Promise.all([
-     import('./src/knight-painted.js?v=0.41.0'),import('./src/knight-sprites.js?v=0.41.0')
+     import('./src/knight-painted.js?v=0.42.0'),import('./src/knight-sprites.js?v=0.42.0')
     ]);
     const pure=new KnightPaintedAtlas(),production=new KnightSpriteAtlas();
     await production.loading;
