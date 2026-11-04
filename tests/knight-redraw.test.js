@@ -102,3 +102,13 @@ test('the five production combat clocks select correctly corresponding authored 
   }
  }
 });
+
+test('every one of the eight views is a genuinely different authored silhouette',()=>{
+ const hashes=new Set();
+ for(let row=0;row<8;row++){
+  const d=pixels('idle',row,0),hash=Array.from({length:144*144},(_,n)=>n*4)
+   .reduce((h,i)=>Math.imul(h^d[i],16777619)^d[i+3],2166136261)>>>0;
+  hashes.add(hash);
+ }
+ assert.equal(hashes.size,8,'different directions accidentally reuse the same front/back portrait');
+});
