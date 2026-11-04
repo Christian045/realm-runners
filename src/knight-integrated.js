@@ -84,7 +84,7 @@ export function knightIntegratedPose(row,clip,frame){
   // Front: slash across the body. Rear and sides: wind up / release in
   // the real facing direction. Overhead wind-ups point UP, always.
   const face=Math.atan2(Math.sin(Math.PI/2+row*Math.PI/4),Math.cos(Math.PI/2+row*Math.PI/4));
-  if(clip==='attack3'&&frame>=1&&frame<=3)aim=-Math.PI/2+side*.12;
+  if(clip==='attack3'&&frame>=1&&frame<=3)aim=-Math.PI/2+side*[.36,.21,.07][frame-1];
   else aim=face+offset*(side===1?-1:1);
  }else if(clip==='walk'){
   const [l,r,shift,bob]=WALK[frame];
