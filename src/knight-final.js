@@ -1,26 +1,32 @@
-import {knightPose} from './knight-animation.js?v=0.46.0';
+import {knightPose} from './knight-animation.js?v=0.48.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
-import {bakeKnightFrames,KNIGHT_BAKED_FRAMES} from './knight-frame-baker.js?v=0.47.0';
+import {KNIGHT_REBORN_FRAME_COUNTS,createKnightRebornSheets} from './knight-reborn.js?v=0.48.0';
 
-// These are five COMPLETE original transparent character animations. The
-// renderer only selects an atlas cell; no limb, boot, sword or slash is drawn
-// independently at runtime.
+// Completely redrawn knight. No previous image files, shields, or overlay
+// swords are used. Keeping the first five clip exports stable preserves the
+// combat APIs, while all nine states have their own newly drawn frames.
 export const KNIGHT_SHEET_CELL=144;
 export const KNIGHT_SHEET_ANCHOR=Object.freeze({x:72,y:118});
-export const KNIGHT_SHEET_FRAMES=KNIGHT_BAKED_FRAMES;
+export const KNIGHT_SHEET_FRAMES=Object.freeze({
+ idle:6,walk:8,attack1:8,attack2:8,attack3:10
+});
 export const KNIGHT_SHEET_ROWS=8;
-const clipFor=clip=>Object.hasOwn(KNIGHT_SHEET_FRAMES,clip)?clip:
- clip==='special'?'attack3':clip==='dash'?'walk':'idle';
+const allFrames=KNIGHT_REBORN_FRAME_COUNTS;
+const clipFor=clip=>Object.hasOwn(allFrames,clip)?clip:'idle';
 const clamp=(x,min,max)=>Math.max(min,Math.min(max,x));
+
 export function knightFinalFrame(p,time=0){
- const pose=knightPose(p,time),clip=clipFor(pose.clip),count=KNIGHT_SHEET_FRAMES[clip];
- // Keep the game's existing hit clock: attack 1=3/8, attack 2=4/8,
- // attack 3=4/8. Visual frames alone never modify actual damage timing.
- const index=pose.clip==='idle'||pose.clip==='walk'
-  ?Math.floor(pose.frame*count/8)%count
-  :clamp(Math.floor(pose.progress*count),0,count-1);
+ const pose=knightPose(p,time);
+ const clip=clipFor(pose.clip),count=allFrames[clip];
+ // Impact remains fixed to the gameplay's action-local hit clock, including
+ // the ten-frame finisher whose contact is frame five.
+ const index=clip==='walk'||clip==='idle'?
+  Math.floor(pose.progress*count)%count:
+  clamp(Math.floor(pose.progress*count),0,count-1);
  return {clip,row:rigFacing(pose.direction),index,count,pose};
 }
+
+// Legacy diagnostic helper. Production does not read or normalize old sprites.
 // The earlier walking sheet contains a drastically undersized first frame in
 // some facings. Normalize it to the measured reference body *once at load*,
 // not by stretching a character on every draw. The other seven distinct gait
@@ -71,84 +77,64 @@ export function prepareKnightWalkSheet(image,canvasFactory=null){
 }
 
 export class KnightFinalAtlas {
- constructor(imageFactory=null){
+ constructor(canvasFactory=null){
   this.images={};this.frames=new Map();this.imageReady=false;
   this.ready=false;this.failed=false;
-  this.imageFactory=imageFactory;
+  this.canvasFactory=canvasFactory;
   this.loading=this.load();
  }
  async load(){
-  if(typeof Image==='undefined'&&!this.imageFactory)return;
+  const factory=this.canvasFactory||(()=>{
+   if(typeof OffscreenCanvas!=='undefined')return new OffscreenCanvas(1,1);
+   if(typeof document!=='undefined')return document.createElement('canvas');
+   throw new Error('No drawing surface for the new knight');
+  });
   try{
-   const source={};
-   await Promise.all(['idle','walk'].map(async clip=>{
-    const image=this.imageFactory?this.imageFactory():new Image();
-    image.decoding='async';
-    await new Promise((resolve,reject)=>{
-     image.onload=resolve;image.onerror=reject;
-     image.src=new URL('../assets/knight/v045/'+clip+'.png?v=0.47.0',import.meta.url).href;
-    });
-    if(image.decode)await image.decode();
-    const width=KNIGHT_SHEET_FRAMES[clip]*KNIGHT_SHEET_CELL;
-    const height=KNIGHT_SHEET_ROWS*KNIGHT_SHEET_CELL;
-    if((image.naturalWidth||image.width)!==width||
-       (image.naturalHeight||image.height)!==height)
-     throw new Error('Invalid knight '+clip+' source dimensions');
-    source[clip]=image;
-   }));
-   const create=()=>{
-    if(typeof OffscreenCanvas!=='undefined')return new OffscreenCanvas(1,1);
-    return document.createElement('canvas');
-   };
-   // Author every complete 8-way idle, step and combo frame once. No
-   // independent shield or weapon layer is animated inside the game loop.
-   this.images=bakeKnightFrames(source,create);
+   this.images=createKnightRebornSheets(factory);
    this.imageReady=true;this.ready=true;
   }catch(error){
    this.failed=true;this.ready=false;
-   console.warn('Baked knight artwork unavailable',error);
+   console.warn('New knight drawing failed',error);
   }
  }
  frame(row,clip,index){
   clip=clipFor(clip);
   if(!this.ready)return null;
-  const count=KNIGHT_SHEET_FRAMES[clip];
-  row=clamp(Math.floor(row),0,7);index=clamp(Math.floor(index),0,count-1);
+  const count=allFrames[clip];
+  row=clamp(Math.floor(row),0,7);
+  index=clamp(Math.floor(index),0,count-1);
   const key=clip+':'+row+':'+index;
   if(this.frames.has(key))return this.frames.get(key);
-  const canvas=typeof OffscreenCanvas!=='undefined'?
-   new OffscreenCanvas(KNIGHT_SHEET_CELL,KNIGHT_SHEET_CELL):
+  const canvas=this.canvasFactory?this.canvasFactory():
+   typeof OffscreenCanvas!=='undefined'?new OffscreenCanvas(144,144):
    document.createElement('canvas');
-  canvas.width=canvas.height=KNIGHT_SHEET_CELL;
+  canvas.width=canvas.height=144;
   const g=canvas.getContext('2d');g.imageSmoothingEnabled=false;
   const cell=KNIGHT_SHEET_CELL;
-  g.drawImage(this.images[clip],index*cell,row*cell,cell,cell,0,0,cell,cell);
-  // Limit offscreen frame cache; the game draws directly from sprite sheets,
-  // so a mobile WebKit GPU must not retain hundreds of duplicate canvases.
+  g.drawImage(this.images[clip],index*72,row*72,72,72,0,0,cell,cell);
   if(this.frames.size>=16)this.frames.delete(this.frames.keys().next().value);
   this.frames.set(key,canvas);
   return canvas;
  }
  draw(ctx,p,time=0){
   if(!this.ready||!ctx?.drawImage)return false;
-  const {clip,row,index}=knightFinalFrame(p,time);
-  const c=KNIGHT_SHEET_CELL;
+  const {clip,row,index}=knightFinalFrame(p,time),c=KNIGHT_SHEET_CELL;
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha*=.65;
-  // The boots end 5 world pixels below p.y, above the existing shadow.
-  ctx.drawImage(this.images[clip],index*c,row*c,c,c,
+  ctx.drawImage(this.images[clip],index*72,row*72,72,72,
    Math.round(p.x-KNIGHT_SHEET_ANCHOR.x),
    Math.round(p.y-KNIGHT_SHEET_ANCHOR.y),c,c);
-  ctx.restore();return true;
+  ctx.restore();
+  return true;
  }
  preview(ctx,width,height,time=0){
   if(!this.ready)return false;
+  const c=KNIGHT_SHEET_CELL,scale=Math.min(width/64,height/74);
   ctx.clearRect(0,0,width,height);
   ctx.save();ctx.imageSmoothingEnabled=false;
-  const scale=Math.min(width/70,height/73),c=KNIGHT_SHEET_CELL;
-  ctx.drawImage(this.images.idle,(Math.floor(time*4)%6)*c,0,c,c,
-   Math.round(width*.5-KNIGHT_SHEET_ANCHOR.x*scale),
-   Math.round(height*.86-KNIGHT_SHEET_ANCHOR.y*scale),c*scale,c*scale);
+  ctx.drawImage(this.images.idle,(Math.floor(time*4)%6)*72,0,72,72,
+   Math.round(width*.5-72*scale),
+   Math.round(height*.86-118*scale),144*scale,144*scale);
   ctx.restore();return true;
  }
 }
