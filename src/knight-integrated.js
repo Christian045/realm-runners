@@ -104,7 +104,7 @@ export function knightIntegratedPose(row,clip,frame){
   elbow={x:q(shoulder.x*.58+wrist.x*.42+side*3),y:q(shoulder.y*.52+wrist.y*.48-2)},
   grip={x:wrist.x,y:wrist.y};
  const blade={angle:aim,length:clip==='attack3'?27:25,
-   grip,tip:{x:grip.x+Math.cos(aim)*31,y:grip.y+Math.sin(aim)*31}};
+   grip,tip:{x:grip.x+Math.cos(aim)*32,y:grip.y+Math.sin(aim)*32}};
  return {row,clip,frame,side,bodyX,bodyY,torsoTilt,
   hip:{x:bodyX,y:-9+bodyY},
   feet:feet.map(([x,y])=>({x,y})),shoulder,elbow,hand:grip,blade,
@@ -124,7 +124,7 @@ export function paintIntegratedKnight(c,image,row,clip,frame){
  // BOTH greaves are part of this one sprite: hips, knees, ankle and boot
  // are connected. Walk phases have alternating planted and lifted soles.
  for(let i=0;i<2;i++){
-  const f=pose.feet[i],hip={x:pose.hip.x+(i?-5:5),y:pose.hip.y},
+  const f=pose.feet[i],hip={x:pose.hip.x+(i?5:-5),y:pose.hip.y},
    knee={x:q(hip.x*.55+f.x*.45),y:q((hip.y+f.y-4)/2)},
    ankle={x:f.x,y:f.y-4};
   segment(c,INK,hip,knee,9);
