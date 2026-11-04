@@ -1,25 +1,32 @@
-import {getKnightPainted} from './knight-painted.js?v=0.43.0';
+import {getKnightFinal} from './knight-final.js?v=0.44.0';
 import {getHeroRig,previewHeroRig} from './articulated-hero.js?v=0.40.0';
 import {drawKnightAction,KNIGHT_ACTION_CLIPS} from './knight-action-sprites.js?v=0.39.0';
 import {drawKnightWalk} from './knight-walk.js?v=0.36.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';
 import {knightPose} from './knight-animation.js?v=0.31.0';
 
-// Four compact, decoded-once PNG atlases. Source frames include the sword;
-// never draw the old floating weapon on top of this character.
+// NewKnight mode uses original complete-body transparent sprite sheets. Its
+// sword and legs are part of every frame; legacy art remains rollback-only.
 export class KnightSpriteAtlas{
  constructor(imageFactory=()=>new Image()){
   const flags=typeof window!=='undefined'?new URLSearchParams(window.location.search):new URLSearchParams();
-  this.painted=flags.has('newKnight')&&!flags.has('legacyHeroArt')&&!flags.has('oldKnightPixel')?getKnightPainted():null;
+  this.painted=flags.has('newKnight')&&!flags.has('legacyHeroArt')&&!flags.has('oldKnightPixel')?getKnightFinal():null;
   this.rig=typeof Image!=='undefined'&&!this.painted?getHeroRig('warrior'):null;
   this.images={};this.ready=false;this.failed=false;this.manifest=null;
   this.useLegacyWalk=typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('oldKnightWalk');
   this.loading=this.load(imageFactory);
-  if(this.painted)this.ready=true;
+
  }
  async load(imageFactory){
   try{
-   if(this.painted){await this.painted.loading;this.ready=true;return;}
+   if(this.painted){
+    await this.painted.loading;
+    if(this.painted.ready){this.ready=true;return;}
+    // A missing/cached PNG must never leave the player invisible. Fall back
+    // to the existing proven original character decoder if atlas loading fails.
+    this.painted=null;
+    this.rig=typeof Image!=='undefined'?getHeroRig('warrior'):null;
+   }
    await this.rig?.loading;
    const response=await fetch(new URL('../assets/knight/atlas.json?v=0.29.0',import.meta.url));
    if(!response.ok)throw new Error('Knight atlas manifest unavailable');
@@ -70,7 +77,7 @@ export class KnightSpriteAtlas{
   }catch(error){this.failed=true;console.warn('Knight graphics unavailable; using cached fallback.',error);}
  }
  draw(ctx,p,time){
-  if(this.painted?.draw(ctx,p,time))return true;
+  if(this.painted)return this.painted.draw(ctx,p,time);
   if(this.rig?.draw(ctx,p,time))return true;
   if(!this.ready)return false;
   const pose=knightPose(p,time),f=this.manifest.frames[pose.face][pose.row*8+pose.frame];
@@ -91,7 +98,7 @@ export class KnightSpriteAtlas{
   ctx.restore();return true;
  }
  preview(ctx,width,height,time){
-  if(this.painted?.preview(ctx,width,height,time))return true;
+  if(this.painted)return this.painted.preview(ctx,width,height,time);
   if(previewHeroRig(ctx,this.rig,width,height,time))return true;
   if(!this.ready)return false;
   ctx.clearRect(0,0,width,height);ctx.imageSmoothingEnabled=false;

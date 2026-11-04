@@ -6,85 +6,82 @@ const assert=require('node:assert/strict');
  for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
   const browser=await engine.launch({headless:true});
   try{
-   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errors=[];
-   page.on('pageerror',error=>errors.push(error.message));
+   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+   const errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto('http://127.0.0.1:8000/?newKnight=1');
-   const report=await page.evaluate(async()=>{
-    const [{KnightPaintedAtlas,KNIGHT_SWINGS},{KnightSpriteAtlas}]=await Promise.all([
-     import('./src/knight-painted.js?v=0.43.0'),import('./src/knight-sprites.js?v=0.43.0')
+   const result=await page.evaluate(async({capture})=>{
+    const [{KnightSpriteAtlas},{KNIGHT_SHEET_CELL,KNIGHT_SHEET_FRAMES,knightFinalFrame}]=await Promise.all([
+     import('./src/knight-sprites.js?v=0.44.0'),
+     import('./src/knight-final.js?v=0.44.0')
     ]);
-    const pure=new KnightPaintedAtlas(),production=new KnightSpriteAtlas();
-    await production.loading;
-    if(!production.painted)throw new Error('Knight is still using the puppet rig');
-    if(!production.painted.imageReady)throw new Error('New original art atlas missing');
-    // Verify the actual browser/WebKit-decoded artwork, not just node-canvas:
-    // rear attacks must change silhouette and both soles must reach the
-    // shared player floor anchor instead of floating above the shadow.
-    for(const row of [3,4,5])for(const clip of ['attack1','attack2','attack3']){
-     const hashes=new Set();
-     for(let frame=0;frame<8;frame++){
-      const tile=production.painted.frame(row,clip,frame);
-      // OffscreenCanvas has no toDataURL() in WebKit/Chromium. Hash raw
-      // pixels instead; otherwise every frame looks identical to the test.
-      const raw=tile.getContext('2d').getImageData(0,0,128,128).data;
-      let hash=2166136261;
-      for(let n=0;n<raw.length;n+=4)if(raw[n+3]>80){
-       hash=Math.imul(hash^raw[n],16777619);
-       hash=Math.imul(hash^raw[n+1],16777619);
-       hash=Math.imul(hash^(n>>>2),16777619);
+    const atlas=new KnightSpriteAtlas();await atlas.loading;
+    if(!atlas.painted?.imageReady)throw Error('Missing transparent real full-body sheets');
+    if(atlas.painted.frames.size>16)throw Error('Unexpected large WebKit frame cache');
+    let checked=0;
+    const frameCount=Object.values(KNIGHT_SHEET_FRAMES).reduce((a,b)=>a+b,0);
+    for(let row=0;row<8;row++)for(const [clip,count] of Object.entries(KNIGHT_SHEET_FRAMES)){
+     let changed=new Set(),shins=new Set();
+     for(let frame=0;frame<count;frame++){
+      const tile=atlas.painted.frame(row,clip,frame);
+      if(tile.width!==KNIGHT_SHEET_CELL||tile.height!==KNIGHT_SHEET_CELL)
+       throw Error('Invalid original frame bounds '+clip);
+      const g=tile.getContext('2d'),full=g.getImageData(0,0,144,144).data;
+      let colored=0,sole=0,hash=2166136261;
+      for(let y=0;y<144;y++)for(let x=0;x<144;x++){
+       const i=(y*144+x)*4;
+       if(full[i+3]>55){colored++;if(y>=119&&y<=133&&x>27&&x<116)sole++;}
       }
-      hashes.add(hash>>>0);
-      const t=tile.getContext('2d').getImageData(39,84,51,12).data;
-      let contact=0;for(let n=3;n<t.length;n+=4)if(t[n]>90)contact++;
-      if(contact<12)throw Error('Knight boots float in '+row+' '+clip+' '+frame);
+      if(colored<400||sole<12)throw Error('Missing full-body or boots '+clip+' '+row+' '+frame);
+      const shin=g.getImageData(42,108,63,27).data;
+      for(let n=0;n<shin.length;n+=4)hash=Math.imul(hash^shin[n+3],16777619)^shin[n];
+      shins.add(hash>>>0);
+      changed.add(full.filter((_,i)=>i%40===0).reduce((a,v)=>Math.imul(a^v,16777619),2166136261)>>>0);
+      checked++;
      }
-     if(hashes.size<7)throw Error('Northern attack is still frozen: '+row+' '+clip);
+     if(clip==='walk'&&shins.size<5)throw Error('Legs do not alternate in view '+row);
+     if(clip.startsWith('attack')&&changed.size<4)throw Error('Attack is frozen in view '+row+' '+clip);
     }
-    // Check the leg pixels themselves, not only the moving upper body.
-    for(let row=0;row<8;row++){
-     const lower=new Set();
-     for(let frame=0;frame<8;frame++){
-      const tile=production.painted.frame(row,'walk',frame);
-      const px=tile.getContext('2d').getImageData(40,77,48,23).data;
-      let hash=2166136261;
-      for(let i=0;i<px.length;i+=4){hash=Math.imul(hash^px[i],16777619);hash=Math.imul(hash^px[i+3],16777619);}
-      lower.add(hash>>>0);
-     }
-     if(lower.size<5)throw Error('Frozen painted knight legs in view '+row);
+    if(checked!==frameCount*8)throw Error('Missing authored frames');
+    const canvas=document.createElement('canvas');canvas.width=8*158;canvas.height=5*170;
+    const g=canvas.getContext('2d');g.imageSmoothingEnabled=false;
+    const clipNames=Object.keys(KNIGHT_SHEET_FRAMES);
+    for(let y=0;y<clipNames.length;y++)for(let row=0;row<8;row++){
+     const clip=clipNames[y],angle=Math.PI/2+row*Math.PI/4;
+     const direction={x:Math.cos(angle),y:Math.sin(angle)};
+     const p={kind:'warrior',x:row*158+79,y:y*170+140,hp:100,
+      moving:clip==='walk',direction,knightMoveDirection:direction,
+      knightWalkDistance:30,walkDistance:30,invulnerable:0};
+     if(clip.startsWith('attack'))p.knightAction={clip,duration:1,elapsed:clip==='attack1'?.375:.5,direction};
+     g.fillStyle='#121c24';g.fillRect(row*158,y*170,158,170);
+     if(!atlas.draw(g,p,.5))throw Error('Production render missing '+row+' '+clip);
     }
-    const cellW=112,cellH=120,canvas=document.createElement('canvas');
-    canvas.width=cellW*8;canvas.height=cellH*11;
-    const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
-    let frames=0,changed=0;
-    for(let row=0;row<8;row++){
-     const angle=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(angle),y:Math.sin(angle)};
-     const states=[['idle',0],['walk',.25]];
-     for(const clip of ['attack1','attack2','attack3'])states.push(
-      [clip,.125],[clip,KNIGHT_SWINGS[clip].impact/8],[clip,.75]);
-     for(let i=0;i<states.length;i++){
-      const [clip,t]=states[i],x=row*cellW,y=i*cellH;
-      c.fillStyle='#111b24';c.fillRect(x,y,cellW,cellH);
-      c.fillStyle='#a58a69';c.font='10px monospace';c.fillText(clip+' '+row,x+5,y+12);
-      const p={kind:'warrior',hp:100,x:x+cellW/2,y:y+105,direction,knightMoveDirection:direction,
-       knightWalkDistance:t*72,moving:clip==='walk',walkDistance:t*72,invulnerable:0};
-      if(clip.startsWith('attack'))p.knightAction={clip,elapsed:t,duration:1,direction};
-      if(!production.draw(c,p,t))throw new Error('Production failed '+clip+' '+row);
-      const img=pure.frame(row,clip,Math.floor(t*8)%8);
-      if(!img)throw new Error('Missing authored full-body '+clip+' '+row);
-      frames++;
-     }
-    }
-    const hit={kind:'warrior',hp:100,x:64,y:100,direction:{x:1,y:0},knightAction:{
-      clip:'attack1',duration:1,elapsed:.375,direction:{x:1,y:0}},invulnerable:0};
-    const a=document.createElement('canvas');a.width=200;a.height=170;
-    const ac=a.getContext('2d');pure.draw(ac,hit,0);const b=ac.getImageData(0,0,200,170).data;
-    changed=b.some((value,i)=>i%4===3&&value>40)?1:0;
-    return {frames,changed,preview:canvas.toDataURL('image/png')};
+    return {checked,screenshot:capture?canvas.toDataURL('image/png'):null};
+   },{capture:name==='chromium'});
+   assert.equal(result.checked,320);
+   assert.deepEqual(errors,[]);
+   if(result.screenshot)fs.writeFileSync('test-output/knight-v044-original-sprites.png',
+    Buffer.from(result.screenshot.split(',')[1],'base64'));
+   // Test the actual main-menu -> dungeon path with the same opt-in
+   // renderer. A standalone atlas screenshot is insufficient acceptance:
+   // the previous versions passed sprite tests but displayed old art ingame.
+   await page.locator('[data-action="class:warrior"]').click();
+   await page.locator('[data-action="start"]').click();
+   await page.locator('#overlay').waitFor({state:'hidden'});
+   const live=await page.evaluate(async()=>{
+    const [{KnightSpriteAtlas},{KnightFinalAtlas}]=await Promise.all([
+     import('./src/knight-sprites.js?v=0.44.0'),
+     import('./src/knight-final.js?v=0.44.0')
+    ]);
+    const knight=new KnightSpriteAtlas();await knight.loading;
+    if(!(knight.painted instanceof KnightFinalAtlas)||!knight.painted.ready)
+     throw Error('Gameplay still selecting obsolete procedural knight');
+    const game=document.querySelector('#gameCanvas');
+    if(!game||!game.width||!game.height)throw Error('No live game canvas');
+    return {newArt:knight.painted.ready,canvas:game.width+'x'+game.height};
    });
-   assert.equal(report.frames,88);assert.equal(report.changed,1);assert.deepEqual(errors,[]);
-   if(name==='chromium')fs.writeFileSync('test-output/knight-pixel-041-contact-sheet.png',
-    Buffer.from(report.preview.split(',')[1],'base64'));
-   console.log(name,'painted knight browser poses',report.frames);
+   assert.equal(live.newArt,true);assert.deepEqual(errors,[]);
+   if(name==='chromium')await page.screenshot({path:'test-output/knight-v044-live-game.png'});
+   console.log(name,'whole-frame knight state tests',result.checked,'live game',live.canvas);
   }finally{await browser.close();}
  }
 })().catch(e=>{console.error(e);process.exitCode=1});
