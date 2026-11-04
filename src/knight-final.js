@@ -38,7 +38,7 @@ export class KnightFinalAtlas {
     image.decoding='async';
     await new Promise((resolve,reject)=>{
      image.onload=resolve;image.onerror=reject;
-     image.src=new URL('../assets/knight/v044/'+clip+'.png?v=0.44.0',import.meta.url).href;
+     image.src=new URL('../assets/knight/v045/'+clip+'.png?v=0.45.0',import.meta.url).href;
     });
     if(image.decode)await image.decode();
     const width=KNIGHT_SHEET_FRAMES[clip]*KNIGHT_SHEET_CELL;
