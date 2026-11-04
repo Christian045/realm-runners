@@ -140,7 +140,7 @@ const assert=require('node:assert/strict');
   assert.ok(currentCombat,'the browser must load the versioned combat engine');
   const realBattle=await page.evaluate(async()=>{
    const [{Game},{defaultProgress}]=await Promise.all([
-    import('./src/game.js?v=0.48.0'),import('./src/progression.js')]);
+    import('./src/game.js?v=0.49.0'),import('./src/progression.js')]);
    const input={movement:()=>({x:0,y:0}),aiming:()=>({x:1,y:0}),
     attacking:()=>false,consumeDash:()=>false,consumeAbility:()=>false};
    for(const seed of [5,71,150]){

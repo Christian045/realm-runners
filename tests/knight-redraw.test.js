@@ -24,7 +24,7 @@ const near=(data,x,y,r=4)=>{
  return false;
 };
 test('all nine knight states are freshly redrawn in eight directions, not sourced from old PNGs',async()=>{
- assert.equal(count,70);
+ assert.equal(count,76);
  assert.equal(KNIGHT_SHEET_ANCHOR.x,72);
  assert.equal(KNIGHT_SHEET_ANCHOR.y,118);
  const source=await readFile(new URL('../src/knight-final.js',import.meta.url),'utf8');
@@ -35,7 +35,7 @@ test('all nine knight states are freshly redrawn in eight directions, not source
   assert.equal(atlas[clip].height,576);
  }
 });
-test('all 560 fully drawn cells retain helmet, armor and boots with transparent margins',()=>{
+test('all 608 fully drawn cells retain helmet, armor and boots with transparent margins',()=>{
  let checked=0;
  for(const [clip,frames] of Object.entries(KNIGHT_REBORN_FRAME_COUNTS))
   for(let row=0;row<8;row++)for(let f=0;f<frames;f++){
@@ -54,7 +54,7 @@ test('all 560 fully drawn cells retain helmet, armor and boots with transparent 
    if(clip!=='death')assert.ok(boots>=12,clip+' row '+row+' frame '+f+' ungrounded');
    checked++;
   }
- assert.equal(checked,560);
+ assert.equal(checked,608);
 });
 test('gait alternates both armored boots in every eight-way direction',()=>{
  for(let row=0;row<8;row++){

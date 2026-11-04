@@ -1,9 +1,9 @@
-import {getKnightFinal} from './knight-final.js?v=0.48.0';
+import {getKnightFinal} from './knight-final.js?v=0.49.0';
 import {getHeroRig,previewHeroRig} from './articulated-hero.js?v=0.40.0';
 import {drawKnightAction,KNIGHT_ACTION_CLIPS} from './knight-action-sprites.js?v=0.39.0';
 import {drawKnightWalk} from './knight-walk.js?v=0.46.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';
-import {knightPose} from './knight-animation.js?v=0.48.0';
+import {knightPose} from './knight-animation.js?v=0.49.0';
 
 // The production knight uses complete-body transparent sprite sheets. Its
 // sword and legs are part of every frame; legacy art remains rollback-only.
@@ -122,17 +122,17 @@ export class KnightSpriteAtlas{
 // Short bounded world-space effects leave enemy telegraphs readable.
 export function drawKnightEffect(ctx,e,alpha){
  const t=1-alpha,whirl=e.type==='knight-whirl',finisher=e.step===3;
- ctx.save();ctx.translate(e.x,e.y-10);ctx.rotate(e.angle||0);
- const r=e.radius*(.78+t*.22),reverse=e.step===2?-1:1;
+ ctx.save();ctx.translate(e.x,e.y);ctx.rotate(e.angle||0);
+ const r=whirl?e.radius*(.78+t*.22):e.radius*(.87+t*.13),reverse=e.step===2?-1:1;
  ctx.scale(1,.64);ctx.lineCap='round';
  if(!whirl){
   // Thin directional impact arc only. The actual sword is already attached
   // to the knight's hand, so a giant rotating halo would look like a second sword.
-  ctx.globalAlpha=alpha*.48;
+  ctx.globalAlpha=alpha*.42;
   for(let i=0;i<2;i++){
-   ctx.lineWidth=i===0?4:2;
+   ctx.lineWidth=i===0?3:1.5;
    ctx.strokeStyle=i?'#e8f4eb':finisher?'#efc77e':'#8fb5c3';
-   ctx.beginPath();ctx.arc(0,0,r-i*4,reverse<0?.57:-.57,reverse<0?-.57:.57,reverse<0);ctx.stroke();
+   ctx.beginPath();ctx.arc(0,0,r-i*3,reverse<0?.7:-.7,reverse<0?-.7:.7,reverse<0);ctx.stroke();
   }
   ctx.restore();return;
  }
