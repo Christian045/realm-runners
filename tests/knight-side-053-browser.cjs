@@ -12,12 +12,12 @@ const FRAMES={idle:6,walk:8,attack1:8,attack2:8,attack3:10,
   try{
    const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
    const errors=[];page.on('pageerror',error=>errors.push(error.message));
-   await page.goto('http://127.0.0.1:8000/?v=0.53.0&previewKnightFinal=1');
+   await page.goto('http://127.0.0.1:8000/?v=0.53.1&previewKnightFinal=1');
    const report=await page.evaluate(async FRAMES=>{
     const [{getKnightFinal,knightFinalFrame},{KnightSpriteAtlas},{KNIGHT_SIDE_053}]=await Promise.all([
-     import('./src/knight-final.js?v=0.53.0'),
-     import('./src/knight-sprites.js?v=0.53.0'),
-     import('./src/knight-side-053.js?v=0.53.0')
+     import('./src/knight-final.js?v=0.53.1'),
+     import('./src/knight-sprites.js?v=0.53.1'),
+     import('./src/knight-side-053.js?v=0.53.1')
     ]);
     const atlas=getKnightFinal();await atlas.loading;
     if(!atlas.ready||!atlas.imageReady||!atlas.completePreview||
@@ -87,9 +87,9 @@ const FRAMES={idle:6,walk:8,attack1:8,attack2:8,attack3:10,
    assert.deepEqual(errors,[]);
    await page.screenshot({path:'test-output/knight-053-live-'+browserName+'.png'});
    const plain=await browser.newPage({viewport:{width:1200,height:760}});
-   await plain.goto('http://127.0.0.1:8000/?v=0.53.0');
+   await plain.goto('http://127.0.0.1:8000/?v=0.53.1');
    const baseline=await plain.evaluate(async()=>{
-    const {getKnightFinal}=await import('./src/knight-final.js?v=0.53.0');
+    const {getKnightFinal}=await import('./src/knight-final.js?v=0.53.1');
     const atlas=getKnightFinal();await atlas.loading;
     return {ready:atlas.ready,review:Boolean(atlas.completePreview),
      sideRequested:performance.getEntriesByType('resource')

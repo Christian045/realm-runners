@@ -1,11 +1,11 @@
 import {beginCompanionAttack,advanceCompanion,companionShot} from './companion-animation.js?v=0.31.0';
-import {advanceLocomotion} from './locomotion.js?v=0.46.0';
+import {advanceLocomotion} from './locomotion.js?v=0.53.1';
 import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.40.0';
 import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.31.0';
 import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.49.0';
 import {knightBladeTip} from './knight-reborn.js?v=0.49.0';
-import {knightNorth051Impact} from './knight-north-051.js?v=0.52.0';
-import {knightSide053Impact} from './knight-side-053.js?v=0.53.0';
+import {knightNorth051Impact} from './knight-north-051.js?v=0.53.1';
+import {knightSide053Impact} from './knight-side-053.js?v=0.53.1';
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.23.0';
 import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.26.0';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js?v=0.21.0';

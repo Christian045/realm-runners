@@ -2,8 +2,8 @@ import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.49.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
 import {knightPreviewActionFrame,knightPreviewPresentationFrame} from './knight-preview-motion.js?v=0.53.1';
 import {KNIGHT_REBORN_FRAME_COUNTS,createKnightRebornSheets} from './knight-reborn.js?v=0.49.0';
-import {loadKnightNorthReviewSheets,KNIGHT_NORTH_051} from './knight-north-051.js?v=0.52.0';
-import {loadKnightSideReviewSheets,KNIGHT_SIDE_053} from './knight-side-053.js?v=0.53.0';
+import {loadKnightNorthReviewSheets,KNIGHT_NORTH_051} from './knight-north-051.js?v=0.53.1';
+import {loadKnightSideReviewSheets,KNIGHT_SIDE_053} from './knight-side-053.js?v=0.53.1';
 
 // The illustrated South-first PNGs are available for in-game review with
 // ?previewPaintedKnight=1. Until all eight facing actions are actually drawn,
