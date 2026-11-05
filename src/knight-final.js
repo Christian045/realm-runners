@@ -1,4 +1,4 @@
-import {knightPose} from './knight-animation.js?v=0.49.0';
+import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.49.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
 import {KNIGHT_REBORN_FRAME_COUNTS,createKnightRebornSheets} from './knight-reborn.js?v=0.49.0';
 import {loadKnightNorthReviewSheets,KNIGHT_NORTH_051} from './knight-north-051.js?v=0.52.0';
@@ -22,8 +22,13 @@ export function knightFinalFrame(p,time=0){
  const clip=clipFor(pose.clip),count=allFrames[clip];
  // Impact remains fixed to the gameplay's action-local hit clock, including
  // the ten-frame finisher whose contact is frame five.
- const index=clip==='walk'||clip==='idle'?
-  Math.floor(pose.progress*count)%count:
+ // The action animator reports capped progress after one loop. Use its
+ // unbounded gait phase and the absolute idle clock so idle/walk never freeze
+ // after one cycle, even in a long run or a menu preview.
+ const index=clip==='walk'?pose.frame%count:
+  clip==='idle'?Math.floor((((time%KNIGHT_CLIPS.idle.duration)+
+   KNIGHT_CLIPS.idle.duration)%KNIGHT_CLIPS.idle.duration)/
+   KNIGHT_CLIPS.idle.duration)*count):
   clamp(Math.floor(pose.progress*count),0,count-1);
  return {clip,row:rigFacing(pose.direction),index,count,pose};
 }
