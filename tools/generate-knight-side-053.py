@@ -264,6 +264,9 @@ def generate():
     elif clip=='death':im=death_pose(row,f)
     else:im=sword_arm(row,clip,f)
     sheet.alpha_composite(im,(f*C,row*C))
+  if clip=='attack1':
+   with Image.open(ROOT/'attack1-east.png') as east:
+    sheet.paste(east,(0,6*C))
   sheet.save(ROOT/(clip+'-side.png'),optimize=True)
   print(clip,frames,ROOT/(clip+'-side.png'),(ROOT/(clip+'-side.png')).stat().st_size)
  # Contact sheet for visual review in runtime cell resolution, no cosmetics.
