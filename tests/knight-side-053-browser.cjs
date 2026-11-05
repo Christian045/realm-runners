@@ -48,7 +48,9 @@ const FRAMES={idle:6,walk:8,attack1:8,attack2:8,attack3:10,
        if(pixels<1000)throw Error('Missing full body '+row+' '+clip+' '+f+' pixels '+pixels);
        hashes.add(hash>>>0);checked++;
       }
-      if(KNIGHT_SIDE_053.rows.includes(row)&&hashes.size<Math.min(count-1,5))
+      const minPoses=clip==='idle'?4:clip==='recovery'||clip==='hurt'?5:
+       Math.min(count-1,7);
+      if(KNIGHT_SIDE_053.rows.includes(row)&&hashes.size<minPoses)
        throw Error('Frozen sprite '+row+' '+clip+' unique '+hashes.size);
       const index=clip==='attack3'?5:clip==='attack1'||clip==='special'?3:
        clip==='attack2'?4:Math.min(2,count-1);
