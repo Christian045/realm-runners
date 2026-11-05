@@ -11,10 +11,10 @@ const clips={idle:6,walk:8,hurt:6,dash:8,death:8};
   try{
    const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.goto('http://127.0.0.1:8000/?previewKnightUp=1&v=0.52.0');
+   await page.goto('http://127.0.0.1:8000/?previewKnightUp=1&v=0.53.0');
    const result=await page.evaluate(async clipCounts=>{
-    const {getKnightFinal}=await import('./src/knight-final.js?v=0.52.0');
-    const {KNIGHT_NORTH_052}=await import('./src/knight-north-051.js?v=0.52.0');
+    const {getKnightFinal}=await import('./src/knight-final.js?v=0.53.0');
+    const {KNIGHT_NORTH_052}=await import('./src/knight-north-051.js?v=0.53.0');
     const atlas=getKnightFinal();await atlas.loading;
     if(!atlas.ready||!atlas.imageReady||atlas.reviewScale!==.90)
      throw Error('Alpha 0.52 PNGs were not loaded in the actual renderer');
@@ -76,9 +76,9 @@ const clips={idle:6,walk:8,hurt:6,dash:8,death:8};
    await page.screenshot({path:'test-output/knight-north-052-live-'+name+'.png'});
    // The standard game must not load the unfinished north sprite assets.
    const defaultPage=await browser.newPage({viewport:{width:1200,height:760}});
-   await defaultPage.goto('http://127.0.0.1:8000/?v=0.52.0');
+   await defaultPage.goto('http://127.0.0.1:8000/?v=0.53.0');
    const guard=await defaultPage.evaluate(async()=>{
-    const {getKnightFinal}=await import('./src/knight-final.js?v=0.52.0');
+    const {getKnightFinal}=await import('./src/knight-final.js?v=0.53.0');
     const knight=getKnightFinal();await knight.loading;
     return {ready:knight.ready,
       preview:knight.reviewScale??1,
