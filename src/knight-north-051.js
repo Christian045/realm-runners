@@ -19,7 +19,7 @@ const loadImage=path=>new Promise((resolve,reject)=>{
 export async function loadKnightNorthReviewSheets(factory,originals){
  if(typeof Image==='undefined')throw new Error('Browser images unavailable');
  const paths=['facings-v051',...Object.keys(sourceCounts)];
- const values=await Promise.all(paths.map(async key=>[key,await loadImage(key)]));
+ const values=await Promise.all(paths.map(async key=>[key,await loadImage(key==='facings-v051'?key:key+'-up')]));
  const pictures=Object.fromEntries(values);
  const width=image=>image.naturalWidth||image.width;
  const height=image=>image.naturalHeight||image.height;
