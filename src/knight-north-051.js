@@ -74,11 +74,14 @@ export function knightNorth051DirectionRow(dir){
  const dx=Number(dir?.x)||0,dy=Number(dir?.y)||0;
  return ((Math.round((Math.atan2(dy,dx)-Math.PI/2)/(Math.PI/4))%8)+8)%8;
 }
-export function knightNorth051Impact(player,direction,clip,enabled=false){
+export function knightNorth051Impact(player,direction,clip,enabled=false,normalized=false){
  if(!enabled||!player)return null;
  const row=knightNorth051DirectionRow(direction);
  const point=northHitTips[clip]?.[row];
  if(!point)return null;
  const [x,y]=point,scale=KNIGHT_NORTH_051.previewScale;
- return {x:player.x+(x-36)*2*scale,y:player.y+(y-59)*2*scale,row,clip};
+ // The all-eight 0.53 art preview rescales the baked head/body at their
+ // shared foot anchor. The standalone 0.52 north preview stays unchanged.
+ const xs=normalized?(row===5?1:1.08):1,ys=normalized?1.075:1;
+ return {x:player.x+(x-36)*xs*2*scale,y:player.y+(y-59)*ys*2*scale,row,clip};
 }

@@ -2,6 +2,7 @@ import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.49.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
 import {KNIGHT_REBORN_FRAME_COUNTS,createKnightRebornSheets} from './knight-reborn.js?v=0.49.0';
 import {loadKnightNorthReviewSheets,KNIGHT_NORTH_051} from './knight-north-051.js?v=0.52.0';
+import {loadKnightSideReviewSheets,KNIGHT_SIDE_053} from './knight-side-053.js?v=0.53.0';
 
 // The illustrated South-first PNGs are available for in-game review with
 // ?previewPaintedKnight=1. Until all eight facing actions are actually drawn,
@@ -161,12 +162,17 @@ export class KnightFinalAtlas {
   });
   try{
    const params=typeof window!=='undefined'?new URLSearchParams(window.location.search):null;
-   const northPreview=params?.has('previewKnightUp');
+   const allDirectionsPreview=params?.has('previewKnightFinal');
+   const northPreview=params?.has('previewKnightUp')||allDirectionsPreview;
    const preview=params?.has('previewPaintedKnight')||northPreview;
    if(northPreview&&typeof Image!=='undefined'){
     const base=await loadPaintedKnightSheets(factory);
-    this.images=await loadKnightNorthReviewSheets(factory,base);
-    this.reviewScale=KNIGHT_NORTH_051.previewScale;
+    const north=await loadKnightNorthReviewSheets(factory,base);
+    this.images=allDirectionsPreview?
+     await loadKnightSideReviewSheets(factory,north):north;
+    this.reviewScale=allDirectionsPreview?
+     KNIGHT_SIDE_053.previewScale:KNIGHT_NORTH_051.previewScale;
+    this.completePreview=Boolean(allDirectionsPreview);
    }else this.images=preview&&typeof Image!=='undefined'?
     await loadPaintedKnightSheets(factory):createKnightRebornSheets(factory);
    this.imageReady=true;this.ready=true;
