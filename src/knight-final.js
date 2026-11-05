@@ -1,6 +1,7 @@
 import {knightPose} from './knight-animation.js?v=0.49.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
 import {KNIGHT_REBORN_FRAME_COUNTS,createKnightRebornSheets} from './knight-reborn.js?v=0.49.0';
+import {loadKnightNorthReviewSheets,KNIGHT_NORTH_051} from './knight-north-051.js?v=0.51.0';
 
 // The illustrated South-first PNGs are available for in-game review with
 // ?previewPaintedKnight=1. Until all eight facing actions are actually drawn,
@@ -154,9 +155,14 @@ export class KnightFinalAtlas {
    throw new Error('No drawing surface for the new knight');
   });
   try{
-   const preview=typeof window!=='undefined'&&
-    new URLSearchParams(window.location.search).has('previewPaintedKnight');
-   this.images=preview&&typeof Image!=='undefined'?
+   const params=typeof window!=='undefined'?new URLSearchParams(window.location.search):null;
+   const northPreview=params?.has('previewKnightUp');
+   const preview=params?.has('previewPaintedKnight')||northPreview;
+   if(northPreview&&typeof Image!=='undefined'){
+    const base=await loadPaintedKnightSheets(factory);
+    this.images=await loadKnightNorthReviewSheets(factory,base);
+    this.reviewScale=KNIGHT_NORTH_051.previewScale;
+   }else this.images=preview&&typeof Image!=='undefined'?
     await loadPaintedKnightSheets(factory):createKnightRebornSheets(factory);
    this.imageReady=true;this.ready=true;
   }catch(error){
@@ -188,15 +194,17 @@ export class KnightFinalAtlas {
   const {clip,row,index}=knightFinalFrame(p,time),c=KNIGHT_SHEET_CELL;
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha*=.65;
+  const scale=this.reviewScale||1;
   ctx.drawImage(this.images[clip],index*72,row*72,72,72,
-   Math.round(p.x-KNIGHT_SHEET_ANCHOR.x),
-   Math.round(p.y-KNIGHT_SHEET_ANCHOR.y),c,c);
+   Math.round(p.x-KNIGHT_SHEET_ANCHOR.x*scale),
+   Math.round(p.y-KNIGHT_SHEET_ANCHOR.y*scale),
+   Math.round(c*scale),Math.round(c*scale));
   ctx.restore();
   return true;
  }
  preview(ctx,width,height,time=0){
   if(!this.ready)return false;
-  const c=KNIGHT_SHEET_CELL,scale=Math.min(width/64,height/74);
+  const c=KNIGHT_SHEET_CELL,scale=Math.min(width/64,height/74)*(this.reviewScale||1);
   ctx.clearRect(0,0,width,height);
   ctx.save();ctx.imageSmoothingEnabled=false;
   ctx.drawImage(this.images.idle,(Math.floor(time*4)%6)*72,0,72,72,
