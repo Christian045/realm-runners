@@ -23,6 +23,7 @@ jobs:
           node tests/knight-painted-050-browser.cjs
           node tests/knight-north-051-browser.cjs
           node tests/knight-north-052-browser.cjs
+          node tests/knight-side-053-browser.cjs
           node tests/rig-browser.cjs
           node tests/animation-lab-browser.cjs
           npm run test:model-continuity-browser
