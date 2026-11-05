@@ -69,7 +69,10 @@ test('sword impact coordinates match an actual nontransparent blade tip in all f
    assert.equal(tip.row,row);
    assert.equal(knightSide053Impact(hero,direction,clip,false),null);
    assert.ok(tip.y<hero.y+30,'sword impact far from body');
-   const x=(tip.x-hero.x)/1.8+36,y=(tip.y-hero.y)/1.8+59;
+   // Reverse the one-time source-pixel normalization before testing the
+   // blade pixel in the unscaled PNG.
+   const sx=KNIGHT_SIDE_053.normalization.xByRow[row],sy=KNIGHT_SIDE_053.normalization.otherY;
+   const x=(tip.x-hero.x)/(1.8*sx)+36,y=(tip.y-hero.y)/(1.8*sy)+59;
    const tile=inspect(image,contactIndex,row);
    const px=Math.round(x),py=Math.round(y);
    let touches=false;
