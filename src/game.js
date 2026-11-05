@@ -743,7 +743,7 @@ export class Game {
     const fullPreview=query?.has('previewKnightFinal');
     const northPreview=fullPreview||query?.has('previewKnightUp');
     const tip=knightSide053Impact(p,aim,action.clip,fullPreview)||
-     knightNorth051Impact(p,aim,action.clip,northPreview)||
+     knightNorth051Impact(p,aim,action.clip,northPreview,fullPreview)||
      knightBladeTip(p,aim,action.clip);
    this.effects.push({type:'knight-slash',x:tip.x,y:tip.y,angle,
     radius:Math.min(26,reach*.35),step:action.comboStep,life:.18,maxLife:.18});
