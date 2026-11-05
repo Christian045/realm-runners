@@ -10,10 +10,10 @@ const assert=require('node:assert/strict');
   try{
    const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.goto('http://127.0.0.1:8000/?previewKnightUp=1&v=0.51.0');
+   await page.goto('http://127.0.0.1:8000/?previewKnightUp=1&v=0.52.0');
    const art=await page.evaluate(async()=>{
     const [{getKnightFinal,KNIGHT_SHEET_ANCHOR},{KNIGHT_NORTH_051,knightNorth051Impact}]=await Promise.all([
-     import('./src/knight-final.js?v=0.51.0'),import('./src/knight-north-051.js?v=0.51.0')]);
+     import('./src/knight-final.js?v=0.52.0'),import('./src/knight-north-051.js?v=0.52.0')]);
     const atlas=getKnightFinal();await atlas.loading;
     if(!atlas.ready||atlas.reviewScale!==.90)throw Error('New 90% north artwork not selected');
     const shots=document.createElement('canvas');
@@ -65,9 +65,9 @@ const assert=require('node:assert/strict');
    await page.screenshot({path:'test-output/knight-north-051-game-'+name+'.png'});
    // Default game must NOT silently switch to unapproved art.
    const defaultPage=await browser.newPage({viewport:{width:1120,height:700}});
-   await defaultPage.goto('http://127.0.0.1:8000/?v=0.51.0');
+   await defaultPage.goto('http://127.0.0.1:8000/?v=0.52.0');
    const defaultState=await defaultPage.evaluate(async()=>{
-    const {getKnightFinal}=await import('./src/knight-final.js?v=0.51.0');
+    const {getKnightFinal}=await import('./src/knight-final.js?v=0.52.0');
     const k=getKnightFinal();await k.loading;
     return {ready:k.ready,previewScale:k.reviewScale??1};
    });
