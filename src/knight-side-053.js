@@ -10,7 +10,9 @@ export const KNIGHT_SIDE_053=Object.freeze({
  perDirectionFrames:76,illustratedFrames:304,
  completeAllDirections:true,artistApproved:false,
  previewScale:0.9,
- normalization:Object.freeze({southX:.85,southY:.90,otherX:1.08,otherY:1.075})
+ normalization:Object.freeze({southX:.85,southY:.90,
+  xByRow:Object.freeze([.85,1.08,1.08,1.08,1.08,1.0,1.055,1.055]),
+  otherY:1.075})
 });
 const ROWS=KNIGHT_SIDE_053.rows;
 const clipFiles=Object.keys(KNIGHT_SIDE_053.frameCounts);
@@ -51,8 +53,7 @@ export async function loadKnightSideReviewSheets(factory,underlying){
   if(!target)throw new Error('No knight normalization drawing surface');
   target.imageSmoothingEnabled=false;
   for(let row=0;row<8;row++){
-   const xScale=row===0?KNIGHT_SIDE_053.normalization.southX:
-    KNIGHT_SIDE_053.normalization.otherX;
+   const xScale=KNIGHT_SIDE_053.normalization.xByRow[row];
    const yScale=row===0?KNIGHT_SIDE_053.normalization.southY:
     KNIGHT_SIDE_053.normalization.otherY;
    const w=Math.round(72*xScale),h=Math.round(72*yScale);
@@ -83,6 +84,6 @@ export function knightSide053Impact(player,direction,clip,enabled=false){
  const row=knightSide053DirectionRow(direction),point=TIPS[clip]?.[row];
  if(!point)return null;
  const scale=KNIGHT_SIDE_053.previewScale;
- return {x:player.x+(point[0]-36)*KNIGHT_SIDE_053.normalization.otherX*scale*2,
+ return {x:player.x+(point[0]-36)*KNIGHT_SIDE_053.normalization.xByRow[row]*scale*2,
   y:player.y+(point[1]-59)*KNIGHT_SIDE_053.normalization.otherY*scale*2,row,clip};
 }
