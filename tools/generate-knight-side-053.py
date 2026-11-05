@@ -11,8 +11,9 @@ from PIL import Image, ImageDraw, ImageChops
 from pathlib import Path
 import math
 
-ROOT=Path('/mnt/data/knight-053')
-SOURCE=Path('/mnt/data/knight-051/facings-v051.png')
+PROJECT_ROOT=Path(__file__).resolve().parents[1]
+ROOT=PROJECT_ROOT/'assets'/'knight'/'side-053'
+SOURCE=PROJECT_ROOT/'assets'/'knight'/'north-051'/'facings-v051.png'
 FACES=Image.open(SOURCE).convert('RGBA')
 ROWS=(1,2,6,7)
 C=72
