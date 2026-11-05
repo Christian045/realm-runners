@@ -1,7 +1,7 @@
-import {knightPose} from './knight-animation.js?v=0.49.0';
+import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.49.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
 import {KNIGHT_REBORN_FRAME_COUNTS,createKnightRebornSheets} from './knight-reborn.js?v=0.49.0';
-import {loadKnightNorthReviewSheets,KNIGHT_NORTH_051} from './knight-north-051.js?v=0.51.0';
+import {loadKnightNorthReviewSheets,KNIGHT_NORTH_051} from './knight-north-051.js?v=0.52.0';
 
 // The illustrated South-first PNGs are available for in-game review with
 // ?previewPaintedKnight=1. Until all eight facing actions are actually drawn,
@@ -22,8 +22,13 @@ export function knightFinalFrame(p,time=0){
  const clip=clipFor(pose.clip),count=allFrames[clip];
  // Impact remains fixed to the gameplay's action-local hit clock, including
  // the ten-frame finisher whose contact is frame five.
- const index=clip==='walk'||clip==='idle'?
-  Math.floor(pose.progress*count)%count:
+ // The action animator reports capped progress after one loop. Use the
+ // unbounded gait phase and absolute idle clock to prevent frozen motion.
+ const idleDuration=KNIGHT_CLIPS.idle.duration;
+ const idlePhase=((time%idleDuration)+idleDuration)%idleDuration;
+ const idleIndex=Math.floor(idlePhase/idleDuration*count);
+ const index=clip==='walk'?pose.frame%count:
+  clip==='idle'?idleIndex:
   clamp(Math.floor(pose.progress*count),0,count-1);
  return {clip,row:rigFacing(pose.direction),index,count,pose};
 }
