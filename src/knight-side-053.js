@@ -9,7 +9,8 @@ export const KNIGHT_SIDE_053=Object.freeze({
   recovery:6,special:8,dash:8,hurt:6,death:8}),
  perDirectionFrames:76,illustratedFrames:304,
  completeAllDirections:true,artistApproved:false,
- previewScale:0.9
+ previewScale:0.9,
+ normalization:Object.freeze({southX:.85,southY:.90,otherX:1.08,otherY:1.075})
 });
 const ROWS=KNIGHT_SIDE_053.rows;
 const clipFiles=Object.keys(KNIGHT_SIDE_053.frameCounts);
@@ -41,7 +42,26 @@ export async function loadKnightSideReviewSheets(factory,underlying){
   ctx.drawImage(underlying[clip],0,0);
   for(const row of ROWS)
    ctx.drawImage(source,0,row*72,frames*72,72,0,row*72,frames*72,72);
-  result[clip]=img;
+  // Reframe all eight painted views once when baking the preview atlas.
+  // The initial South illustration was visibly broader/taller than the other
+  // seven imported turnaround drawings; normalize on the common foot pivot
+  // without runtime body transformations or bilinear sampling.
+  const normalized=factory();normalized.width=frames*72;normalized.height=8*72;
+  const target=normalized.getContext('2d');
+  if(!target)throw new Error('No knight normalization drawing surface');
+  target.imageSmoothingEnabled=false;
+  for(let row=0;row<8;row++){
+   const xScale=row===0?KNIGHT_SIDE_053.normalization.southX:
+    KNIGHT_SIDE_053.normalization.otherX;
+   const yScale=row===0?KNIGHT_SIDE_053.normalization.southY:
+    KNIGHT_SIDE_053.normalization.otherY;
+   const w=Math.round(72*xScale),h=Math.round(72*yScale);
+   const dx=Math.round(36*(1-xScale)),dy=Math.round(59*(1-yScale));
+   for(let frame=0;frame<frames;frame++)
+    target.drawImage(img,frame*72,row*72,72,72,
+     frame*72+dx,row*72+dy,w,h);
+  }
+  result[clip]=normalized;
  }
  return result;
 }
@@ -63,6 +83,6 @@ export function knightSide053Impact(player,direction,clip,enabled=false){
  const row=knightSide053DirectionRow(direction),point=TIPS[clip]?.[row];
  if(!point)return null;
  const scale=KNIGHT_SIDE_053.previewScale;
- return {x:player.x+(point[0]-36)*scale*2,
-  y:player.y+(point[1]-59)*scale*2,row,clip};
+ return {x:player.x+(point[0]-36)*KNIGHT_SIDE_053.normalization.otherX*scale*2,
+  y:player.y+(point[1]-59)*KNIGHT_SIDE_053.normalization.otherY*scale*2,row,clip};
 }
