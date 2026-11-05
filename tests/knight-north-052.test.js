@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {loadImage,createCanvas} from '@napi-rs/canvas';
 import {KNIGHT_NORTH_052,KNIGHT_NORTH_051} from '../src/knight-north-051.js';
+import {knightFinalFrame} from '../src/knight-final.js';
 
 const frameCounts={idle:6,walk:8,hurt:6,dash:8,death:8};
 const root=new URL('../assets/knight/north-052/',import.meta.url);
@@ -76,4 +77,20 @@ test('new motion art is actually loaded only in the optional north preview',asyn
  const generator=await readFile(new URL('../tools/generate-knight-north-motion-052.py',import.meta.url),'utf8');
  assert.match(generator,/def split_layers/);
  assert.match(generator,/def death_pose/);
+});
+
+test('long standing and distance-based walking continue looping rather than freezing',()=>{
+ const knight={kind:'warrior',hp:100,hurtTimer:0,direction:{x:0,y:-1},moving:false};
+ const idle=new Set([2,2.3,2.6,2.9,3.2,3.5].map(t=>knightFinalFrame(knight,t).index));
+ assert.ok(idle.size>=4,'idle stops breathing after first clock cycle');
+ knight.moving=true;
+ knight.knightMoveDirection={x:0,y:-1};
+ const walk=new Set();
+ for(let step=0;step<16;step++){
+  knight.knightWalkDistance=step*12;
+  const pose=knightFinalFrame(knight,5);
+  assert.equal(pose.row,4);
+  walk.add(pose.index);
+ }
+ assert.equal(walk.size,8,'gait must keep alternating both feet after the first stride');
 });
