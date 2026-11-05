@@ -117,17 +117,17 @@ def remove_weapon(row,img):
  # Underpaint is sampled once from the illustrated armour at the same height;
  # this avoids bright second swords and transparent holes in the silhouette.
  shapes={
-  1:[(41,40),(45,41),(38,54),(34,54)],
-  2:[(32,39),(36,39),(29,57),(25,57)],
-  6:[(34,39),(38,39),(51,58),(46,58)],
-  7:[(28,39),(33,39),(35,57),(30,57)]}
+  1:[(38,38),(45,38),(40,54),(32,54)],
+  2:[(28,38),(36,38),(29,57),(22,57)],
+  6:[(34,38),(40,38),(52,58),(46,58)],
+  7:[(27,38),(34,38),(38,57),(31,57)]}
  m=mask(shapes[row]);src=img.copy().load();out=img.copy();dst=out.load();msk=m.load()
  refX={1:36,2:38,6:33,7:38}[row]
  for y in range(38,59):
   sampled=src[refX,y]
   for x in range(20,54):
    if not msk[x,y]:continue
-   body=({1:x<=40,2:x>=32,6:x<=41,7:x>=33}[row])
+   body=({1:x<=38,2:x>=35,6:x<=37,7:x>=36}[row])
    if body and sampled[3]>80:
     # Uniform silhouette tone sampled from real pixel-art undercoat.
     dst[x,y]=sampled
