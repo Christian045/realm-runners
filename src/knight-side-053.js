@@ -35,20 +35,10 @@ export async function loadKnightSideReviewSheets(factory,underlying){
   const width=source.naturalWidth||source.width,height=source.naturalHeight||source.height;
   if(width!==frames*72||height!==8*72)
    throw new Error('Side knight atlas has invalid cell grid: '+clip+' '+width+'x'+height);
-  const img=factory();img.width=frames*72;img.height=8*72;
-  const ctx=img.getContext('2d');
-  if(!ctx)throw new Error('No side knight drawing surface');
-  ctx.imageSmoothingEnabled=false;
-  // Retain already loaded South, North, NW and NE. Replace only the actual
-  // four freshly illustrated side views without runtime mirrors/rotations.
-  ctx.drawImage(underlying[clip],0,0);
-  for(const row of ROWS){
-   // This is a REPLACEMENT, not an overlay. Clear the previous static
-   // portrait so ghost boots, capes and a second sword cannot show through
-   // transparent pixels while the 0.53 animation moves.
-   ctx.clearRect(0,row*72,frames*72,72);
-   ctx.drawImage(source,0,row*72,frames*72,72,0,row*72,frames*72,72);
-  }
+  // Read the side cells DIRECTLY from the authored side PNG. Copying them
+  // over another populated canvas first can mix transparent source pixels
+  // with the former static placeholder's sword, cape and boots.
+  // South and north retain their already assembled source atlas.
   // Reframe all eight painted views once when baking the preview atlas.
   // The initial South illustration was visibly broader/taller than the other
   // seven imported turnaround drawings; normalize on the common foot pivot
@@ -70,7 +60,8 @@ export async function loadKnightSideReviewSheets(factory,underlying){
     target.beginPath();
     target.rect(frame*72,row*72,72,72);
     target.clip();
-    target.drawImage(img,frame*72,row*72,72,72,
+    target.drawImage(ROWS.includes(row)?source:underlying[clip],
+     frame*72,row*72,72,72,
      frame*72+dx,row*72+dy,w,h);
     target.restore();
    }
