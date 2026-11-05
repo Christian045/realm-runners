@@ -5,6 +5,7 @@ import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?
 import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.49.0';
 import {knightBladeTip} from './knight-reborn.js?v=0.49.0';
 import {knightNorth051Impact} from './knight-north-051.js?v=0.52.0';
+import {knightSide053Impact} from './knight-side-053.js?v=0.53.0';
 import {CLASSES, ENEMY_DATA, TILE, clamp, distance, normalized, chooseUpgrades} from './data.js?v=0.23.0';
 import {generateDungeon, seeded, ROOM_W, ROOM_H} from './dungeon.js?v=0.26.0';
 import {saveProgress, buyPermanent, upgradeCost} from './progression.js?v=0.21.0';
@@ -738,9 +739,11 @@ export class Game {
   this.playSound('slash');
    const finisher=action.comboStep===3,reach=p.reach+(finisher?13:0)+(blade==='greatsword'?20:0);
    const angle=Math.atan2(aim.y,aim.x);
-   const inNorthPreview=typeof window!=='undefined'&&
-     new URLSearchParams(window.location.search).has('previewKnightUp');
-    const tip=knightNorth051Impact(p,aim,action.clip,inNorthPreview)||
+    const query=typeof window!=='undefined'?new URLSearchParams(window.location.search):null;
+    const fullPreview=query?.has('previewKnightFinal');
+    const northPreview=fullPreview||query?.has('previewKnightUp');
+    const tip=knightSide053Impact(p,aim,action.clip,fullPreview)||
+     knightNorth051Impact(p,aim,action.clip,northPreview)||
      knightBladeTip(p,aim,action.clip);
    this.effects.push({type:'knight-slash',x:tip.x,y:tip.y,angle,
     radius:Math.min(26,reach*.35),step:action.comboStep,life:.18,maxLife:.18});
