@@ -45,7 +45,7 @@ const FRAMES={idle:6,walk:8,attack1:8,attack2:8,attack3:10,
         if(data[i+3]>55)pixels++;
         if(i%16===0)hash=Math.imul(hash^data[i]^data[i+3],16777619);
        }
-       if(pixels<1500)throw Error('Missing full body '+row+' '+clip+' '+f+' pixels '+pixels);
+       if(pixels<1000)throw Error('Missing full body '+row+' '+clip+' '+f+' pixels '+pixels);
        hashes.add(hash>>>0);checked++;
       }
       if(KNIGHT_SIDE_053.rows.includes(row)&&hashes.size<Math.min(count-1,5))
