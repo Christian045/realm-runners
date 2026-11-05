@@ -22,13 +22,13 @@ export function knightFinalFrame(p,time=0){
  const clip=clipFor(pose.clip),count=allFrames[clip];
  // Impact remains fixed to the gameplay's action-local hit clock, including
  // the ten-frame finisher whose contact is frame five.
- // The action animator reports capped progress after one loop. Use its
- // unbounded gait phase and the absolute idle clock so idle/walk never freeze
- // after one cycle, even in a long run or a menu preview.
+ // The action animator reports capped progress after one loop. Use the
+ // unbounded gait phase and absolute idle clock to prevent frozen motion.
+ const idleDuration=KNIGHT_CLIPS.idle.duration;
+ const idlePhase=((time%idleDuration)+idleDuration)%idleDuration;
+ const idleIndex=Math.floor(idlePhase/idleDuration*count);
  const index=clip==='walk'?pose.frame%count:
-  clip==='idle'?Math.floor((((time%KNIGHT_CLIPS.idle.duration)+
-   KNIGHT_CLIPS.idle.duration)%KNIGHT_CLIPS.idle.duration)/
-   KNIGHT_CLIPS.idle.duration)*count):
+  clip==='idle'?idleIndex:
   clamp(Math.floor(pose.progress*count),0,count-1);
  return {clip,row:rigFacing(pose.direction),index,count,pose};
 }
