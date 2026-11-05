@@ -1,5 +1,6 @@
 import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.49.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
+import {knightPreviewActionFrame,knightPreviewPresentationFrame} from './knight-preview-motion.js?v=0.53.1';
 import {KNIGHT_REBORN_FRAME_COUNTS,createKnightRebornSheets} from './knight-reborn.js?v=0.49.0';
 import {loadKnightNorthReviewSheets,KNIGHT_NORTH_051} from './knight-north-051.js?v=0.52.0';
 import {loadKnightSideReviewSheets,KNIGHT_SIDE_053} from './knight-side-053.js?v=0.53.0';
@@ -18,7 +19,7 @@ const allFrames=KNIGHT_REBORN_FRAME_COUNTS;
 const clipFor=clip=>Object.hasOwn(allFrames,clip)?clip:'idle';
 const clamp=(x,min,max)=>Math.max(min,Math.min(max,x));
 
-export function knightFinalFrame(p,time=0){
+export function knightFinalFrame(p,time=0,fullPreview=false){
  const pose=knightPose(p,time);
  const clip=clipFor(pose.clip),count=allFrames[clip];
  // Impact remains fixed to the gameplay's action-local hit clock, including
@@ -28,7 +29,11 @@ export function knightFinalFrame(p,time=0){
  const idleDuration=KNIGHT_CLIPS.idle.duration;
  const idlePhase=((time%idleDuration)+idleDuration)%idleDuration;
  const idleIndex=Math.floor(idlePhase/idleDuration*count);
- const index=clip==='walk'?pose.frame%count:
+ // Review-only wind-up, contact and follow-through timings. Combat hit
+ // clocks and the stable default artwork remain untouched.
+ const previewIndex=fullPreview?knightPreviewActionFrame(clip,pose.progress):null;
+ const index=previewIndex!==null?previewIndex:
+  clip==='walk'?pose.frame%count:
   clip==='idle'?idleIndex:
   clamp(Math.floor(pose.progress*count),0,count-1);
  return {clip,row:rigFacing(pose.direction),index,count,pose};
@@ -152,6 +157,7 @@ export class KnightFinalAtlas {
   this.images={};this.frames=new Map();this.imageReady=false;
   this.ready=false;this.failed=false;
   this.canvasFactory=canvasFactory;
+  this.presentationStates=new WeakMap();
   this.loading=this.load();
  }
  async load(){
@@ -202,7 +208,14 @@ export class KnightFinalAtlas {
  }
  draw(ctx,p,time=0){
   if(!this.ready||!ctx?.drawImage)return false;
-  const {clip,row,index}=knightFinalFrame(p,time),c=KNIGHT_SHEET_CELL;
+  const fullPreview=Boolean(this.completePreview);
+  let presentation=knightFinalFrame(p,time,fullPreview);
+  if(fullPreview){
+   let state=this.presentationStates.get(p);
+   if(!state){state={};this.presentationStates.set(p,state);}
+   presentation=knightPreviewPresentationFrame(p,time,presentation,state);
+  }
+  const {clip,row,index}=presentation,c=KNIGHT_SHEET_CELL;
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha*=.65;
   const scale=this.reviewScale||1;

@@ -14,7 +14,11 @@ export function advanceLocomotion(p,fromX,fromY,dashing=false,dt=1/60){
  p.walkDistance=((p.walkDistance||0)+distance*WALK_STRIDE/stride)%WALK_STRIDE;
  p.walkCycle=p.walkDistance/WALK_STRIDE*.54*14;
  // Knight art follows actual movement, but at a slower visual stride.
- if(p.kind==='warrior')p.knightWalkDistance=((p.knightWalkDistance||0)+distance)%KNIGHT_VISUAL_STRIDE;
+ if(p.kind==='warrior'){
+  p.knightWalkDistance=((p.knightWalkDistance||0)+distance)%KNIGHT_VISUAL_STRIDE;
+  // Separate actual-distance clock for the opt-in illustrated animation.
+  p.knightPreviewDistance=(p.knightPreviewDistance||0)+distance;
+ }
  if(isRobedWalker(p.kind))p.robedWalkDistance=((p.robedWalkDistance||0)+distance)%ROBED_WALK_STRIDE;
  p.heroMoveDirection={x:dx/distance,y:dy/distance};
  p.knightMoveDirection={...p.heroMoveDirection};
