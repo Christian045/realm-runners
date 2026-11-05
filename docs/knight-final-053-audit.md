@@ -35,3 +35,20 @@
 Zusätzliche Informationen: `src/knight-side-053.js`, `src/knight-north-051.js`, `src/knight-final.js`, `tests/knight-side-053.test.js`, `tests/knight-side-053-browser.cjs`.
 
 **Definition of Done:** Erst wenn die tatsächlichen Bewegungen und Grafiken im Spiel überzeugen, wird der neue Ritter für alle freigeschaltet. Eine erfolgreiche CI-Suite alleine darf die Freigabe nicht auslösen.
+
+
+## Korrektur der Atlas-Zusammensetzung (5. November 2026)
+
+Bei der Codeprüfung wurde ein tatsächlicher Transparenzfehler in der 0.53-Vorschau gefunden:
+Die neuen Ritterposen wurden in Nord- und Seitenrichtungen teilweise **über** die
+alten statischen Silhouetten gemalt. Dadurch konnten die alten Stiefel,
+Waffen und Mantelanteile sichtbar bleiben (Doppelbilder/Geisterspuren).
+Außerdem konnten die auf 105,5–108 % vergrößerten Seitenzellen auf angrenzende
+Atlaszellen und Richtungszeilen übermalen.
+
+**Korrektur:** Jede ersetzte Zeile wird vor dem Import gelöscht; jede normalisierte
+Zelle wird separat auf ihr 72×72-Raster begrenzt. Die neue Browser-Regression
+`tests/knight-atlas-isolation-browser.cjs` vergleicht alle **532** erneuerten
+Nord- und Seitenzellen mit separat gerenderten PNG-Quellzellen in Chromium und
+WebKit. Die bestehende Standardversion bleibt weiterhin unangetastet;
+die künstlerische Endfreigabe des Ritters steht nach wie vor aus.

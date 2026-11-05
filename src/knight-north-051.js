@@ -53,12 +53,21 @@ export async function loadKnightNorthReviewSheets(factory,originals){
   ctx.drawImage(originals[clip],0,0);
   // Replace distorted 0.50 portraits with true back/diagonal model art.
   // Other facings are still held artwork, not falsely named animations.
-  for(let row=1;row<8;row++)for(let f=0;f<frames;f++)
-   ctx.drawImage(pictures['facings-v051'],row*72,0,72,72,f*72,row*72,72,72);
+  // A sprite's transparent pixels MUST replace the old figure as well.
+  // Drawing an animated frame on top of the static turnaround leaves the
+  // old sword, legs and cape visible through its transparent areas.
+  for(let row=1;row<8;row++){
+   ctx.clearRect(0,row*72,frames*72,72);
+   for(let f=0;f<frames;f++)
+    ctx.drawImage(pictures['facings-v051'],row*72,0,72,72,f*72,row*72,72,72);
+  }
   if(Object.hasOwn(sourceCounts,clip)){
    const north=pictures[clip];
-   for(const row of KNIGHT_NORTH_051.rows)for(let f=0;f<frames;f++)
-    ctx.drawImage(north,f*72,row*72,72,72,f*72,row*72,72,72);
+   for(const row of KNIGHT_NORTH_051.rows){
+    ctx.clearRect(0,row*72,frames*72,72);
+    for(let f=0;f<frames;f++)
+     ctx.drawImage(north,f*72,row*72,72,72,f*72,row*72,72,72);
+   }
   }
   result[clip]=art;
  }
