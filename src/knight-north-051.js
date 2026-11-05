@@ -1,25 +1,38 @@
-// Optional painted north-facing combat study (Alpha 0.51). This file is
-// intentionally excluded from default gameplay until all eight directions
-// have finished artwork. No complete-body rotation is performed in runtime.
-export const KNIGHT_NORTH_051=Object.freeze({
+// Optional painted north-facing study (Alpha 0.52), enabled by
+// ?previewKnightUp=1 only. Normal gameplay keeps its earlier stable art.
+// No complete-character runtime rotation is performed.
+// Alpha 0.52 completes the five missing animated states in the three
+// upper directions. Four lateral headings still require authored animations,
+// so normal gameplay must NOT switch to this experimental art yet.
+export const KNIGHT_NORTH_052=Object.freeze({
  rows:Object.freeze([3,4,5]),directions:Object.freeze(['NW','N','NE']),
- animatedClips:Object.freeze(['attack1','attack2','attack3','special','recovery']),
- unfixedClips:Object.freeze(['idle','walk','dash','hurt','death']),
- completeAllDirections:false,previewScale:.90
+ animatedClips:Object.freeze(['idle','walk','attack1','attack2','attack3',
+  'special','recovery','dash','hurt','death']),
+ unfixedClips:Object.freeze([]),
+ completeUpperDirections:true,completeAllDirections:false,
+ previewScale:.90,framesPerUpperDirection:76,
+ completedCells:228
 });
-const sourceCounts=Object.freeze({attack1:8,attack2:8,attack3:10,special:8,recovery:6});
+// Retain the previous export for existing art and gameplay test consumers.
+export const KNIGHT_NORTH_051=KNIGHT_NORTH_052;
+const sourceCounts=Object.freeze({idle:6,walk:8,attack1:8,attack2:8,
+ attack3:10,special:8,dash:8,hurt:6,death:8,recovery:6});
+const newMotion=new Set(['idle','walk','hurt','dash','death']);
 const frameCounts=Object.freeze({idle:6,walk:8,attack1:8,attack2:8,attack3:10,
  special:8,dash:8,hurt:6,death:8,recovery:6});
-const loadImage=path=>new Promise((resolve,reject)=>{
+const loadImage=key=>new Promise((resolve,reject)=>{
  const image=new Image();image.decoding='async';
  image.onload=()=>resolve(image);
- image.onerror=()=>reject(new Error('Knight north frame missing: '+path));
- image.src=new URL('../assets/knight/north-051/'+path+'.png?v=0.51.0',import.meta.url).href;
+ image.onerror=()=>reject(new Error('Knight north frame missing: '+key));
+ const pack=newMotion.has(key)?'north-052':'north-051';
+ const name=key==='facings-v051'?key:key+'-up';
+ const cache=newMotion.has(key)?'0.52.0':'0.51.0';
+ image.src=new URL('../assets/knight/'+pack+'/'+name+'.png?v='+cache,import.meta.url).href;
 });
 export async function loadKnightNorthReviewSheets(factory,originals){
  if(typeof Image==='undefined')throw new Error('Browser images unavailable');
  const paths=['facings-v051',...Object.keys(sourceCounts)];
- const values=await Promise.all(paths.map(async key=>[key,await loadImage(key==='facings-v051'?key:key+'-up')]));
+ const values=await Promise.all(paths.map(async key=>[key,await loadImage(key)]));
  const pictures=Object.fromEntries(values);
  const width=image=>image.naturalWidth||image.width;
  const height=image=>image.naturalHeight||image.height;
