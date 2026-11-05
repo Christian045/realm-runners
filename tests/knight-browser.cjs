@@ -37,19 +37,27 @@ const fs=require('node:fs');
     const p=g.player,e={type:'slime',x:p.x+40,y:p.y,hp:1000,maxHp:1000,radius:17,knock:{x:0,y:0},flash:0};g.enemies=[e];
     g.attack();const hpBefore=e.hp;g.updateKnightAction(p.knightAction.duration*3/8);
     const hpAfter=e.hp,contactFrame=knightPose(p).frame;
-    // Capture a deterministic scene through the real renderer, without adding a debug hook to the game.
-    const scene=document.createElement('canvas'),r=new Renderer(scene);await r.knight.loading;
-    g.player.direction={x:0,y:1};g.player.knightAction=null;g.enemies=[];g.camera.x=p.x-g.camera.w/2;g.camera.y=p.y-g.camera.h/2;
-    r.updateCamera(g);g.camera.x=p.x-g.camera.w/2;g.camera.y=p.y-g.camera.h/2;r.draw(g);
+    // The page has already started the real dungeon renderer above. Use a
+    // bounded sprite-only canvas for the legacy rollback gallery instead of
+    // launching a second renderer and redrawing the entire dungeon nine times.
+    // Repeated whole-scene WebKit captures previously killed the test browser
+    // under the CI memory budget, after all substantive checks had succeeded.
+    const scene=document.createElement('canvas');scene.width=192;scene.height=192;
+    const sceneCtx=scene.getContext('2d');sceneCtx.imageSmoothingEnabled=false;
+    const sample={...p,x:96,y:119,hp:100,moving:false,direction:{x:0,y:1},
+      knightAction:null,knightRecoveryTimer:0,invulnerable:0};
+    if(!atlas.draw(sceneCtx,sample,.2))throw Error('Legacy knight sprite draw failed');
     const screenshot=scene.toDataURL('image/png');
     const frames=[];
     for(const clip of ['idle','walk','attack1','attack2','attack3','special','dash','hurt','death']){
-     p.hp=100;p.hurtTimer=0;p.knightAction=null;
-     if(clip==='death'){p.hp=0;p.knightDeathElapsed=.9;}
-     else if(clip==='walk'){p.moving=true;p.walkCycle=3;}
-     else if(clip==='hurt')p.hurtTimer=.16;
-     else if(clip!=='idle'){beginKnightAction(p,clip,.8);p.knightAction.elapsed=.4;}
-     r.draw(g);frames.push(scene.toDataURL('image/png'));p.moving=false;
+     sceneCtx.clearRect(0,0,192,192);
+     sample.hp=100;sample.hurtTimer=0;sample.knightAction=null;sample.moving=false;
+     if(clip==='death'){sample.hp=0;sample.knightDeathElapsed=.9;}
+     else if(clip==='walk'){sample.moving=true;sample.walkCycle=3;}
+     else if(clip==='hurt')sample.hurtTimer=.16;
+     else if(clip!=='idle'){beginKnightAction(sample,clip,.8);sample.knightAction.elapsed=.4;}
+     if(!atlas.draw(sceneCtx,sample,.4))throw Error('Legacy knight '+clip+' sprite failed');
+     frames.push(scene.toDataURL('image/png'));
     }
     return {ready:atlas.ready,minimumUnique,minimumPixels,edgePixels,hpBefore,hpAfter,contactFrame,screenshot,frames};
    });
