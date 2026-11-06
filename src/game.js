@@ -1,8 +1,9 @@
+import {knightStrikePlanted,knightProductionImpact} from './knight-production.js?v=0.54.0';
 import {beginCompanionAttack,advanceCompanion,companionShot} from './companion-animation.js?v=0.31.0';
 import {advanceLocomotion} from './locomotion.js?v=0.53.1';
 import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.40.0';
 import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.31.0';
-import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.49.0';
+import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.54.0';
 import {knightBladeTip} from './knight-reborn.js?v=0.49.0';
 import {knightNorth051Impact} from './knight-north-051.js?v=0.53.1';
 import {knightSide053Impact} from './knight-side-053.js?v=0.53.1';
@@ -516,7 +517,11 @@ export class Game {
    this.move(p,p.dashVector.x*690*dt,p.dashVector.y*690*dt);
    p.dashTimer=Math.max(0,p.dashTimer-dt);
    if(this.random()<.65)this.createEffect('spark',p.x,p.y,'#c1e9e4',.28,7);
-  }else if(!(p.statuses?.stun>0))this.move(p,move.x*p.speed*dt*(p.statuses?.slow>0?.60:1),move.y*p.speed*dt*(p.statuses?.slow>0?.60:1));
+  }else if(!(p.statuses?.stun>0)&&!knightStrikePlanted(p)){
+   // The authored melee poses plant both boots for their short contact cycle.
+   this.move(p,move.x*p.speed*dt*(p.statuses?.slow>0?.60:1),
+    move.y*p.speed*dt*(p.statuses?.slow>0?.60:1));
+  }
   advanceLocomotion(p,moveFromX,moveFromY,locomotionDash,dt);
   if(p.kind==='warrior')this.updateKnightAction(dt);else this.updateHeroAction(dt);
   const attacking=this.input.attacking();
@@ -740,9 +745,10 @@ export class Game {
    const finisher=action.comboStep===3,reach=p.reach+(finisher?13:0)+(blade==='greatsword'?20:0);
    const angle=Math.atan2(aim.y,aim.x);
     const query=typeof window!=='undefined'?new URLSearchParams(window.location.search):null;
-    const fullPreview=query?.has('previewKnightFinal');
+    const fullPreview=query?.has('previewKnight053');
     const northPreview=fullPreview||query?.has('previewKnightUp');
-    const tip=knightSide053Impact(p,aim,action.clip,fullPreview)||
+    const tip=knightProductionImpact(p,aim,action.clip,query)||
+     knightSide053Impact(p,aim,action.clip,fullPreview)||
      knightNorth051Impact(p,aim,action.clip,northPreview,fullPreview)||
      knightBladeTip(p,aim,action.clip);
    this.effects.push({type:'knight-slash',x:tip.x,y:tip.y,angle,

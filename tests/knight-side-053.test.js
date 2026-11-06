@@ -91,7 +91,7 @@ test('sword impact coordinates match an actual nontransparent blade tip in all f
 test('the complete eight-direction preview uses PNGs only behind an explicit safety gate',async()=>{
  const renderer=await readFile(new URL('../src/knight-final.js',import.meta.url),'utf8');
  const game=await readFile(new URL('../src/game.js',import.meta.url),'utf8');
- assert.match(renderer,/has\('previewKnightFinal'\)/);
+ assert.match(renderer,/has\('previewKnight053'\)/);
  assert.match(renderer,/loadKnightSideReviewSheets\(factory,north\)/);
  assert.match(renderer,/createKnightRebornSheets\(factory\)/);
  assert.match(game,/knightSide053Impact\(p,aim,action.clip,fullPreview\)/);

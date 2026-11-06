@@ -47,7 +47,7 @@ export function knightPose(p,time=0){
  if(p.hp<=0){clip='death';elapsed=p.knightDeathElapsed||0;duration=KNIGHT_CLIPS.death.duration;direction=p.knightDeathDirection||direction;}
  else if(p.knightAction){({clip,elapsed,duration,direction}=p.knightAction);}
  else if(p.hurtTimer>0){clip='hurt';elapsed=.34-p.hurtTimer;duration=.34;}
- else if(p.knightRecoveryTimer>0){
+ else if(p.knightRecoveryTimer>0&&!p.moving){
   clip='recovery';duration=KNIGHT_CLIPS.recovery.duration;
   elapsed=duration-p.knightRecoveryTimer;
   direction=p.knightRecoveryDirection||direction;

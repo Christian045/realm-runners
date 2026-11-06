@@ -14,7 +14,7 @@ const CLIPS={idle:6,walk:8,attack1:8,attack2:8,attack3:10,
    const page=await browser.newPage({
     viewport:{width:390,height:844},hasTouch:true,isMobile:true
    });
-   await page.goto('http://127.0.0.1:8000/?v=0.53.0&previewKnightFinal=1');
+   await page.goto('http://127.0.0.1:8000/?v=0.53.0&previewKnight053=1');
    const result=await page.evaluate(async counts=>{
     const [{getKnightFinal},{KNIGHT_SIDE_053}]=await Promise.all([
      import('./src/knight-final.js?v=0.53.0'),

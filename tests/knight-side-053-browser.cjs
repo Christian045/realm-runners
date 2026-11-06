@@ -12,7 +12,7 @@ const FRAMES={idle:6,walk:8,attack1:8,attack2:8,attack3:10,
   try{
    const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
    const errors=[];page.on('pageerror',error=>errors.push(error.message));
-   await page.goto('http://127.0.0.1:8000/?v=0.53.1&previewKnightFinal=1');
+   await page.goto('http://127.0.0.1:8000/?v=0.53.1&previewKnight053=1');
    const report=await page.evaluate(async FRAMES=>{
     const [{getKnightFinal,knightFinalFrame},{KnightSpriteAtlas},{KNIGHT_SIDE_053}]=await Promise.all([
      import('./src/knight-final.js?v=0.53.1'),

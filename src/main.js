@@ -1,10 +1,10 @@
-import {openAnimationLab,animationLabOpen} from './animation-lab.js?v=0.49.0';
+import {openAnimationLab,animationLabOpen} from './animation-lab.js?v=0.54.0';
 import {CLASSES} from './data.js?v=0.23.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.21.0';
 import {ENEMY_NAMES,totalKills,formatPlayTime} from './statistics.js?v=0.21.0';
 import {Input} from './input.js?v=0.23.0';
-import {Game} from './game.js?v=0.53.1';
-import {Renderer} from './render.js?v=0.53.1';
+import {Game} from './game.js?v=0.54.0';
+import {Renderer} from './render.js?v=0.54.0';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.21.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.21.0';
 import {installTouchGuard} from './touch-guard.js';
@@ -419,6 +419,7 @@ function animateMenuPreviews(now){
  for(const preview of document.querySelectorAll('#panelContent canvas[data-companion]'))renderer.companions.preview(preview.getContext('2d'),preview.dataset.companion,preview.width,preview.height,reducedMotion?0:now/1000);
  for(const preview of document.querySelectorAll('#panelContent canvas[data-hero]')){
   if(preview.dataset.hero==='warrior'&&renderer.knight?.ready){
+   if(preview.width!==96){preview.width=96;preview.height=108;}
    renderer.knight.preview(preview.getContext('2d'),preview.width,preview.height,now/1000);continue;
   }
   if(renderer.heroes.preview(preview.getContext('2d'),preview.dataset.hero,preview.width,preview.height,now/1000))continue;

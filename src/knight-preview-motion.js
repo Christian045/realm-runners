@@ -18,14 +18,14 @@ export function knightPreviewActionFrame(clip,progress){
 }
 // state is per-player/per-renderer. Stride follows actual distance,
 // re-enters from a grounded pose and completes an interrupted planted step.
-export function knightPreviewPresentationFrame(player,time,raw,state){
+export function knightPreviewPresentationFrame(player,time,raw,state,stride=KNIGHT_PREVIEW_STRIDE){
  let {clip,row,index}=raw;
  const last=state.clip;
  if(clip==='walk'){
   const distance=Number(player.knightPreviewDistance ?? player.knightWalkDistance ?? 0);
   if(last!=='walk'||!Number.isFinite(state.walkOrigin))state.walkOrigin=distance;
   const travelled=Math.max(0,distance-state.walkOrigin);
-  index=Math.floor(travelled/KNIGHT_PREVIEW_STRIDE*8)%8;
+  index=Math.floor(travelled/stride*8)%8;
   state.lastWalk={row,index};
   state.stop=null;
  }else if(clip==='idle'){

@@ -1,14 +1,13 @@
-import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.49.0';
+import {knightProductionEnabled,loadKnightProductionSheets,KNIGHT_PRODUCTION_SCALE} from './knight-production.js?v=0.54.0';
+import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.54.0';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
-import {knightPreviewActionFrame,knightPreviewPresentationFrame} from './knight-preview-motion.js?v=0.53.1';
+import {knightPreviewActionFrame,knightPreviewPresentationFrame} from './knight-preview-motion.js?v=0.54.0';
 import {KNIGHT_REBORN_FRAME_COUNTS,createKnightRebornSheets} from './knight-reborn.js?v=0.49.0';
 import {loadKnightNorthReviewSheets,KNIGHT_NORTH_051} from './knight-north-051.js?v=0.53.1';
 import {loadKnightSideReviewSheets,KNIGHT_SIDE_053} from './knight-side-053.js?v=0.53.1';
 
-// The illustrated South-first PNGs are available for in-game review with
-// ?previewPaintedKnight=1. Until all eight facing actions are actually drawn,
-// normal gameplay retains the already-tested 0.49 renderer, avoiding frozen
-// attacks and walking in the other seven directions.
+// The default renderer uses the unified 0.54 illustrated set.
+// Earlier directional studies remain available through their historical flags.
 export const KNIGHT_SHEET_CELL=144;
 export const KNIGHT_SHEET_ANCHOR=Object.freeze({x:72,y:118});
 export const KNIGHT_SHEET_FRAMES=Object.freeze({
@@ -168,10 +167,14 @@ export class KnightFinalAtlas {
   });
   try{
    const params=typeof window!=='undefined'?new URLSearchParams(window.location.search):null;
-   const allDirectionsPreview=params?.has('previewKnightFinal');
+   const allDirectionsPreview=params?.has('previewKnight053');
+   const production=knightProductionEnabled(params);
    const northPreview=params?.has('previewKnightUp')||allDirectionsPreview;
    const preview=params?.has('previewPaintedKnight')||northPreview;
-   if(northPreview&&typeof Image!=='undefined'){
+   if(production&&typeof Image!=='undefined'){
+    this.images=await loadKnightProductionSheets();
+    this.production=true;this.reviewScale=KNIGHT_PRODUCTION_SCALE;
+   }else if(northPreview&&typeof Image!=='undefined'){
     const base=await loadPaintedKnightSheets(factory);
     const north=await loadKnightNorthReviewSheets(factory,base);
     this.images=allDirectionsPreview?
@@ -183,8 +186,11 @@ export class KnightFinalAtlas {
     await loadPaintedKnightSheets(factory):createKnightRebornSheets(factory);
    this.imageReady=true;this.ready=true;
   }catch(error){
-   this.failed=true;this.ready=false;
-   console.warn('New knight drawing failed',error);
+   this.failed=true;
+   this.production=false;this.completePreview=false;this.reviewScale=1;
+   this.images=createKnightRebornSheets(factory);
+   this.ready=true;
+   console.warn('Knight atlas unavailable; using built-in frames',error);
   }
  }
  frame(row,clip,index){
@@ -208,12 +214,12 @@ export class KnightFinalAtlas {
  }
  draw(ctx,p,time=0){
   if(!this.ready||!ctx?.drawImage)return false;
-  const fullPreview=Boolean(this.completePreview);
+  const fullPreview=Boolean(this.completePreview||this.production);
   let presentation=knightFinalFrame(p,time,fullPreview);
-  if(fullPreview){
+  if(fullPreview&&!Number.isFinite(p.knightPreviewProgress)){
    let state=this.presentationStates.get(p);
    if(!state){state={};this.presentationStates.set(p,state);}
-   presentation=knightPreviewPresentationFrame(p,time,presentation,state);
+   presentation=knightPreviewPresentationFrame(p,time,presentation,state,this.production?88:undefined);
   }
   const {clip,row,index}=presentation,c=KNIGHT_SHEET_CELL;
   ctx.save();ctx.imageSmoothingEnabled=false;
@@ -228,6 +234,14 @@ export class KnightFinalAtlas {
  }
  preview(ctx,width,height,time=0){
   if(!this.ready)return false;
+  if(this.production){
+   const scale=Math.min((width-4)/52,(height-4)/52);
+   ctx.clearRect(0,0,width,height);ctx.save();ctx.imageSmoothingEnabled=false;
+   ctx.drawImage(this.images.idle,(Math.floor(time*4)%6)*72,0,72,72,
+    Math.round(width/2-36*scale),Math.round(height-2-61*scale),
+    Math.round(72*scale),Math.round(72*scale));
+   ctx.restore();return true;
+  }
   const c=KNIGHT_SHEET_CELL,scale=Math.min(width/64,height/74)*(this.reviewScale||1);
   ctx.clearRect(0,0,width,height);
   ctx.save();ctx.imageSmoothingEnabled=false;

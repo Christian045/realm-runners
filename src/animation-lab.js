@@ -1,9 +1,9 @@
-import {getKnightFinal} from './knight-final.js?v=0.49.0';
+import {getKnightFinal,knightFinalFrame} from './knight-final.js?v=0.54.0';
 import {heroRigReady,articulatedPose,RIG_ROWS,getHeroRig} from './articulated-hero.js?v=0.40.0';
 import {HeroSpriteAtlas} from './hero-sprites.js?v=0.40.0';
-import {KnightSpriteAtlas} from './knight-sprites.js?v=0.49.0';
+import {KnightSpriteAtlas} from './knight-sprites.js?v=0.54.0';
 import {heroPose,HERO_CLIPS} from './hero-animation.js?v=0.31.0';
-import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.49.0';
+import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.54.0';
 import {heroShot} from './hero-aim.js?v=0.40.0';
 import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.46.0';
 import {CLASSES} from './data.js?v=0.23.0';
@@ -18,7 +18,7 @@ export function labSample(kind,state,direction,seconds,moving=false){
  if(!LAB_KINDS.includes(kind)||!Object.hasOwn(LAB_STATES,state))throw new RangeError('Unknown preview');
  const progress=Math.max(0,Math.min(1,seconds));
  const p={kind,x:128,y:121,hp:100,invulnerable:0,direction:{x:direction.x,y:direction.y},
-  moving:state==='walk'||moving,walkDistance:progress*72,knightWalkDistance:progress*KNIGHT_VISUAL_STRIDE,
+  knightPreviewProgress:progress,moving:state==='walk'||moving,walkDistance:progress*72,knightWalkDistance:progress*KNIGHT_VISUAL_STRIDE,
   robedWalkDistance:progress*240,walkCycle:progress*.54*14,heroMoveDirection:{...direction},knightMoveDirection:{...direction},hurtTimer:0};
  const knight=kind==='warrior',clips=knight?KNIGHT_CLIPS:HERO_CLIPS;
  let clip=state;
@@ -86,6 +86,7 @@ export async function openAnimationLab(){
    if(!atlas?.ready){info.textContent=errors.has(kind)?'Grafik konnte nicht geladen werden.':'Grafik wird geladen …';continue;}
    const sample=labSample(kind,state.clip,LAB_DIRECTIONS[state.direction],clock,state.moving);
    try{atlas.draw(c,sample.player,clock*(kind==='warrior'?1.6:1.5));}catch(error){info.textContent='Darstellungsfehler: '+error.message;continue;}
+   const displayed=kind==='warrior'?knightFinalFrame(sample.player,clock*1.6,Boolean(atlas.production||atlas.completePreview)).index:sample.pose.frame;
    const releasing=sample.release!==null&&Math.abs(sample.progress-sample.release)<.065;
    if(state.anchors){
     c.strokeStyle='#6ee3d4';c.lineWidth=1;
@@ -93,7 +94,7 @@ export async function openAnimationLab(){
     if(sample.shot){const s=sample.shot;c.setLineDash([3,4]);c.beginPath();c.moveTo(s.x,s.y);c.lineTo(s.x+s.aim.x*65,s.y+s.aim.y*65);c.stroke();c.setLineDash([]);}
    }
    if(releasing){c.strokeStyle='#ebc582';c.strokeRect(1,1,254,174);}
-   info.textContent=`${sample.pose.clip} · ${heroRigReady(kind)?RIG_ROWS[articulatedPose(sample.player).row]:sample.pose.face} · Bild ${sample.pose.frame+1}${releasing?' · AUSLÖSEN':''}`;
+   info.textContent=`${sample.pose.clip} · ${heroRigReady(kind)?RIG_ROWS[articulatedPose(sample.player).row]:sample.pose.face} · Bild ${displayed+1}${releasing?' · AUSLÖSEN':''}`;
   }
   raf=requestAnimationFrame(draw);
  }

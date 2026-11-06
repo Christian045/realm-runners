@@ -39,10 +39,12 @@ test('sliding follows actual movement direction; slower travel advances fewer fr
  assert.equal(locomotionFrame({walkDistance:WALK_STRIDE/8,heroMoveDirection:{x:-1,y:0}},{x:1,y:0}),7,'backpedal reverses the step order');
 });
 
-test('pause, idle and dash freeze stepping; moving attacks keep their independent clocks',()=>{
+test('pause and dash freeze gait; melee plants feet while other attacks keep moving',()=>{
  for(const kind of kinds){
   const g=scene(kind),p=g.player;g.attack();const action=p.knightAction||p.heroAction,clock=action.elapsed;
-  g.update(.02);assert.ok(p.walkDistance>0);assert.ok(action.elapsed>clock);assert.match((kind==='warrior'?knightPose(p):heroPose(p)).clip,/attack/);
+  g.update(.02);
+  if(kind==='warrior')assert.equal(p.walkDistance,0);else assert.ok(p.walkDistance>0);
+  assert.ok(action.elapsed>clock);assert.match((kind==='warrior'?knightPose(p):heroPose(p)).clip,/attack/);
   const phase=p.walkDistance,elapsed=action.elapsed;g.mode='paused';g.update(.02);assert.equal(p.walkDistance,phase);assert.equal(action.elapsed,elapsed);
   g.mode='playing';g.input.movement=()=>({x:0,y:0});g.update(.02);assert.equal(p.moving,false);assert.equal(p.walkDistance,phase);
   g.input.consumeDash=()=>true;g.update(.02);assert.equal(p.moving,false);assert.equal(p.walkDistance,phase);

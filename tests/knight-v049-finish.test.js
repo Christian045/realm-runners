@@ -25,12 +25,14 @@ test('contact timings stay unchanged while each combo has a visible recovery',()
   assert.equal(p.knightRecoveryTimer,0);
  }
 });
-test('recovering on movement retains the original swing direction until recovery ends',()=>{
+test('active swings retain aim and walking resumes in movement direction after contact',()=>{
  const p={kind:'warrior',hp:100,direction:{x:1,y:0},moving:true,knightMoveDirection:{x:1,y:0},knightWalkDistance:80};
  beginKnightAction(p,'attack1',.5,{x:0,y:-1});
- advanceKnightAction(p,.5,()=>{});
- assert.equal(knightPose(p,0).clip,'recovery');
+ assert.equal(knightPose(p,0).clip,'attack1');
  assert.deepEqual(knightPose(p,0).direction,{x:0,y:-1});
+ advanceKnightAction(p,.5,()=>{});
+ assert.equal(knightPose(p,0).clip,'walk');
+ assert.deepEqual(knightPose(p,0).direction,{x:1,y:0});
  advanceKnightAction(p,.15,()=>{});
  assert.equal(knightPose(p,0).clip,'walk');
 });
