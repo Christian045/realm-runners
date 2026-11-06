@@ -81,11 +81,11 @@ const clips={idle:6,walk:8,hurt:6,dash:8,death:8};
     const {getKnightFinal}=await import('./src/knight-final.js?v=0.53.0');
     const knight=getKnightFinal();await knight.loading;
     return {ready:knight.ready,
-      preview:knight.reviewScale??1,
+      production:Boolean(knight.production),
       requestedNewAssets:performance.getEntriesByType('resource')
        .some(x=>x.name.includes('/knight/north-052/'))};
    });
-   assert.deepEqual(guard,{ready:true,preview:1,requestedNewAssets:false});
+   assert.deepEqual(guard,{ready:true,production:true,requestedNewAssets:false});
    await defaultPage.close();
    console.log(name,'108 authentic animated upper-direction PNGs + live dungeon + default guard',result.count);
   }finally{await browser.close()}

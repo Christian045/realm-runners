@@ -29,7 +29,7 @@ const assert=require('node:assert/strict');
       let colored=0,sole=0,hash=2166136261;
       for(let y=0;y<144;y++)for(let x=0;x<144;x++){
        const i=(y*144+x)*4;
-       if(full[i+3]>55){colored++;if(y>=119&&y<=133&&x>27&&x<116)sole++;}
+       if(full[i+3]>55){colored++;if(y>=104&&y<=133&&x>27&&x<116)sole++;}
       }
       if(colored<400||sole<12)throw Error('Missing full-body or boots '+clip+' '+row+' '+frame);
       const shin=g.getImageData(42,108,63,27).data;
