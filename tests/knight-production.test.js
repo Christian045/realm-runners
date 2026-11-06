@@ -36,7 +36,8 @@ test('released knight has 608 complete cells, grounded boots and consistent body
     assert.ok(box.count>350,clip+'/'+row+'/'+frame+' missing body');
     assert.ok(box.left>=2&&box.right<=69&&box.top>=2&&box.bottom<=66,'clipped '+clip+'/'+row+'/'+frame);
     assert.ok(box.count>baseline.count*.48&&box.count<baseline.count*1.8,'body changes scale '+clip+'/'+row+'/'+frame);
-    if(clip==='idle'||clip==='walk')assert.equal(box.bottom,60,'floating boots '+clip+'/'+row+'/'+frame);
+    if(clip==='walk'&&row===0)assert.ok(box.bottom>=57&&box.bottom<=60,'south foot leaves stride plane');
+    else if(clip==='idle'||clip==='walk')assert.equal(box.bottom,60,'floating boots '+clip+'/'+row+'/'+frame);
     const lower=Buffer.from(data.slice(48*72*4,62*72*4)).toString('base64');
     feet.add(lower);poses.add(Buffer.from(data).toString('base64'));
     checked++;
@@ -128,4 +129,22 @@ test('normal atlas loads all new art and lab scrubbing advances both idle and wa
    assert.ok(hashes.size>=4,'lab is frozen at first '+clip+' frame');
   }
  }finally{globalThis.Image=previousImage;globalThis.window=previousWindow;}
+});
+
+test('south walk alternates planted boots with a stable helmet and seamless passing poses',async()=>{
+ const sheet=await loadImage(await readFile(new URL('walk.png',folder)));
+ const deltas=[];
+ for(let frame=0;frame<8;frame++){
+  const data=pixels(sheet,frame,0);
+  assert.equal(bounds(data).top,15,'helmet drops on frame '+frame);
+  const soles=[0,0];
+  for(let y=50;y<64;y++)for(let x=27;x<45;x++)if(data[(y*72+x)*4+3]>64){
+   const foot=x<36?0:1;soles[foot]=Math.max(soles[foot],y);
+  }
+  deltas.push(soles[0]-soles[1]);
+ }
+ assert.equal(deltas[0],0);assert.equal(deltas[4],0);
+ for(const frame of [1,2,3])assert.ok(deltas[frame]>0,'left step reverses early at '+frame);
+ for(const frame of [5,6,7])assert.ok(deltas[frame]<0,'right step reverses early at '+frame);
+ assert.ok(deltas[2]>=5&&deltas[6]<=-5,'both legs must take a full step');
 });
