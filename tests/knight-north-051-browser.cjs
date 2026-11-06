@@ -63,16 +63,16 @@ const assert=require('node:assert/strict');
    await page.waitForTimeout(400);
    assert.deepEqual(errors,[]);
    await page.screenshot({path:'test-output/knight-north-051-game-'+name+'.png'});
-   // Default game must NOT silently switch to unapproved art.
+   // Default game selects the completed production set, not this historical study.
    const defaultPage=await browser.newPage({viewport:{width:1120,height:700}});
    await defaultPage.goto('http://127.0.0.1:8000/?v=0.53.0');
    const defaultState=await defaultPage.evaluate(async()=>{
     const {getKnightFinal}=await import('./src/knight-final.js?v=0.53.0');
     const k=getKnightFinal();await k.loading;
-    return {ready:k.ready,previewScale:k.reviewScale??1};
+    return {ready:k.ready,production:Boolean(k.production)};
    });
    assert.equal(defaultState.ready,true);
-   assert.equal(defaultState.previewScale,1);
+   assert.equal(defaultState.production,true);
    await defaultPage.close();
    console.log(name,'upper attack images and live game verified',art.checked);
   }finally{await browser.close();}
