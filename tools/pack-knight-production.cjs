@@ -98,9 +98,12 @@ async function main(){
   for(let row=0;row<8;row++)for(let frame=0;frame<sequence.length;frame++){
    // Whirlwind completes a full turn using the same eight authored facings.
    const source=sources[clip==='special'?(row+frame)%8:row];
-   const index=clip==='dash'&&row===1&&sequence[frame]===42?41:sequence[frame];
+   // South idle studies change torso orientation; splicing them onto fixed
+   // legs makes the waist slide. Use the complete approved standing pose.
+   const index=clip==='idle'&&row===0?0:
+    clip==='dash'&&row===1&&sequence[frame]===42?41:sequence[frame];
    g.drawImage(source,index%8*size,Math.floor(index/8)*size,size,size,frame*size,row*size,size,size);
-   if(clip==='idle'){
+   if(clip==='idle'&&row!==0){
     // Breath stays above the knees; the planted boots use one shared pose.
     g.clearRect(frame*size,row*size+48,size,24);
     g.drawImage(source,0,48,size,24,frame*size,row*size+48,size,24);

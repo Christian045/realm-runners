@@ -187,3 +187,12 @@ test('production shadow touches the sole anchor and follows the smaller scale',a
  Renderer.prototype.player.call(renderer,p,0);
  assert.equal(legacyCalls,1,'historical renderer retains its own ground anchor');
 });
+
+test('south idle keeps the complete standing body together without a drifting torso seam',async()=>{
+ const source=await loadImage(await readFile(new URL('source-S.png',folder)));
+ const sheet=await loadImage(await readFile(new URL('idle.png',folder)));
+ const wholeBody=pixels(source,0,0);
+ for(let frame=0;frame<KNIGHT_PRODUCTION_COUNTS.idle;frame++){
+  assert.deepEqual(pixels(sheet,frame,0),wholeBody,'south idle mixes incompatible body halves at '+frame);
+ }
+});
