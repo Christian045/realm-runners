@@ -1,6 +1,6 @@
 // One coherent illustrated set for the released knight, in all eight facings.
-export const KNIGHT_PRODUCTION_VERSION='0.54.1';
-export const KNIGHT_PRODUCTION_SCALE=.9;
+export const KNIGHT_PRODUCTION_VERSION='0.54.2';
+export const KNIGHT_PRODUCTION_SCALE=.8;
 export const KNIGHT_PRODUCTION_COUNTS=Object.freeze({
  idle:6,walk:8,attack1:8,attack2:8,attack3:10,recovery:6,
  special:8,dash:8,hurt:6,death:8
@@ -31,9 +31,9 @@ export function knightStrikePlanted(player){
 // Measured native sprite coordinates of each attack's blade contact.
 // Rows are S, SW, W, NW, N, NE, E, SE; world origin is the common foot pivot.
 const CONTACTS={
- attack1:[[26,58],[7,45],[5,36],[8,27],[39,6],[64,29],[63,35],[68,39]],
- attack2:[[19,41],[5,37],[5,30],[7,31],[36,8],[64,25],[63,28],[68,31]],
- attack3:[[27,59],[7,59],[14,56],[8,39],[31,11],[60,55],[59,54],[59,57]]
+ attack1:[[30,60],[7,45],[5,36],[8,27],[39,6],[64,29],[63,35],[68,39]],
+ attack2:[[12,61],[5,37],[5,30],[7,31],[36,8],[64,25],[63,28],[68,31]],
+ attack3:[[15,62],[7,59],[14,56],[8,39],[31,11],[60,55],[59,54],[59,57]]
 };
 export function knightProductionImpact(player,direction,clip,params){
  if(!knightProductionEnabled(params))return null;

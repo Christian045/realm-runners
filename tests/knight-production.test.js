@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {createCanvas,loadImage,Image} from '@napi-rs/canvas';
-import {KNIGHT_PRODUCTION_COUNTS,knightProductionEnabled,knightStrikePlanted,
+import {KNIGHT_PRODUCTION_COUNTS,KNIGHT_PRODUCTION_SCALE,knightProductionEnabled,knightStrikePlanted,
  knightProductionImpact} from '../src/knight-production.js';
 import {KnightFinalAtlas,knightFinalFrame} from '../src/knight-final.js';
 import {labSample,LAB_DIRECTIONS} from '../src/animation-lab.js';
@@ -85,7 +85,7 @@ test('each hit event selects the contact image and its effect touches the blade'
     assert.equal(knightFinalFrame(p,0,true).index,frame);
    });
    const tip=knightProductionImpact(p,direction,clip,new URLSearchParams());
-   const x=Math.round(tip.x/1.8+36),y=Math.round(tip.y/1.8+59);
+   const x=Math.round(tip.x/(2*KNIGHT_PRODUCTION_SCALE)+36),y=Math.round(tip.y/(2*KNIGHT_PRODUCTION_SCALE)+59);
    const data=pixels(image,frame,row);
    let nearby=false;
    for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
@@ -147,4 +147,24 @@ test('south walk alternates planted boots with a stable helmet and seamless pass
  for(const frame of [1,2,3])assert.ok(deltas[frame]>0,'left step reverses early at '+frame);
  for(const frame of [5,6,7])assert.ok(deltas[frame]<0,'right step reverses early at '+frame);
  assert.ok(deltas[2]>=5&&deltas[6]<=-5,'both legs must take a full step');
+});
+
+test('south combos return to the same ready pose and retain planted boots',async()=>{
+ const idle=await loadImage(await readFile(new URL('idle.png',folder)));
+ const ready=pixels(idle,0,0);
+ for(const clip of ['attack1','attack2','attack3']){
+  const sheet=await loadImage(await readFile(new URL(clip+'.png',folder)));
+  const count=KNIGHT_PRODUCTION_COUNTS[clip];
+  assert.deepEqual(pixels(sheet,0,0),ready,clip+' starts with a different body');
+  assert.deepEqual(pixels(sheet,count-1,0),ready,clip+' does not return to ready');
+  for(let frame=0;frame<count;frame++){
+   const data=pixels(sheet,frame,0);
+   for(const [left,right] of [[28,33],[40,46]]){
+    let sole=0;
+    for(let y=52;y<=62;y++)for(let x=left;x<right;x++)if(data[(y*72+x)*4+3]>64)sole=Math.max(sole,y);
+    assert.ok(sole>=58&&sole<=61,clip+'/'+frame+' lifts a planted boot');
+   }
+  }
+ }
+ assert.equal(KNIGHT_PRODUCTION_SCALE,.8);
 });
