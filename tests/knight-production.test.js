@@ -168,3 +168,22 @@ test('south combos return to the same ready pose and retain planted boots',async
  }
  assert.equal(KNIGHT_PRODUCTION_SCALE,.8);
 });
+
+test('production shadow touches the sole anchor and follows the smaller scale',async()=>{
+ const {Renderer}=await import('../src/render.js');
+ const ellipses=[];
+ let legacyCalls=0,drawn=false;
+ const ctx={save(){},restore(){},beginPath(){},fill(){},ellipse(...args){ellipses.push(args);}};
+ const renderer={ctx,shadow(){legacyCalls++;},knight:{ready:true,painted:{production:true},draw(){drawn=true;}}};
+ const p={kind:'warrior',x:100,y:200,radius:16,direction:{x:0,y:1},shield:0};
+ Renderer.prototype.player.call(renderer,p,0);
+ assert.equal(drawn,true);assert.equal(legacyCalls,0);assert.equal(ellipses.length,2);
+ for(const [x,y,rx,ry] of ellipses){
+  assert.equal(x,p.x);assert.ok(Math.abs(y-p.y)<=1);
+  assert.ok(y-ry<=p.y&&y+ry>=p.y+2,'shadow must touch the visible boot plane');
+  assert.ok(rx<20&&ry<=4,'shadow is oversized');
+ }
+ renderer.knight.painted.production=false;
+ Renderer.prototype.player.call(renderer,p,0);
+ assert.equal(legacyCalls,1,'historical renderer retains its own ground anchor');
+});

@@ -1,6 +1,7 @@
 import {CompanionSpriteAtlas,drawCompanionEffect,drawCompanionProjectile} from './companion-sprites.js?v=0.31.0';
 import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.40.0';
-import {KnightSpriteAtlas,drawKnightEffect} from './knight-sprites.js?v=0.54.2';
+import {KNIGHT_PRODUCTION_SCALE} from './knight-production.js?v=0.54.3';
+import {KnightSpriteAtlas,drawKnightEffect} from './knight-sprites.js?v=0.54.3';
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.23.0';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js?v=0.26.0';
 import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js?v=0.26.0';
@@ -214,7 +215,16 @@ export class Renderer {
    return;
   }
   if(p.kind==='warrior'&&this.knight?.ready){
-   this.shadow(p.x,p.y,p.radius+5);
+   if(this.knight.painted?.production){
+    // Production sprites are anchored at their soles, unlike the legacy art.
+    // A shadow at y+10 creates a visible air gap under the smaller knight.
+    const scale=KNIGHT_PRODUCTION_SCALE;
+    c.save();c.fillStyle='#060e1380';c.beginPath();
+    c.ellipse(p.x,p.y+1,23*scale,5*scale,0,0,Math.PI*2);c.fill();
+    c.fillStyle='#060e1399';c.beginPath();
+    c.ellipse(p.x,p.y+1,16*scale,2.5*scale,0,0,Math.PI*2);c.fill();
+    c.restore();
+   }else this.shadow(p.x,p.y,p.radius+5);
    this.knight.draw(c,p,time);
    if(p.shield>0){c.save();c.strokeStyle='#a8e7ff';c.globalAlpha=.5;c.lineWidth=2;c.beginPath();c.arc(p.x,p.y,26,0,Math.PI*2);c.stroke();c.restore();}
    return;
