@@ -196,3 +196,16 @@ test('south idle keeps the complete standing body together without a drifting to
   assert.deepEqual(pixels(sheet,frame,0),wholeBody,'south idle mixes incompatible body halves at '+frame);
  }
 });
+
+test('every facing shares a whole-body idle, combo boundary and recovery stance',async()=>{
+ const idle=await loadImage(await readFile(new URL('idle.png',folder)));
+ for(const clip of ['attack1','attack2','attack3','recovery']){
+  const sheet=await loadImage(await readFile(new URL(clip+'.png',folder)));
+  for(let row=0;row<8;row++){
+   const ready=pixels(idle,0,row);
+   const frames=clip==='recovery'?Array.from({length:6},(_,i)=>i):[0,KNIGHT_PRODUCTION_COUNTS[clip]-1];
+   for(const frame of frames)assert.deepEqual(pixels(sheet,frame,row),ready,clip+'/'+row+'/'+frame+' jumps from ready');
+   for(let f=1;f<6;f++)assert.deepEqual(pixels(idle,f,row),ready,'idle body splits in '+row);
+  }
+ }
+});

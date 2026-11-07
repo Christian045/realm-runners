@@ -68,3 +68,33 @@ test('default animation is untouched unless full preview is explicitly requested
  assert.equal(knightFinalFrame(p,.12).index,0);
  assert.equal(knightFinalFrame(p,.12,true).index,1);
 });
+
+test('brief stop/resume continues the step and turning cancels stale settling',()=>{
+ const p={knightPreviewDistance:0},s={};
+ const walk={clip:'walk',row:0,index:0},idle={clip:'idle',row:0,index:0};
+ knightPreviewPresentationFrame(p,0,walk,s,88);
+ p.knightPreviewDistance=22;
+ assert.equal(knightPreviewPresentationFrame(p,.1,walk,s,88).index,2);
+ knightPreviewPresentationFrame(p,.2,idle,s,88);
+ const settling=knightPreviewPresentationFrame(p,.24,idle,s,88);
+ p.knightPreviewDistance=25;
+ assert.equal(knightPreviewPresentationFrame(p,.25,walk,s,88).index,settling.index);
+ knightPreviewPresentationFrame(p,.3,idle,s,88);
+ const turn=knightPreviewPresentationFrame(p,.31,{...idle,row:4},s,88);
+ assert.equal(turn.clip,'idle');assert.equal(turn.row,4);
+ p.knightPreviewDistance=0;
+ assert.equal(knightPreviewPresentationFrame(p,.4,walk,s,88).index,0);
+});
+
+test('whole-body breathing keeps soles fixed with no horizontal drift',async()=>{
+ const {knightBreathingRect}=await import('../src/knight-preview-motion.js');
+ let min=Infinity,max=-Infinity;
+ for(let i=0;i<=280;i++){
+  const r=knightBreathingRect(42,13,115,115,i/100);
+  assert.equal(r.x,42);assert.equal(r.width,115);
+  assert.ok(Math.abs(r.y+r.height*61/72-(13+115*61/72))<1e-10);
+  min=Math.min(min,r.height);max=Math.max(max,r.height);
+ }
+ assert.equal(min,115);assert.equal(max,117);
+ assert.deepEqual(knightBreathingRect(42,13,115,115,0),knightBreathingRect(42,13,115,115,2.8));
+});
