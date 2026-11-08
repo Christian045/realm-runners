@@ -1,7 +1,7 @@
 import {CompanionSpriteAtlas,drawCompanionEffect,drawCompanionProjectile} from './companion-sprites.js?v=0.31.0';
-import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.56.0';
-import {KNIGHT_PRODUCTION_SCALE} from './knight-production.js?v=0.56.0';
-import {KnightSpriteAtlas,drawKnightEffect} from './knight-sprites.js?v=0.56.0';
+import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.57.0';
+import {KNIGHT_PRODUCTION_SCALE} from './knight-production.js?v=0.57.0';
+import {KnightSpriteAtlas,drawKnightEffect} from './knight-sprites.js?v=0.57.0';
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.23.0';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js?v=0.26.0';
 import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js?v=0.26.0';
@@ -357,6 +357,15 @@ export class Renderer {
   if(b.visualHeight)b={...b,y:b.y-b.visualHeight};
   if(drawCompanionProjectile(this.ctx,b))return;
   const c=this.ctx;
+  if(b.magicSplash&&!b.hostile){
+   // A compact directional bolt keeps the crystal origin and flight direction readable.
+   const color=b.spellColor||'#75e8f0',angle=Math.atan2(b.vy,b.vx);
+   c.save();c.translate(b.x,b.y);c.rotate(angle);
+   c.shadowColor=color;c.shadowBlur=10;c.fillStyle=color;c.globalAlpha=.4;
+   c.beginPath();c.moveTo(-19,0);c.lineTo(-3,-4);c.lineTo(7,0);c.lineTo(-3,4);c.closePath();c.fill();
+   c.globalAlpha=1;c.beginPath();c.ellipse(0,0,7,4,0,0,Math.PI*2);c.fill();
+   c.fillStyle='#ecffff';c.fillRect(-2,-1,7,2);c.restore();return;
+  }
   if(b.rifle){
    const a=Math.atan2(b.vy,b.vx);
    c.save();c.translate(b.x,b.y);c.rotate(a);

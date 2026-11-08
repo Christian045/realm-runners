@@ -1,4 +1,4 @@
-import {MAGE_SOCKETS} from './mage-sockets.js?v=0.56.0';
+import {MAGE_SOCKETS} from './mage-sockets.js?v=0.57.0';
 export const mageFacing=d=>(Math.round((Math.atan2(d?.y??1,d?.x??0)-Math.PI/2)/(Math.PI/4))+8)%8;
 const clamp=n=>Math.max(0,Math.min(1,n));
 export function magePose(p,time=0,action=p.heroAction){
@@ -15,22 +15,27 @@ export function magePose(p,time=0,action=p.heroAction){
  if(clip==='death')frame=t<.15?12:t<.55?14:15;
  // Whole-body breathing only. Feet and the staff socket share this transform.
  const stretch=clip==='idle'?(1-Math.cos(time*Math.PI*2/2.8))*.009:0;
- return {clip,row,frame,stretch,direction:direction||{x:0,y:1},progress:t};
+ // The original east/SE rows show the back of the hood and reuse a left-side
+ // staff. Use the matching west/SW poses reflected as a complete body instead.
+ // North also reflects the whole pose so the grip travels around the shoulder.
+ const mirrored=row>=4,sourceRow=mirrored?(8-row)%8:row;
+ return {clip,row,sourceRow,mirrored,frame,stretch,direction:direction||{x:0,y:1},progress:t};
 }
 let atlas;
 export const mageReady=()=>Boolean(atlas?.ready);
 export function mageShot(p,action=p.heroAction){
- const pose=magePose(p,0,action),tip=MAGE_SOCKETS[pose.row][pose.frame];
- const x=p.x+tip[0],y=p.y+tip[1],d=pose.direction;
+ const pose=magePose(p,0,action),tip=MAGE_SOCKETS[pose.sourceRow][pose.frame];
+ const x=Math.round(p.x)+(pose.mirrored?-tip[0]:tip[0]),y=p.y+tip[1],d=pose.direction;
  const target=action?.target||{x:p.x+d.x*260,y:p.y+d.y*260-27};
- const dx=target.x-x,dy=target.y-y,length=Math.hypot(dx,dy)||1,aim={x:dx/length,y:dy/length};
+ const dx=target.x-x,dy=target.y-y,length=Math.hypot(dx,dy),fallback=Math.hypot(d.x,d.y)||1;
+ const aim=length>1e-6?{x:dx/length,y:dy/length}:{x:d.x/fallback,y:d.y/fallback};
  return {x,y,mount:{x,y},aim,angle:Math.atan2(aim.y,aim.x),reach:0,
  face:Math.abs(d.x)>Math.abs(d.y)?d.x<0?'left':'right':d.y<0?'up':'down'};
 }
 export class MageProductionAtlas{
  constructor(){this.ready=false;this.loading=this.load();}
  async load(){try{
-  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/production-056/atlas.png?v=0.56.0',import.meta.url).href;});
+  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/production-056/atlas.png?v=0.57.0',import.meta.url).href;});
   await image.decode?.();if(image.width!==1536||image.height!==768)throw Error('Mage atlas dimensions');
   this.image=image;this.ready=true;
  }catch(e){this.failed=true;console.warn('Mage artwork unavailable, retaining fallback',e);}}
@@ -38,7 +43,10 @@ export class MageProductionAtlas{
   const pose=magePose(p,time),height=96*(1+pose.stretch);
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
-  ctx.drawImage(this.image,pose.frame*96,pose.row*96,96,96,Math.round(p.x)-48,p.y-88*(1+pose.stretch),96,height);
+  ctx.translate(Math.round(p.x),p.y);if(pose.mirrored)ctx.scale(-1,1);
+  ctx.drawImage(this.image,pose.frame*96,pose.sourceRow*96,96,96,-48,-88*(1+pose.stretch),96,height);
+  // Effects and sockets remain in world coordinates, outside the sprite reflection.
+  if(pose.mirrored)ctx.scale(-1,1);ctx.translate(-Math.round(p.x),-p.y);
   if(pose.clip==='special'&&pose.progress<.7){
    const s=mageShot(p),power=Math.sin(pose.progress/.7*Math.PI);
    ctx.globalAlpha=.6*power;ctx.fillStyle=p.specialization==='pyromancer'?'#ffb866':p.specialization==='cryomancer'?'#a4efff':'#d8b0ff';

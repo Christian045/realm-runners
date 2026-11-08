@@ -1,8 +1,8 @@
-import {getMageProduction} from './mage-production.js?v=0.56.0';
+import {getMageProduction} from './mage-production.js?v=0.57.0';
 import {getHeroRig,previewHeroRig} from './articulated-hero.js?v=0.40.0';
 import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.39.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';
-import {heroShot} from './hero-aim.js?v=0.56.0';
+import {heroShot} from './hero-aim.js?v=0.57.0';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.31.0';
 
 export class HeroSpriteAtlas{
@@ -170,7 +170,7 @@ export class HeroSpriteAtlas{
  }
 }
 
-const COLORS={hunter:['#daf1ba','#81b46d'],mage:['#f0dcff','#9a79dc'],glasscannon:['#fff0e1','#ca8fe9'],summoner:['#ddc5ff','#8761c7'],alchemist:['#eeffce','#9fcd6a']};
+const COLORS={hunter:['#daf1ba','#81b46d'],mage:['#eaffff','#75e8f0'],glasscannon:['#fff0e1','#ca8fe9'],summoner:['#ddc5ff','#8761c7'],alchemist:['#eeffce','#9fcd6a']};
 export function drawHeroRelease(ctx,e,alpha){
  const colors=COLORS[e.kind]||COLORS.mage,t=1-alpha;
  ctx.save();ctx.translate(e.x,e.y);ctx.rotate(e.angle||0);ctx.globalAlpha=alpha;

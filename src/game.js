@@ -1,9 +1,9 @@
-import {knightStrikePlanted,knightProductionImpact} from './knight-production.js?v=0.56.0';
+import {knightStrikePlanted,knightProductionImpact} from './knight-production.js?v=0.57.0';
 import {beginCompanionAttack,advanceCompanion,companionShot} from './companion-animation.js?v=0.31.0';
 import {advanceLocomotion} from './locomotion.js?v=0.53.1';
-import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.56.0';
+import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.57.0';
 import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.31.0';
-import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.56.0';
+import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.57.0';
 import {knightBladeTip} from './knight-reborn.js?v=0.49.0';
 import {knightNorth051Impact} from './knight-north-051.js?v=0.53.1';
 import {knightSide053Impact} from './knight-side-053.js?v=0.53.1';
@@ -691,6 +691,7 @@ export class Game {
     kind==='summoner'?p.damage*.32:shotDamage,
     ['mage','glasscannon','summoner'].includes(kind),false,shotSpeed);
    this.projectiles[this.projectiles.length-1].magicSplash=kind==='mage';
+   if(kind==='mage')this.projectiles.at(-1).spellColor=p.specialization==='pyromancer'?'#ffb866':p.specialization==='cryomancer'?'#a4efff':'#75e8f0';
    if(kind==='hunter'&&p.specialization==='marksman'){
      const bolt=this.projectiles[this.projectiles.length-1];
      bolt.pierce=2;bolt.hitIds=new Set();bolt.charged=true;
@@ -1187,7 +1188,7 @@ export class Game {
    if(b.magic&&!b.hostile){
     b.trailClock=(b.trailClock||0)-dt;
     if(b.trailClock<=0){
-     this.createEffect('ember',b.x-b.vx*.025,b.y-(b.visualHeight||0)-b.vy*.025,b.summonShot==='spirit'?'#b5afff':b.summonShot==='imp'?'#ffa16c':'#efad7c',.26,10);
+     this.createEffect('ember',b.x-b.vx*.025,b.y-(b.visualHeight||0)-b.vy*.025,b.spellColor||(b.summonShot==='spirit'?'#b5afff':b.summonShot==='imp'?'#ffa16c':'#efad7c'),.26,10);
      b.trailClock=.078;
     }
    }

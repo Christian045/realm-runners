@@ -1,4 +1,9 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.56.1)
+# Realm Runners – Dungeon Reborn (Alpha 0.57.0)
+
+## Alpha 0.57.0 – Magier: Stabhand und Schüsse
+- Rechts- und Rückenansichten verwenden passende vollständige Körperposen mit gemeinsam gedrehtem Arm, Stab und Kristallanker.
+- Kompakte gerichtete Magiegeschosse mit farblich passender Spur; bei einem Ziel exakt auf dem Kristall bleibt die Flugrichtung gültig.
+- Zusätzliche Tests prüfen echte Produktionsgrafiken, Schussursprünge, Nah-/Fernziele mit Maus und Touch sowie alle Richtungsansichten.
 
 ## Alpha 0.56.1 – Magier in der Trainingshalle
 - Die Animationsansicht verwendet jetzt denselben neuen Magier-Atlas wie der Dungeon, einschließlich korrekter acht Blickrichtungen und Bildnummern.
