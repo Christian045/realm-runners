@@ -1,4 +1,8 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.48.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.56.1)
+
+## Alpha 0.56.1 – Magier in der Trainingshalle
+- Die Animationsansicht verwendet jetzt denselben neuen Magier-Atlas wie der Dungeon, einschließlich korrekter acht Blickrichtungen und Bildnummern.
+- Beim erneuten Öffnen prüft der Browsertest, dass die Vorschauen vollständig geladen sind.
 
 ## Alpha 0.48.0 – Ritter von Grund auf neu gezeichnet
 - Neuer eigenständiger, vollständig gezeichneter 72-Pixel-Ritter mit Ritterhelm, Stahlplatten, blauem Waffenrock, Panzerhandschuhen, zwei sichtbaren Beinen und einem Einhandschwert. Keine alten Ritter-Sprites werden in der produktiven Version geladen oder wiederverwendet.

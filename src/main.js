@@ -1,4 +1,4 @@
-import {openAnimationLab,animationLabOpen} from './animation-lab.js?v=0.56.0';
+import {openAnimationLab,animationLabOpen} from './animation-lab.js?v=0.56.1';
 import {CLASSES} from './data.js?v=0.23.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.21.0';
 import {ENEMY_NAMES,totalKills,formatPlayTime} from './statistics.js?v=0.21.0';

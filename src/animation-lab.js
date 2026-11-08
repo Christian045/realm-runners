@@ -7,6 +7,7 @@ import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.56.0';
 import {heroShot} from './hero-aim.js?v=0.56.0';
 import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.46.0';
 import {CLASSES} from './data.js?v=0.23.0';
+import {getMageProduction,magePose} from './mage-production.js?v=0.56.0';
 
 export const LAB_KINDS=Object.freeze(['warrior','mage','summoner','hunter','glasscannon','alchemist']);
 export const LAB_DIRECTIONS=Object.freeze(['N','NO','O','SO','S','SW','W','NW'].map((name,i)=>Object.freeze({name,x:Math.cos(-Math.PI/2+i*Math.PI/4),y:Math.sin(-Math.PI/2+i*Math.PI/4)})));
@@ -86,7 +87,9 @@ export async function openAnimationLab(){
    if(!atlas?.ready){info.textContent=errors.has(kind)?'Grafik konnte nicht geladen werden.':'Grafik wird geladen …';continue;}
    const sample=labSample(kind,state.clip,LAB_DIRECTIONS[state.direction],clock,state.moving);
    try{atlas.draw(c,sample.player,clock*(kind==='warrior'?1.6:1.5));}catch(error){info.textContent='Darstellungsfehler: '+error.message;continue;}
-   const displayed=kind==='warrior'?knightFinalFrame(sample.player,clock*1.6,Boolean(atlas.production||atlas.completePreview)).index:sample.pose.frame;
+   const productionMage=kind==='mage'&&atlas===getMageProduction();
+   const mage=productionMage?magePose(sample.player,clock*1.5):null;
+   const displayed=kind==='warrior'?knightFinalFrame(sample.player,clock*1.6,Boolean(atlas.production||atlas.completePreview)).index:mage?.frame??sample.pose.frame;
    const releasing=sample.release!==null&&Math.abs(sample.progress-sample.release)<.065;
    if(state.anchors){
     c.strokeStyle='#6ee3d4';c.lineWidth=1;
@@ -94,7 +97,8 @@ export async function openAnimationLab(){
     if(sample.shot){const s=sample.shot;c.setLineDash([3,4]);c.beginPath();c.moveTo(s.x,s.y);c.lineTo(s.x+s.aim.x*65,s.y+s.aim.y*65);c.stroke();c.setLineDash([]);}
    }
    if(releasing){c.strokeStyle='#ebc582';c.strokeRect(1,1,254,174);}
-   info.textContent=`${sample.pose.clip} · ${heroRigReady(kind)?RIG_ROWS[articulatedPose(sample.player).row]:sample.pose.face} · Bild ${displayed+1}${releasing?' · AUSLÖSEN':''}`;
+   const facing=mage?['S','SW','W','NW','N','NO','O','SO'][mage.row]:heroRigReady(kind)?RIG_ROWS[articulatedPose(sample.player).row]:sample.pose.face;
+   info.textContent=`${sample.pose.clip} · ${facing} · Bild ${displayed+1}${releasing?' · AUSLÖSEN':''}`;
   }
   raf=requestAnimationFrame(draw);
  }
@@ -103,8 +107,9 @@ export async function openAnimationLab(){
   // The preview uses the very same production rig as gameplay. Do not load
   // six additional, superseded full-body fallback atlases on mobile: WebKit
   // can exhaust its graphics process with that duplicate decoding workload.
-  const rig=kind==='warrior'&&!new URLSearchParams(location.search).has('legacyHeroArt')&&!new URLSearchParams(location.search).has('oldKnightPixel')?getKnightFinal():getHeroRig(kind);
+  let rig=kind==='mage'?getMageProduction():kind==='warrior'&&!new URLSearchParams(location.search).has('legacyHeroArt')&&!new URLSearchParams(location.search).has('oldKnightPixel')?getKnightFinal():getHeroRig(kind);
   try{await rig?.loading;}catch{/* Keep the legacy decoder as a safe fallback. */}
+  if(kind==='mage'&&!rig?.ready){rig=getHeroRig(kind);try{await rig?.loading;}catch{/* Try the legacy atlas below. */}}
   if(rig?.ready){
    atlases.set(kind,rig);dirty=true;return;
   }
