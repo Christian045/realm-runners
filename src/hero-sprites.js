@@ -1,11 +1,13 @@
+import {getMageProduction} from './mage-production.js?v=0.56.0';
 import {getHeroRig,previewHeroRig} from './articulated-hero.js?v=0.40.0';
 import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.39.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';
-import {heroShot} from './hero-aim.js?v=0.40.0';
+import {heroShot} from './hero-aim.js?v=0.56.0';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.31.0';
 
 export class HeroSpriteAtlas{
  constructor(){
+  this.mage=getMageProduction();
   this.rigs=Object.fromEntries(['warrior',...HERO_KINDS].map(kind=>[kind,getHeroRig(kind)]));
   this.kind=null;this.ready=false;this.failed=false;this.images={};this.previews={};this.generation=0;
   this.useLegacyRobedWalk=typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('oldRobedWalk');
@@ -34,6 +36,7 @@ export class HeroSpriteAtlas{
   this.kind=kind;this.ready=false;this.failed=false;this.images={};this.walkPivots={};const generation=++this.generation;
   this.loading=(async()=>{
    try{
+    if(kind==='mage')await this.mage?.loading;
     await this.rigs?.[kind]?.loading;
     const base=new URL('../assets/heroes/'+kind+'/',import.meta.url);
     const response=await fetch(new URL('atlas.json?v=0.29.0',base));
@@ -59,6 +62,7 @@ export class HeroSpriteAtlas{
  }
  release(){this.generation++;this.kind=null;this.ready=false;this.images={};this.walkPivots={};this.manifest=null;}
  draw(ctx,p,time){
+  if(p.kind==='mage'&&this.mage?.draw(ctx,p,time))return true;
   if(this.rigs?.[p.kind]?.draw(ctx,p,time))return true;
   if(!this.ready||p.kind!==this.kind)return false;
   const pose=heroPose(p,time);pose.gaitTime=time;
@@ -149,6 +153,7 @@ export class HeroSpriteAtlas{
   ctx.restore();
  }
  preview(ctx,kind,width,height,time){
+  if(kind==='mage'&&this.mage?.preview(ctx,width,height,time))return true;
   if(previewHeroRig(ctx,this.rigs?.[kind],width,height,time))return true;
   const image=this.previews[kind];if(!image)return false;
   ctx.clearRect(0,0,width,height);ctx.imageSmoothingEnabled=false;

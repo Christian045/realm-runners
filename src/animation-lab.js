@@ -1,10 +1,10 @@
-import {getKnightFinal,knightFinalFrame} from './knight-final.js?v=0.55.0';
+import {getKnightFinal,knightFinalFrame} from './knight-final.js?v=0.56.0';
 import {heroRigReady,articulatedPose,RIG_ROWS,getHeroRig} from './articulated-hero.js?v=0.40.0';
-import {HeroSpriteAtlas} from './hero-sprites.js?v=0.40.0';
-import {KnightSpriteAtlas} from './knight-sprites.js?v=0.55.0';
+import {HeroSpriteAtlas} from './hero-sprites.js?v=0.56.0';
+import {KnightSpriteAtlas} from './knight-sprites.js?v=0.56.0';
 import {heroPose,HERO_CLIPS} from './hero-animation.js?v=0.31.0';
-import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.55.0';
-import {heroShot} from './hero-aim.js?v=0.40.0';
+import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.56.0';
+import {heroShot} from './hero-aim.js?v=0.56.0';
 import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.46.0';
 import {CLASSES} from './data.js?v=0.23.0';
 
@@ -41,7 +41,7 @@ export async function openAnimationLab(){
  const dialog=document.createElement('dialog');dialog.className='animation-lab';active=dialog;
  dialog.setAttribute('aria-labelledby','animation-lab-title');
  dialog.innerHTML=`<header><div><p class="lab-eyebrow">REALM RUNNERS · ANIMATIONEN</p><h2 id="animation-lab-title">Die Trainingshalle</h2></div><button type="button" data-lab="close" aria-label="Testszene schließen">Schließen ✕</button></header>
- <p class="lab-description">Alle sechs Klassen mit dem Renderer des Spiels. Diese Szene verändert weder Spielstände noch Statistiken. Der Ritter nutzt neue komplette Pixel-Art-Frames in acht Richtungen; die anderen Klassen verwenden weiterhin ihre bestehenden Modelle.</p>
+ <p class="lab-description">Alle sechs Klassen mit dem Renderer des Spiels. Diese Szene verändert weder Spielstände noch Statistiken. Ritter und Magier nutzen komplette Pixel-Art-Frames in acht Richtungen; die übrigen Klassen verwenden weiterhin ihre bestehenden Modelle.</p>
  <div class="lab-controls"><label>Animation<select data-lab="state">${Object.entries(LAB_STATES).map(([id,name])=>`<option value="${id}">${name}</option>`).join('')}</select></label><label>Tempo<select data-lab="speed"><option value="0.25">¼ ×</option><option value="0.5">½ ×</option><option value="1" selected>1 ×</option></select></label>
  <label><input type="checkbox" data-lab="moving"> Gleichzeitig laufen</label><label><input type="checkbox" data-lab="anchors"> Anker anzeigen</label></div>
  <div class="lab-directions" role="group" aria-label="Blick- und Zielrichtung">${LAB_DIRECTIONS.map((d,i)=>`<button type="button" data-direction="${i}" aria-pressed="${i===4}">${d.name}</button>`).join('')}</div>
