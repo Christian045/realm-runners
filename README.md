@@ -1,4 +1,9 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.57.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.58.0)
+
+## Alpha 0.58.0 – Magier: zusammenhängende Rückenanimationen
+- Neue Vollkörperposen für Nordwest, Nord und Nordost mit sichtbaren gegenläufigen Schritten, bewegtem Robensaum und verbundenen Hüften/Beinen.
+- Neue Stabgriff-, Aushol-, Zauber- und Rückholposen für diese Richtungen. Schussursprünge erneut direkt an den Kristallpixeln gemessen.
+- Reproduzierbarer Atlasbau mit `node tools/pack-mage-back.cjs`; zusätzliche Prüfungen gegen statische Beine und Lücken am Rumpf.
 
 ## Alpha 0.57.0 – Magier: Stabhand und Schüsse
 - Rechts- und Rückenansichten verwenden passende vollständige Körperposen mit gemeinsam gedrehtem Arm, Stab und Kristallanker.

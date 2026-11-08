@@ -1,4 +1,4 @@
-import {MAGE_SOCKETS} from './mage-sockets.js?v=0.57.0';
+import {MAGE_SOCKETS} from './mage-sockets.js?v=0.58.0';
 export const mageFacing=d=>(Math.round((Math.atan2(d?.y??1,d?.x??0)-Math.PI/2)/(Math.PI/4))+8)%8;
 const clamp=n=>Math.max(0,Math.min(1,n));
 export function magePose(p,time=0,action=p.heroAction){
@@ -17,8 +17,8 @@ export function magePose(p,time=0,action=p.heroAction){
  const stretch=clip==='idle'?(1-Math.cos(time*Math.PI*2/2.8))*.009:0;
  // The original east/SE rows show the back of the hood and reuse a left-side
  // staff. Use the matching west/SW poses reflected as a complete body instead.
- // North also reflects the whole pose so the grip travels around the shoulder.
- const mirrored=row>=4,sourceRow=mirrored?(8-row)%8:row;
+ // The three back-facing directions have dedicated connected robe/leg poses.
+ const mirrored=row>=6,sourceRow=mirrored?(8-row)%8:row;
  return {clip,row,sourceRow,mirrored,frame,stretch,direction:direction||{x:0,y:1},progress:t};
 }
 let atlas;
@@ -35,7 +35,7 @@ export function mageShot(p,action=p.heroAction){
 export class MageProductionAtlas{
  constructor(){this.ready=false;this.loading=this.load();}
  async load(){try{
-  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/production-056/atlas.png?v=0.57.0',import.meta.url).href;});
+  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/production-058/atlas.png?v=0.58.0',import.meta.url).href;});
   await image.decode?.();if(image.width!==1536||image.height!==768)throw Error('Mage atlas dimensions');
   this.image=image;this.ready=true;
  }catch(e){this.failed=true;console.warn('Mage artwork unavailable, retaining fallback',e);}}

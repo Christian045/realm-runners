@@ -4,10 +4,10 @@ import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {magePose,mageShot,MageProductionAtlas} from '../src/mage-production.js';
 import {MAGE_SOCKETS} from '../src/mage-sockets.js';
 import {advanceHeroAction} from '../src/hero-animation.js';
-import {getMageProduction} from '../src/mage-production.js?v=0.57.0';
-import {Game} from '../src/game.js?v=0.57.0';
+import {getMageProduction} from '../src/mage-production.js?v=0.58.0';
+import {Game} from '../src/game.js?v=0.58.0';
 import {defaultProgress} from '../src/progression.js';
-const image=await loadImage(new URL('../assets/heroes/mage/production-056/atlas.png',import.meta.url).pathname);
+const image=await loadImage(new URL('../assets/heroes/mage/production-058/atlas.png',import.meta.url).pathname);
 const atlas=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
 test('all 128 mage cells are populated and each measured socket lies on its cyan crystal',()=>{
  const c=createCanvas(1536,768),g=c.getContext('2d');g.drawImage(image,0,0);
@@ -63,8 +63,8 @@ test('aiming exactly at the crystal still produces a unit flight direction',()=>
  const tip=mageShot(p);p.heroAction.target={x:tip.x,y:tip.y};
  assert.deepEqual(mageShot(p).aim,{x:1,y:0});
 });
-test('turning right and back reflects the complete matching pose and its crystal together',()=>{
- for(const [row,sourceRow] of [[4,4],[5,3],[6,2],[7,1]])for(const clip of ['idle','walk','attack','special','dash','hurt','death']){
+test('turning right reflects the complete matching pose and its crystal together',()=>{
+ for(const [row,sourceRow] of [[6,2],[7,1]])for(const clip of ['idle','walk','attack','special','dash','hurt','death']){
   const angle=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(angle),y:Math.sin(angle)};
   const p={kind:'mage',x:128,y:128,hp:clip==='death'?0:100,heroDeathElapsed:.6,direction,moving:clip==='walk',walkDistance:36};
   if(!['idle','walk','death'].includes(clip))p.heroAction={clip,elapsed:.5,duration:1,direction};
@@ -73,5 +73,24 @@ test('turning right and back reflects the complete matching pose and its crystal
   assert.equal(shot.x,p.x-original[0]);assert.equal(shot.y,p.y+original[1]);
   const canvas=createCanvas(256,256),ctx=canvas.getContext('2d');atlas.draw(ctx,p,0);
   assert.ok(ctx.getImageData(Math.round(shot.x),Math.round(shot.y),1,1).data[3]>128,`${row}/${clip}`);
+ }
+});
+test('all three back directions have distinct connected lower-body strides on both sides',()=>{
+ const canvas=createCanvas(1536,768),ctx=canvas.getContext('2d');ctx.drawImage(image,0,0);
+ for(const row of [3,4,5]){
+  const angle=Math.PI/2+row*Math.PI/4,pose=magePose({hp:100,direction:{x:Math.cos(angle),y:Math.sin(angle)},moving:true,walkDistance:0});
+  assert.equal(pose.sourceRow,row);assert.equal(pose.mirrored,false);
+  for(const left of [26,48]){
+   const steps=[1,2,3,4].map(frame=>ctx.getImageData(frame*96+left,row*96+64,22,24).data);
+   for(let i=0;i<4;i++){
+    const next=steps[(i+1)%4];let changed=0;
+    for(let p=0;p<next.length;p+=4)if(Math.abs(steps[i][p+3]-next[p+3])>128)changed++;
+    assert.ok(changed>8,`static lower body row ${row}, side ${left}, step ${i}: ${changed}`);
+   }
+  }
+  for(const frame of [1,2,3,4]){
+   const data=ctx.getImageData(frame*96+30,row*96+48,36,40).data;
+   for(let y=0;y<29;y++)assert.ok(Array.from({length:36},(_,x)=>data[(y*36+x)*4+3]).some(a=>a>128),`severed waist row ${row} frame ${frame} y ${y}`);
+  }
  }
 });
