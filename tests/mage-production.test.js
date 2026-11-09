@@ -4,8 +4,8 @@ import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {magePose,mageShot,MageProductionAtlas,getMageProduction as localMageProduction} from '../src/mage-production.js';
 import {MAGE_SOCKETS} from '../src/mage-sockets.js';
 import {advanceHeroAction} from '../src/hero-animation.js';
-import {getMageProduction} from '../src/mage-production.js?v=0.59.1';
-import {Game} from '../src/game.js?v=0.59.1';
+import {getMageProduction} from '../src/mage-production.js?v=0.60.0';
+import {Game} from '../src/game.js?v=0.60.0';
 import {defaultProgress} from '../src/progression.js';
 const image=await loadImage(new URL('../assets/heroes/mage/production-058/atlas.png',import.meta.url).pathname);
 const atlas=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
@@ -154,4 +154,30 @@ test('side gait swaps the visible near and far boot between contact phases',asyn
   for(let y=0;y<96;y++)for(let x=0;x<96;x++)if(d[(y*96+x)*4+3]>128)floor=y;
   assert.ok(floor>=86&&floor<=89,`ground contact ${frame}: ${floor}`);
  }
+});
+
+test('all four diagonal walks share the six-phase side gait and keep feet on the floor',async()=>{
+ const diagonalImage=await loadImage(new URL('../assets/heroes/mage/diagonal-060/walk.png',import.meta.url).pathname);
+ const {MAGE_DIAGONAL_SOCKETS}=await import('../src/mage-diagonal-sockets.js');
+ const production=localMageProduction();Object.assign(production,{ready:true,image,diagonalImage});
+ const render=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,diagonalImage});
+ try{
+  for(const row of [1,3,5,7])for(let frame=0;frame<6;frame++){
+   const a=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(a),y:Math.sin(a)};
+   const p={kind:'mage',x:128,y:128,hp:100,direction,moving:true,walkDistance:frame*12};
+   const pose=magePose(p);assert.equal(pose.diagonalFrame,frame);
+   assert.equal(pose.diagonalRow,row===1||row===7?0:1);assert.equal(pose.diagonalMirrored,row===5||row===7);
+   const c=createCanvas(256,256),g=c.getContext('2d');render.draw(g,p,0);const shot=mageShot(p);
+   const pixel=g.getImageData(shot.x,shot.y,1,1).data;
+   assert.ok(pixel[3]>128&&pixel[1]>140&&pixel[2]>150,`socket ${row}/${frame}`);
+   const d=g.getImageData(64,32,128,112).data;let bottom=-1;
+   for(let y=0;y<112;y++)for(let x=0;x<128;x++)if(d[(y*128+x)*4+3]>128)bottom=y+32;
+   assert.equal(bottom,127,`floor ${row}/${frame}`);
+   const side=magePose({...p,direction:{x:-1,y:0}});assert.equal(side.sideFrame,frame);
+  }
+  for(const sockets of MAGE_DIAGONAL_SOCKETS){
+   assert.ok(Math.max(...sockets.map(s=>s[0]))-Math.min(...sockets.map(s=>s[0]))<=2);
+   assert.ok(Math.max(...sockets.map(s=>s[1]))-Math.min(...sockets.map(s=>s[1]))<=2);
+  }
+ }finally{production.ready=false;delete production.diagonalImage;}
 });
