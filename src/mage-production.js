@@ -1,8 +1,7 @@
 import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.46.0';
-import {MAGE_WALK_SOCKETS} from './mage-walk-sockets.js?v=0.65.1';
-import {MAGE_SOCKETS} from './mage-sockets.js?v=0.65.1';
+import {MAGE_WALK_SOCKETS} from './mage-walk-sockets.js?v=0.66.0';
+import {MAGE_SOCKETS} from './mage-sockets.js?v=0.66.0';
 export const mageFacing=d=>(Math.round((Math.atan2(d?.y??1,d?.x??0)-Math.PI/2)/(Math.PI/4))+8)%8;
-export const MAGE_IDLE_FRAMES=Object.freeze([6,6,0,0,0,0,0,6]);
 const clamp=n=>Math.max(0,Math.min(1,n));
 export function magePose(p,time=0,action=p.heroAction){
  let clip=action?.clip||(p.hurtTimer>0?'hurt':p.moving?'walk':'idle');
@@ -16,7 +15,6 @@ export function magePose(p,time=0,action=p.heroAction){
  if(clip==='dash')frame=t<.85?11:0;
  if(clip==='hurt')frame=t<.6?12:t<.9?13:0;
  if(clip==='death')frame=t<.15?12:t<.55?14:15;
- // Idle uses the same eight-phase body as walking, held at the passing pose.
  // Whole-body breathing only. Feet and the staff socket share this transform.
  const stretch=clip==='idle'?(1-Math.cos(time*Math.PI*2/2.8))*.009:0;
  // The original east/SE rows show the back of the hood and reuse a left-side
@@ -29,13 +27,13 @@ export function magePose(p,time=0,action=p.heroAction){
  const diagonalMirrored=row===5||row===7;
  const walkDistance=p.mageWalkDistance??p.walkDistance??0;
  const walkFrame=clip==='walk'?Math.floor(((walkDistance%KNIGHT_VISUAL_STRIDE+KNIGHT_VISUAL_STRIDE)%KNIGHT_VISUAL_STRIDE)/KNIGHT_VISUAL_STRIDE*8):null;
- return {idleFrame:MAGE_IDLE_FRAMES[sourceRow],walkFrame,diagonalRow,diagonalFrame,diagonalMirrored,sideFrame,clip,row,sourceRow,mirrored,frame,stretch,direction:direction||{x:0,y:1},progress:t};
+ return {walkFrame,diagonalRow,diagonalFrame,diagonalMirrored,sideFrame,clip,row,sourceRow,mirrored,frame,stretch,direction:direction||{x:0,y:1},progress:t};
 }
 let atlas;
 export const mageReady=()=>Boolean(atlas?.ready);
 export function mageShot(p,action=p.heroAction){
- const pose=magePose(p,0,action),walking=(pose.clip==='idle'||pose.walkFrame!==null||pose.frame===0)&&atlas?.walkImage;
- const tip=walking?MAGE_WALK_SOCKETS[pose.sourceRow][pose.walkFrame??pose.idleFrame]:MAGE_SOCKETS[pose.sourceRow][pose.frame];
+ const pose=magePose(p,0,action),walking=pose.walkFrame!==null&&atlas?.walkImage;
+ const tip=walking?MAGE_WALK_SOCKETS[pose.sourceRow][pose.walkFrame]:MAGE_SOCKETS[pose.sourceRow][pose.frame];
  const x=Math.round(p.x)+(pose.mirrored?-tip[0]-1:tip[0]),y=p.y+tip[1],d=pose.direction;
  const target=action?.target||{x:p.x+d.x*260,y:p.y+d.y*260-27};
  const dx=target.x-x,dy=target.y-y,length=Math.hypot(dx,dy),fallback=Math.hypot(d.x,d.y)||1;
@@ -46,9 +44,9 @@ export function mageShot(p,action=p.heroAction){
 export class MageProductionAtlas{
  constructor(){this.ready=false;this.loading=this.load();}
  async load(){try{
-  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/unified-065/atlas.png?v=0.65.1',import.meta.url).href;});
+  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/knight-style-063/atlas.png?v=0.66.0',import.meta.url).href;});
   await image.decode?.();if(image.width!==1536||image.height!==768)throw Error('Mage atlas dimensions');
-  const walkImage=new Image();await new Promise((resolve,reject)=>{walkImage.onload=resolve;walkImage.onerror=reject;walkImage.src=new URL('../assets/heroes/mage/walk-064/walk.png?v=0.65.1',import.meta.url).href;});
+  const walkImage=new Image();await new Promise((resolve,reject)=>{walkImage.onload=resolve;walkImage.onerror=reject;walkImage.src=new URL('../assets/heroes/mage/walk-066/walk.png?v=0.66.0',import.meta.url).href;});
   await walkImage.decode?.();if(walkImage.width!==768||walkImage.height!==768)throw Error('Mage walk dimensions');
   this.walkImage=walkImage;this.image=image;this.ready=true;
  }catch(e){this.failed=true;console.warn('Mage artwork unavailable, retaining fallback',e);}}
@@ -56,9 +54,9 @@ export class MageProductionAtlas{
   const pose=magePose(p,time),height=96*(1+pose.stretch);
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
-  const walking=(pose.clip==='idle'||pose.walkFrame!==null||pose.frame===0)&&this.walkImage,mirrored=pose.mirrored;
+  const walking=pose.walkFrame!==null&&this.walkImage,mirrored=pose.mirrored;
   ctx.translate(Math.round(p.x),p.y);if(mirrored)ctx.scale(-1,1);
-  ctx.drawImage(walking||this.image,(walking?(pose.walkFrame??pose.idleFrame):pose.frame)*96,pose.sourceRow*96,96,96,-48,-88*(1+pose.stretch),96,height);
+  ctx.drawImage(walking||this.image,(walking?(pose.walkFrame):pose.frame)*96,pose.sourceRow*96,96,96,-48,-88*(1+pose.stretch),96,height);
   // Effects and sockets remain in world coordinates, outside the sprite reflection.
   if(mirrored)ctx.scale(-1,1);ctx.translate(-Math.round(p.x),-p.y);
   if(pose.clip==='special'&&pose.progress<.7){

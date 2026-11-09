@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createCanvas,loadImage} from '@napi-rs/canvas';
-import {magePose,mageShot,MAGE_IDLE_FRAMES,MageProductionAtlas,getMageProduction as localMageProduction} from '../src/mage-production.js';
+import {magePose,mageShot,MageProductionAtlas,getMageProduction as localMageProduction} from '../src/mage-production.js';
 import {MAGE_SOCKETS} from '../src/mage-sockets.js';
 import {advanceHeroAction} from '../src/hero-animation.js';
-import {getMageProduction} from '../src/mage-production.js?v=0.65.1';
-import {Game} from '../src/game.js?v=0.65.1';
+import {getMageProduction} from '../src/mage-production.js?v=0.66.0';
+import {Game} from '../src/game.js?v=0.66.0';
 import {defaultProgress} from '../src/progression.js';
-const image=await loadImage(new URL('../assets/heroes/mage/unified-065/atlas.png',import.meta.url).pathname);
+const image=await loadImage(new URL('../assets/heroes/mage/knight-style-063/atlas.png',import.meta.url).pathname);
 const atlas=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
 test('all 128 mage cells are populated and each measured socket lies on its cyan crystal',()=>{
  const c=createCanvas(1536,768),g=c.getContext('2d');g.drawImage(image,0,0);
@@ -116,7 +116,7 @@ test('mirrored sockets sample the exact reflected crystal pixel in every frame',
 });
 
 test('knight-style mage renders all eight walk phases in eight directions from measured crystals',async()=>{
- const walkImage=await loadImage(new URL('../assets/heroes/mage/walk-064/walk.png',import.meta.url).pathname);
+ const walkImage=await loadImage(new URL('../assets/heroes/mage/walk-066/walk.png',import.meta.url).pathname);
  const production=localMageProduction();Object.assign(production,{ready:true,image,walkImage});
  const render=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,walkImage});
  try{
@@ -143,16 +143,15 @@ test('mage and knight share the actual-distance walk cadence in every direction'
  }
 });
 
-test('stopping keeps the same mage body and staff as its grounded walk pose in all directions',async()=>{
- const walkImage=await loadImage(new URL('../assets/heroes/mage/walk-064/walk.png',import.meta.url).pathname);
+test('stopping restores the selected stocky neutral mage instead of freezing a raised walk foot',async()=>{
+ const walkImage=await loadImage(new URL('../assets/heroes/mage/walk-066/walk.png',import.meta.url).pathname);
  const render=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,walkImage});
- for(let row=0;row<8;row++){
+ const neutral=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
+ for(let row=0;row<8;row++)for(const distance of [0,12,36,60,84]){
   const angle=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(angle),y:Math.sin(angle)};
-  const p={kind:'mage',x:128,y:128,hp:100,direction};
-  p.mageWalkDistance=MAGE_IDLE_FRAMES[magePose(p).sourceRow]*12;
-  const idle=createCanvas(256,256),walk=createCanvas(256,256);
-  render.draw(idle.getContext('2d'),p,0);
-  render.draw(walk.getContext('2d'),{...p,moving:true},0);
-  assert.deepEqual(idle.getContext('2d').getImageData(0,0,256,256).data,walk.getContext('2d').getImageData(0,0,256,256).data,`different character on stop: ${row}`);
+  const p={kind:'mage',x:128,y:128,hp:100,direction,mageWalkDistance:distance};
+  const actual=createCanvas(256,256),expected=createCanvas(256,256);
+  render.draw(actual.getContext('2d'),p,0);neutral.draw(expected.getContext('2d'),p,0);
+  assert.deepEqual(actual.getContext('2d').getImageData(0,0,256,256).data,expected.getContext('2d').getImageData(0,0,256,256).data,`frozen walk pose on stop: ${row}/${distance}`);
  }
 });
