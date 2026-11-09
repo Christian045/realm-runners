@@ -15,7 +15,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
     const [{HeroSpriteAtlas},{KnightSpriteAtlas},{WALK_STRIDE},{findGroundContact}]=await Promise.all([
      import('./src/hero-sprites.js?v=0.35.0'),
      import('./src/knight-sprites.js?v=0.34.0'),
-     import('./src/locomotion.js?v=0.31.0'),
+     import('./src/locomotion.js?v=0.64.0'),
      import('./src/grounded-walk.js?v=0.32.0')]);
     const dirs={down:{x:0,y:1},right:{x:1,y:0},up:{x:0,y:-1},left:{x:-1,y:0}};
     const all=[];

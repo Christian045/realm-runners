@@ -4,8 +4,8 @@ import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {magePose,mageShot,MageProductionAtlas,getMageProduction as localMageProduction} from '../src/mage-production.js';
 import {MAGE_SOCKETS} from '../src/mage-sockets.js';
 import {advanceHeroAction} from '../src/hero-animation.js';
-import {getMageProduction} from '../src/mage-production.js?v=0.63.0';
-import {Game} from '../src/game.js?v=0.63.0';
+import {getMageProduction} from '../src/mage-production.js?v=0.64.0';
+import {Game} from '../src/game.js?v=0.64.0';
 import {defaultProgress} from '../src/progression.js';
 const image=await loadImage(new URL('../assets/heroes/mage/knight-style-063/atlas.png',import.meta.url).pathname);
 const atlas=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
@@ -115,17 +115,30 @@ test('mirrored sockets sample the exact reflected crystal pixel in every frame',
  }
 });
 
-test('knight-style mage renders all six walk phases in eight directions from measured crystals',async()=>{
- const walkImage=await loadImage(new URL('../assets/heroes/mage/knight-style-063/walk.png',import.meta.url).pathname);
+test('knight-style mage renders all eight walk phases in eight directions from measured crystals',async()=>{
+ const walkImage=await loadImage(new URL('../assets/heroes/mage/walk-064/walk.png',import.meta.url).pathname);
  const production=localMageProduction();Object.assign(production,{ready:true,image,walkImage});
  const render=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,walkImage});
  try{
-  for(let row=0;row<8;row++)for(let frame=0;frame<6;frame++){
+  for(let row=0;row<8;row++)for(let frame=0;frame<8;frame++){
    const a=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(a),y:Math.sin(a)};
-   const p={kind:'mage',x:128,y:128,hp:100,direction,moving:true,walkDistance:frame*12};assert.equal(magePose(p).walkFrame,frame);
+   const p={kind:'mage',x:128,y:128,hp:100,direction,moving:true,mageWalkDistance:frame*12};assert.equal(magePose(p).walkFrame,frame);
    const c=createCanvas(256,256),g=c.getContext('2d');render.draw(g,p,0);const shot=mageShot(p),pixel=g.getImageData(shot.x,shot.y,1,1).data;
    assert.ok(pixel[3]>128&&pixel[1]>120&&pixel[2]>130,`crystal ${row}/${frame}`);
    let pixels=0;for(const value of g.getImageData(64,32,128,112).data.filter((v,i)=>i%4===3))if(value>128)pixels++;assert.ok(pixels>600);
   }
  }finally{production.ready=false;delete production.walkImage;}
+});
+
+test('mage and knight share the actual-distance walk cadence in every direction',async()=>{
+ const {advanceLocomotion}=await import('../src/locomotion.js');
+ const {knightPose}=await import('../src/knight-animation.js');
+ for(const [x,y] of [[1,0],[0,1],[Math.SQRT1_2,Math.SQRT1_2]]){
+  const mage={kind:'mage',x:0,y:0,hp:100,direction:{x,y}},knight={...mage,kind:'warrior'};
+  for(let step=0;step<16;step++){
+   for(const p of [mage,knight]){const oldX=p.x,oldY=p.y;p.x+=x*6;p.y+=y*6;advanceLocomotion(p,oldX,oldY,false,1/60);}
+   assert.equal(magePose(mage).walkFrame,knightPose(knight).frame);
+  }
+  const distance=mage.mageWalkDistance;advanceLocomotion(mage,mage.x,mage.y,false,1/60);assert.equal(mage.mageWalkDistance,distance);assert.equal(mage.moving,false);
+ }
 });
