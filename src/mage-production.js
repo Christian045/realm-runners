@@ -1,6 +1,5 @@
-import {MAGE_DIAGONAL_SOCKETS} from './mage-diagonal-sockets.js?v=0.62.0';
-import {MAGE_SIDE_SOCKETS} from './mage-side-sockets.js?v=0.62.0';
-import {MAGE_SOCKETS} from './mage-sockets.js?v=0.62.0';
+import {MAGE_WALK_SOCKETS} from './mage-walk-sockets.js?v=0.63.0';
+import {MAGE_SOCKETS} from './mage-sockets.js?v=0.63.0';
 export const mageFacing=d=>(Math.round((Math.atan2(d?.y??1,d?.x??0)-Math.PI/2)/(Math.PI/4))+8)%8;
 const clamp=n=>Math.max(0,Math.min(1,n));
 export function magePose(p,time=0,action=p.heroAction){
@@ -25,14 +24,15 @@ export function magePose(p,time=0,action=p.heroAction){
  const diagonalRow=row===1||row===7?0:row===3||row===5?1:null;
  const diagonalFrame=clip==='walk'&&diagonalRow!==null?Math.floor(((((p.walkDistance||0)%72)+72)%72)/12):null;
  const diagonalMirrored=row===5||row===7;
- return {diagonalRow,diagonalFrame,diagonalMirrored,sideFrame,clip,row,sourceRow,mirrored,frame,stretch,direction:direction||{x:0,y:1},progress:t};
+ const walkFrame=clip==='walk'?Math.floor(((((p.walkDistance||0)%72)+72)%72)/12):null;
+ return {walkFrame,diagonalRow,diagonalFrame,diagonalMirrored,sideFrame,clip,row,sourceRow,mirrored,frame,stretch,direction:direction||{x:0,y:1},progress:t};
 }
 let atlas;
 export const mageReady=()=>Boolean(atlas?.ready);
 export function mageShot(p,action=p.heroAction){
- const pose=magePose(p,0,action),diagonal=pose.diagonalFrame!==null&&atlas?.diagonalImage,tip=diagonal?MAGE_DIAGONAL_SOCKETS[pose.diagonalRow][pose.diagonalFrame]:pose.sideFrame!==null&&atlas?.sideImage?MAGE_SIDE_SOCKETS[pose.sideFrame]:MAGE_SOCKETS[pose.sourceRow][pose.frame];
- // Reflect pixel centres, not pixel edges: x becomes -x-1 on the canvas.
- const x=Math.round(p.x)+((diagonal?pose.diagonalMirrored:pose.mirrored)?-tip[0]-1:tip[0]),y=p.y+tip[1],d=pose.direction;
+ const pose=magePose(p,0,action),walking=pose.walkFrame!==null&&atlas?.walkImage;
+ const tip=walking?MAGE_WALK_SOCKETS[pose.sourceRow][pose.walkFrame]:MAGE_SOCKETS[pose.sourceRow][pose.frame];
+ const x=Math.round(p.x)+(pose.mirrored?-tip[0]-1:tip[0]),y=p.y+tip[1],d=pose.direction;
  const target=action?.target||{x:p.x+d.x*260,y:p.y+d.y*260-27};
  const dx=target.x-x,dy=target.y-y,length=Math.hypot(dx,dy),fallback=Math.hypot(d.x,d.y)||1;
  const aim=length>1e-6?{x:dx/length,y:dy/length}:{x:d.x/fallback,y:d.y/fallback};
@@ -42,22 +42,19 @@ export function mageShot(p,action=p.heroAction){
 export class MageProductionAtlas{
  constructor(){this.ready=false;this.loading=this.load();}
  async load(){try{
-  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/complete-062/atlas.png?v=0.62.0',import.meta.url).href;});
+  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/knight-style-063/atlas.png?v=0.63.0',import.meta.url).href;});
   await image.decode?.();if(image.width!==1536||image.height!==768)throw Error('Mage atlas dimensions');
-  const sideImage=new Image();await new Promise((resolve,reject)=>{sideImage.onload=resolve;sideImage.onerror=reject;sideImage.src=new URL('../assets/heroes/mage/compact-061/side.png?v=0.62.0',import.meta.url).href;});
-  await sideImage.decode?.();if(sideImage.width!==576||sideImage.height!==96)throw Error('Mage side walk dimensions');
-  const diagonalImage=new Image();await new Promise((resolve,reject)=>{diagonalImage.onload=resolve;diagonalImage.onerror=reject;diagonalImage.src=new URL('../assets/heroes/mage/compact-061/diagonal.png?v=0.62.0',import.meta.url).href;});
-  await diagonalImage.decode?.();if(diagonalImage.width!==576||diagonalImage.height!==192)throw Error('Mage diagonal walk dimensions');
-  this.diagonalImage=diagonalImage;this.sideImage=sideImage;this.image=image;this.ready=true;
+  const walkImage=new Image();await new Promise((resolve,reject)=>{walkImage.onload=resolve;walkImage.onerror=reject;walkImage.src=new URL('../assets/heroes/mage/knight-style-063/walk.png?v=0.63.0',import.meta.url).href;});
+  await walkImage.decode?.();if(walkImage.width!==576||walkImage.height!==768)throw Error('Mage walk dimensions');
+  this.walkImage=walkImage;this.image=image;this.ready=true;
  }catch(e){this.failed=true;console.warn('Mage artwork unavailable, retaining fallback',e);}}
  draw(ctx,p,time=0){if(!this.ready)return false;
   const pose=magePose(p,time),height=96*(1+pose.stretch);
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
-  const diagonal=pose.diagonalFrame!==null&&this.diagonalImage,mirrored=diagonal?pose.diagonalMirrored:pose.mirrored;
+  const walking=pose.walkFrame!==null&&this.walkImage,mirrored=pose.mirrored;
   ctx.translate(Math.round(p.x),p.y);if(mirrored)ctx.scale(-1,1);
-  const side=pose.sideFrame!==null&&this.sideImage;
-  ctx.drawImage(diagonal||side||this.image,(diagonal?pose.diagonalFrame:side?pose.sideFrame:pose.frame)*96,diagonal?pose.diagonalRow*96:side?0:pose.sourceRow*96,96,96,-48,-88*(1+pose.stretch),96,height);
+  ctx.drawImage(walking||this.image,(walking?pose.walkFrame:pose.frame)*96,pose.sourceRow*96,96,96,-48,-88*(1+pose.stretch),96,height);
   // Effects and sockets remain in world coordinates, outside the sprite reflection.
   if(mirrored)ctx.scale(-1,1);ctx.translate(-Math.round(p.x),-p.y);
   if(pose.clip==='special'&&pose.progress<.7){

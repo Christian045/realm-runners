@@ -1,6 +1,6 @@
 {
  "name": "realm-runners-dungeon-reborn",
- "version": "0.62.0",
+ "version": "0.63.0",
  "type": "module",
  "private": true,
  "description": "HTML5 Canvas top-down roguelite / hack and slash",

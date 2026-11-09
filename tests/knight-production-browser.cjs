@@ -12,12 +12,12 @@ const fs=require('node:fs');
     isMobile:mobile,hasTouch:mobile
    });
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.goto('http://127.0.0.1:8000/?v=0.62.0');
+   await page.goto('http://127.0.0.1:8000/?v=0.63.0');
    const result=await page.evaluate(async()=>{
     const [{getKnightFinal},{KNIGHT_PRODUCTION_COUNTS},{labSample,LAB_DIRECTIONS}]=await Promise.all([
-     import('./src/knight-final.js?v=0.62.0'),
-     import('./src/knight-production.js?v=0.62.0'),
-     import('./src/animation-lab.js?v=0.62.0')
+     import('./src/knight-final.js?v=0.63.0'),
+     import('./src/knight-production.js?v=0.63.0'),
+     import('./src/animation-lab.js?v=0.63.0')
     ]);
     const atlas=getKnightFinal();await atlas.loading;
     if(!atlas.ready||!atlas.production||atlas.failed)throw Error('Released knight not loaded');
@@ -69,7 +69,7 @@ const fs=require('node:fs');
    await page.screenshot({path:'test-output/knight-054-'+name+'-game.png'});
    await page.goto('http://127.0.0.1:8000/?previewKnightFinal=1');
    assert.equal(await page.evaluate(async()=>{
-    const {getKnightFinal}=await import('./src/knight-final.js?v=0.62.0');
+    const {getKnightFinal}=await import('./src/knight-final.js?v=0.63.0');
     const atlas=getKnightFinal();await atlas.loading;return atlas.production;
    }),true);
    console.log(name,'608 production cells, menu, dungeon, controls and previous preview link passed');

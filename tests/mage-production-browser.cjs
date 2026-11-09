@@ -4,11 +4,11 @@ const fs=require('node:fs');
 (async()=>{fs.mkdirSync('test-output',{recursive:true});const engines=process.env.MAGE_CHROMIUM_ONLY?[['chromium',chromium]]:[['chromium',chromium],['webkit',webkit]];for(const [name,engine] of engines){
  const browser=await engine.launch({headless:true,...(name==='chromium'&&process.env.CHROMIUM_EXECUTABLE?{executablePath:process.env.CHROMIUM_EXECUTABLE}: {})});try{
  const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('http://127.0.0.1:8000/?v=0.62.0');
+ await page.goto('http://127.0.0.1:8000/?v=0.63.0');
  const result=await page.evaluate(async()=>{
-  const {HeroSpriteAtlas}=await import('./src/hero-sprites.js?v=0.62.0');
-  const {magePose}=await import('./src/mage-production.js?v=0.62.0');
-  const {heroShot}=await import('./src/hero-aim.js?v=0.62.0');
+  const {HeroSpriteAtlas}=await import('./src/hero-sprites.js?v=0.63.0');
+  const {magePose}=await import('./src/mage-production.js?v=0.63.0');
+  const {heroShot}=await import('./src/hero-aim.js?v=0.63.0');
   const atlas=new HeroSpriteAtlas();atlas.select('mage');await atlas.loading;if(!atlas.mage.ready||!atlas.ready)throw Error('Mage not loaded');
   const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;const g=canvas.getContext('2d');let checked=0;
   for(let row=0;row<8;row++)for(const clip of ['idle','walk','attack','special','dash','hurt','death']){
@@ -18,10 +18,10 @@ const fs=require('node:fs');
    if(magePose(p).row!==row)throw Error('Wrong facing');g.clearRect(0,0,256,256);atlas.draw(g,p,.4);
    if(['attack','special'].includes(clip)){const s=heroShot(p),pixel=g.getImageData(Math.round(s.x),Math.round(s.y),1,1).data;if(pixel[3]<128)throw Error('Detached staff socket');}
    checked++;
-  }for(const row of [1,3,5,7])for(let frame=0;frame<6;frame++){
+  }for(const row of [0,1,2,3,4,5,6,7])for(let frame=0;frame<6;frame++){
    const a=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(a),y:Math.sin(a)};
    const p={kind:'mage',x:128,y:128,hp:100,direction,moving:true,walkDistance:frame*12};
-   if(magePose(p).diagonalFrame!==frame||!atlas.mage.diagonalImage)throw Error('Missing diagonal phase');
+   if(magePose(p).walkFrame!==frame||!atlas.mage.walkImage)throw Error('Missing diagonal phase');
    g.clearRect(0,0,256,256);atlas.draw(g,p,0);const shot=heroShot(p);
    if(g.getImageData(shot.x,shot.y,1,1).data[3]<128)throw Error('Detached diagonal crystal');
   }return checked;

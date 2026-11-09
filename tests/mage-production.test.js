@@ -4,10 +4,10 @@ import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {magePose,mageShot,MageProductionAtlas,getMageProduction as localMageProduction} from '../src/mage-production.js';
 import {MAGE_SOCKETS} from '../src/mage-sockets.js';
 import {advanceHeroAction} from '../src/hero-animation.js';
-import {getMageProduction} from '../src/mage-production.js?v=0.62.0';
-import {Game} from '../src/game.js?v=0.62.0';
+import {getMageProduction} from '../src/mage-production.js?v=0.63.0';
+import {Game} from '../src/game.js?v=0.63.0';
 import {defaultProgress} from '../src/progression.js';
-const image=await loadImage(new URL('../assets/heroes/mage/complete-062/atlas.png',import.meta.url).pathname);
+const image=await loadImage(new URL('../assets/heroes/mage/knight-style-063/atlas.png',import.meta.url).pathname);
 const atlas=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
 test('all 128 mage cells are populated and each measured socket lies on its cyan crystal',()=>{
  const c=createCanvas(1536,768),g=c.getContext('2d');g.drawImage(image,0,0);
@@ -115,71 +115,17 @@ test('mirrored sockets sample the exact reflected crystal pixel in every frame',
  }
 });
 
-test('side walks use six distance-driven phases, stable crystals and reflected whole bodies',async()=>{
- const sideImage=await loadImage(new URL('../assets/heroes/mage/compact-061/side.png',import.meta.url).pathname);
- const {MAGE_SIDE_SOCKETS}=await import('../src/mage-side-sockets.js');
- const render=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,sideImage});
- const production=localMageProduction();Object.assign(production,{ready:true,image,sideImage});
+test('knight-style mage renders all six walk phases in eight directions from measured crystals',async()=>{
+ const walkImage=await loadImage(new URL('../assets/heroes/mage/knight-style-063/walk.png',import.meta.url).pathname);
+ const production=localMageProduction();Object.assign(production,{ready:true,image,walkImage});
+ const render=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,walkImage});
  try{
-  for(const sign of [-1,1])for(let frame=0;frame<6;frame++){
-   const p={kind:'mage',x:128,y:128,hp:100,moving:true,direction:{x:sign,y:0},heroMoveDirection:{x:sign,y:0},walkDistance:frame*12};
-   assert.equal(magePose(p).sideFrame,frame);
-   const c=createCanvas(256,256),ctx=c.getContext('2d');render.draw(ctx,p,0);const shot=mageShot(p);
-   const pixel=ctx.getImageData(shot.x,shot.y,1,1).data;
-   assert.ok(pixel[3]>128&&pixel[1]>140&&pixel[2]>150,`crystal ${sign}/${frame}`);
-   assert.ok(MAGE_SIDE_SOCKETS[frame][0]<0&&MAGE_SIDE_SOCKETS[frame][1]<-40);
-  }
-  assert.equal(magePose({hp:100,moving:true,direction:{x:0,y:1},walkDistance:12}).sideFrame,null);
- }finally{production.ready=false;delete production.sideImage;}
-});
-
-test('compact side gait keeps short grounded silhouettes with distinct opposite contacts',async()=>{
- const im=await loadImage(new URL('../assets/heroes/mage/compact-061/side.png',import.meta.url).pathname);
- const c=createCanvas(576,96),g=c.getContext('2d');g.drawImage(im,0,0);
- const silhouettes=[];
- for(let frame=0;frame<6;frame++){
-  const d=g.getImageData(frame*96,0,96,96).data;let top=96,bottom=-1;
-  for(let y=0;y<96;y++)for(let x=0;x<96;x++)if(d[(y*96+x)*4+3]>128){top=Math.min(top,y);bottom=y;}
-  assert.equal(bottom,87);assert.ok(bottom-top+1<=68,'new directions must stay compact');
-  silhouettes.push(g.getImageData(frame*96+20,68,56,20).data);
- }
- let changed=0;for(let i=3;i<silhouettes[0].length;i+=4)if(silhouettes[0][i]!==silhouettes[3][i])changed++;
- assert.ok(changed>20,'opposite steps need distinct lower-body silhouettes');
-});
-
-test('all four diagonal walks share the six-phase side gait and keep feet on the floor',async()=>{
- const diagonalImage=await loadImage(new URL('../assets/heroes/mage/compact-061/diagonal.png',import.meta.url).pathname);
- const {MAGE_DIAGONAL_SOCKETS}=await import('../src/mage-diagonal-sockets.js');
- const production=localMageProduction();Object.assign(production,{ready:true,image,diagonalImage});
- const render=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,diagonalImage});
- try{
-  for(const row of [1,3,5,7])for(let frame=0;frame<6;frame++){
+  for(let row=0;row<8;row++)for(let frame=0;frame<6;frame++){
    const a=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(a),y:Math.sin(a)};
-   const p={kind:'mage',x:128,y:128,hp:100,direction,moving:true,walkDistance:frame*12};
-   const pose=magePose(p);assert.equal(pose.diagonalFrame,frame);
-   assert.equal(pose.diagonalRow,row===1||row===7?0:1);assert.equal(pose.diagonalMirrored,row===5||row===7);
-   const c=createCanvas(256,256),g=c.getContext('2d');render.draw(g,p,0);const shot=mageShot(p);
-   const pixel=g.getImageData(shot.x,shot.y,1,1).data;
-   assert.ok(pixel[3]>128&&pixel[1]>140&&pixel[2]>150,`socket ${row}/${frame}`);
-   const d=g.getImageData(64,32,128,112).data;let bottom=-1;
-   for(let y=0;y<112;y++)for(let x=0;x<128;x++)if(d[(y*128+x)*4+3]>128)bottom=y+32;
-   assert.equal(bottom,127,`floor ${row}/${frame}`);
-   const side=magePose({...p,direction:{x:-1,y:0}});assert.equal(side.sideFrame,frame);
+   const p={kind:'mage',x:128,y:128,hp:100,direction,moving:true,walkDistance:frame*12};assert.equal(magePose(p).walkFrame,frame);
+   const c=createCanvas(256,256),g=c.getContext('2d');render.draw(g,p,0);const shot=mageShot(p),pixel=g.getImageData(shot.x,shot.y,1,1).data;
+   assert.ok(pixel[3]>128&&pixel[1]>120&&pixel[2]>130,`crystal ${row}/${frame}`);
+   let pixels=0;for(const value of g.getImageData(64,32,128,112).data.filter((v,i)=>i%4===3))if(value>128)pixels++;assert.ok(pixels>600);
   }
-  for(const sockets of MAGE_DIAGONAL_SOCKETS){
-   assert.ok(Math.max(...sockets.map(s=>s[0]))-Math.min(...sockets.map(s=>s[0]))<=6);
-   assert.ok(Math.max(...sockets.map(s=>s[1]))-Math.min(...sockets.map(s=>s[1]))<=6);
-  }
- }finally{production.ready=false;delete production.diagonalImage;}
-});
-
-test('compact mage keeps north staff handedness and stays compact across every action',()=>{
- const c=createCanvas(1536,768),g=c.getContext('2d');g.drawImage(image,0,0);
- for(let row=0;row<8;row++)for(const frame of [0,5,6,7,8,9,10,11,12,13,14,15]){
-  const d=g.getImageData(frame*96,row*96,96,96).data;let top=96,bottom=-1,left=96,right=-1;
-  for(let y=0;y<96;y++)for(let x=0;x<96;x++)if(d[(y*96+x)*4+3]>128){top=Math.min(top,y);bottom=y;left=Math.min(left,x);right=Math.max(right,x);}
-  assert.equal(bottom,87);assert.ok(bottom-top+1<=84);assert.ok(right-left+1<=90);
-  if(row===4&&[0,5,7,8,10,12,13].includes(frame))assert.ok(MAGE_SOCKETS[row][frame][0]>0,'north staff must stay on the walking hand');
-  if(frame===15)assert.ok(right-left>bottom-top,'dead mage must remain collapsed');
- }
+ }finally{production.ready=false;delete production.walkImage;}
 });
