@@ -1,2 +1,2 @@
-// Crystal pixels in the two six-frame diagonal walk cycles.
-export const MAGE_DIAGONAL_SOCKETS=[[[-22,-64],[-24,-65],[-23,-64],[-23,-63],[-23,-65],[-23,-64]],[[-19,-64],[-17,-64],[-17,-64],[-19,-64],[-19,-64],[-19,-64]]];
+// Measured compact diagonal walk crystal pixels.
+export const MAGE_DIAGONAL_SOCKETS=[[[-20,-55],[-21,-54],[-20,-57],[-20,-56],[-21,-57],[-20,-60]],[[-20,-59],[-17,-60],[-17,-61],[-17,-62],[-17,-59],[-18,-58]]];

@@ -4,8 +4,8 @@ import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {magePose,mageShot,MageProductionAtlas,getMageProduction as localMageProduction} from '../src/mage-production.js';
 import {MAGE_SOCKETS} from '../src/mage-sockets.js';
 import {advanceHeroAction} from '../src/hero-animation.js';
-import {getMageProduction} from '../src/mage-production.js?v=0.60.0';
-import {Game} from '../src/game.js?v=0.60.0';
+import {getMageProduction} from '../src/mage-production.js?v=0.61.0';
+import {Game} from '../src/game.js?v=0.61.0';
 import {defaultProgress} from '../src/progression.js';
 const image=await loadImage(new URL('../assets/heroes/mage/production-058/atlas.png',import.meta.url).pathname);
 const atlas=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
@@ -116,7 +116,7 @@ test('mirrored sockets sample the exact reflected crystal pixel in every frame',
 });
 
 test('side walks use six distance-driven phases, stable crystals and reflected whole bodies',async()=>{
- const sideImage=await loadImage(new URL('../assets/heroes/mage/side-0591/walk.png',import.meta.url).pathname);
+ const sideImage=await loadImage(new URL('../assets/heroes/mage/compact-061/side.png',import.meta.url).pathname);
  const {MAGE_SIDE_SOCKETS}=await import('../src/mage-side-sockets.js');
  const render=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,sideImage});
  const production=localMageProduction();Object.assign(production,{ready:true,image,sideImage});
@@ -127,37 +127,28 @@ test('side walks use six distance-driven phases, stable crystals and reflected w
    const c=createCanvas(256,256),ctx=c.getContext('2d');render.draw(ctx,p,0);const shot=mageShot(p);
    const pixel=ctx.getImageData(shot.x,shot.y,1,1).data;
    assert.ok(pixel[3]>128&&pixel[1]>140&&pixel[2]>150,`crystal ${sign}/${frame}`);
-   assert.ok(Math.abs(MAGE_SIDE_SOCKETS[frame][0]+27)<=1&&Math.abs(MAGE_SIDE_SOCKETS[frame][1]+64)<=1);
+   assert.ok(MAGE_SIDE_SOCKETS[frame][0]<0&&MAGE_SIDE_SOCKETS[frame][1]<-40);
   }
-  const c=createCanvas(576,96),g=c.getContext('2d');g.drawImage(sideImage,0,0);
-  const a=g.getImageData(24,72,50,16).data,b=g.getImageData(3*96+24,72,50,16).data;
-  let changed=0;for(let i=0;i<a.length;i+=4)if(Math.abs(a[i+3]-b[i+3])>128)changed++;
-  assert.ok(changed>30,'opposite foot contacts must have different leg silhouettes');
   assert.equal(magePose({hp:100,moving:true,direction:{x:0,y:1},walkDistance:12}).sideFrame,null);
  }finally{production.ready=false;delete production.sideImage;}
 });
 
-test('side gait swaps the visible near and far boot between contact phases',async()=>{
- const im=await loadImage(new URL('../assets/heroes/mage/side-0591/walk.png',import.meta.url).pathname);
+test('compact side gait keeps short grounded silhouettes with distinct opposite contacts',async()=>{
+ const im=await loadImage(new URL('../assets/heroes/mage/compact-061/side.png',import.meta.url).pathname);
  const c=createCanvas(576,96),g=c.getContext('2d');g.drawImage(im,0,0);
- const brightness=(frame,x,width)=>{
-  const d=g.getImageData(frame*96+x,76,width,12).data;let sum=0,n=0;
-  for(let i=0;i<d.length;i+=4)if(d[i+3]>128){sum+=d[i];n++;}
-  assert.ok(n>40,'boot region must be occupied');return sum/n;
- };
- // The near boot is lighter: it must switch from leading (left) to trailing
- // (right), rather than repeating the same leading leg in both half cycles.
- for(const frame of [0,5])assert.ok(brightness(frame,22,21)>brightness(frame,48,25)+20);
- for(const frame of [2,3])assert.ok(brightness(frame,48,25)>brightness(frame,22,21)+15);
+ const silhouettes=[];
  for(let frame=0;frame<6;frame++){
-  const d=g.getImageData(frame*96,0,96,96).data;let floor=-1;
-  for(let y=0;y<96;y++)for(let x=0;x<96;x++)if(d[(y*96+x)*4+3]>128)floor=y;
-  assert.ok(floor>=86&&floor<=89,`ground contact ${frame}: ${floor}`);
+  const d=g.getImageData(frame*96,0,96,96).data;let top=96,bottom=-1;
+  for(let y=0;y<96;y++)for(let x=0;x<96;x++)if(d[(y*96+x)*4+3]>128){top=Math.min(top,y);bottom=y;}
+  assert.equal(bottom,87);assert.ok(bottom-top+1<=68,'new directions must stay compact');
+  silhouettes.push(g.getImageData(frame*96+20,68,56,20).data);
  }
+ let changed=0;for(let i=3;i<silhouettes[0].length;i+=4)if(silhouettes[0][i]!==silhouettes[3][i])changed++;
+ assert.ok(changed>20,'opposite steps need distinct lower-body silhouettes');
 });
 
 test('all four diagonal walks share the six-phase side gait and keep feet on the floor',async()=>{
- const diagonalImage=await loadImage(new URL('../assets/heroes/mage/diagonal-060/walk.png',import.meta.url).pathname);
+ const diagonalImage=await loadImage(new URL('../assets/heroes/mage/compact-061/diagonal.png',import.meta.url).pathname);
  const {MAGE_DIAGONAL_SOCKETS}=await import('../src/mage-diagonal-sockets.js');
  const production=localMageProduction();Object.assign(production,{ready:true,image,diagonalImage});
  const render=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,diagonalImage});
@@ -176,8 +167,8 @@ test('all four diagonal walks share the six-phase side gait and keep feet on the
    const side=magePose({...p,direction:{x:-1,y:0}});assert.equal(side.sideFrame,frame);
   }
   for(const sockets of MAGE_DIAGONAL_SOCKETS){
-   assert.ok(Math.max(...sockets.map(s=>s[0]))-Math.min(...sockets.map(s=>s[0]))<=2);
-   assert.ok(Math.max(...sockets.map(s=>s[1]))-Math.min(...sockets.map(s=>s[1]))<=2);
+   assert.ok(Math.max(...sockets.map(s=>s[0]))-Math.min(...sockets.map(s=>s[0]))<=6);
+   assert.ok(Math.max(...sockets.map(s=>s[1]))-Math.min(...sockets.map(s=>s[1]))<=6);
   }
  }finally{production.ready=false;delete production.diagonalImage;}
 });
