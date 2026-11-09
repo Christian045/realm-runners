@@ -2,13 +2,13 @@ const {chromium,webkit}=require('playwright');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 (async()=>{fs.mkdirSync('test-output',{recursive:true});const engines=process.env.MAGE_CHROMIUM_ONLY?[['chromium',chromium]]:[['chromium',chromium],['webkit',webkit]];for(const [name,engine] of engines){
- const browser=await engine.launch({headless:true});try{
+ const browser=await engine.launch({headless:true,...(name==='chromium'&&process.env.CHROMIUM_EXECUTABLE?{executablePath:process.env.CHROMIUM_EXECUTABLE}: {})});try{
  const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('http://127.0.0.1:8000/?v=0.58.0');
+ await page.goto('http://127.0.0.1:8000/?v=0.58.1');
  const result=await page.evaluate(async()=>{
-  const {HeroSpriteAtlas}=await import('./src/hero-sprites.js?v=0.58.0');
-  const {magePose}=await import('./src/mage-production.js?v=0.58.0');
-  const {heroShot}=await import('./src/hero-aim.js?v=0.58.0');
+  const {HeroSpriteAtlas}=await import('./src/hero-sprites.js?v=0.58.1');
+  const {magePose}=await import('./src/mage-production.js?v=0.58.1');
+  const {heroShot}=await import('./src/hero-aim.js?v=0.58.1');
   const atlas=new HeroSpriteAtlas();atlas.select('mage');await atlas.loading;if(!atlas.mage.ready||!atlas.ready)throw Error('Mage not loaded');
   const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;const g=canvas.getContext('2d');let checked=0;
   for(let row=0;row<8;row++)for(const clip of ['idle','walk','attack','special','dash','hurt','death']){

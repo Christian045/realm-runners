@@ -9,7 +9,7 @@ const fs=require('node:fs');
    await page.goto('http://127.0.0.1:8000/?newKnight=1');
    const result=await page.evaluate(async({capture})=>{
     const [{HeroSpriteAtlas},{KnightSpriteAtlas},{articulatedPose,RIG_KINDS},{heroShot}]=await Promise.all([
-     import('./src/hero-sprites.js?v=0.58.0'),import('./src/knight-sprites.js?v=0.45.0'),import('./src/articulated-hero.js?v=0.40.0'),import('./src/hero-aim.js?v=0.58.0')]);
+     import('./src/hero-sprites.js?v=0.58.1'),import('./src/knight-sprites.js?v=0.45.0'),import('./src/articulated-hero.js?v=0.40.0'),import('./src/hero-aim.js?v=0.58.1')]);
     const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;const ctx=canvas.getContext('2d');let checked=0,sockets=0;
     const gallery=capture?document.createElement('canvas'):null;
     if(gallery){gallery.width=1280;gallery.height=1350;}

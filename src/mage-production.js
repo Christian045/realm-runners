@@ -1,11 +1,11 @@
-import {MAGE_SOCKETS} from './mage-sockets.js?v=0.58.0';
+import {MAGE_SOCKETS} from './mage-sockets.js?v=0.58.1';
 export const mageFacing=d=>(Math.round((Math.atan2(d?.y??1,d?.x??0)-Math.PI/2)/(Math.PI/4))+8)%8;
 const clamp=n=>Math.max(0,Math.min(1,n));
 export function magePose(p,time=0,action=p.heroAction){
  let clip=action?.clip||(p.hurtTimer>0?'hurt':p.moving?'walk':'idle');
  let t=action?clamp(action.elapsed/action.duration):clip==='hurt'?clamp(1-p.hurtTimer/.34):0;
  if(p.hp<=0){clip='death';t=clamp((p.heroDeathElapsed||0)/1.04);}
- const direction=action?.direction||(clip==='walk'?p.heroMoveDirection:null)||p.direction;
+ const direction=(clip==='death'?p.heroDeathDirection:action?.direction)||(clip==='walk'?p.heroMoveDirection:null)||p.direction;
  const row=mageFacing(direction);let frame=0;
  if(clip==='walk')frame=[1,2,3,4][Math.floor((((p.walkDistance||0)%72)+72)%72/18)];
  if(clip==='attack')frame=t<.16?0:t<.5?5:t<.68?6:t<.9?7:0;
@@ -25,7 +25,8 @@ let atlas;
 export const mageReady=()=>Boolean(atlas?.ready);
 export function mageShot(p,action=p.heroAction){
  const pose=magePose(p,0,action),tip=MAGE_SOCKETS[pose.sourceRow][pose.frame];
- const x=Math.round(p.x)+(pose.mirrored?-tip[0]:tip[0]),y=p.y+tip[1],d=pose.direction;
+ // Reflect pixel centres, not pixel edges: x becomes -x-1 on the canvas.
+ const x=Math.round(p.x)+(pose.mirrored?-tip[0]-1:tip[0]),y=p.y+tip[1],d=pose.direction;
  const target=action?.target||{x:p.x+d.x*260,y:p.y+d.y*260-27};
  const dx=target.x-x,dy=target.y-y,length=Math.hypot(dx,dy),fallback=Math.hypot(d.x,d.y)||1;
  const aim=length>1e-6?{x:dx/length,y:dy/length}:{x:d.x/fallback,y:d.y/fallback};
@@ -35,7 +36,7 @@ export function mageShot(p,action=p.heroAction){
 export class MageProductionAtlas{
  constructor(){this.ready=false;this.loading=this.load();}
  async load(){try{
-  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/production-058/atlas.png?v=0.58.0',import.meta.url).href;});
+  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/production-058/atlas.png?v=0.58.1',import.meta.url).href;});
   await image.decode?.();if(image.width!==1536||image.height!==768)throw Error('Mage atlas dimensions');
   this.image=image;this.ready=true;
  }catch(e){this.failed=true;console.warn('Mage artwork unavailable, retaining fallback',e);}}

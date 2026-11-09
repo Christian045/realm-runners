@@ -4,8 +4,8 @@ import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {magePose,mageShot,MageProductionAtlas} from '../src/mage-production.js';
 import {MAGE_SOCKETS} from '../src/mage-sockets.js';
 import {advanceHeroAction} from '../src/hero-animation.js';
-import {getMageProduction} from '../src/mage-production.js?v=0.58.0';
-import {Game} from '../src/game.js?v=0.58.0';
+import {getMageProduction} from '../src/mage-production.js?v=0.58.1';
+import {Game} from '../src/game.js?v=0.58.1';
 import {defaultProgress} from '../src/progression.js';
 const image=await loadImage(new URL('../assets/heroes/mage/production-058/atlas.png',import.meta.url).pathname);
 const atlas=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
@@ -70,7 +70,7 @@ test('turning right reflects the complete matching pose and its crystal together
   if(!['idle','walk','death'].includes(clip))p.heroAction={clip,elapsed:.5,duration:1,direction};
   const pose=magePose(p);assert.equal(pose.sourceRow,sourceRow);assert.equal(pose.mirrored,true);
   const original=MAGE_SOCKETS[sourceRow][pose.frame],shot=mageShot(p);
-  assert.equal(shot.x,p.x-original[0]);assert.equal(shot.y,p.y+original[1]);
+  assert.equal(shot.x,p.x-original[0]-1);assert.equal(shot.y,p.y+original[1]);
   const canvas=createCanvas(256,256),ctx=canvas.getContext('2d');atlas.draw(ctx,p,0);
   assert.ok(ctx.getImageData(Math.round(shot.x),Math.round(shot.y),1,1).data[3]>128,`${row}/${clip}`);
  }
@@ -92,5 +92,25 @@ test('all three back directions have distinct connected lower-body strides on bo
    const data=ctx.getImageData(frame*96+30,row*96+48,36,40).data;
    for(let y=0;y<29;y++)assert.ok(Array.from({length:36},(_,x)=>data[(y*36+x)*4+3]).some(a=>a>128),`severed waist row ${row} frame ${frame} y ${y}`);
   }
+ }
+});
+
+test('death keeps its recorded facing even when movement or aim changes',()=>{
+ const p={hp:0,heroDeathElapsed:.7,direction:{x:1,y:0},heroMoveDirection:{x:0,y:1},heroDeathDirection:{x:0,y:-1}};
+ assert.equal(magePose(p).row,4);
+ p.direction={x:-1,y:0};assert.equal(magePose(p).row,4);
+});
+test('mirrored sockets sample the exact reflected crystal pixel in every frame',()=>{
+ const source=createCanvas(1536,768),sg=source.getContext('2d');sg.drawImage(image,0,0);
+ for(const row of [6,7])for(const [clip,elapsed] of [['idle',0],['walk',0],['attack',.2],['attack',.5],['special',.5],['dash',.2],['hurt',.2],['death',.7]]){
+  const angle=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(angle),y:Math.sin(angle)};
+  const p={x:128,y:128,hp:clip==='death'?0:100,heroDeathElapsed:elapsed,direction,moving:clip==='walk',walkDistance:36};
+  if(!['idle','walk','death'].includes(clip))p.heroAction={clip,elapsed,duration:1,direction};
+  const pose=magePose(p),[x,y]=MAGE_SOCKETS[pose.sourceRow][pose.frame];
+  const expected=sg.getImageData(pose.frame*96+x+48,pose.sourceRow*96+y+88,1,1).data;
+  const c=createCanvas(256,256),g=c.getContext('2d');atlas.draw(g,p,0);const shot=mageShot(p);
+  const actual=g.getImageData(shot.x,shot.y,1,1).data;
+  if(clip==='special')assert.equal(actual[3],expected[3]); // The charge glow colours the crystal.
+  else assert.deepEqual(actual,expected,`${row}/${clip}/${elapsed}`);
  }
 });
