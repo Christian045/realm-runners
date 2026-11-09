@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createCanvas,loadImage} from '@napi-rs/canvas';
-import {magePose,mageShot,MageProductionAtlas} from '../src/mage-production.js';
+import {magePose,mageShot,MageProductionAtlas,getMageProduction as localMageProduction} from '../src/mage-production.js';
 import {MAGE_SOCKETS} from '../src/mage-sockets.js';
 import {advanceHeroAction} from '../src/hero-animation.js';
-import {getMageProduction} from '../src/mage-production.js?v=0.58.1';
-import {Game} from '../src/game.js?v=0.58.1';
+import {getMageProduction} from '../src/mage-production.js?v=0.59.0';
+import {Game} from '../src/game.js?v=0.59.0';
 import {defaultProgress} from '../src/progression.js';
 const image=await loadImage(new URL('../assets/heroes/mage/production-058/atlas.png',import.meta.url).pathname);
 const atlas=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
@@ -113,4 +113,26 @@ test('mirrored sockets sample the exact reflected crystal pixel in every frame',
   if(clip==='special')assert.equal(actual[3],expected[3]); // The charge glow colours the crystal.
   else assert.deepEqual(actual,expected,`${row}/${clip}/${elapsed}`);
  }
+});
+
+test('side walks use six distance-driven phases, stable crystals and reflected whole bodies',async()=>{
+ const sideImage=await loadImage(new URL('../assets/heroes/mage/side-059/walk.png',import.meta.url).pathname);
+ const {MAGE_SIDE_SOCKETS}=await import('../src/mage-side-sockets.js');
+ const render=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,sideImage});
+ const production=localMageProduction();Object.assign(production,{ready:true,image,sideImage});
+ try{
+  for(const sign of [-1,1])for(let frame=0;frame<6;frame++){
+   const p={kind:'mage',x:128,y:128,hp:100,moving:true,direction:{x:sign,y:0},heroMoveDirection:{x:sign,y:0},walkDistance:frame*12};
+   assert.equal(magePose(p).sideFrame,frame);
+   const c=createCanvas(256,256),ctx=c.getContext('2d');render.draw(ctx,p,0);const shot=mageShot(p);
+   const pixel=ctx.getImageData(shot.x,shot.y,1,1).data;
+   assert.ok(pixel[3]>128&&pixel[1]>140&&pixel[2]>150,`crystal ${sign}/${frame}`);
+   assert.ok(Math.abs(MAGE_SIDE_SOCKETS[frame][0]+27)<=1&&Math.abs(MAGE_SIDE_SOCKETS[frame][1]+64)<=1);
+  }
+  const c=createCanvas(576,96),g=c.getContext('2d');g.drawImage(sideImage,0,0);
+  const a=g.getImageData(24,72,50,16).data,b=g.getImageData(3*96+24,72,50,16).data;
+  let changed=0;for(let i=0;i<a.length;i+=4)if(Math.abs(a[i+3]-b[i+3])>128)changed++;
+  assert.ok(changed>30,'opposite foot contacts must have different leg silhouettes');
+  assert.equal(magePose({hp:100,moving:true,direction:{x:0,y:1},walkDistance:12}).sideFrame,null);
+ }finally{production.ready=false;delete production.sideImage;}
 });
