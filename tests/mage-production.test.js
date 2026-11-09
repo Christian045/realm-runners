@@ -4,10 +4,10 @@ import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {magePose,mageShot,MageProductionAtlas,getMageProduction as localMageProduction} from '../src/mage-production.js';
 import {MAGE_SOCKETS} from '../src/mage-sockets.js';
 import {advanceHeroAction} from '../src/hero-animation.js';
-import {getMageProduction} from '../src/mage-production.js?v=0.61.0';
-import {Game} from '../src/game.js?v=0.61.0';
+import {getMageProduction} from '../src/mage-production.js?v=0.62.0';
+import {Game} from '../src/game.js?v=0.62.0';
 import {defaultProgress} from '../src/progression.js';
-const image=await loadImage(new URL('../assets/heroes/mage/production-058/atlas.png',import.meta.url).pathname);
+const image=await loadImage(new URL('../assets/heroes/mage/complete-062/atlas.png',import.meta.url).pathname);
 const atlas=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
 test('all 128 mage cells are populated and each measured socket lies on its cyan crystal',()=>{
  const c=createCanvas(1536,768),g=c.getContext('2d');g.drawImage(image,0,0);
@@ -171,4 +171,15 @@ test('all four diagonal walks share the six-phase side gait and keep feet on the
    assert.ok(Math.max(...sockets.map(s=>s[1]))-Math.min(...sockets.map(s=>s[1]))<=6);
   }
  }finally{production.ready=false;delete production.diagonalImage;}
+});
+
+test('compact mage keeps north staff handedness and stays compact across every action',()=>{
+ const c=createCanvas(1536,768),g=c.getContext('2d');g.drawImage(image,0,0);
+ for(let row=0;row<8;row++)for(const frame of [0,5,6,7,8,9,10,11,12,13,14,15]){
+  const d=g.getImageData(frame*96,row*96,96,96).data;let top=96,bottom=-1,left=96,right=-1;
+  for(let y=0;y<96;y++)for(let x=0;x<96;x++)if(d[(y*96+x)*4+3]>128){top=Math.min(top,y);bottom=y;left=Math.min(left,x);right=Math.max(right,x);}
+  assert.equal(bottom,87);assert.ok(bottom-top+1<=84);assert.ok(right-left+1<=90);
+  if(row===4&&[0,5,7,8,10,12,13].includes(frame))assert.ok(MAGE_SOCKETS[row][frame][0]>0,'north staff must stay on the walking hand');
+  if(frame===15)assert.ok(right-left>bottom-top,'dead mage must remain collapsed');
+ }
 });
