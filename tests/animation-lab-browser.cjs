@@ -11,7 +11,7 @@ const fs=require('node:fs');
    const click=async selector=>{const el=page.locator(selector);if(!mobile){await el.click();return;}await el.evaluate(node=>node.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'}));const box=await el.boundingBox();assert.ok(box);await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);};
    const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:8000/?debugAnimations=1');
    await page.evaluate(async()=>{
-    const {getMageProduction}=await import('./src/mage-production.js?v=0.59.0');
+    const {getMageProduction}=await import('./src/mage-production.js?v=0.59.1');
     const mage=getMageProduction();await mage.loading;const draw=mage.draw.bind(mage);
     window.mageLabDraws=0;mage.draw=(...args)=>{window.mageLabDraws++;return draw(...args);};
    });

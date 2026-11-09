@@ -4,8 +4,8 @@ import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {magePose,mageShot,MageProductionAtlas,getMageProduction as localMageProduction} from '../src/mage-production.js';
 import {MAGE_SOCKETS} from '../src/mage-sockets.js';
 import {advanceHeroAction} from '../src/hero-animation.js';
-import {getMageProduction} from '../src/mage-production.js?v=0.59.0';
-import {Game} from '../src/game.js?v=0.59.0';
+import {getMageProduction} from '../src/mage-production.js?v=0.59.1';
+import {Game} from '../src/game.js?v=0.59.1';
 import {defaultProgress} from '../src/progression.js';
 const image=await loadImage(new URL('../assets/heroes/mage/production-058/atlas.png',import.meta.url).pathname);
 const atlas=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
@@ -116,7 +116,7 @@ test('mirrored sockets sample the exact reflected crystal pixel in every frame',
 });
 
 test('side walks use six distance-driven phases, stable crystals and reflected whole bodies',async()=>{
- const sideImage=await loadImage(new URL('../assets/heroes/mage/side-059/walk.png',import.meta.url).pathname);
+ const sideImage=await loadImage(new URL('../assets/heroes/mage/side-0591/walk.png',import.meta.url).pathname);
  const {MAGE_SIDE_SOCKETS}=await import('../src/mage-side-sockets.js');
  const render=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,sideImage});
  const production=localMageProduction();Object.assign(production,{ready:true,image,sideImage});
@@ -135,4 +135,23 @@ test('side walks use six distance-driven phases, stable crystals and reflected w
   assert.ok(changed>30,'opposite foot contacts must have different leg silhouettes');
   assert.equal(magePose({hp:100,moving:true,direction:{x:0,y:1},walkDistance:12}).sideFrame,null);
  }finally{production.ready=false;delete production.sideImage;}
+});
+
+test('side gait swaps the visible near and far boot between contact phases',async()=>{
+ const im=await loadImage(new URL('../assets/heroes/mage/side-0591/walk.png',import.meta.url).pathname);
+ const c=createCanvas(576,96),g=c.getContext('2d');g.drawImage(im,0,0);
+ const brightness=(frame,x,width)=>{
+  const d=g.getImageData(frame*96+x,76,width,12).data;let sum=0,n=0;
+  for(let i=0;i<d.length;i+=4)if(d[i+3]>128){sum+=d[i];n++;}
+  assert.ok(n>40,'boot region must be occupied');return sum/n;
+ };
+ // The near boot is lighter: it must switch from leading (left) to trailing
+ // (right), rather than repeating the same leading leg in both half cycles.
+ for(const frame of [0,5])assert.ok(brightness(frame,22,21)>brightness(frame,48,25)+20);
+ for(const frame of [2,3])assert.ok(brightness(frame,48,25)>brightness(frame,22,21)+15);
+ for(let frame=0;frame<6;frame++){
+  const d=g.getImageData(frame*96,0,96,96).data;let floor=-1;
+  for(let y=0;y<96;y++)for(let x=0;x<96;x++)if(d[(y*96+x)*4+3]>128)floor=y;
+  assert.ok(floor>=86&&floor<=89,`ground contact ${frame}: ${floor}`);
+ }
 });

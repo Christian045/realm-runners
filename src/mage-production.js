@@ -1,5 +1,5 @@
-import {MAGE_SIDE_SOCKETS} from './mage-side-sockets.js?v=0.59.0';
-import {MAGE_SOCKETS} from './mage-sockets.js?v=0.59.0';
+import {MAGE_SIDE_SOCKETS} from './mage-side-sockets.js?v=0.59.1';
+import {MAGE_SOCKETS} from './mage-sockets.js?v=0.59.1';
 export const mageFacing=d=>(Math.round((Math.atan2(d?.y??1,d?.x??0)-Math.PI/2)/(Math.PI/4))+8)%8;
 const clamp=n=>Math.max(0,Math.min(1,n));
 export function magePose(p,time=0,action=p.heroAction){
@@ -38,9 +38,9 @@ export function mageShot(p,action=p.heroAction){
 export class MageProductionAtlas{
  constructor(){this.ready=false;this.loading=this.load();}
  async load(){try{
-  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/production-058/atlas.png?v=0.59.0',import.meta.url).href;});
+  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/production-058/atlas.png?v=0.59.1',import.meta.url).href;});
   await image.decode?.();if(image.width!==1536||image.height!==768)throw Error('Mage atlas dimensions');
-  const sideImage=new Image();await new Promise((resolve,reject)=>{sideImage.onload=resolve;sideImage.onerror=reject;sideImage.src=new URL('../assets/heroes/mage/side-059/walk.png?v=0.59.0',import.meta.url).href;});
+  const sideImage=new Image();await new Promise((resolve,reject)=>{sideImage.onload=resolve;sideImage.onerror=reject;sideImage.src=new URL('../assets/heroes/mage/side-0591/walk.png?v=0.59.1',import.meta.url).href;});
   await sideImage.decode?.();if(sideImage.width!==576||sideImage.height!==96)throw Error('Mage side walk dimensions');
   this.sideImage=sideImage;this.image=image;this.ready=true;
  }catch(e){this.failed=true;console.warn('Mage artwork unavailable, retaining fallback',e);}}

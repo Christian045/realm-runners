@@ -1,7 +1,7 @@
 const {createCanvas,loadImage}=require('@napi-rs/canvas');
 const fs=require('node:fs');
 (async()=>{
- const im=await loadImage('assets/heroes/mage/side-059/source.png');
+ const im=await loadImage('assets/heroes/mage/side-0591/source.png');
  const out=createCanvas(576,96),g=out.getContext('2d');g.imageSmoothingEnabled=false;
  const cells=[];
  for(let n=0;n<6;n++){
@@ -25,6 +25,6 @@ const fs=require('node:fs');
   for(let y=0;y<96;y++)for(let x=0;x<96;x++){const i=(y*96+x)*4;if(d[i+3]&&d[i+1]>140&&d[i+2]>150&&d[i+1]-d[i]>40){const dist=Math.hypot(x-21,y-24);if(dist<best){best=dist;tip=[x-48,y-88];}}}
   sockets.push(tip);
  }
- fs.writeFileSync('assets/heroes/mage/side-059/walk.png',out.toBuffer('image/png'));
+ fs.writeFileSync('assets/heroes/mage/side-0591/walk.png',out.toBuffer('image/png'));
  fs.writeFileSync('src/mage-side-sockets.js','// Crystal pixels in the six side walk frames.\nexport const MAGE_SIDE_SOCKETS='+JSON.stringify(sockets)+';\n');
 })();
