@@ -1,4 +1,4 @@
-import {WALK_STRIDE} from './locomotion.js?v=0.64.0';
+import {WALK_STRIDE} from './locomotion.js?v=0.65.0';
 // Ranged classes share the knight's event-clock model, with their own poses.
 export const HERO_KINDS=Object.freeze(['hunter','mage','glasscannon','summoner','alchemist']);
 export const HERO_CLIPS=Object.freeze({

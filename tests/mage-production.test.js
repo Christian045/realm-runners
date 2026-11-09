@@ -4,10 +4,10 @@ import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {magePose,mageShot,MageProductionAtlas,getMageProduction as localMageProduction} from '../src/mage-production.js';
 import {MAGE_SOCKETS} from '../src/mage-sockets.js';
 import {advanceHeroAction} from '../src/hero-animation.js';
-import {getMageProduction} from '../src/mage-production.js?v=0.64.0';
-import {Game} from '../src/game.js?v=0.64.0';
+import {getMageProduction} from '../src/mage-production.js?v=0.65.0';
+import {Game} from '../src/game.js?v=0.65.0';
 import {defaultProgress} from '../src/progression.js';
-const image=await loadImage(new URL('../assets/heroes/mage/knight-style-063/atlas.png',import.meta.url).pathname);
+const image=await loadImage(new URL('../assets/heroes/mage/unified-065/atlas.png',import.meta.url).pathname);
 const atlas=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
 test('all 128 mage cells are populated and each measured socket lies on its cyan crystal',()=>{
  const c=createCanvas(1536,768),g=c.getContext('2d');g.drawImage(image,0,0);
@@ -140,5 +140,18 @@ test('mage and knight share the actual-distance walk cadence in every direction'
    assert.equal(magePose(mage).walkFrame,knightPose(knight).frame);
   }
   const distance=mage.mageWalkDistance;advanceLocomotion(mage,mage.x,mage.y,false,1/60);assert.equal(mage.mageWalkDistance,distance);assert.equal(mage.moving,false);
+ }
+});
+
+test('stopping keeps the same mage body and staff as the passing walk pose in all directions',async()=>{
+ const walkImage=await loadImage(new URL('../assets/heroes/mage/walk-064/walk.png',import.meta.url).pathname);
+ const render=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,walkImage});
+ for(let row=0;row<8;row++){
+  const angle=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(angle),y:Math.sin(angle)};
+  const p={kind:'mage',x:128,y:128,hp:100,direction,mageWalkDistance:36};
+  const idle=createCanvas(256,256),walk=createCanvas(256,256);
+  render.draw(idle.getContext('2d'),p,0);
+  render.draw(walk.getContext('2d'),{...p,moving:true},0);
+  assert.deepEqual(idle.getContext('2d').getImageData(0,0,256,256).data,walk.getContext('2d').getImageData(0,0,256,256).data,`different character on stop: ${row}`);
  }
 });
