@@ -1,4 +1,4 @@
-import {WALK_STRIDE} from './locomotion.js?v=0.66.0';
+import {WALK_STRIDE} from './locomotion.js?v=0.66.2';
 import {GAIT_BODIES} from './gait-body-frames.js?v=0.31.0';
 let pending;
 export function loadGaitBodies(imageFactory=()=>new Image()){

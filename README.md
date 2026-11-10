@@ -1,5 +1,13 @@
 # Realm Runners – Dungeon Reborn (Alpha 0.58.0)
 
+## Alpha 0.66.2 – Kräftiger Magier: Stand und Lauf verbunden
+
+- Der kräftige Magier mit sichtbarem Gesicht behält im Stand und in allen acht Laufrichtungen denselben Körper und dieselbe Kopfhaltung. Die Ruheposen stammen aus dem gewählten Laufsatz und zeigen beide Stiefel am Boden.
+- Angriff und Spezialfähigkeit kehren in dieselbe Ruhepose zurück. Stabspitze und Projektilursprung folgen auch den neuen Ruheposen.
+- Der Lauf nutzt acht Phasen im Rittertakt mit abwechselndem Stützbein; die Trainingshalle zeigt den vollständigen Zyklus mit korrekter Bildnummer.
+- Der Schatten von Ritter und Magier liegt in der Trainingshalle direkt an den Sohlen, wie im Dungeon.
+
+
 ## Alpha 0.58.0 – Magier: zusammenhängende Rückenanimationen
 - Neue Vollkörperposen für Nordwest, Nord und Nordost mit sichtbaren gegenläufigen Schritten, bewegtem Robensaum und verbundenen Hüften/Beinen.
 - Neue Stabgriff-, Aushol-, Zauber- und Rückholposen für diese Richtungen. Schussursprünge erneut direkt an den Kristallpixeln gemessen.

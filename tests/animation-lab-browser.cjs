@@ -11,7 +11,7 @@ const fs=require('node:fs');
    const click=async selector=>{const el=page.locator(selector);if(!mobile){await el.click();return;}await el.evaluate(node=>node.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'}));const box=await el.boundingBox();assert.ok(box);await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);};
    const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:8000/?debugAnimations=1');
    await page.evaluate(async()=>{
-    const {getMageProduction}=await import('./src/mage-production.js?v=0.66.0');
+    const {getMageProduction}=await import('./src/mage-production.js?v=0.66.2');
     const mage=getMageProduction();await mage.loading;const draw=mage.draw.bind(mage);
     window.mageLabDraws=0;mage.draw=(...args)=>{window.mageLabDraws++;return draw(...args);};
    });
@@ -21,6 +21,8 @@ const fs=require('node:fs');
    await page.waitForFunction(()=>[...document.querySelectorAll('[data-info]')].every(p=>p.textContent.includes('Bild')));
    assert.equal(await page.locator('[data-kind]').count(),6);
    await click('[data-lab="pause"]');
+   const ground=await page.locator('[data-kind="mage"]').evaluate(canvas=>Array.from(canvas.getContext('2d').getImageData(141,122,1,1).data));
+   assert.deepEqual(ground,[8,13,20,255],'Mage preview shadow meets the production sole pivot');
    // Exercise the real dialog input handlers and Canvas loop in one browser
    // evaluation. 528 cross-process locator round trips overloaded mobile WebKit
    // and could close the renderer even though every frame was rendered correctly.
@@ -39,6 +41,18 @@ const fs=require('node:fs');
       if(texts.length!==6||texts.some(t=>!t.includes('Bild')||t.includes('Darstellungsfehler')))
        throw new Error(state+' '+direction+': invalid preview '+texts.join(' | '));
       frames+=texts.length;
+     }
+    }
+    // The mage must expose a complete eight-phase cycle and label the frame
+    // actually rendered, including phases previously skipped by the preview.
+    clip.value='walk';clip.dispatchEvent(new Event('input',{bubbles:true}));
+    for(let direction=0;direction<8;direction++){
+     dialog.querySelector(`[data-direction="${direction}"]`).click();
+     for(let frame=0;frame<8;frame++){
+      seek.value=String(frame*125+1);seek.dispatchEvent(new Event('input',{bubbles:true}));
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      const text=dialog.querySelector('[data-info="mage"]').textContent;
+      if(!text.endsWith('Bild '+(frame+1)))throw new Error('Mage walk frame mismatch: '+text+' expected '+(frame+1));
      }
     }
     return frames;

@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createCanvas,loadImage} from '@napi-rs/canvas';
-import {magePose,mageShot,MageProductionAtlas,getMageProduction as localMageProduction} from '../src/mage-production.js';
+import {magePose,mageShot,MageProductionAtlas,MAGE_REST_FRAMES,getMageProduction as localMageProduction} from '../src/mage-production.js';
 import {MAGE_SOCKETS} from '../src/mage-sockets.js';
 import {advanceHeroAction} from '../src/hero-animation.js';
-import {getMageProduction} from '../src/mage-production.js?v=0.66.0';
-import {Game} from '../src/game.js?v=0.66.0';
+import {getMageProduction} from '../src/mage-production.js?v=0.66.2';
+import {Game} from '../src/game.js?v=0.66.2';
 import {defaultProgress} from '../src/progression.js';
 const image=await loadImage(new URL('../assets/heroes/mage/knight-style-063/atlas.png',import.meta.url).pathname);
 const atlas=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
@@ -116,7 +116,7 @@ test('mirrored sockets sample the exact reflected crystal pixel in every frame',
 });
 
 test('knight-style mage renders all eight walk phases in eight directions from measured crystals',async()=>{
- const walkImage=await loadImage(new URL('../assets/heroes/mage/walk-066/walk.png',import.meta.url).pathname);
+ const walkImage=await loadImage(new URL('../assets/heroes/mage/walk-0661/walk.png',import.meta.url).pathname);
  const production=localMageProduction();Object.assign(production,{ready:true,image,walkImage});
  const render=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,walkImage});
  try{
@@ -144,14 +144,53 @@ test('mage and knight share the actual-distance walk cadence in every direction'
 });
 
 test('stopping restores the selected stocky neutral mage instead of freezing a raised walk foot',async()=>{
- const walkImage=await loadImage(new URL('../assets/heroes/mage/walk-066/walk.png',import.meta.url).pathname);
+ const walkImage=await loadImage(new URL('../assets/heroes/mage/walk-0661/walk.png',import.meta.url).pathname);
  const render=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,walkImage});
- const neutral=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
+ const neutral=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image,walkImage});
  for(let row=0;row<8;row++)for(const distance of [0,12,36,60,84]){
   const angle=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(angle),y:Math.sin(angle)};
   const p={kind:'mage',x:128,y:128,hp:100,direction,mageWalkDistance:distance};
   const actual=createCanvas(256,256),expected=createCanvas(256,256);
-  render.draw(actual.getContext('2d'),p,0);neutral.draw(expected.getContext('2d'),p,0);
+  render.draw(actual.getContext('2d'),p,0);neutral.draw(expected.getContext('2d'),{...p,mageWalkDistance:0},0);
   assert.deepEqual(actual.getContext('2d').getImageData(0,0,256,256).data,expected.getContext('2d').getImageData(0,0,256,256).data,`frozen walk pose on stop: ${row}/${distance}`);
+ }
+});
+
+test('resting and attack recovery use the same directional body with both boots planted',async()=>{
+ const walk=await loadImage(new URL('../assets/heroes/mage/walk-0661/walk.png',import.meta.url).pathname);
+ const canvas=createCanvas(768,768),ctx=canvas.getContext('2d');ctx.drawImage(walk,0,0);
+ for(let row=0;row<8;row++){
+  const a=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(a),y:Math.sin(a)};
+  const p={hp:100,direction};
+  const pose=magePose(p),frame=pose.motionFrame;
+  assert.equal(frame,MAGE_REST_FRAMES[pose.sourceRow]);
+  const data=ctx.getImageData(frame*96,pose.sourceRow*96,96,96).data;
+  // Exclude the staff, and inspect the soles on both sides of the body.
+  for(const [left,right] of [[35,47],[49,64]]){
+   let lowest=-1;
+   for(let y=76;y<96;y++)for(let x=left;x<=right;x++)if(data[(y*96+x)*4+3]>128)lowest=y;
+   assert.ok(lowest>=86&&lowest<=87,`raised resting boot: ${row}/${left}: ${lowest}`);
+  }
+  for(const clip of ['attack','special'])for(const elapsed of [0,.95]){
+   const recovery=magePose({...p,heroAction:{clip,elapsed,duration:1,direction}});
+   assert.equal(recovery.motionFrame,frame,`body switch in ${row}/${clip}/${elapsed}`);
+  }
+ }
+});
+
+test('front and back walking swap the visible planted boot halfway through the cycle',async()=>{
+ const walk=await loadImage(new URL('../assets/heroes/mage/walk-0661/walk.png',import.meta.url).pathname);
+ const canvas=createCanvas(walk.width,walk.height),ctx=canvas.getContext('2d');ctx.drawImage(walk,0,0);
+ for(const row of [0,4]){
+  const contacts=[0,4].map(frame=>{
+   const data=ctx.getImageData(frame*96,row*96,96,96).data;
+   let lowest=-1;
+   for(let y=0;y<96;y++)for(let x=0;x<96;x++)if(data[(y*96+x)*4+3]>128)lowest=y;
+   assert.equal(lowest,87,'the support boot stays on the ground');
+   let sum=0,count=0;
+   for(let y=lowest-2;y<=lowest;y++)for(let x=0;x<96;x++)if(data[(y*96+x)*4+3]>128){sum+=x;count++;}
+   assert.ok(count>8);return sum/count;
+  });
+  assert.ok(contacts[1]-contacts[0]>6,`row ${row} repeats the same leading boot: ${contacts}`);
  }
 });

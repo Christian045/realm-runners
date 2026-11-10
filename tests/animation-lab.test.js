@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {labSample,LAB_KINDS,LAB_DIRECTIONS,LAB_STATES} from '../src/animation-lab.js';
+import {magePose} from '../src/mage-production.js';
+import {knightPose} from '../src/knight-animation.js';
 
 test('all six production actors sample every state in eight directions without touching saves',()=>{
  const original=globalThis.localStorage;
@@ -32,4 +34,21 @@ test('preview actors do not share mutable direction or state',()=>{
  a.player.direction.x=99;a.player.heroAction.direction.y=99;
  assert.notEqual(b.player.direction.x,99);assert.notEqual(d.x,99);assert.notEqual(b.player.heroAction.direction.y,99);
  assert.throws(()=>labSample('invalid','idle',d,0),RangeError);
+});
+
+test('the mage preview completes all eight real-distance walk phases alongside the knight',()=>{
+ for(const direction of LAB_DIRECTIONS){
+  const frames=new Set();
+  for(let step=0;step<24;step++){
+   const progress=(step+.01)/24;
+   const mage=labSample('mage','walk',direction,progress).player;
+   const knight=labSample('warrior','walk',direction,progress).player;
+   const frame=magePose(mage).walkFrame;
+   assert.equal(frame,Math.floor(progress*8));
+   assert.equal(frame,knightPose(knight).frame);
+   frames.add(frame);
+  }
+  assert.equal(frames.size,8);
+  assert.equal(magePose(labSample('mage','walk',direction,1).player).walkFrame,0);
+ }
 });

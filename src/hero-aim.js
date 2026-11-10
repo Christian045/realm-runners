@@ -1,4 +1,4 @@
-import {mageReady,mageShot} from './mage-production.js?v=0.66.0';
+import {mageReady,mageShot} from './mage-production.js?v=0.66.2';
 import {heroRigReady,articulatedShot} from './articulated-hero.js?v=0.40.0';
 import {heroFacing} from './hero-animation.js?v=0.31.0';
 

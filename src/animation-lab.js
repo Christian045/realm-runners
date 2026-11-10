@@ -1,13 +1,14 @@
-import {getKnightFinal,knightFinalFrame} from './knight-final.js?v=0.66.0';
+import {getKnightFinal,knightFinalFrame} from './knight-final.js?v=0.66.2';
 import {heroRigReady,articulatedPose,RIG_ROWS,getHeroRig} from './articulated-hero.js?v=0.40.0';
-import {HeroSpriteAtlas} from './hero-sprites.js?v=0.66.0';
-import {KnightSpriteAtlas} from './knight-sprites.js?v=0.66.0';
+import {HeroSpriteAtlas} from './hero-sprites.js?v=0.66.2';
+import {KnightSpriteAtlas} from './knight-sprites.js?v=0.66.2';
 import {heroPose,HERO_CLIPS} from './hero-animation.js?v=0.31.0';
-import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.66.0';
-import {heroShot} from './hero-aim.js?v=0.66.0';
+import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.66.2';
+import {heroShot} from './hero-aim.js?v=0.66.2';
 import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.46.0';
 import {CLASSES} from './data.js?v=0.23.0';
-import {getMageProduction,magePose} from './mage-production.js?v=0.66.0';
+import {getMageProduction,magePose} from './mage-production.js?v=0.66.2';
+import {KNIGHT_PRODUCTION_SCALE} from './knight-production.js?v=0.66.2';
 
 export const LAB_KINDS=Object.freeze(['warrior','mage','summoner','hunter','glasscannon','alchemist']);
 export const LAB_DIRECTIONS=Object.freeze(['N','NO','O','SO','S','SW','W','NW'].map((name,i)=>Object.freeze({name,x:Math.cos(-Math.PI/2+i*Math.PI/4),y:Math.sin(-Math.PI/2+i*Math.PI/4)})));
@@ -19,7 +20,7 @@ export function labSample(kind,state,direction,seconds,moving=false){
  if(!LAB_KINDS.includes(kind)||!Object.hasOwn(LAB_STATES,state))throw new RangeError('Unknown preview');
  const progress=Math.max(0,Math.min(1,seconds));
  const p={kind,x:128,y:121,hp:100,invulnerable:0,direction:{x:direction.x,y:direction.y},
-  knightPreviewProgress:progress,moving:state==='walk'||moving,walkDistance:progress*72,knightWalkDistance:progress*KNIGHT_VISUAL_STRIDE,
+  knightPreviewProgress:progress,moving:state==='walk'||moving,walkDistance:progress*72,knightWalkDistance:progress*KNIGHT_VISUAL_STRIDE,mageWalkDistance:progress*KNIGHT_VISUAL_STRIDE,
   robedWalkDistance:progress*240,walkCycle:progress*.54*14,heroMoveDirection:{...direction},knightMoveDirection:{...direction},hurtTimer:0};
  const knight=kind==='warrior',clips=knight?KNIGHT_CLIPS:HERO_CLIPS;
  let clip=state;
@@ -83,17 +84,23 @@ export async function openAnimationLab(){
    const c=canvas.getContext('2d'),atlas=atlases.get(kind);
    c.clearRect(0,0,canvas.width,canvas.height);c.fillStyle='#121a22';c.fillRect(0,0,256,176);
    c.strokeStyle='#27333e';c.lineWidth=1;for(let x=0;x<256;x+=16){c.beginPath();c.moveTo(x,0);c.lineTo(x,176);c.stroke();}for(let y=9;y<176;y+=16){c.beginPath();c.moveTo(0,y);c.lineTo(256,y);c.stroke();}
-   c.fillStyle='#080d14';c.beginPath();c.ellipse(128,130,27,8,0,0,Math.PI*2);c.fill();
+   // Production knight/mage pivots are at their soles, as in the dungeon.
+   const groundedMage=kind==='mage'&&atlas?.ready&&atlas===getMageProduction();
+   const groundedKnight=kind==='warrior'&&atlas?.production;
+   const grounded=groundedMage||groundedKnight;
+   const shadowWidth=groundedMage?19:groundedKnight?23*KNIGHT_PRODUCTION_SCALE:27;
+   const shadowHeight=groundedMage?4:groundedKnight?5*KNIGHT_PRODUCTION_SCALE:8;
+   c.fillStyle='#080d14';c.beginPath();c.ellipse(128,grounded?122:130,shadowWidth,shadowHeight,0,0,Math.PI*2);c.fill();
    if(!atlas?.ready){info.textContent=errors.has(kind)?'Grafik konnte nicht geladen werden.':'Grafik wird geladen …';continue;}
    const sample=labSample(kind,state.clip,LAB_DIRECTIONS[state.direction],clock,state.moving);
    try{atlas.draw(c,sample.player,clock*(kind==='warrior'?1.6:1.5));}catch(error){info.textContent='Darstellungsfehler: '+error.message;continue;}
    const productionMage=kind==='mage'&&atlas===getMageProduction();
    const mage=productionMage?magePose(sample.player,clock*1.5):null;
-   const displayed=kind==='warrior'?knightFinalFrame(sample.player,clock*1.6,Boolean(atlas.production||atlas.completePreview)).index:mage?.frame??sample.pose.frame;
+   const displayed=kind==='warrior'?knightFinalFrame(sample.player,clock*1.6,Boolean(atlas.production||atlas.completePreview)).index:mage?.walkFrame??mage?.frame??sample.pose.frame;
    const releasing=sample.release!==null&&Math.abs(sample.progress-sample.release)<.065;
    if(state.anchors){
     c.strokeStyle='#6ee3d4';c.lineWidth=1;
-    for(const point of [{x:128,y:130},...(sample.shot?[sample.shot]:[])]){c.beginPath();c.moveTo(point.x-5,point.y);c.lineTo(point.x+5,point.y);c.moveTo(point.x,point.y-5);c.lineTo(point.x,point.y+5);c.stroke();}
+    for(const point of [{x:sample.player.x,y:sample.player.y},...(sample.shot?[sample.shot]:[])]){c.beginPath();c.moveTo(point.x-5,point.y);c.lineTo(point.x+5,point.y);c.moveTo(point.x,point.y-5);c.lineTo(point.x,point.y+5);c.stroke();}
     if(sample.shot){const s=sample.shot;c.setLineDash([3,4]);c.beginPath();c.moveTo(s.x,s.y);c.lineTo(s.x+s.aim.x*65,s.y+s.aim.y*65);c.stroke();c.setLineDash([]);}
    }
    if(releasing){c.strokeStyle='#ebc582';c.strokeRect(1,1,254,174);}
