@@ -1,4 +1,11 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.58.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.67.0)
+
+## Alpha 0.67.0 – Magier: sichere Standhaltung und lebendigerer Lauf
+
+- Eigene ausbalancierte Ruheposen in acht Richtungen ersetzen die eingefrorenen Laufbilder. Seitlich stehen beide Stiefel auf dem Boden; Kopf, Brust und Hüfte bleiben aufrecht übereinander.
+- Acht vollständige Laufphasen mit dezenter Gegenbewegung von freiem Arm und Schultern sowie nachlaufendem Robensaum. Vorder- und Rückenansichten behalten den sichtbaren Wechsel des Stützbeins.
+- Stand, Lauf und Aktionsrückkehr verwenden denselben Körpermaßstab und Sohlenanker. Die Kristallpositionen wurden für sämtliche neuen Posen direkt aus dem Atlas gemessen.
+- Atlas reproduzierbar mit `node tools/pack-mage-locomotion.cjs`; Trainingshalle und Dungeon nutzen denselben neuen Satz.
 
 ## Alpha 0.66.2 – Kräftiger Magier: Stand und Lauf verbunden
 

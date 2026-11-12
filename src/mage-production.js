@@ -1,11 +1,10 @@
 import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.46.0';
-import {MAGE_WALK_SOCKETS} from './mage-walk-sockets.js?v=0.66.2';
-import {MAGE_SOCKETS} from './mage-sockets.js?v=0.66.2';
+import {MAGE_LOCOMOTION_SOCKETS} from './mage-locomotion-sockets.js?v=0.67.0';
+import {MAGE_SOCKETS} from './mage-sockets.js?v=0.67.0';
 export const mageFacing=d=>(Math.round((Math.atan2(d?.y??1,d?.x??0)-Math.PI/2)/(Math.PI/4))+8)%8;
 const clamp=n=>Math.max(0,Math.min(1,n));
-// Authored double-support poses: both boots are down, with the same hood,
-// proportions and facing as the walk. Never freeze the last lifted walk foot.
-export const MAGE_REST_FRAMES=Object.freeze([2,2,5,7,6,7,5,2]);
+// Column zero is a dedicated balanced standing pose, never a paused stride.
+export const MAGE_IDLE_FRAME=0;
 export function magePose(p,time=0,action=p.heroAction){
  let clip=action?.clip||(p.hurtTimer>0?'hurt':p.moving?'walk':'idle');
  let t=action?clamp(action.elapsed/action.duration):clip==='hurt'?clamp(1-p.hurtTimer/.34):0;
@@ -24,20 +23,16 @@ export function magePose(p,time=0,action=p.heroAction){
  // staff. Use the matching west/SW poses reflected as a complete body instead.
  // The three back-facing directions have dedicated connected robe/leg poses.
  const mirrored=row>=6,sourceRow=mirrored?(8-row)%8:row;
- const sideFrame=clip==='walk'&&(row===2||row===6)?Math.floor(((((p.walkDistance||0)%72)+72)%72)/12):null;
- const diagonalRow=row===1||row===7?0:row===3||row===5?1:null;
- const diagonalFrame=clip==='walk'&&diagonalRow!==null?Math.floor(((((p.walkDistance||0)%72)+72)%72)/12):null;
- const diagonalMirrored=row===5||row===7;
  const walkDistance=p.mageWalkDistance??p.walkDistance??0;
  const walkFrame=clip==='walk'?Math.floor(((walkDistance%KNIGHT_VISUAL_STRIDE+KNIGHT_VISUAL_STRIDE)%KNIGHT_VISUAL_STRIDE)/KNIGHT_VISUAL_STRIDE*8):null;
- const motionFrame=walkFrame??(frame===0&&clip!=='death'?MAGE_REST_FRAMES[sourceRow]:null);
- return {walkFrame,motionFrame,diagonalRow,diagonalFrame,diagonalMirrored,sideFrame,clip,row,sourceRow,mirrored,frame,stretch,direction:direction||{x:0,y:1},progress:t};
+ const motionFrame=walkFrame!==null?walkFrame+1:frame===0&&clip!=='death'?MAGE_IDLE_FRAME:null;
+ return {walkFrame,motionFrame,clip,row,sourceRow,mirrored,frame,stretch,direction:direction||{x:0,y:1},progress:t};
 }
 let atlas;
 export const mageReady=()=>Boolean(atlas?.ready);
 export function mageShot(p,action=p.heroAction){
- const pose=magePose(p,0,action),motion=pose.motionFrame!==null&&atlas?.walkImage;
- const tip=motion?MAGE_WALK_SOCKETS[pose.sourceRow][pose.motionFrame]:MAGE_SOCKETS[pose.sourceRow][pose.frame];
+ const pose=magePose(p,0,action),motion=pose.motionFrame!==null&&atlas?.locomotionImage;
+ const tip=motion?MAGE_LOCOMOTION_SOCKETS[pose.sourceRow][pose.motionFrame]:MAGE_SOCKETS[pose.sourceRow][pose.frame];
  const x=Math.round(p.x)+(pose.mirrored?-tip[0]-1:tip[0]),y=p.y+tip[1],d=pose.direction;
  const target=action?.target||{x:p.x+d.x*260,y:p.y+d.y*260-27};
  const dx=target.x-x,dy=target.y-y,length=Math.hypot(dx,dy),fallback=Math.hypot(d.x,d.y)||1;
@@ -48,17 +43,17 @@ export function mageShot(p,action=p.heroAction){
 export class MageProductionAtlas{
  constructor(){this.ready=false;this.loading=this.load();}
  async load(){try{
-  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/knight-style-063/atlas.png?v=0.66.2',import.meta.url).href;});
+  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/knight-style-063/atlas.png?v=0.67.0',import.meta.url).href;});
   await image.decode?.();if(image.width!==1536||image.height!==768)throw Error('Mage atlas dimensions');
-  const walkImage=new Image();await new Promise((resolve,reject)=>{walkImage.onload=resolve;walkImage.onerror=reject;walkImage.src=new URL('../assets/heroes/mage/walk-0661/walk.png?v=0.66.2',import.meta.url).href;});
-  await walkImage.decode?.();if(walkImage.width!==768||walkImage.height!==768)throw Error('Mage walk dimensions');
-  this.walkImage=walkImage;this.image=image;this.ready=true;
+  const locomotionImage=new Image();await new Promise((resolve,reject)=>{locomotionImage.onload=resolve;locomotionImage.onerror=reject;locomotionImage.src=new URL('../assets/heroes/mage/locomotion-067/locomotion.png?v=0.67.0',import.meta.url).href;});
+  await locomotionImage.decode?.();if(locomotionImage.width!==864||locomotionImage.height!==768)throw Error('Mage locomotion dimensions');
+  this.locomotionImage=locomotionImage;this.image=image;this.ready=true;
  }catch(e){this.failed=true;console.warn('Mage artwork unavailable, retaining fallback',e);}}
  draw(ctx,p,time=0){if(!this.ready)return false;
   const pose=magePose(p,time),height=96*(1+pose.stretch);
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
-  const motion=pose.motionFrame!==null&&this.walkImage,mirrored=pose.mirrored;
+  const motion=pose.motionFrame!==null&&this.locomotionImage,mirrored=pose.mirrored;
   ctx.translate(Math.round(p.x),p.y);if(mirrored)ctx.scale(-1,1);
   ctx.drawImage(motion||this.image,(motion?pose.motionFrame:pose.frame)*96,pose.sourceRow*96,96,96,-48,-88*(1+pose.stretch),96,height);
   // Effects and sockets remain in world coordinates, outside the sprite reflection.
