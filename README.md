@@ -1,4 +1,10 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.67.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.67.1)
+
+## Alpha 0.67.1 – Magier: einheitliche Robenfarbe
+
+- Stand, Lauf und sämtliche Aktionen verwenden die Robenfarbe der aktuellen neutralen Pose.
+- Die einmalige Farbangleichung erhält die gemalten Falten sowie Haut, Goldränder, Stab und Projektilursprünge.
+- Regression prüft alle 200 Atlasfelder auf Farbkontinuität und unveränderte Silhouetten.
 
 ## Alpha 0.67.0 – Magier: sichere Standhaltung und lebendigerer Lauf
 

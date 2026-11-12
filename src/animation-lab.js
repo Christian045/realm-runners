@@ -1,14 +1,14 @@
-import {getKnightFinal,knightFinalFrame} from './knight-final.js?v=0.67.0';
+import {getKnightFinal,knightFinalFrame} from './knight-final.js?v=0.67.1';
 import {heroRigReady,articulatedPose,RIG_ROWS,getHeroRig} from './articulated-hero.js?v=0.40.0';
-import {HeroSpriteAtlas} from './hero-sprites.js?v=0.67.0';
-import {KnightSpriteAtlas} from './knight-sprites.js?v=0.67.0';
+import {HeroSpriteAtlas} from './hero-sprites.js?v=0.67.1';
+import {KnightSpriteAtlas} from './knight-sprites.js?v=0.67.1';
 import {heroPose,HERO_CLIPS} from './hero-animation.js?v=0.31.0';
-import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.67.0';
-import {heroShot} from './hero-aim.js?v=0.67.0';
+import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.67.1';
+import {heroShot} from './hero-aim.js?v=0.67.1';
 import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.46.0';
 import {CLASSES} from './data.js?v=0.23.0';
-import {getMageProduction,magePose} from './mage-production.js?v=0.67.0';
-import {KNIGHT_PRODUCTION_SCALE} from './knight-production.js?v=0.67.0';
+import {getMageProduction,magePose} from './mage-production.js?v=0.67.1';
+import {KNIGHT_PRODUCTION_SCALE} from './knight-production.js?v=0.67.1';
 
 export const LAB_KINDS=Object.freeze(['warrior','mage','summoner','hunter','glasscannon','alchemist']);
 export const LAB_DIRECTIONS=Object.freeze(['N','NO','O','SO','S','SW','W','NW'].map((name,i)=>Object.freeze({name,x:Math.cos(-Math.PI/2+i*Math.PI/4),y:Math.sin(-Math.PI/2+i*Math.PI/4)})));

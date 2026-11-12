@@ -1,6 +1,7 @@
 import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.46.0';
-import {MAGE_LOCOMOTION_SOCKETS} from './mage-locomotion-sockets.js?v=0.67.0';
-import {MAGE_SOCKETS} from './mage-sockets.js?v=0.67.0';
+import {MAGE_LOCOMOTION_SOCKETS} from './mage-locomotion-sockets.js?v=0.67.1';
+import {MAGE_SOCKETS} from './mage-sockets.js?v=0.67.1';
+import {alignMageRobePalette} from './mage-palette.js?v=0.67.1';
 export const mageFacing=d=>(Math.round((Math.atan2(d?.y??1,d?.x??0)-Math.PI/2)/(Math.PI/4))+8)%8;
 const clamp=n=>Math.max(0,Math.min(1,n));
 // Column zero is a dedicated balanced standing pose, never a paused stride.
@@ -43,11 +44,13 @@ export function mageShot(p,action=p.heroAction){
 export class MageProductionAtlas{
  constructor(){this.ready=false;this.loading=this.load();}
  async load(){try{
-  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/knight-style-063/atlas.png?v=0.67.0',import.meta.url).href;});
+  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/knight-style-063/atlas.png?v=0.67.1',import.meta.url).href;});
   await image.decode?.();if(image.width!==1536||image.height!==768)throw Error('Mage atlas dimensions');
-  const locomotionImage=new Image();await new Promise((resolve,reject)=>{locomotionImage.onload=resolve;locomotionImage.onerror=reject;locomotionImage.src=new URL('../assets/heroes/mage/locomotion-067/locomotion.png?v=0.67.0',import.meta.url).href;});
+  const locomotionImage=new Image();await new Promise((resolve,reject)=>{locomotionImage.onload=resolve;locomotionImage.onerror=reject;locomotionImage.src=new URL('../assets/heroes/mage/locomotion-067/locomotion.png?v=0.67.1',import.meta.url).href;});
   await locomotionImage.decode?.();if(locomotionImage.width!==864||locomotionImage.height!==768)throw Error('Mage locomotion dimensions');
-  this.locomotionImage=locomotionImage;this.image=image;this.ready=true;
+  this.image=alignMageRobePalette(image,locomotionImage);
+  this.locomotionImage=alignMageRobePalette(locomotionImage,locomotionImage);
+  this.ready=true;
  }catch(e){this.failed=true;console.warn('Mage artwork unavailable, retaining fallback',e);}}
  draw(ctx,p,time=0){if(!this.ready)return false;
   const pose=magePose(p,time),height=96*(1+pose.stretch);
