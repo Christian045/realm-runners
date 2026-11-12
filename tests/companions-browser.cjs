@@ -1,4 +1,13 @@
 const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
+// Use the touch input path on the iPhone viewport. WebKit's mouse-click
+// auto-scroll can close its renderer after a live Canvas screenshot.
+async function activate(page,selector,mobile){
+ const control=page.locator(selector);
+ if(!mobile){await control.click();return;}
+ await control.evaluate(node=>node.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'}));
+ const box=await control.boundingBox();assert.ok(box,'Missing touch control: '+selector);
+ await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);
+}
 (async()=>{
  fs.mkdirSync('test-output',{recursive:true});
  for(const [engine,type,mobile] of [['chromium',chromium,false],['webkit',webkit,true]]){
@@ -7,7 +16,7 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
    const page=await browser.newPage({viewport:mobile?{width:390,height:844}:{width:1280,height:800},isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1}),errors=[],requests=[];
    page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push(r.url()));await page.goto('http://127.0.0.1:8000/');
    assert.ok(!requests.some(url=>/assets\/companions\/.*atlas.png/.test(url)),'other classes must not download full companion art');
-   await page.locator('[data-action="class:summoner"]').click();
+   await activate(page,'[data-action="class:summoner"]',mobile);
    await page.waitForFunction(()=>[...document.querySelectorAll('canvas[data-companion]')].length===3&&[...document.querySelectorAll('canvas[data-companion]')].every(c=>c.getContext('2d').getImageData(0,0,c.width,c.height).data.some((v,i)=>i%4===3&&v>60)));
    assert.ok(!requests.some(url=>/companions\/(imp|spirit)\/atlas.png/.test(url)),'unselected full companions remain lazy');
    await page.screenshot({path:'test-output/companions-menu-'+engine+'.png'});
@@ -57,17 +66,19 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
     live.on('pageerror',e=>errors.push(e.message));
     try{
      await live.goto('http://127.0.0.1:8000/');
-     await live.locator('[data-action="class:summoner"]').click();
-     await live.locator('[data-action="servant:'+kind+'"]').click();
-     await live.locator('[data-action="start"]').click();
+     await activate(live,'[data-action="class:summoner"]',mobile);
+     await activate(live,'[data-action="servant:'+kind+'"]',mobile);
+     await activate(live,'[data-action="start"]',mobile);
      await live.locator('#overlay').waitFor({state:'hidden'});
      if(mobile){const box=await live.locator('#abilityTouch').boundingBox();await live.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);}
      else await live.keyboard.press('KeyQ');
      await live.waitForTimeout(800);
      await live.screenshot({path:'test-output/companion-'+kind+'-live-'+engine+'.png'});
      assert.equal(await live.evaluate(()=>visualViewport.scale),1);
-     await live.locator('#pauseBtn').click();
-     await live.locator('[data-action="menu"]').click();
+     await activate(live,'#pauseBtn',mobile);
+     await live.locator('[data-action="menu"]').waitFor({state:'visible'});
+     await activate(live,'[data-action="menu"]',mobile);
+     await live.locator('[data-action="start"]').waitFor({state:'visible'});
     }finally{await live.close();}
    }
    assert.deepEqual(errors,[]);
