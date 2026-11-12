@@ -4,8 +4,8 @@ import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {magePose,mageShot,MageProductionAtlas,MAGE_IDLE_FRAME,getMageProduction as localMageProduction} from '../src/mage-production.js';
 import {MAGE_SOCKETS} from '../src/mage-sockets.js';
 import {advanceHeroAction} from '../src/hero-animation.js';
-import {getMageProduction} from '../src/mage-production.js?v=0.67.0';
-import {Game} from '../src/game.js?v=0.67.0';
+import {getMageProduction} from '../src/mage-production.js?v=0.67.1';
+import {Game} from '../src/game.js?v=0.67.1';
 import {defaultProgress} from '../src/progression.js';
 const image=await loadImage(new URL('../assets/heroes/mage/knight-style-063/atlas.png',import.meta.url).pathname);
 const atlas=Object.assign(Object.create(MageProductionAtlas.prototype),{ready:true,image});
@@ -219,4 +219,37 @@ test('the visible free hand moves through a restrained swing instead of remainin
   assert.ok(Math.hypot(dx,dy)>2,`frozen arm in direction ${row}`);
   assert.ok(Math.hypot(dx,dy)<8,`exaggerated arm swing in direction ${row}`);
  }
+});
+
+test('mage robe keeps the neutral colour through every action and walk phase',async()=>{
+ const {alignMageRobePalette}=await import('../src/mage-palette.js');
+ const neutral=await loadImage(new URL('../assets/heroes/mage/locomotion-067/locomotion.png',import.meta.url).pathname);
+ const surface=(w,h)=>createCanvas(w,h),reference=surface(neutral.width,neutral.height).getContext('2d');reference.drawImage(neutral,0,0);
+ // Measure the actual cloth pixels from the unmodified artwork, rather than
+ // assuming the same pixel coordinates in differently posed bodies.
+ const isCloth=(d,i)=>d[i+3]>128&&d[i+2]>d[i+1]*1.12&&d[i]>d[i+1]*1.1&&d[i+2]>d[i]*.7&&Math.max(d[i],d[i+2])-d[i+1]>12;
+ const mean=(d,mask=d)=>{
+  const sum=[0,0,0];let count=0;
+  for(let i=0;i<d.length;i+=4)if(isCloth(mask,i)){for(let c=0;c<3;c++)sum[c]+=d[i+c];count++;}
+  assert.ok(count>100);return sum.map(v=>v/count);
+ };
+ let originalJump=0;
+ for(const original of [image,neutral]){
+  const before=surface(original.width,original.height).getContext('2d');before.drawImage(original,0,0);
+  const after=alignMageRobePalette(original,neutral,surface).getContext('2d');
+  for(let row=0;row<8;row++){
+   const target=mean(reference.getImageData(0,row*96,96,96).data);
+   for(let column=0;column<original.width/96;column++){
+    const a=before.getImageData(column*96,row*96,96,96).data,b=after.getImageData(column*96,row*96,96,96).data;
+    const actual=mean(b,a),raw=mean(a);
+    if(original===image&&column===6)originalJump=Math.max(originalJump,...raw.map((v,c)=>Math.abs(v-target[c])));
+    for(let c=0;c<3;c++)assert.ok(Math.abs(actual[c]-target[c])<1,`robe colour changed: ${row}/${column}/${c}`);
+    for(let i=0;i<a.length;i+=4){
+     assert.equal(b[i+3],a[i+3],'palette matching must preserve the silhouette');
+     if(!isCloth(a,i))for(let c=0;c<3;c++)assert.equal(b[i+c],a[i+c],'skin, gold, boots and crystal must retain their colours');
+    }
+   }
+  }
+ }
+ assert.ok(originalJump>10,'the regression must exercise the original visible colour jump');
 });

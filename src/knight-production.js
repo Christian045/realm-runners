@@ -1,5 +1,5 @@
 // One coherent illustrated set for the released knight, in all eight facings.
-export const KNIGHT_PRODUCTION_VERSION='0.67.0';
+export const KNIGHT_PRODUCTION_VERSION='0.67.1';
 export const KNIGHT_PRODUCTION_SCALE=.8;
 export const KNIGHT_PRODUCTION_COUNTS=Object.freeze({
  idle:6,walk:8,attack1:8,attack2:8,attack3:10,recovery:6,
