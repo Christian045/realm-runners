@@ -1,5 +1,5 @@
 import {getKnightFinal} from './knight-final.js?v=0.67.1';
-import {getHeroRig,previewHeroRig} from './articulated-hero.js?v=0.40.0';
+import {getHeroRig,previewHeroRig} from './articulated-hero.js?v=0.68.0';
 import {drawKnightAction,KNIGHT_ACTION_CLIPS} from './knight-action-sprites.js?v=0.39.0';
 import {drawKnightWalk} from './knight-walk.js?v=0.46.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';

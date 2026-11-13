@@ -1,4 +1,14 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.67.1)
+# Realm Runners – Dungeon Reborn (Alpha 0.68.0)
+
+## Alpha 0.68.0 – Jäger: Bogensehne, Hände und Angriffstiming
+
+- Acht Richtungen verwenden weiterhin dieselben gezeichneten Kopf-, Rüstungs- und Körperteile des Jägers. Die neue Bogenmechanik ersetzt noch **keine** neuen handgemalten Vollkörper-Spriteatlanten.
+- Der Bogen bleibt am Griff verankert, während die Zughand die Sehne bis zum Pfeilnock zurückzieht. Keine frei schwebende zweite Hand mehr.
+- Angriffe und Pfeilhagel spannen den Bogen sichtbar, lösen exakt bei Frame 3/6 aus und zeigen danach keinen festhängenden Pfeil auf der Sehne.
+- Körpergewicht, Schulterbewegung und Pfeilursprung folgen einer gemeinsamen Geometrie. Zusätzliche Tests decken Zeitpunkte, Rückkehr zur Standpose und alle acht Blickrichtungen ab.
+- Spielwerte, Pfeilgeschwindigkeit und gespeicherter Fortschritt bleiben unverändert.
+
+
 
 ## Alpha 0.67.1 – Magier: einheitliche Robenfarbe
 

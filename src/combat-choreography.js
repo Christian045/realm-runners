@@ -23,7 +23,7 @@ export function rotateCombatPoint(point,motion){
 export function combatChoreography(kind,clip,t,direction){
  const d=unit(direction),side={x:-d.y,y:d.x},hit=combatContact(kind,clip);
  const idle={active:false,hit,roll:0,dx:0,dy:0,extend:0,wind:0,impact:0,sword:.8,staff:-Math.PI/2,lift:0,handSide:0};
- if(!/^(attack[123]?|special)$/.test(clip)||!['warrior','mage','summoner'].includes(kind))return idle;
+ if(!/^(attack[123]?|special)$/.test(clip)||!['warrior','mage','summoner','hunter'].includes(kind))return idle;
  const time=clamp(t),windEnd=kind==='warrior'?(clip==='attack3'?.28:hit*.52):.24;
  const wind=frame(time,[[0,0],[windEnd,1],[hit,.14],[.67,0],[1,0]]);
  const extend=frame(time,[[0,0],[windEnd,.05],[hit,1],[.63,.85],[.92,0],[1,0]]);
@@ -47,6 +47,15 @@ export function combatChoreography(kind,clip,t,direction){
    lift:overhead?frame(time,[[0,0],[windEnd,17],[hit,0],[1,0]]):
     frame(time,[[0,0],[windEnd,6],[hit,0],[1,0]]),
    handSide:sign*frame(time,[[0,0],[windEnd,-5],[hit,5],[.67,3],[1,0]])};
+ }
+ if(kind==='hunter'){
+  // Bow: weight shifts backward while drawing, forward as the arrow leaves
+  // at frame 3/6. Shoulder, hands, bow and muzzle share this same transform.
+  const sign=d.x<-.15?-1:1,windEnd=.24;
+  const roll=sign*frame(time,[[0,0],[windEnd,-.095],[hit,.065],[.68,.035],[1,0]]);
+  const advance=frame(time,[[0,0],[windEnd,-2.5],[hit,3.5],[.68,1.5],[1,0]]);
+  return {active:true,hit,roll,dx:d.x*advance,dy:d.y*advance*.42,
+   extend,wind,impact,sword:.8,staff:-Math.PI/2,lift:0,handSide:0};
  }
  if(kind==='mage'){
   const sign=d.x<-.15?-1:1,roll=sign*frame(time,[[0,0],[.24,-.12],[hit,.10],[.69,.06],[1,0]]);
