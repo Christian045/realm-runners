@@ -1,9 +1,9 @@
 import {getMageProduction} from './mage-production.js?v=0.67.1';
 import {HUNTER_STYLE_CELL,HUNTER_STYLE_ANCHOR,HUNTER_STYLE_COUNTS,
  HUNTER_STYLE_FACINGS,hunterStyleFacing,hunterMageBowLayout,
- recolorMagierToHunter,hunterStyledSample} from './hunter-magestyle.js?v=0.71.0';
+ recolorMagierToHunter,hunterStyledSample} from './hunter-magestyle.js?v=0.72.0';
 const clamp=n=>Math.max(0,Math.min(1,n));
-export const HUNTER_PRODUCTION_VERSION='0.71.0';
+export const HUNTER_PRODUCTION_VERSION='0.72.0';
 export const HUNTER_SCALE=1;
 export const hunterProductionEnabled=(params=typeof location!=='undefined'?new URLSearchParams(location.search):null)=>
  !params?.has('legacyHeroArt')&&!params?.has('oldHunterArt');
