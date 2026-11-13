@@ -1,10 +1,11 @@
 import {getKnightFinal,knightFinalFrame} from './knight-final.js?v=0.67.1';
+import {getHunterProduction,hunterPose} from './hunter-production.js?v=0.69.0';
 import {heroRigReady,articulatedPose,RIG_ROWS,getHeroRig} from './articulated-hero.js?v=0.68.0';
-import {HeroSpriteAtlas} from './hero-sprites.js?v=0.68.0';
+import {HeroSpriteAtlas} from './hero-sprites.js?v=0.69.0';
 import {KnightSpriteAtlas} from './knight-sprites.js?v=0.67.1';
 import {heroPose,HERO_CLIPS} from './hero-animation.js?v=0.31.0';
 import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.67.1';
-import {heroShot} from './hero-aim.js?v=0.68.0';
+import {heroShot} from './hero-aim.js?v=0.69.0';
 import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.46.0';
 import {CLASSES} from './data.js?v=0.23.0';
 import {getMageProduction,magePose} from './mage-production.js?v=0.67.1';
@@ -43,7 +44,7 @@ export async function openAnimationLab(){
  const dialog=document.createElement('dialog');dialog.className='animation-lab';active=dialog;
  dialog.setAttribute('aria-labelledby','animation-lab-title');
  dialog.innerHTML=`<header><div><p class="lab-eyebrow">REALM RUNNERS · ANIMATIONEN</p><h2 id="animation-lab-title">Die Trainingshalle</h2></div><button type="button" data-lab="close" aria-label="Testszene schließen">Schließen ✕</button></header>
- <p class="lab-description">Alle sechs Klassen mit dem Renderer des Spiels. Diese Szene verändert weder Spielstände noch Statistiken. Ritter und Magier nutzen komplette Pixel-Art-Frames in acht Richtungen; die übrigen Klassen verwenden weiterhin ihre bestehenden Modelle.</p>
+ <p class="lab-description">Alle sechs Klassen mit dem Renderer des Spiels. Diese Szene verändert weder Spielstände noch Statistiken. Ritter, Magier und Jäger nutzen komplette Pixel-Art-Frames in acht Richtungen; die übrigen Klassen verwenden weiterhin ihre bisherigen Modelle.</p>
  <div class="lab-controls"><label>Animation<select data-lab="state">${Object.entries(LAB_STATES).map(([id,name])=>`<option value="${id}">${name}</option>`).join('')}</select></label><label>Tempo<select data-lab="speed"><option value="0.25">¼ ×</option><option value="0.5">½ ×</option><option value="1" selected>1 ×</option></select></label>
  <label><input type="checkbox" data-lab="moving"> Gleichzeitig laufen</label><label><input type="checkbox" data-lab="anchors"> Anker anzeigen</label></div>
  <div class="lab-directions" role="group" aria-label="Blick- und Zielrichtung">${LAB_DIRECTIONS.map((d,i)=>`<button type="button" data-direction="${i}" aria-pressed="${i===4}">${d.name}</button>`).join('')}</div>
@@ -85,18 +86,19 @@ export async function openAnimationLab(){
    c.clearRect(0,0,canvas.width,canvas.height);c.fillStyle='#121a22';c.fillRect(0,0,256,176);
    c.strokeStyle='#27333e';c.lineWidth=1;for(let x=0;x<256;x+=16){c.beginPath();c.moveTo(x,0);c.lineTo(x,176);c.stroke();}for(let y=9;y<176;y+=16){c.beginPath();c.moveTo(0,y);c.lineTo(256,y);c.stroke();}
    // Production knight/mage pivots are at their soles, as in the dungeon.
+   const groundedHunter=kind==='hunter'&&atlas?.ready&&atlas===getHunterProduction();
    const groundedMage=kind==='mage'&&atlas?.ready&&atlas===getMageProduction();
    const groundedKnight=kind==='warrior'&&atlas?.production;
-   const grounded=groundedMage||groundedKnight;
-   const shadowWidth=groundedMage?19:groundedKnight?23*KNIGHT_PRODUCTION_SCALE:27;
-   const shadowHeight=groundedMage?4:groundedKnight?5*KNIGHT_PRODUCTION_SCALE:8;
+   const grounded=groundedHunter||groundedMage||groundedKnight;
+   const shadowWidth=groundedHunter?21:groundedMage?19:groundedKnight?23*KNIGHT_PRODUCTION_SCALE:27;
+   const shadowHeight=groundedHunter?5:groundedMage?4:groundedKnight?5*KNIGHT_PRODUCTION_SCALE:8;
    c.fillStyle='#080d14';c.beginPath();c.ellipse(128,grounded?122:130,shadowWidth,shadowHeight,0,0,Math.PI*2);c.fill();
    if(!atlas?.ready){info.textContent=errors.has(kind)?'Grafik konnte nicht geladen werden.':'Grafik wird geladen …';continue;}
    const sample=labSample(kind,state.clip,LAB_DIRECTIONS[state.direction],clock,state.moving);
    try{atlas.draw(c,sample.player,clock*(kind==='warrior'?1.6:1.5));}catch(error){info.textContent='Darstellungsfehler: '+error.message;continue;}
    const productionMage=kind==='mage'&&atlas===getMageProduction();
    const mage=productionMage?magePose(sample.player,clock*1.5):null;
-   const displayed=kind==='warrior'?knightFinalFrame(sample.player,clock*1.6,Boolean(atlas.production||atlas.completePreview)).index:mage?.walkFrame??mage?.frame??sample.pose.frame;
+   const displayed=kind==='warrior'?knightFinalFrame(sample.player,clock*1.6,Boolean(atlas.production||atlas.completePreview)).index:groundedHunter?hunterPose(sample.player,clock*1.5).frame:mage?.walkFrame??mage?.frame??sample.pose.frame;
    const releasing=sample.release!==null&&Math.abs(sample.progress-sample.release)<.065;
    if(state.anchors){
     c.strokeStyle='#6ee3d4';c.lineWidth=1;
@@ -104,7 +106,7 @@ export async function openAnimationLab(){
     if(sample.shot){const s=sample.shot;c.setLineDash([3,4]);c.beginPath();c.moveTo(s.x,s.y);c.lineTo(s.x+s.aim.x*65,s.y+s.aim.y*65);c.stroke();c.setLineDash([]);}
    }
    if(releasing){c.strokeStyle='#ebc582';c.strokeRect(1,1,254,174);}
-   const facing=mage?['S','SW','W','NW','N','NO','O','SO'][mage.row]:heroRigReady(kind)?RIG_ROWS[articulatedPose(sample.player).row]:sample.pose.face;
+   const facing=groundedHunter?RIG_ROWS[hunterPose(sample.player,clock*1.5).row]:mage?['S','SW','W','NW','N','NO','O','SO'][mage.row]:heroRigReady(kind)?RIG_ROWS[articulatedPose(sample.player).row]:sample.pose.face;
    info.textContent=`${sample.pose.clip} · ${facing} · Bild ${displayed+1}${releasing?' · AUSLÖSEN':''}`;
   }
   raf=requestAnimationFrame(draw);
@@ -114,7 +116,7 @@ export async function openAnimationLab(){
   // The preview uses the very same production rig as gameplay. Do not load
   // six additional, superseded full-body fallback atlases on mobile: WebKit
   // can exhaust its graphics process with that duplicate decoding workload.
-  let rig=kind==='mage'?getMageProduction():kind==='warrior'&&!new URLSearchParams(location.search).has('legacyHeroArt')&&!new URLSearchParams(location.search).has('oldKnightPixel')?getKnightFinal():getHeroRig(kind);
+  let rig=kind==='hunter'?getHunterProduction():kind==='mage'?getMageProduction():kind==='warrior'&&!new URLSearchParams(location.search).has('legacyHeroArt')&&!new URLSearchParams(location.search).has('oldKnightPixel')?getKnightFinal():getHeroRig(kind);
   try{await rig?.loading;}catch{/* Keep the legacy decoder as a safe fallback. */}
   if(kind==='mage'&&!rig?.ready){rig=getHeroRig(kind);try{await rig?.loading;}catch{/* Try the legacy atlas below. */}}
   if(rig?.ready){
