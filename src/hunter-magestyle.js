@@ -260,7 +260,9 @@ export function hunterStyledSample(g,source,walk,row,clip,frame){
  g.save();g.imageSmoothingEnabled=false;
  if(mirrored){g.translate(96,0);g.scale(-1,1);}
  const sourceFrame=clip==='walk'?frame+1:hunterStyleActionSource(clip,frame);
- const image=clip==='walk'?walk:source;
+ // Reuse the EXACT settled Magier body for idle and all neutral recoveries,
+ // rather than its earlier action-sheet neutral pose (which shifts the torso).
+ const image=clip==='walk'||(sourceFrame===0&&clip!=='death')?walk:source;
  g.drawImage(image,sourceFrame*96,sourceRow*96,96,96,0,0,96,96);
  drawHunterMageOverlays(g,row,clip,frame);
  g.restore();
