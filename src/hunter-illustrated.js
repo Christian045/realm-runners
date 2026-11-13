@@ -61,10 +61,7 @@ const goldish=(d,i)=>{
 };
 // Search the *rasterized illustrated bow*, never the abandoned 0.69
 // procedural socket, and keep the emission on a visible painted pixel.
-export function hunterIllustratedSocket(sheet,row,frame,hint=HUNTER_BOW_HINTS[row]){
- if(!sheet?.getContext)return {x:hint[0],y:hint[1]};
- const ctx=sheet.getContext('2d',{willReadFrequently:true});
- const {data}=ctx.getImageData(frame*HUNTER_CELL,row*HUNTER_CELL,HUNTER_CELL,HUNTER_CELL);
+export function hunterSocketFromPixels(data,hint){
  let nearest=null,min=Infinity;
  const accept=(x,y,strict)=>{
   const i=(y*HUNTER_CELL+x)*4;
@@ -78,6 +75,12 @@ export function hunterIllustratedSocket(sheet,row,frame,hint=HUNTER_BOW_HINTS[ro
    for(let x=Math.max(5,hint[0]-23);x<=Math.min(HUNTER_CELL-6,hint[0]+23);x++)
     accept(x,y,strict===1);
  return nearest||{x:hint[0],y:hint[1]};
+}
+export function hunterIllustratedSocket(sheet,row,frame,hint=HUNTER_BOW_HINTS[row]){
+ if(!sheet?.getContext)return {x:hint[0],y:hint[1]};
+ const ctx=sheet.getContext('2d',{willReadFrequently:true});
+ const {data}=ctx.getImageData(frame*HUNTER_CELL,row*HUNTER_CELL,HUNTER_CELL,HUNTER_CELL);
+ return hunterSocketFromPixels(data,hint);
 }
 export function bakeHunterIllustrated({manifest,images,canvasFactory}){
  if(!manifest?.frames||!images||!canvasFactory)throw Error('Hunter art source missing');
