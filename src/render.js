@@ -1,5 +1,5 @@
 import {CompanionSpriteAtlas,drawCompanionEffect,drawCompanionProjectile} from './companion-sprites.js?v=0.31.0';
-import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.71.0';
+import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.72.0';
 import {KNIGHT_PRODUCTION_SCALE} from './knight-production.js?v=0.67.1';
 import {KnightSpriteAtlas,drawKnightEffect} from './knight-sprites.js?v=0.67.1';
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.23.0';

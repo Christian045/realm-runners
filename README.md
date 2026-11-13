@@ -1,4 +1,38 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.71.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.72.0)
+
+## Alpha 0.72.0 – Der Jäger erhält eine eigene Silhouette
+
+Die bisherige 0.71-Grafik benutzte die richtigen **96×96 Pixel-Proportionen**
+des Magiers, sah aber zu sehr wie dessen grün eingefärbte Robe aus.
+Ab 0.72 bleiben **die acht gezeichneten Körper-/Beinrichtungen und dieselben
+Pixel-Schattierungsstufen erhalten**, aber die Kleidung und die Silhouette
+werden als klar unterscheidbarer Waldläufer ausgearbeitet.
+
+- Markanter **kantiger Leder-/Stoff-Kapuzenkragen** mit offenem,
+  weiterhin detailliert gemaltem Gesicht und einem kleinen Brauendetail
+- **Asymmetrische breite Schulterrüstung** statt der symmetrischen Magierrobe,
+  ledernes Bruststück, Brustriemen, Metallschnallen und zwei Gürteltaschen
+- **Deutlich kürzere gegürtelte Tunika** mit getrennten Stoffzipfeln, damit
+  die Beine und Schienbeinschützer sichtbar bleiben
+- Großer **Köcher mit einzelnen Pfeilen** ragt über den rechten Umriss;
+  die kurze Schultercape und die Pfeile bewegen sich beim Laufen leicht mit
+- Der Bogen wird in **Idle/Walk aufrecht getragen**; im Angriff dreht er
+  sich in die jeweilige Schussrichtung. Zwei sichtbare Spannphasen,
+  Pfeilspitze am tatsächlichen Projektilursprung, stärkere
+  Sehnenspannung und drei Pfeile beim Pfeilhagel
+- **Tod:** kein aufrecht stehender Brustpanzer über dem liegenden Körper;
+  der fallengelassene Bogen wird neben die Figur gelegt
+- Bodenanker, Originalpixelgröße, Mage-Laufkörper, Schadenswerte und
+  Speicherstände bleiben unverändert
+- Zusätzliche Tests für die eigenständige Silhouette, verkürzte Kleidung,
+  Gesichtserhalt, Bogenhaltung und alle acht Richtungen
+
+Die Körperanimationen nutzen weiterhin bewusst die bestehende
+Magier-Spritebasis; die unterschiedlichen Rüstungs-/Kleidungsdetails
+sind zusätzlich im Jäger-Pixelrenderer gezeichnet. Es handelt sich
+also **nicht** um neu gemalte 368 unabhängige Komplettsprites.
+
+
 
 ## Alpha 0.71.0 – Jäger im wirklichen Produktionsstil von Ritter und Magier
 
