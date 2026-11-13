@@ -158,7 +158,7 @@ function hunterBootBands(g,sourceRow,clip,frame){
 }
 function bowBase(row,clip,frame){
  const sourceRow=hunterSourceRow(row);
- const d=DIRECTIONS[sourceRow];
+ const [dx,dy]=DIRECTIONS[sourceRow],d={x:dx,y:dy};
  // Staff-hand placement is sampled from the actual Magier anatomy.
  const x0=48+MAGE_SOCKETS[sourceRow][0][0];
  const charging=(clip==='attack'||clip==='special')&&frame===1||(
