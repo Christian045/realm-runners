@@ -1,6 +1,8 @@
-import {HUNTER_SIZE,HUNTER_SCALE,HUNTER_FOOT,HUNTER_ROWS,HUNTER_COUNTS,
- hunterFacing,hunterBowLayout,bakeHunterSheets} from './hunter-pixel-art.js?v=0.69.0';
+import {HUNTER_CELL,HUNTER_ANCHOR,HUNTER_COUNTS,HUNTER_ROWS,
+ HUNTER_BOW_HINTS,hunterFacing,bakeHunterIllustrated} from './hunter-illustrated.js?v=0.70.0';
 const clamp=n=>Math.max(0,Math.min(1,n));
+export const HUNTER_PRODUCTION_VERSION='0.70.0';
+export const HUNTER_SCALE=1;
 export const hunterProductionEnabled=(params=typeof location!=='undefined'?new URLSearchParams(location.search):null)=>
  !params?.has('legacyHeroArt')&&!params?.has('oldHunterArt');
 export function hunterPose(p,time=0,action=p.heroAction){
@@ -13,7 +15,7 @@ export function hunterPose(p,time=0,action=p.heroAction){
  const row=hunterFacing(direction),count=HUNTER_COUNTS[clip]||HUNTER_COUNTS.idle;
  let frame=clip==='walk'?
   Math.floor(((((p.walkDistance||0)%72)+72)%72)/72*count):
-  clip==='idle'?Math.floor(((((time%1.8)+1.8)%1.8)/1.8)*count):
+  clip==='idle'?Math.floor(((((time%1.5)+1.5)%1.5)/1.5)*count):
   Math.min(count-1,Math.floor(progress*count));
  frame=Math.min(count-1,Math.max(0,frame));
  return {clip,row,frame,count,progress,direction};
@@ -22,45 +24,67 @@ const unit=(dx,dy,d)=>{
  const len=Math.hypot(dx,dy),fallback=Math.hypot(d.x,d.y)||1;
  return len>1e-8?{x:dx/len,y:dy/len}:{x:d.x/fallback,y:d.y/fallback};
 };
-// The actual painted broadhead pixel is the gameplay emission position.
-// Both regular shots and the seven-arrow volley use this shared geometry.
-export function hunterProductionShot(p,action=p.heroAction){
- const pose=hunterPose(p,0,action),bow=hunterBowLayout(pose.row,pose.clip,pose.frame);
- const x=Math.round(p.x+(bow.tip.x-HUNTER_FOOT.x)*HUNTER_SCALE);
- const y=Math.round(p.y+(bow.tip.y-HUNTER_FOOT.y)*HUNTER_SCALE);
- const mx=Math.round(p.x+(bow.grip.x-HUNTER_FOOT.x)*HUNTER_SCALE);
- const my=Math.round(p.y+(bow.grip.y-HUNTER_FOOT.y)*HUNTER_SCALE);
+// The release socket is located on the *painted* bow. The fallback hint is
+// used only before the illustrated sheets finish loading in the browser or
+// when headless gameplay tests run without any DOM drawing surface.
+export function hunterProductionShot(p,action=p.heroAction,atlas=singleton){
+ const pose=hunterPose(p,0,action),clip=pose.clip==='special'?'special':'attack';
+ const tip=atlas?.ready?atlas.sockets[clip]?.[pose.row]:null;
+ const [hx,hy]=tip?[tip.x,tip.y]:HUNTER_BOW_HINTS[pose.row];
+ const x=Math.round(p.x+(hx-HUNTER_ANCHOR.x)*HUNTER_SCALE),
+  y=Math.round(p.y+(hy-HUNTER_ANCHOR.y)*HUNTER_SCALE);
  const d=pose.direction,target=action?.target||{x:p.x+d.x*260,y:p.y+d.y*260-27};
  const aim=unit(target.x-x,target.y-y,d);
- return {x,y,mount:{x:mx,y:my},aim,angle:Math.atan2(aim.y,aim.x),
-  reach:Math.hypot(x-mx,y-my),
+ const mount={x:x-Math.round(aim.x*8),y:y-Math.round(aim.y*8)};
+ return {x,y,mount,aim,angle:Math.atan2(aim.y,aim.x),
+  reach:Math.hypot(x-mount.x,y-mount.y),
   face:Math.abs(d.x)>Math.abs(d.y)?d.x<0?'left':'right':d.y<0?'up':'down'};
 }
+async function loadIllustratedSources(){
+ const base=new URL('../assets/heroes/hunter/',import.meta.url);
+ const manifestResponse=await fetch(new URL('atlas.json?v=0.29.0',base));
+ if(!manifestResponse.ok)throw Error('Hunter illustrated manifest unavailable');
+ const manifest=await manifestResponse.json(),images={};
+ await Promise.all(['down','left','up','right'].map(async face=>{
+  const img=new Image();img.decoding='async';
+  await new Promise((resolve,reject)=>{
+   img.onload=resolve;img.onerror=()=>reject(Error('Hunter illustration missing: '+face));
+   img.src=new URL(face+'.png?v=0.28.0',base).href;
+  });
+  await img.decode?.();
+  if(img.naturalWidth!==864||img.naturalHeight!==1008)
+   throw Error('Invalid hunter illustration dimensions '+face);
+  images[face]=img;
+ }));
+ return {manifest,images};
+}
 export class HunterProductionAtlas{
- constructor(canvasFactory){
-  this.ready=false;this.failed=false;this.sheets={};
+ constructor(canvasFactory=null,sourceLoader=loadIllustratedSources){
+  this.ready=false;this.failed=false;this.sheets={};this.sockets={};
   this.canvasFactory=canvasFactory||(()=>{
    if(typeof OffscreenCanvas!=='undefined')return new OffscreenCanvas(1,1);
    if(typeof document!=='undefined')return document.createElement('canvas');
    throw Error('No hunter drawing surface');
   });
+  this.sourceLoader=sourceLoader;
   this.loading=this.load();
  }
  async load(){
   try{
-   this.sheets=bakeHunterSheets(this.canvasFactory);
-   this.ready=true;
+   const sources=await this.sourceLoader();
+   const {sheets,sockets}=bakeHunterIllustrated({...sources,canvasFactory:this.canvasFactory});
+   this.sheets=sheets;this.sockets=sockets;this.ready=true;
   }catch(error){
    this.failed=true;
-   console.warn('Jäger pixel atlas unavailable; retaining old fallback',error);
+   console.warn('High-detail hunter art unavailable; retaining legacy fallback',error);
   }
  }
  draw(ctx,p,time=0){
   if(!this.ready||!ctx?.drawImage)return false;
-  const pose=hunterPose(p,time),sheet=this.sheets[pose.clip],cell=HUNTER_SIZE;
+  const pose=hunterPose(p,time),sheet=this.sheets[pose.clip],cell=HUNTER_CELL;
   if(!sheet)return false;
-  const x=Math.round(p.x-HUNTER_FOOT.x*HUNTER_SCALE);
-  const y=Math.round(p.y-HUNTER_FOOT.y*HUNTER_SCALE);
+  const x=Math.round(p.x-HUNTER_ANCHOR.x*HUNTER_SCALE);
+  const y=Math.round(p.y-HUNTER_ANCHOR.y*HUNTER_SCALE);
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha*=.65;
   ctx.drawImage(sheet,pose.frame*cell,pose.row*cell,cell,cell,
@@ -70,12 +94,13 @@ export class HunterProductionAtlas{
  preview(ctx,width,height,time=0){
   if(!this.ready)return false;
   ctx.clearRect(0,0,width,height);
-  const scale=Math.min((width-2)/52,(height-2)/58);
-  const sheet=this.sheets.idle,frame=Math.floor((((time%1.8)+1.8)%1.8)/1.8*6);
+  const scale=Math.min((width-6)/90,(height-4)/82);
+  const frame=Math.floor(((((time%1.5)+1.5)%1.5)/1.5)*6);
   ctx.save();ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(sheet,frame*72,0,72,72,
-   Math.round(width/2-36*scale),Math.round(height-2-60*scale),
-   72*scale,72*scale);
+  ctx.drawImage(this.sheets.idle,frame*HUNTER_CELL,0,HUNTER_CELL,HUNTER_CELL,
+   Math.round(width/2-HUNTER_ANCHOR.x*scale),
+   Math.round(height*.9-HUNTER_ANCHOR.y*scale),
+   Math.round(HUNTER_CELL*scale),Math.round(HUNTER_CELL*scale));
   ctx.restore();return true;
  }
 }
