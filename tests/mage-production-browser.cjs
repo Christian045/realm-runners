@@ -6,9 +6,9 @@ const fs=require('node:fs');
  const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:8000/?v=0.67.1');
  const result=await page.evaluate(async()=>{
-  const {HeroSpriteAtlas}=await import('./src/hero-sprites.js?v=0.70.0');
+  const {HeroSpriteAtlas}=await import('./src/hero-sprites.js?v=0.71.0');
   const {magePose}=await import('./src/mage-production.js?v=0.67.1');
-  const {heroShot}=await import('./src/hero-aim.js?v=0.70.0');
+  const {heroShot}=await import('./src/hero-aim.js?v=0.71.0');
   const atlas=new HeroSpriteAtlas();atlas.select('mage');await atlas.loading;if(!atlas.mage.ready||!atlas.ready)throw Error('Mage not loaded');
   const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;const g=canvas.getContext('2d');let checked=0;
   const neutralColours=[];
