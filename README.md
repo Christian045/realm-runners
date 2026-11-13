@@ -1,4 +1,35 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.70.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.71.0)
+
+## Alpha 0.71.0 – Jäger im wirklichen Produktionsstil von Ritter und Magier
+
+Der Jäger wird **nicht** mehr aus dem alten Jäger-Atlas (0.70.0) oder einem
+geometrischen Teilemodell (0.69.0) gerendert. Stattdessen übernimmt seine
+neue, vollkörperige 96-Pixel-Darstellung die tatsächlichen gezeichneten
+Magier-Proportionen und -Animationssilhouetten und gestaltet sie gezielt zum
+Jäger um: dunkelgrüner Stoff mit beibehaltener Originalschattierung,
+kurze Lederpanzerung mit Riemen und Metallschnalle, Köcher mit Pfeilen,
+kräftige Stiefel und ein eigenständiger mehrschichtig gezeichneter Bogen.
+
+- Alle acht Magier-Blickrichtungen sind direkt die **gleichen acht echten,
+  gemalten Winkel**, keine abgeleiteten oder verzerrten Diagonalansichten.
+- Stand, acht echte Laufphasen, Bogenschuss mit Sehnenspannung, Pfeilhagel,
+  Ausweichen, Treffer und Tod verwenden dieselbe 96×96-Körperbasis.
+- Körper, Kapuze, Gesicht und Füße behalten ihre Position über alle Aktionen.
+  Beim 3/6-Auslösebild ist der Schusspunkt derselbe Pixel, an dem die
+  Pfeilspitze am gemalten Bogen erscheint.
+- Klassenmenü, Dungeon und Trainingshalle benutzen denselben Jäger-Renderer.
+- Die ursprünglichen Magier-Grafiken bleiben unangetastet. Die Umfärbung
+  findet einmalig in separaten Jäger-Canvasflächen statt; der Magier behält
+  seine violette Robe und seinen Stab.
+- Die Jäger-Anatomie stammt absichtlich vom Magier und ist damit
+  **stilistisch vereinheitlicht**. Es sind keine unabhängig neu
+  handgemalten Jäger-Animationssprites, sondern neu ausgestattete, in
+  der gleichen Spritestruktur gerenderte Magier-Bilder. Das ist als
+  belastbare gemeinsame Artstyle-Grundlage gedacht, nicht als Behauptung,
+  dass jedes Körperbild neu illustriert wurde.
+- `?oldHunterArt=1` schaltet zur Diagnose auf das vorangehende Teile-Rig.
+
+
 
 ## Alpha 0.70.0 – Illustrierter Jäger statt geometrischem Platzhalter
 
