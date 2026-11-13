@@ -1,5 +1,5 @@
 import {HUNTER_CELL,HUNTER_ANCHOR,HUNTER_COUNTS,HUNTER_ROWS,
- HUNTER_BOW_HINTS,hunterFacing,bakeHunterIllustrated} from './hunter-illustrated.js?v=0.70.0';
+ HUNTER_BOW_HINTS,hunterFacing,hunterIllustratedCell,hunterSocketFromPixels} from './hunter-illustrated.js?v=0.70.0';
 const clamp=n=>Math.max(0,Math.min(1,n));
 export const HUNTER_PRODUCTION_VERSION='0.70.0';
 export const HUNTER_SCALE=1;
@@ -60,7 +60,7 @@ async function loadIllustratedSources(){
 }
 export class HunterProductionAtlas{
  constructor(canvasFactory=null,sourceLoader=loadIllustratedSources){
-  this.ready=false;this.failed=false;this.sheets={};this.sockets={};
+  this.ready=false;this.failed=false;this.sockets={};this.manifest=null;this.images=null;
   this.canvasFactory=canvasFactory||(()=>{
    if(typeof OffscreenCanvas!=='undefined')return new OffscreenCanvas(1,1);
    if(typeof document!=='undefined')return document.createElement('canvas');
@@ -71,9 +71,24 @@ export class HunterProductionAtlas{
  }
  async load(){
   try{
-   const sources=await this.sourceLoader();
-   const {sheets,sockets}=bakeHunterIllustrated({...sources,canvasFactory:this.canvasFactory});
-   this.sheets=sheets;this.sockets=sockets;this.ready=true;
+   const {manifest,images}=await this.sourceLoader();
+   this.manifest=manifest;this.images=images;
+   // Only a single 120px scratch cell is needed to measure the real
+   // painted bow. Do not retain 7 giant redundant atlas copies in RAM:
+   // WebKit/mobile can exhaust its graphics process when changing class.
+   const scratch=this.canvasFactory();scratch.width=HUNTER_CELL;scratch.height=HUNTER_CELL;
+   const ctx=scratch.getContext('2d',{willReadFrequently:true});
+   if(!ctx)throw Error('Hunter socket canvas unavailable');
+   for(const clip of ['attack','special']){
+    this.sockets[clip]=[];
+    for(let row=0;row<8;row++){
+     ctx.clearRect(0,0,HUNTER_CELL,HUNTER_CELL);
+     hunterIllustratedCell(ctx,manifest,images,row,clip,3);
+     this.sockets[clip][row]=hunterSocketFromPixels(
+      ctx.getImageData(0,0,HUNTER_CELL,HUNTER_CELL).data,HUNTER_BOW_HINTS[row]);
+    }
+   }
+   this.ready=true;
   }catch(error){
    this.failed=true;
    console.warn('High-detail hunter art unavailable; retaining legacy fallback',error);
@@ -81,14 +96,13 @@ export class HunterProductionAtlas{
  }
  draw(ctx,p,time=0){
   if(!this.ready||!ctx?.drawImage)return false;
-  const pose=hunterPose(p,time),sheet=this.sheets[pose.clip],cell=HUNTER_CELL;
-  if(!sheet)return false;
-  const x=Math.round(p.x-HUNTER_ANCHOR.x*HUNTER_SCALE);
-  const y=Math.round(p.y-HUNTER_ANCHOR.y*HUNTER_SCALE);
+  const pose=hunterPose(p,time);
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha*=.65;
-  ctx.drawImage(sheet,pose.frame*cell,pose.row*cell,cell,cell,
-   x,y,cell*HUNTER_SCALE,cell*HUNTER_SCALE);
+  ctx.translate(Math.round(p.x-HUNTER_ANCHOR.x*HUNTER_SCALE),
+   Math.round(p.y-HUNTER_ANCHOR.y*HUNTER_SCALE));
+  if(HUNTER_SCALE!==1)ctx.scale(HUNTER_SCALE,HUNTER_SCALE);
+  hunterIllustratedCell(ctx,this.manifest,this.images,pose.row,pose.clip,pose.frame);
   ctx.restore();return true;
  }
  preview(ctx,width,height,time=0){
@@ -97,10 +111,10 @@ export class HunterProductionAtlas{
   const scale=Math.min((width-6)/90,(height-4)/82);
   const frame=Math.floor(((((time%1.5)+1.5)%1.5)/1.5)*6);
   ctx.save();ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(this.sheets.idle,frame*HUNTER_CELL,0,HUNTER_CELL,HUNTER_CELL,
-   Math.round(width/2-HUNTER_ANCHOR.x*scale),
-   Math.round(height*.9-HUNTER_ANCHOR.y*scale),
-   Math.round(HUNTER_CELL*scale),Math.round(HUNTER_CELL*scale));
+  ctx.translate(Math.round(width/2-HUNTER_ANCHOR.x*scale),
+   Math.round(height*.9-HUNTER_ANCHOR.y*scale));
+  ctx.scale(scale,scale);
+  hunterIllustratedCell(ctx,this.manifest,this.images,0,'idle',frame);
   ctx.restore();return true;
  }
 }
