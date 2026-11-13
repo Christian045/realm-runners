@@ -1,4 +1,16 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.68.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.69.0)
+
+## Alpha 0.69.0 – Neuer Jäger mit vollständigen Pixel-Art-Bildern
+
+- Waldjäger mit grüner Kapuze, erkennbarem Gesicht, Lederwams, Köcher, Bogen und zwei sichtbaren Beinen.
+- **368 vollständige, transparente Bilder**: acht Blickrichtungen mal sechs Stand-, acht Lauf-, sechs Angriffs-, sechs Pfeilhagel-, sechs Ausweich-, sechs Treffer- und acht Todesbilder.
+- Das neue Artwork wird in `src/hunter-pixel-art.js` als reproduzierbares Vollkörper-Pixelatlas gezeichnet. Im normalen Spiel wird **kein** altes, frei artikuliertes Jäger-Teilemodell mehr verwendet.
+- Pfeilspitze, Bogensehne, Finger und Schussursprung werden aus demselben gezeichneten Bogenmodell berechnet; die Pfeile verlassen den Bogen bei Frame 3/6.
+- Neue Bilder werden direkt im Dungeon, Klassenauswahl-Menü und der Trainingshalle verwendet. Füße stehen bei Idle und Lauf auf derselben Bodenlinie.
+- `?oldHunterArt=1` schaltet das vorherige Jäger-Rig nur zum Vergleichen zu. Spielwerte und Spielfortschritt ändern sich nicht.
+- Zusätzliche Node-Tests prüfen sämtliche Bildzellen, Bodenkontakt und reale Kampfereignisse in acht Richtungen.
+
+
 
 ## Alpha 0.68.0 – Jäger: Bogensehne, Hände und Angriffstiming
 

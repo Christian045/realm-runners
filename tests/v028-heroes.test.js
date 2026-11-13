@@ -121,7 +121,11 @@ test('directional touch shots still hit floor hitboxes in all eight directions',
 
 test('hunter fan and multishot launch from the bow instead of the feet',async()=>{
  const {heroShot}=await import('../src/hero-aim.js');const g=fresh('hunter'),p=g.player;
- g.ability();const shot=heroShot(p);g.updateHeroAction(1);assert.equal(g.projectiles.length,7);
+ g.ability();const action=p.heroAction;
+ // The new full-body archer leans into the shot: sample the painted muzzle
+ // at the actual frame-three release, not at the start of its wind-up.
+ const shot=heroShot(p,{...action,elapsed:action.duration/2});
+ g.updateHeroAction(1);assert.equal(g.projectiles.length,7);
  for(const b of g.projectiles){assert.equal(b.x,shot.x);assert.equal(b.y-b.visualHeight,shot.y);}
 });
 

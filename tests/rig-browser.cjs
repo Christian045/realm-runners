@@ -9,7 +9,7 @@ const fs=require('node:fs');
    await page.goto('http://127.0.0.1:8000/?newKnight=1');
    const result=await page.evaluate(async({capture})=>{
     const [{HeroSpriteAtlas},{KnightSpriteAtlas},{articulatedPose,RIG_KINDS},{heroShot}]=await Promise.all([
-     import('./src/hero-sprites.js?v=0.68.0'),import('./src/knight-sprites.js?v=0.68.0'),import('./src/articulated-hero.js?v=0.68.0'),import('./src/hero-aim.js?v=0.68.0')]);
+     import('./src/hero-sprites.js?v=0.69.0'),import('./src/knight-sprites.js?v=0.68.0'),import('./src/articulated-hero.js?v=0.68.0'),import('./src/hero-aim.js?v=0.69.0')]);
     const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;const ctx=canvas.getContext('2d');let checked=0,sockets=0;
     const gallery=capture?document.createElement('canvas'):null;
     if(gallery){gallery.width=1280;gallery.height=1350;}
@@ -20,7 +20,7 @@ const fs=require('node:fs');
     const featured=['warrior','mage','summoner'];
     for(const kind of RIG_KINDS){
      const atlas=kind==='warrior'?new KnightSpriteAtlas():new HeroSpriteAtlas();if(kind!=='warrior')atlas.select(kind);await atlas.loading;
-     const rig=kind==='warrior'?atlas.painted:(kind==='mage'?atlas.mage:(atlas.rig||atlas.rigs[kind]));if(!rig?.ready)throw Error('New art missing: '+kind);
+     const rig=kind==='warrior'?atlas.painted:(kind==='mage'?atlas.mage:kind==='hunter'?atlas.hunter:(atlas.rig||atlas.rigs[kind]));if(!rig?.ready)throw Error('New art missing: '+kind);
      for(let row=0;row<8;row++)for(const clip of ['idle','walk','attack','special','dash','hurt','death']){
       const a=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(a),y:Math.sin(a)},p={kind,x:128,y:128,hp:100,direction,moving:clip==='walk',walkDistance:23,heroMoveDirection:direction,knightMoveDirection:direction};
       if(clip==='death'){p.hp=0;p.heroDeathElapsed=.8;p.knightDeathElapsed=.8;}
