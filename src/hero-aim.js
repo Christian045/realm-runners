@@ -1,4 +1,5 @@
 import {mageReady,mageShot} from './mage-production.js?v=0.67.1';
+import {hunterProductionEnabled,hunterProductionShot} from './hunter-production.js?v=0.69.0';
 import {heroRigReady,articulatedShot} from './articulated-hero.js?v=0.68.0';
 import {heroFacing} from './hero-animation.js?v=0.31.0';
 
@@ -26,6 +27,7 @@ export function castingIntensity(action){
   progress<.64?1:Math.cos((progress-.64)/.36*Math.PI/2);
 }
 export function heroShot(p,action=p.heroAction){
+ if(p.kind==='hunter'&&hunterProductionEnabled())return hunterProductionShot(p,action);
  if(p.kind==='mage'&&mageReady())return mageShot(p,action);
  if(heroRigReady(p.kind))return articulatedShot(p,action);
  const direction=action?.direction||p.direction||{x:1,y:0},face=heroFacing(direction);
