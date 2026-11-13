@@ -36,7 +36,12 @@ export function hunterIllustratedCell(g,manifest,images,row,clip,frame){
  if(!Object.hasOwn(HUNTER_COUNTS,clip))throw new RangeError('Unknown hunter clip: '+clip);
  const view=HUNTER_SOURCE_VIEWS[row],source=images[view.face];
  if(!source)throw Error('Missing illustrated hunter view '+view.face);
- const sequence=HUNTER_CLIPS.indexOf(clip)*6+frame;
+ // The source archer retains its nocked arrow in source pose 3. Gameplay
+ // fires at 3/6, so display the source's actual released follow-through
+ // (frame 4) at that exact event, then return to the resting bow.
+ const sourceFrame=(clip==='attack'||clip==='special')?
+  [0,1,2,4,5,0][frame]:frame;
+ const sequence=HUNTER_CLIPS.indexOf(clip)*6+sourceFrame;
  const f=manifest.frames[view.face]?.[sequence];
  if(!f)throw Error('Missing illustrated hunter frame '+row+':'+clip+':'+frame);
  const root=clip==='walk'?(f.walkRootX??f.anchorX):f.anchorX;
