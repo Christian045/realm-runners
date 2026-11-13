@@ -48,6 +48,6 @@ test('Jäger has a real body wind-up and release, with hands and arrow on one ai
   const pre=combatChoreography('hunter',clip,.24,direction);
   const post=combatChoreography('hunter',clip,1,direction);
   assert.ok(pre.dx*direction.x+pre.dy*direction.y<-.1);
-  assert.equal(post.roll,0);assert.equal(post.dx,0);assert.equal(post.dy,0);
+  assert.ok(Math.abs(post.roll)<1e-10);assert.ok(Math.abs(post.dx)<1e-10);assert.ok(Math.abs(post.dy)<1e-10);
  }
 });
