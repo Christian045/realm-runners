@@ -44,6 +44,7 @@ const poly=(g,c,points)=>{
 // All lines remain pixel-exact and share the production mage's one-pixel
 // highlights / contiguous edges. Avoid browser anti-alias and gradients.
 const line=(g,c,x0,y0,x1,y1,w=1)=>{
+ if(![x0,y0,x1,y1].every(Number.isFinite))throw new RangeError('Non-finite Jäger pixel line');
  x0=round(x0);y0=round(y0);x1=round(x1);y1=round(y1);
  const dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1;
  let err=dx-dy;for(;;){
