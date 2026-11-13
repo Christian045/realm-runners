@@ -1,5 +1,6 @@
 import {rigWalkFeet,RIG_WALK_STRIDE} from './rig-walk.js?v=0.40.0';
-import {combatChoreography,rotateCombatPoint} from './combat-choreography.js?v=0.40.0';
+import {combatChoreography,rotateCombatPoint} from './combat-choreography.js?v=0.68.0';
+import {hunterBowPose} from './hunter-bow.js?v=0.68.0';
 // Directional painted parts with stable anatomical anchors. Only limbs and the
 // weapon articulate; attack states never rotate or replace the whole character.
 export const RIG_KINDS=['warrior','mage','summoner','hunter','glasscannon','alchemist'];
@@ -108,13 +109,15 @@ export class ArticulatedHeroAtlas{
  draw(ctx,p,time=0){
   if(!this.ready)return false;
   const pose=articulatedPose(p,time),s=articulatedSockets(p,pose),frames=this.manifest.frames[pose.row];
+  const bow=p.kind==='hunter'?hunterBowPose(pose.clip,pose.progress):null;
   const t=pose.progress,death=pose.clip==='death'?ease(t):0,hurt=pose.clip==='hurt'?Math.sin(t*Math.PI):0;
   const recoil=pose.clip==='dash'?6*Math.sin(t*Math.PI):0,bodyX=-hurt*pose.direction.x*3,bodyY=death*19+recoil+(s.motion.active?0:Math.sin(time*Math.PI*2/1.6)*.8);
   const collapseAngle=death*Math.PI/2*(pose.face.x<0?-1:1);
   const bodyPoint=point=>{const x=point.x,y=point.y+25;return {x:bodyX+x*Math.cos(collapseAngle)-y*Math.sin(collapseAngle),y:-25+bodyY+x*Math.sin(collapseAngle)+y*Math.cos(collapseAngle)};};
   const shoulder=death?bodyPoint(s.shoulder):{x:s.shoulder.x+bodyX,y:s.shoulder.y+bodyY};
   let hand=death?{x:shoulder.x-8,y:mix(shoulder.y+16,4,death)}:{x:s.hand.x+bodyX,y:s.hand.y+bodyY};
-  if(p.kind==='hunter'&&!death)hand={x:hand.x+Math.cos(s.angle)*(18-12*s.amount),y:hand.y+Math.sin(s.angle)*(18-12*s.amount)};
+  if(p.kind==='hunter'&&!death)hand={x:s.hand.x+bodyX+Math.cos(s.angle)*bow.drawHandX,
+   y:s.hand.y+bodyY+Math.sin(s.angle)*bow.drawHandX};
   ctx.save();ctx.translate(Math.round(p.x),Math.round(p.y));ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha=.65;
   const part=(column,x,y,height,pivot=.5,angle=0,width=null)=>{
@@ -157,7 +160,14 @@ export class ArticulatedHeroAtlas{
   const offShoulder=death?bodyPoint(s.offShoulder):{x:s.offShoulder.x+bodyX,y:s.offShoulder.y+bodyY};
   let offHand=death?{x:offShoulder.x,y:mix(offShoulder.y+26,3,death)}:
    {x:s.offHand.x+bodyX,y:s.offHand.y+bodyY};
-  if(!death&&['hunter','glasscannon'].includes(p.kind)){const grip=p.kind==='hunter'?24:16;offHand={x:hand.x+Math.cos(s.angle)*grip,y:hand.y+Math.sin(s.angle)*grip+3};}
+  if(!death&&p.kind==='hunter'){
+   // Both hands attach to the SAME bow. The drawing hand follows the actual
+   // nock; the support hand stays on the bow grip instead of floating ahead.
+   offHand={x:s.hand.x+bodyX+Math.cos(s.angle)*bow.bowHandX,
+    y:s.hand.y+bodyY+Math.sin(s.angle)*bow.bowHandX};
+  }else if(!death&&p.kind==='glasscannon'){
+   offHand={x:hand.x+Math.cos(s.angle)*16,y:hand.y+Math.sin(s.angle)*16+3};
+  }
   if(!s.motion.active&&pose.clip==='special'&&['mage','summoner'].includes(p.kind))
    offHand={x:offShoulder.x-pose.direction.x*15,y:offShoulder.y-9*s.amount};
   const arm=()=>{const elbow=elbowFor(shoulder,hand,15,16,pose.face.x<0?-1:1);bone(2,shoulder,elbow);bone(3,elbow,hand);};
@@ -165,11 +175,26 @@ export class ArticulatedHeroAtlas{
   const weapon=()=>{
    if(p.kind==='summoner')return;
    if(p.kind==='hunter'){
-    const f=frames[7],height=40,width=f.w/f.h*height,draw=t<.5?s.amount:0;
-    ctx.save();ctx.translate(s.hand.x,s.hand.y);ctx.rotate(s.angle);
+    const f=frames[7],height=40,width=f.w/f.h*height;
+    ctx.save();ctx.translate(s.hand.x+bodyX,s.hand.y+bodyY);ctx.rotate(s.angle);
+    // The fixed bow artwork does not change size between wind-up and release.
     ctx.drawImage(this.image,f.x,f.y,f.w,f.h,24-width/2,-20,width,height);
-    ctx.strokeStyle='#d9d1b3';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(20,-18);ctx.lineTo(20-12*draw,0);ctx.lineTo(20,18);ctx.stroke();
-    if(t<.5||!/attack|special/.test(pose.clip)){ctx.strokeStyle='#c3a875';ctx.beginPath();ctx.moveTo(5-12*draw,0);ctx.lineTo(25,0);ctx.stroke();ctx.fillStyle='#dce4d3';ctx.fillRect(24,-1,4,2);}
+    ctx.strokeStyle='#d9d1b3';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(20,-18);ctx.lineTo(bow.stringX,0);ctx.lineTo(20,18);ctx.stroke();
+    // The nock, arrowhead and hands all use bow.stringX. At exactly frame 3
+    // the arrow leaves the string; the real projectile starts at x=24.
+    if(bow.hasArrow){
+     const shafts=pose.clip==='special'?[-3,0,3]:[0];
+     for(const y of shafts){
+      ctx.strokeStyle='#b49459';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(bow.stringX,y);ctx.lineTo(24,y);ctx.stroke();
+      ctx.fillStyle='#dce6d5';ctx.fillRect(23,y-1,3,2);
+      ctx.fillStyle='#9ac18e';ctx.fillRect(Math.round(bow.stringX)-1,y-1,2,3);
+     }
+    }
+    if(bow.released){
+     ctx.fillStyle='#e8eccb';ctx.fillRect(23,-1,3,2);
+    }
     ctx.restore();return;
    }
    if(p.kind==='alchemist'&&/attack|special/.test(pose.clip)&&t>=.5)return;

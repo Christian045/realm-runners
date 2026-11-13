@@ -17,7 +17,7 @@ const fs=require('node:fs');
     const [{getKnightFinal},{KNIGHT_PRODUCTION_COUNTS},{labSample,LAB_DIRECTIONS}]=await Promise.all([
      import('./src/knight-final.js?v=0.67.1'),
      import('./src/knight-production.js?v=0.67.1'),
-     import('./src/animation-lab.js?v=0.67.1')
+     import('./src/animation-lab.js?v=0.68.0')
     ]);
     const atlas=getKnightFinal();await atlas.loading;
     if(!atlas.ready||!atlas.production||atlas.failed)throw Error('Released knight not loaded');

@@ -11,7 +11,7 @@ const assert=require('node:assert/strict');
    await page.goto('http://127.0.0.1:8000/');
    const result=await page.evaluate(async({capture})=>{
     const [{KnightSpriteAtlas},{KNIGHT_SHEET_CELL,KNIGHT_SHEET_FRAMES,knightFinalFrame}]=await Promise.all([
-     import('./src/knight-sprites.js?v=0.67.1'),
+     import('./src/knight-sprites.js?v=0.68.0'),
      import('./src/knight-final.js?v=0.67.1')
     ]);
     const atlas=new KnightSpriteAtlas();await atlas.loading;
@@ -69,7 +69,7 @@ const assert=require('node:assert/strict');
    await page.locator('#overlay').waitFor({state:'hidden'});
    const live=await page.evaluate(async()=>{
     const [{KnightSpriteAtlas},{KnightFinalAtlas}]=await Promise.all([
-     import('./src/knight-sprites.js?v=0.67.1'),
+     import('./src/knight-sprites.js?v=0.68.0'),
      import('./src/knight-final.js?v=0.67.1')
     ]);
     const knight=new KnightSpriteAtlas();await knight.loading;
