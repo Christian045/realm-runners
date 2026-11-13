@@ -216,6 +216,11 @@ export function drawHunterFrame(g,row,clip,frame){
  if(clip==='hurt'&&frame>=1&&frame<4){
   box(g,P.skinLight,49,25,3,2);box(g,P.skinLight,53,22,2,2);
  }
+ if((clip==='attack'||clip==='special')&&frame===4){
+  // Follow-through: bent bow arm and cape hem visibly settle before idle.
+  box(g,P.forestLight,41+shift(row,clip,frame).x,39,3,3);
+  box(g,P.gold,31+shift(row,clip,frame).x,45,3,2);
+ }
  if(clip==='idle'){
   box(g,frame%3===0?P.forestLight:P.capeLight,35+r(hunterDirection(row).x*3),37,2,2);
   if(frame===2||frame===5)box(g,P.goldLight,37,45,2,1);
