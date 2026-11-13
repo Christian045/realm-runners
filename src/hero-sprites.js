@@ -1,9 +1,9 @@
 import {getMageProduction} from './mage-production.js?v=0.67.1';
-import {getHunterProduction} from './hunter-production.js?v=0.69.0';
+import {getHunterProduction} from './hunter-production.js?v=0.70.0';
 import {getHeroRig,previewHeroRig} from './articulated-hero.js?v=0.68.0';
 import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.39.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';
-import {heroShot} from './hero-aim.js?v=0.69.0';
+import {heroShot} from './hero-aim.js?v=0.70.0';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.31.0';
 
 export class HeroSpriteAtlas{
@@ -38,6 +38,7 @@ export class HeroSpriteAtlas{
   this.loading=(async()=>{
    try{
     if(kind==='mage')await this.mage?.loading;
+    if(kind==='hunter')await this.hunter?.loading;
     await this.rigs?.[kind]?.loading;
     const base=new URL('../assets/heroes/'+kind+'/',import.meta.url);
     const response=await fetch(new URL('atlas.json?v=0.29.0',base));

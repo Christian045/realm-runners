@@ -1,4 +1,27 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.69.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.70.0)
+
+## Alpha 0.70.0 – Illustrierter Jäger statt geometrischem Platzhalter
+
+Der Produktionsrenderer verwendet wieder **vollständiges, detailliertes Pixel-Artwork**
+aus den handillustrierten Jäger-Quellen `assets/heroes/hunter/{down,left,up,right}.png`.
+Damit sind Kapuze, Gesicht, Bogen, Köcher, Lederrüstung, Stofffalten und Beine
+in demselben detailreichen Bildstil wie Ritter und Magier gezeichnet, nicht
+als Code-Rechtecke. Der 0.69-Platzhalter `hunter-pixel-art.js` wird **nicht**
+mehr im normalen Spiel angezeigt.
+
+Die Originalkunst enthält **vier echte gezeichnete Grundrichtungen**.
+Die vier diagonalen Ansichten sind daraus mittels dezenter pixelgenauer
+Perspektivkorrektur abgeleitet, nicht als vier neu handgezeichnete Ansichten
+zu verstehen. Es werden 336 vollständige Raster-Zellen für sieben Aktionen
+mit je sechs Animationsphasen vorbereitet. Die Füße nutzen einen gemeinsamen
+Weltanker; Waffen-/Pfeilmündungspositionen werden an die sichtbaren
+Bogen-Pixel der Angriffs- und Spezialbilder angeheftet.
+
+Die neue Darstellung ist im Spiel, der Trainingshalle und bei der
+Klassenauswahl aktiv. `?oldHunterArt=1` bleibt als Vergleich zur alten
+Art-Rig-Darstellung. Gameplay, Pfeilschaden und Speicherstände sind unverändert.
+
+
 
 ## Alpha 0.69.0 – Neuer Jäger mit vollständigen Pixel-Art-Bildern
 
