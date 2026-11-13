@@ -1,4 +1,4 @@
-// Realm Runners Jäger 0.71: a sister character to the production Magier.
+// Realm Runners Jäger 0.72: distinctive ranger silhouette on the production Magier pixel-art foundation.
 // Uses the SAME hand-painted 96px anatomy, material shading and eight facings,
 // then changes clothing, silhouette, equipment and bow choreography.
 // No legacy Jäger artwork and no 0.69 rectangle-built body is ever used.
@@ -25,14 +25,14 @@ export const hunterStyleActionSource=(clip,frame)=>{
  if(!a)throw new RangeError('Unknown Jäger clip '+clip);
  return a[Math.min(a.length-1,Math.max(0,frame))];
 };
-const WHITE=['#faf0c3','#e8c18b','#dcac6e'];
 const SWATCH=Object.freeze({
  outline:'#251f23',shadow:'#392a28',leatherDark:'#49312d',leather:'#7c5338',
  leatherLight:'#ad8356',light:'#dfb47a',greenDark:'#214537',
  green:'#3f7954',greenLight:'#75ac7d',brass:'#cfad6b',
  gold:'#f0d49c',cord:'#d3c9a2',arrow:'#e8c992',
  feather:'#98c68a',skin:'#e7b993',skinDark:'#b97c60',
- boot:'#382c2c'
+ boot:'#382c2c',bark:'#382825',olive:'#4b633c',oliveLight:'#a0ac72',
+ hoodRim:'#8cad78',cloakShadow:'#193b32',harness:'#ab8a5e'
 });
 const C=SWATCH;
 const px=(g,c,x,y,w=1,h=1)=>{g.fillStyle=c;g.fillRect(round(x),round(y),w,h);};
@@ -88,9 +88,17 @@ export function recolorMagierToHunter(source,makeCanvas){
     d[i+3]=0;continue;
    }
    if(magentaCloth(d,i)){
+    // Shorten the magier's lower robe to a hunter's thigh-length tunic.
+    // Only remove CLOTH pixels, not the already illustrated leather boots,
+    // skin or shaded trousers. Keep all prone death poses unchanged.
+    const standing=source.width<1536||col<14;
+    const hem=row<=1?67:row<=3?69:70;
+    if(standing&&(y>=76||y>=hem&&(x<43||x>54))){
+     d[i+3]=0;continue;
+    }
     const red=d[i],green=d[i+1],blue=d[i+2];
     const lum=.29*red+.33*green+.38*blue;
-    // Dark fir-green velvet; fine painted fabric creases stay intact.
+    // Preserve original painted luminance: no flat green overlays.
     d[i]=clamp(round(lum*.43+5),0,255);
     d[i+1]=clamp(round(lum*.87+14),0,255);
     d[i+2]=clamp(round(lum*.59+7),0,255);
@@ -100,85 +108,199 @@ export function recolorMagierToHunter(source,makeCanvas){
  g.putImageData(image,0,0);
  return canvas;
 }
-function hunterLeatherTorso(g,sourceRow,clip,frame){
- const front=sourceRow<=1||sourceRow===5;
- // Distinct short reinforced hunting jerkin over the mage's tunic; the hood,
- // exposed face and natural boots still come from the detailed original art.
- if(front){
-  poly(g,C.outline,[[39,39],[43,37],[55,37],[60,41],[59,55],[54,60],[42,58],[37,52]]);
-  poly(g,C.leatherDark,[[40,40],[44,38],[55,38],[58,42],[57,54],[53,58],[43,56],[39,51]]);
-  poly(g,C.leather,[[42,40],[46,39],[55,39],[56,46],[54,54],[43,53],[40,49]]);
-  line(g,C.leatherLight,44,40,42,50,2);
-  line(g,C.light,55,40,55,44,1);
-  line(g,C.shadow,43,40,55,54,5);
-  line(g,C.leatherLight,44,41,55,53,2);
-  px(g,C.brass,48,45,3,3);px(g,C.gold,49,45);
-  px(g,C.leatherDark,41,57,14,4);
-  px(g,C.brass,47,57,3,3);
-  px(g,C.leather,41,61,6,4);px(g,C.leather,52,61,6,4);
-  line(g,C.greenLight,40,49,41,54,1);
- }else{
-  // Dedicated back silhouette retains the big shaded hood and shorter
-  // green mantle; the crossed harness and quiver signal a ranger.
-  line(g,C.leatherDark,41,39,56,53,5);
-  line(g,C.leatherLight,41,39,55,52,2);
-  line(g,C.leatherDark,56,39,42,54,4);
-  line(g,C.leatherLight,55,40,43,53,1);
-  px(g,C.brass,47,46,3,3);
- }
- if(clip==='hurt'&&frame>=1&&frame<=3){
-  px(g,C.skin,57,47,2,2);
-  px(g,C.brass,40,48,2,2);
- }
-}
-function hunterQuiver(g,sourceRow,clip,frame){
- // Draw on the body, not as a separately floating inventory attachment.
- // The leather case overlaps the shoulder/upper mantle in every direction.
- const back=sourceRow>=3&&sourceRow<=5;
- const x=back?59:62,y=31+(clip==='walk'&&frame%4===1?1:0);
- line(g,C.outline,x-1,y+20,x+3,y+1,11);
- line(g,C.leatherDark,x-1,y+20,x+3,y+1,8);
- line(g,C.leather,x-1,y+19,x+3,y+3,6);
- line(g,C.leatherLight,x,y+10,x+3,y+4,1);
- line(g,C.brass,x-5,y+15,x+4,y+12,2);
+function rangerBackdrop(g,sourceRow,clip,frame){
+ if(clip==='death'&&frame>=2)return;
+ const rear=sourceRow>=3,phase=clip==='walk'?Math.sin(frame*Math.PI/4):0;
+ const sway=round(phase*2)+(clip==='dash'&&frame>0&&frame<5?2:0);
+ // Asymmetric shoulder mantle with a single short, pointed side flap.
+ // Extending beyond the Mage's outline changes the silhouette, not just hue.
+ poly(g,C.outline,[[56,32],[63,31],[68,39],[66,55],[64+sway,68],
+  [58+sway,73],[56,62],[55,44]]);
+ poly(g,rear?C.olive:C.greenDark,[[57,33],[62,33],[65,39],[63,56],
+  [61+sway,68],[59+sway,69],[58,60],[57,43]]);
+ poly(g,C.greenLight,[[60,34],[63,37],[62,49],[60,54],[60,43]]);
+ line(g,C.cloakShadow,60,51,58+sway,65,2);
+ // High quiver band and one projecting bundle of feather tips.
+ poly(g,C.outline,[[62,28],[69,27],[74,35],[71,43],[65,43],[61,36]]);
+ poly(g,C.leatherDark,[[63,29],[68,29],[72,35],[69,41],[66,41],[63,36]]);
  for(let i=0;i<3;i++){
-  const tx=x+i*3-3,ty=y+(i%2?2:0);
-  line(g,C.outline,tx,ty+10,tx+2,ty-5,3);
-  line(g,C.arrow,tx+1,ty+9,tx+2,ty-4,1);
-  px(g,C.feather,tx,ty-7,3,3);
-  px(g,C.gold,tx+1,ty-7,1,1);
+  const fx=65+i*3+(i===1?1:0),fy=23+(i%2);
+  line(g,C.outline,fx,fy+13,fx+1,fy-7,3);
+  line(g,C.arrow,fx,fy+11,fx+1,fy-5,1);
+  px(g,C.feather,fx-1,fy-7,3,3);
+  px(g,C.gold,fx,fy-7);
  }
 }
-function hunterBootBands(g,sourceRow,clip,frame){
- // Distinct rugged boots visible below the hunter's short jerkin.
- const bob=clip==='walk'?Math.round(Math.sin(frame*Math.PI/4)):0;
- for(const x of sourceRow>=3?[43,54]:[42,55]){
-  px(g,C.leatherDark,x-2,74+bob,5,3);
-  px(g,C.leatherLight,x-1,74+bob,3,1);
+function rangerHood(g,sourceRow,clip,frame){
+ if(clip==='death'&&frame>=2)return;
+ const front=sourceRow<=1,profile=sourceRow===2||sourceRow===5;
+ // Widen the angular cowl *around*, not across, the existing painted face.
+ poly(g,C.outline,[[38,15],[43,10],[53,10],[60,15],[62,24],
+  [59,31],[55,34],[40,34],[35,29],[35,21]]);
+ poly(g,C.greenDark,[[39,16],[44,12],[53,12],[58,17],[60,24],
+  [57,30],[54,32],[41,32],[37,27],[37,21]]);
+ poly(g,C.green,[[40,17],[44,13],[51,12],[54,16],[42,19]]);
+ line(g,C.greenLight,40,16,46,13,2);
+ px(g,C.oliveLight,41,16,2,1);
+ if(front){
+  // Leave a window for the original Mage's face/eyes; cut open the hood
+  // by repainting it from the *already-coloured underlying* body image.
+  // The opening is supplied through the foreground mask in the caller.
+  poly(g,C.outline,[[39,18],[43,17],[54,17],[58,21],[57,24],[55,20],[43,20],[39,23]]);
+  line(g,C.hoodRim,42,18,55,18,1);
+  px(g,C.oliveLight,40,21,2,2);
+  // A tiny brow/scar gives the ranger a different expression.
+  px(g,C.skinDark,52,27,2,1);
+ }else if(profile){
+  line(g,C.hoodRim,39,21,36,29,2);
+  px(g,C.oliveLight,37,26,2,2);
+ }else{
+  // The rear cowl has a reinforced leather nape seam and no visible face.
+  line(g,C.leatherDark,44,23,55,29,3);
+  line(g,C.leatherLight,45,23,54,28,1);
+  px(g,C.brass,50,27,2,2);
  }
+ // Leather throat clasp sits underneath the chin, never over the eyes.
+ px(g,C.leatherDark,42,34,13,4);px(g,C.brass,47,35,3,2);
+}
+function rangerHoodFrame(g,sourceRow,clip,frame,sourceImage,sourceFrame){
+ // Draw the original full-detail face back into the cowl opening so the
+ // hat may change silhouette without overwriting the expressive eyes.
+ rangerHood(g,sourceRow,clip,frame);
+ if(sourceRow<=1&&!(clip==='death'&&frame>=2)){
+  g.save();
+  g.beginPath();g.rect(42,21,13,12);g.clip();
+  g.drawImage(sourceImage,sourceFrame*96,sourceRow*96,96,96,0,0,96,96);
+  g.restore();
+  line(g,C.hoodRim,41,20,55,20,1);
+ }
+}
+function rangerCoatTails(g,sourceRow,clip,frame){
+ if(clip==='death'&&frame>=2)return;
+ const gait=clip==='walk'?round(Math.sin(frame*Math.PI/4)*2):0;
+ // Short tunic edges; separate leaves reveal two fully drawn legs.
+ poly(g,C.outline,[[38,57],[43,57],[43,65],[40-gait,70],[36-gait,68]]);
+ poly(g,C.greenDark,[[39,58],[42,58],[42,65],[39-gait,68],[37-gait,67]]);
+ poly(g,C.greenLight,[[40,59],[41,59],[40,65],[39-gait,67]]);
+ poly(g,C.outline,[[54,57],[58,57],[61+gait,66],[59+gait,70],[55,68]]);
+ poly(g,C.olive,[[55,58],[57,58],[59+gait,66],[58+gait,68],[55,66]]);
+ px(g,C.leatherDark,43,59,12,4);
+ px(g,C.leatherLight,43,59,12,1);
+ px(g,C.brass,47,59,4,3);px(g,C.gold,48,59,2,1);
+}
+function rangerArmour(g,sourceRow,clip,frame){
+ if(clip==='death'&&frame>=2)return;
+ const front=sourceRow<=1||sourceRow===5;
+ const sway=clip==='walk'?round(Math.sin(frame*Math.PI/4)):0;
+ if(front){
+  // Bulky, asymmetrical wood-and-leather cuirass with cross belt.
+  poly(g,C.outline,[[36,37],[41,35],[54,35],[63,38],
+   [64,45],[60,55],[54,61],[40,60],[35,51]]);
+  poly(g,C.leatherDark,[[38,39],[43,37],[54,37],[61,40],
+   [61,46],[57,55],[53,59],[41,58],[38,50]]);
+  poly(g,C.leather,[[40,40],[44,38],[53,38],[58,41],
+   [58,50],[54,56],[43,56],[40,49]]);
+  poly(g,C.leatherLight,[[41,40],[44,39],[45,45],[43,49],[41,48]]);
+  line(g,C.harness,40,41,56,54,4);line(g,C.gold,41,41,55,53,1);
+  line(g,C.bark,56,42,42,55,3);
+  px(g,C.brass,47,47,4,4);px(g,C.gold,48,47,2,2);
+  px(g,C.green,44,53,11,2);
+  px(g,C.oliveLight,43,55,3,1);
+ }else{
+  // Back chest-straps are visible around the real arrow case.
+  line(g,C.leatherDark,40,39,58,53,6);
+  line(g,C.harness,41,40,57,52,3);
+  line(g,C.leatherDark,59,39,43,54,5);
+  line(g,C.leatherLight,57,41,44,54,2);
+  px(g,C.brass,47,47,4,4);px(g,C.gold,48,47,2,2);
+ }
+ // Asymmetric right shoulder guard (unique outline even from behind).
+ poly(g,C.outline,[[56,35],[62,32],[68,37],[69,44],[64,49],[58,46]]);
+ poly(g,C.leatherDark,[[58,36],[62,34],[66,38],[67,43],[63,47],[59,45]]);
+ poly(g,C.leather,[[59,37],[62,35],[65,39],[65,44],[62,45]]);
+ line(g,C.leatherLight,60,37,64,39,2);
+ px(g,C.brass,63,41,3,3);
+ // Smaller left-side protection makes the stance less symmetrical.
+ poly(g,C.outline,[[38,36],[34,38],[33,45],[38,49],[42,45]]);
+ poly(g,C.olive,[[37,38],[35,40],[35,45],[38,47],[40,44]]);
+ px(g,C.brass,35,42,2,2);
+ // Hanging leather pouches and an attachment for spare bowstrings.
+ px(g,C.outline,36+sway,58,8,9);
+ px(g,C.leatherDark,37+sway,59,6,7);
+ px(g,C.leather,38+sway,60,4,5);
+ px(g,C.brass,39+sway,60,2,2);
+ px(g,C.outline,56-sway,59,7,8);
+ px(g,C.leatherDark,57-sway,60,5,6);
+ px(g,C.gold,58-sway,61,2,1);
+ if(clip==='hurt'&&frame>=1&&frame<=3){
+  px(g,C.skin,58,48,3,2);
+  px(g,C.gold,37,46,2,1);
+ }
+}
+function rangerQuiver(g,sourceRow,clip,frame){
+ if(clip==='death'&&frame>=2)return;
+ const back=sourceRow>=3&&sourceRow<=5;
+ const sway=clip==='walk'?round(Math.sin(frame*Math.PI/4)):0;
+ const x=(back?67:69)+sway,y=32;
+ // Prominent leather cylinder, strapped ONTO the body (not floating).
+ line(g,C.outline,x-2,y+19,x+2,y-2,12);
+ line(g,C.leatherDark,x-2,y+19,x+2,y-2,9);
+ line(g,C.leather,x-2,y+18,x+2,y,7);
+ line(g,C.leatherLight,x-1,y+16,x+2,y+2,2);
+ line(g,C.brass,x-6,y+12,x+4,y+9,3);
+ for(let i=0;i<4;i++){
+  const ax=x+i*3-6,ay=y-4+(i%2?1:0);
+  line(g,C.arrow,ax,ay+10,ax+1,ay-6,1);
+  px(g,C.feather,ax-1,ay-7,3,3);
+  px(g,C.gold,ax,ay-7);
+ }
+}
+function rangerBoots(g,sourceRow,clip,frame){
+ if(clip==='death'&&frame>=2)return;
+ const walk=clip==='walk';
+ const xs=sourceRow>=3?[43,54]:[42,55];
+ for(let i=0;i<2;i++){
+  // Knee-high wrap and a reinforced shin guard. No movement of soles.
+  const x=xs[i],lift=walk?round(Math.max(0,Math.sin(frame*Math.PI/4+i*Math.PI))):0;
+  px(g,C.outline,x-3,71-lift,7,7);
+  px(g,C.leatherDark,x-2,72-lift,5,5);
+  px(g,C.leather,x-2,73-lift,4,3);
+  px(g,C.harness,x-2,74-lift,4,1);
+  px(g,C.brass,x,75-lift,1,1);
+ }
+}
+function droppedBow(g,row,frame){
+ const x=row<4?26:60,y=81+(frame>5?1:0);
+ line(g,C.outline,x-9,y-1,x+10,y,4);
+ line(g,C.leather,x-9,y-1,x+10,y,2);
+ line(g,C.cord,x-9,y-1,x+10,y,1);
+ px(g,C.brass,x+9,y-1,2,2);
 }
 function bowBase(row,clip,frame){
  const sourceRow=hunterSourceRow(row);
  const [dx,dy]=DIRECTIONS[sourceRow],d={x:dx,y:dy};
  // Staff-hand placement is sampled from the actual Magier anatomy.
  const x0=48+MAGE_SOCKETS[sourceRow][0][0];
- const charging=(clip==='attack'||clip==='special')&&frame===1||(
-  (clip==='attack'||clip==='special')&&frame===2);
+ const charging=(clip==='attack'||clip==='special')&&(frame===1||frame===2);
  const shooting=(clip==='attack'||clip==='special')&&frame===3;
  const active=charging||shooting;
+ const gait=clip==='walk'?round(Math.sin(frame*PI/4)):0;
  const grip={
   x:clamp(round(x0+(active?(-d.x*2):0)),20,76),
-  y:48+round(d.y*(active?2:0))
+  y:48+gait+round(d.y*(active?2:0))
  };
- const dir=active?d:{x:0,y:-1};
+ // Carry the bow upright in stand/walk; aim it forward only when firing.
+ // This creates a recognisable ranger silhouette without a cross-body
+ // horizontal bow intersecting the chest in the neutral stance.
+ const dir=active?d:{x:1,y:0};
  const perp={x:-dir.y,y:dir.x};
  const tip={
   x:clamp(round(grip.x+dir.x*(active?17:13)),5,91),
   y:clamp(round(grip.y+dir.y*(active?17:13)),7,88)
  };
  const nock={
-  x:round(grip.x-dir.x*(charging?(frame===1?7:14):4)),
-  y:round(grip.y-dir.y*(charging?(frame===1?7:14):4))
+  x:round(grip.x-dir.x*(charging?(frame===1?7:clip==='special'?19:14):4)),
+  y:round(grip.y-dir.y*(charging?(frame===1?7:clip==='special'?19:14):4))
  };
  const ends=[{x:round(grip.x+perp.x*19),y:round(grip.y+perp.y*19)},
   {x:round(grip.x-perp.x*19),y:round(grip.y-perp.y*19)}];
@@ -243,14 +365,20 @@ export function drawHunterMageBow(g,row,clip,frame){
 }
 // Draw extra clothing and weapon atop the recoloured Magier *as one pose*
 // on the same 96×96 pixel grid. No independent world-scale limbs.
-export function drawHunterMageOverlays(g,row,clip,frame){
+export function drawHunterMageOverlays(g,row,clip,frame,sourceImage,sourceFrame){
  const sourceRow=hunterSourceRow(row);
- hunterLeatherTorso(g,sourceRow,clip,frame);
- hunterQuiver(g,sourceRow,clip,frame);
- hunterBootBands(g,sourceRow,clip,frame);
+ if(clip==='death'&&frame>=2){
+  droppedBow(g,row,frame);
+  return;
+ }
+ rangerCoatTails(g,sourceRow,clip,frame);
+ rangerArmour(g,sourceRow,clip,frame);
+ rangerQuiver(g,sourceRow,clip,frame);
+ rangerBoots(g,sourceRow,clip,frame);
+ if(sourceImage)rangerHoodFrame(g,sourceRow,clip,frame,sourceImage,sourceFrame);
+ else rangerHood(g,sourceRow,clip,frame);
  drawHunterMageBow(g,row,clip,frame);
  if(clip==='idle'){
-  // Breath accents do not move feet, face or robe geometry.
   px(g,frame%3===0?C.gold:C.brass,48,57,2,2);
   if(frame===3)px(g,C.greenDark,53,44,2,1);
  }
@@ -263,7 +391,8 @@ export function hunterStyledSample(g,source,walk,row,clip,frame){
  // Reuse the EXACT settled Magier body for idle and all neutral recoveries,
  // rather than its earlier action-sheet neutral pose (which shifts the torso).
  const image=clip==='walk'||(sourceFrame===0&&clip!=='death')?walk:source;
+ rangerBackdrop(g,sourceRow,clip,frame);
  g.drawImage(image,sourceFrame*96,sourceRow*96,96,96,0,0,96,96);
- drawHunterMageOverlays(g,row,clip,frame);
+ drawHunterMageOverlays(g,row,clip,frame,image,sourceFrame);
  g.restore();
 }
