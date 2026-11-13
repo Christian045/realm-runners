@@ -1,5 +1,5 @@
 import {mageReady,mageShot} from './mage-production.js?v=0.67.1';
-import {hunterProductionEnabled,hunterProductionShot} from './hunter-production.js?v=0.69.0';
+import {hunterProductionEnabled,hunterProductionShot} from './hunter-production.js?v=0.70.0';
 import {heroRigReady,articulatedShot} from './articulated-hero.js?v=0.68.0';
 import {heroFacing} from './hero-animation.js?v=0.31.0';
 
