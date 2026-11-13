@@ -136,11 +136,11 @@ const assert=require('node:assert/strict');
   // A versioned main module alone does not bust an imported ./game.js URL.
   // Prevent an old cached combat engine from running after a release.
   const currentCombat=await page.evaluate(()=>performance.getEntriesByType('resource')
-    .some(entry=>entry.name.includes('/src/game.js?v=0.70.0')));
+    .some(entry=>entry.name.includes('/src/game.js?v=0.71.0')));
   assert.ok(currentCombat,'the browser must load the versioned combat engine');
   const realBattle=await page.evaluate(async()=>{
    const [{Game},{defaultProgress}]=await Promise.all([
-    import('./src/game.js?v=0.70.0'),import('./src/progression.js')]);
+    import('./src/game.js?v=0.71.0'),import('./src/progression.js')]);
    const input={movement:()=>({x:0,y:0}),aiming:()=>({x:1,y:0}),
     attacking:()=>false,consumeDash:()=>false,consumeAbility:()=>false};
    for(const seed of [5,71,150]){
@@ -331,16 +331,26 @@ const assert=require('node:assert/strict');
     const zoom=await ios.evaluate(()=>visualViewport?.scale??1);
     assert.ok(Math.abs(zoom-1)<.015,'zoomed in at '+x+','+y+': '+zoom);
    }
-   // Verify the gesture guard did not swallow essential mobile actions.
-   await ios.locator('#inventoryBtn').tap();
+   // Test real touchscreen input at fixed viewport coordinates. WebKit's
+   // locator.tap() may hang in scrollIntoView on an animated canvas.
+   const tapInViewport=async selector=>{
+    const target=ios.locator(selector),box=await target.boundingBox();
+    const viewport=ios.viewportSize();
+    assert.ok(box,'missing touch control '+selector);
+    const x=box.x+box.width/2,y=box.y+box.height/2;
+    assert.ok(x>=0&&x<=viewport.width&&y>=0&&y<=viewport.height,
+     'control outside mobile viewport '+selector);
+    await ios.touchscreen.tap(x,y);
+   };
+   await tapInViewport('#inventoryBtn');
    assert.ok(await ios.locator('#overlay').isVisible());
-   await ios.locator('[data-action="closeInventory"]').tap();
-   await ios.locator('#attackTouch').tap();
-   await ios.locator('#dashTouch').tap();
-   await ios.locator('#abilityTouch').tap();
-   await ios.locator('#pauseBtn').tap();
+   await ios.locator('[data-action="closeInventory"]').click();
+   await tapInViewport('#attackTouch');
+   await tapInViewport('#dashTouch');
+   await tapInViewport('#abilityTouch');
+   await tapInViewport('#pauseBtn');
    assert.ok(await ios.locator('#overlay').isVisible(),'pause still works on Safari');
-   await ios.locator('[data-action="resume"]').tap();
+   await ios.locator('[data-action="resume"]').click();
    assert.ok(await ios.locator('#overlay').isHidden(),'resume still works on Safari');
    await ios.close();
   }finally{
