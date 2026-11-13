@@ -135,3 +135,67 @@ test('same painterly Jäger image renders in game and the class-selection previe
  let n=0;for(let i=3,data=g.getImageData(0,0,256,256).data;i<data.length;i+=4)if(data[i]>70)n++;
  assert.ok(n>450,'Jäger preview not visible');
 });
+
+
+test('the Jäger has a separate ranger silhouette, not just a green mage',()=>{
+ const mageSource=atlas.walk.getContext('2d').getImageData(0,0,96,96).data;
+ const ranger=pixels(0,'idle',0);
+ // The large leather quiver, feather bundle and asymmetric pauldron
+ // must extend beyond the original Magier silhouette.
+ let added=0;
+ for(let y=15;y<76;y++)for(let x=64;x<83;x++){
+  const k=(y*96+x)*4;
+  if(mageSource[k+3]<60&&ranger[k+3]>160)added++;
+ }
+ assert.ok(added>20,'the ranger still has the same right-side outline as the Magier: '+added);
+ // A genuinely different torso material, with readable buckles.
+ const buckle=(48*96+48)*4;
+ assert.ok(ranger[buckle+3]>160,'ranger leather breastplate buckle missing');
+ assert.ok(ranger[buckle]>ranger[buckle+1],'brass-and-leather chest armour missing');
+ // Keep the actual detailed Magier face rather than painting a flat mask.
+ const face=(26*96+48)*4;
+ assert.deepEqual(Array.from(ranger.slice(face,face+4)),
+  Array.from(mageSource.slice(face,face+4)),'new hood erased the painted face');
+});
+test('forest ranger has a shorter hem without cutting away the original boots',()=>{
+ const before=createCanvas(96,96).getContext('2d');
+ before.drawImage(original.locomotionImage,0,0,96,96,0,0,96,96);
+ const originalPixels=before.getImageData(0,0,96,96).data;
+ const after=atlas.walk.getContext('2d').getImageData(0,0,96,96).data;
+ let removed=0;
+ for(let y=67;y<83;y++)for(let x=30;x<67;x++){
+  const i=(y*96+x)*4;
+  if(originalPixels[i+3]>140&&after[i+3]<10)removed++;
+ }
+ assert.ok(removed>4,'long Magier robe has not been trimmed to a short hunting tunic: '+removed);
+ const pose=bounds(pixels(0,'idle',0));
+ assert.ok(pose.bottom>=82&&pose.bottom<=91,'hunter feet were removed along with the robe');
+});
+test('the idle bow is carried upright, then turns with each aimed shot',()=>{
+ for(let row=0;row<8;row++){
+  const neutral=hunterMageBowLayout(row,'idle',0);
+  assert.ok(Math.abs(neutral.ends[0].x-neutral.ends[1].x)<=1,'neutral bow not upright');
+  assert.ok(Math.abs(neutral.ends[0].y-neutral.ends[1].y)>=35,'neutral bow too short');
+  const aimed=hunterMageBowLayout(row,'attack',3);
+  const nock=hunterMageBowLayout(row,'special',2);
+  assert.ok(Math.hypot(aimed.tip.x-aimed.grip.x,aimed.tip.y-aimed.grip.y)>=14);
+  assert.ok(Math.hypot(nock.nock.x-nock.grip.x,nock.nock.y-nock.grip.y)>=17,
+   'special shot must have a visibly stronger draw');
+  // All projectile pixels stay inside the 96px artwork.
+  assert.ok(aimed.tip.x>=0&&aimed.tip.x<96&&aimed.tip.y>=0&&aimed.tip.y<96);
+ }
+ const carryHeights=new Set(Array.from({length:8},(_,i)=>hunterMageBowLayout(0,'walk',i).grip.y));
+ assert.ok(carryHeights.size>=3,'the bow should be carried with an agile step rhythm');
+});
+test('new short-cloak details remain distinct in eight directional animation states',()=>{
+ for(let row=0;row<8;row++){
+  const samples=new Set();
+  for(const [clip,frame] of [['idle',0],['walk',1],['attack',2],['special',2],['hurt',2],['dash',2],['death',7]]){
+   const data=pixels(row,clip,frame),b=bounds(data);
+   assert.ok(b.count>450,clip+'/'+row+' full-body art disappeared');
+   assert.ok(b.left>=0&&b.right<96&&b.top>=0&&b.bottom<96,'detail clipped in '+clip+'/'+row);
+   samples.add(Buffer.from(data).toString('base64'));
+  }
+  assert.equal(samples.size,7,'ranger states are visually identical '+row);
+ }
+});
