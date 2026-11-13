@@ -173,6 +173,8 @@ function rangerHoodFrame(g,sourceRow,clip,frame,sourceImage,sourceFrame){
   g.drawImage(sourceImage,sourceFrame*96,sourceRow*96,96,96,0,0,96,96);
   g.restore();
   line(g,C.hoodRim,41,20,55,20,1);
+  // Subtle ranger scar along the brow without altering the original eyes.
+  px(g,C.skinDark,51,27,2,1);
  }
 }
 function rangerCoatTails(g,sourceRow,clip,frame){
