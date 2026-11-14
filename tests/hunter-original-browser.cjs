@@ -10,12 +10,12 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
    const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[],missing=[];
    page.on('pageerror',e=>errors.push(e.message));
    page.on('response',r=>{if(r.status()>=400&&/\/(assets|src)\/|styles\.css/.test(r.url()))missing.push(r.status()+' '+r.url());});
-   await page.goto('http://127.0.0.1:8000/?debugAnimations=1');
+   await page.goto('http://127.0.0.1:8000/?originalHunter=1&debugAnimations=1');
    const result=await page.evaluate(async()=>{
-    const {getHunterProduction,HUNTER_COUNTS,hunterPose}=await import('./src/hunter-production.js?v=0.73.1');
+    const {getHunterProduction,HUNTER_COUNTS,hunterPose}=await import('./src/hunter-production.js?v=0.73.4');
     const {getMageProduction}=await import('./src/mage-production.js?v=0.67.1');
     const {getKnightFinal}=await import('./src/knight-final.js?v=0.67.1');
-    const {heroShot}=await import('./src/hero-aim.js?v=0.73.1');
+    const {heroShot}=await import('./src/hero-aim.js?v=0.73.4');
     const hunter=getHunterProduction(),mage=getMageProduction(),knight=getKnightFinal();
     await Promise.all([hunter.loading,mage.loading,knight.loading]);
     if(!hunter.ready||!mage.ready||!knight.ready)throw Error('Production art not ready');

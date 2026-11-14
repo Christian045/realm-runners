@@ -1,9 +1,9 @@
 import {getMageProduction} from './mage-production.js?v=0.67.1';
-import {getHunterProduction} from './hunter-production.js?v=0.73.1';
+import {getHunterProduction} from './hunter-production.js?v=0.73.4';
 import {getHeroRig,previewHeroRig} from './articulated-hero.js?v=0.68.0';
 import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.39.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';
-import {heroShot} from './hero-aim.js?v=0.73.1';
+import {heroShot} from './hero-aim.js?v=0.73.4';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.31.0';
 
 export class HeroSpriteAtlas{
@@ -28,6 +28,7 @@ export class HeroSpriteAtlas{
  }
  async loadImage(url){
   const image=new Image();image.decoding='async';
+  if(typeof location!=='undefined'&&new URLSearchParams(location.search).get('hunterShortbow')==='1')image.crossOrigin='anonymous';
   await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=url.href;});
   if(image.decode)await image.decode();return image;
  }

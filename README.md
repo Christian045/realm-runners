@@ -1,3 +1,16 @@
+## 0.73.4 – Freigegebener Jäger im Spiel
+
+Menü, Trainingshalle und Dungeon zeigen jetzt denselben freigegebenen Jäger
+mit Kurzbogen: acht unveränderte Standansichten und 64 korrigierte Laufbilder.
+Der Bogen-Zuschnitt und die Form der linken Rückdiagonale sind korrigiert.
+Die Schritte folgen der tatsächlich zurückgelegten Strecke.
+
+Schuss und Pfeilhagel bleiben spielbar und entstehen am gemessenen Kurzbogen.
+Während der noch nicht neu gezeichneten Spann-/Aktionsbewegungen bleibt die
+neue Figur sichtbar; es gibt keinen Wechsel zum früheren Charaktermodell.
+Trefferblinken, Dash und ein einfacher Fall bei Tod verwenden ebenfalls diese
+Figur. Die ausgearbeitete Bogenspann-Animation steht noch aus.
+
 ## 0.73.1 – Jäger-Laufkorrektur
 
 Eigener 96-Pixel-Distanzzähler ohne den früheren 72-Pixel-Zyklussprung. Gemeinsame Stand-/Laufserie mit vollständig sichtbarem Bogen in Seitenansichten. 354 technische Tests.

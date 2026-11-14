@@ -1,10 +1,10 @@
-import {openAnimationLab,animationLabOpen} from './animation-lab.js?v=0.73.1';
+import {openAnimationLab,animationLabOpen} from './animation-lab.js?v=0.73.4';
 import {CLASSES} from './data.js?v=0.23.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.21.0';
 import {ENEMY_NAMES,totalKills,formatPlayTime} from './statistics.js?v=0.21.0';
 import {Input} from './input.js?v=0.23.0';
-import {Game} from './game.js?v=0.73.1';
-import {Renderer} from './render.js?v=0.73.1';
+import {Game} from './game.js?v=0.73.4';
+import {Renderer} from './render.js?v=0.73.4';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.21.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.21.0';
 import {installTouchGuard} from './touch-guard.js';
@@ -17,6 +17,7 @@ import {SPECIALIZATIONS,specializationUnlocked} from './specializations.js?v=0.2
 
 const $=id=>document.getElementById(id);
 const canvas=$('gameCanvas');
+if(new URLSearchParams(location.search).get('hunterShortbow')==='1')document.querySelector('.identity small').textContent+=' · KURZBOGEN-TEST (W/O/N)';
 installTouchGuard(canvas);
 const progress=loadProgress();
 const renderer=new Renderer(canvas,progress.selectedClass),input=new Input(canvas);

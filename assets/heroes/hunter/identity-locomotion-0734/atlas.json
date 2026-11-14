@@ -1,0 +1,1122 @@
+{
+  "cell": 96,
+  "anchor": [
+    48,
+    88
+  ],
+  "stride": 96,
+  "sourceIsolation": "whole-connected-figure",
+  "bowCorrection": {
+    "direction": "NW",
+    "image": "bow-nw.png",
+    "mask": "bow-nw-mask.png",
+    "mode": "baked-rigid-grip"
+  },
+  "approvedIdle": "../identity-idle-0733/idle.png",
+  "rows": [
+    {
+      "direction": "S",
+      "source": "source-0.png",
+      "sourceRow": 0,
+      "referenceHeight": 277,
+      "scale": 0.259927797833935,
+      "targetHoodX": 47.939597315436245,
+      "frames": [
+        {
+          "frame": 0,
+          "sourceColumn": 1,
+          "sourceBounds": [
+            232,
+            78,
+            184,
+            283
+          ],
+          "bounds": [
+            24,
+            14,
+            48,
+            74
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceColumn": 2,
+          "sourceBounds": [
+            423,
+            77,
+            186,
+            280
+          ],
+          "bounds": [
+            23,
+            15,
+            48,
+            73
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceColumn": 3,
+          "sourceBounds": [
+            614,
+            77,
+            184,
+            280
+          ],
+          "bounds": [
+            24,
+            15,
+            48,
+            73
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceColumn": 4,
+          "sourceBounds": [
+            804,
+            78,
+            184,
+            279
+          ],
+          "bounds": [
+            23,
+            15,
+            48,
+            73
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceColumn": 5,
+          "sourceBounds": [
+            994,
+            78,
+            185,
+            279
+          ],
+          "bounds": [
+            23,
+            15,
+            48,
+            73
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceColumn": 6,
+          "sourceBounds": [
+            1184,
+            78,
+            184,
+            279
+          ],
+          "bounds": [
+            24,
+            15,
+            48,
+            73
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceColumn": 7,
+          "sourceBounds": [
+            1374,
+            77,
+            182,
+            277
+          ],
+          "bounds": [
+            23,
+            16,
+            47,
+            72
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceColumn": 8,
+          "sourceBounds": [
+            1564,
+            78,
+            180,
+            276
+          ],
+          "bounds": [
+            24,
+            16,
+            47,
+            72
+          ]
+        }
+      ]
+    },
+    {
+      "direction": "SW",
+      "source": "source-0.png",
+      "sourceRow": 1,
+      "referenceHeight": 283,
+      "scale": 0.254416961130742,
+      "targetHoodX": 50.34375,
+      "frames": [
+        {
+          "frame": 0,
+          "sourceColumn": 1,
+          "sourceBounds": [
+            231,
+            521,
+            184,
+            286
+          ],
+          "bounds": [
+            25,
+            15,
+            47,
+            73
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceColumn": 2,
+          "sourceBounds": [
+            423,
+            521,
+            184,
+            286
+          ],
+          "bounds": [
+            25,
+            15,
+            47,
+            73
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceColumn": 3,
+          "sourceBounds": [
+            614,
+            521,
+            184,
+            286
+          ],
+          "bounds": [
+            25,
+            15,
+            47,
+            73
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceColumn": 4,
+          "sourceBounds": [
+            804,
+            521,
+            181,
+            283
+          ],
+          "bounds": [
+            25,
+            16,
+            46,
+            72
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceColumn": 5,
+          "sourceBounds": [
+            994,
+            521,
+            183,
+            287
+          ],
+          "bounds": [
+            25,
+            15,
+            47,
+            73
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceColumn": 6,
+          "sourceBounds": [
+            1184,
+            521,
+            182,
+            286
+          ],
+          "bounds": [
+            25,
+            15,
+            46,
+            73
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceColumn": 7,
+          "sourceBounds": [
+            1374,
+            521,
+            181,
+            286
+          ],
+          "bounds": [
+            25,
+            15,
+            46,
+            73
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceColumn": 8,
+          "sourceBounds": [
+            1564,
+            521,
+            182,
+            280
+          ],
+          "bounds": [
+            25,
+            17,
+            46,
+            71
+          ]
+        }
+      ]
+    },
+    {
+      "direction": "W",
+      "source": "source-1.png",
+      "sourceRow": 0,
+      "referenceHeight": 273,
+      "scale": 0.26373626373626374,
+      "targetHoodX": 51.48421052631579,
+      "frames": [
+        {
+          "frame": 0,
+          "sourceColumn": 1,
+          "sourceBounds": [
+            238,
+            85,
+            157,
+            274
+          ],
+          "bounds": [
+            31,
+            16,
+            41,
+            72
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceColumn": 2,
+          "sourceBounds": [
+            443,
+            85,
+            144,
+            274
+          ],
+          "bounds": [
+            34,
+            16,
+            38,
+            72
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceColumn": 3,
+          "sourceBounds": [
+            637,
+            85,
+            147,
+            274
+          ],
+          "bounds": [
+            34,
+            16,
+            39,
+            72
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceColumn": 4,
+          "sourceBounds": [
+            825,
+            85,
+            154,
+            274
+          ],
+          "bounds": [
+            32,
+            16,
+            41,
+            72
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceColumn": 5,
+          "sourceBounds": [
+            1024,
+            85,
+            147,
+            274
+          ],
+          "bounds": [
+            34,
+            16,
+            39,
+            72
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceColumn": 6,
+          "sourceBounds": [
+            1217,
+            85,
+            147,
+            274
+          ],
+          "bounds": [
+            33,
+            16,
+            39,
+            72
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceColumn": 7,
+          "sourceBounds": [
+            1414,
+            85,
+            145,
+            274
+          ],
+          "bounds": [
+            34,
+            16,
+            38,
+            72
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceColumn": 8,
+          "sourceBounds": [
+            1606,
+            85,
+            147,
+            274
+          ],
+          "bounds": [
+            34,
+            16,
+            39,
+            72
+          ]
+        }
+      ]
+    },
+    {
+      "direction": "NW",
+      "source": "source-1.png",
+      "sourceRow": 1,
+      "referenceHeight": 273,
+      "scale": 0.26373626373626374,
+      "targetHoodX": 46.970238095238095,
+      "frames": [
+        {
+          "frame": 0,
+          "sourceColumn": 1,
+          "sourceBounds": [
+            237,
+            528,
+            156,
+            273
+          ],
+          "bounds": [
+            29,
+            16,
+            41,
+            72
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceColumn": 2,
+          "sourceBounds": [
+            436,
+            528,
+            150,
+            274
+          ],
+          "bounds": [
+            30,
+            16,
+            40,
+            72
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceColumn": 3,
+          "sourceBounds": [
+            632,
+            528,
+            151,
+            274
+          ],
+          "bounds": [
+            31,
+            16,
+            40,
+            72
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceColumn": 4,
+          "sourceBounds": [
+            820,
+            527,
+            157,
+            275
+          ],
+          "bounds": [
+            29,
+            15,
+            41,
+            73
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceColumn": 5,
+          "sourceBounds": [
+            1018,
+            528,
+            153,
+            275
+          ],
+          "bounds": [
+            30,
+            15,
+            40,
+            73
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceColumn": 6,
+          "sourceBounds": [
+            1213,
+            527,
+            152,
+            276
+          ],
+          "bounds": [
+            30,
+            15,
+            40,
+            73
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceColumn": 7,
+          "sourceBounds": [
+            1407,
+            528,
+            152,
+            274
+          ],
+          "bounds": [
+            30,
+            16,
+            40,
+            72
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceColumn": 8,
+          "sourceBounds": [
+            1598,
+            528,
+            154,
+            274
+          ],
+          "bounds": [
+            30,
+            16,
+            41,
+            72
+          ]
+        }
+      ]
+    },
+    {
+      "direction": "N",
+      "source": "source-2.png",
+      "sourceRow": 0,
+      "referenceHeight": 290,
+      "scale": 0.2482758620689655,
+      "targetHoodX": 45.979123173277664,
+      "frames": [
+        {
+          "frame": 0,
+          "sourceColumn": 1,
+          "sourceBounds": [
+            225,
+            67,
+            178,
+            290
+          ],
+          "bounds": [
+            24,
+            16,
+            44,
+            72
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceColumn": 2,
+          "sourceBounds": [
+            427,
+            67,
+            178,
+            290
+          ],
+          "bounds": [
+            24,
+            16,
+            44,
+            72
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceColumn": 3,
+          "sourceBounds": [
+            627,
+            67,
+            174,
+            290
+          ],
+          "bounds": [
+            25,
+            16,
+            43,
+            72
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceColumn": 4,
+          "sourceBounds": [
+            817,
+            66,
+            178,
+            291
+          ],
+          "bounds": [
+            24,
+            16,
+            44,
+            72
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceColumn": 5,
+          "sourceBounds": [
+            1011,
+            67,
+            178,
+            290
+          ],
+          "bounds": [
+            24,
+            16,
+            44,
+            72
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceColumn": 6,
+          "sourceBounds": [
+            1202,
+            67,
+            178,
+            290
+          ],
+          "bounds": [
+            25,
+            16,
+            44,
+            72
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceColumn": 7,
+          "sourceBounds": [
+            1399,
+            67,
+            166,
+            290
+          ],
+          "bounds": [
+            27,
+            16,
+            41,
+            72
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceColumn": 8,
+          "sourceBounds": [
+            1579,
+            67,
+            175,
+            290
+          ],
+          "bounds": [
+            26,
+            16,
+            43,
+            72
+          ]
+        }
+      ]
+    },
+    {
+      "direction": "NE",
+      "source": "source-2.png",
+      "sourceRow": 1,
+      "referenceHeight": 293,
+      "scale": 0.24573378839590443,
+      "targetHoodX": 44.28,
+      "frames": [
+        {
+          "frame": 0,
+          "sourceColumn": 1,
+          "sourceBounds": [
+            227,
+            511,
+            173,
+            293
+          ],
+          "bounds": [
+            23,
+            16,
+            43,
+            72
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceColumn": 2,
+          "sourceBounds": [
+            428,
+            513,
+            174,
+            291
+          ],
+          "bounds": [
+            23,
+            16,
+            43,
+            72
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceColumn": 3,
+          "sourceBounds": [
+            621,
+            513,
+            172,
+            291
+          ],
+          "bounds": [
+            23,
+            16,
+            42,
+            72
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceColumn": 4,
+          "sourceBounds": [
+            820,
+            513,
+            170,
+            291
+          ],
+          "bounds": [
+            23,
+            16,
+            42,
+            72
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceColumn": 5,
+          "sourceBounds": [
+            1020,
+            513,
+            162,
+            291
+          ],
+          "bounds": [
+            25,
+            16,
+            40,
+            72
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceColumn": 6,
+          "sourceBounds": [
+            1209,
+            513,
+            171,
+            291
+          ],
+          "bounds": [
+            24,
+            16,
+            42,
+            72
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceColumn": 7,
+          "sourceBounds": [
+            1398,
+            511,
+            168,
+            293
+          ],
+          "bounds": [
+            24,
+            16,
+            41,
+            72
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceColumn": 8,
+          "sourceBounds": [
+            1588,
+            513,
+            164,
+            291
+          ],
+          "bounds": [
+            25,
+            16,
+            40,
+            72
+          ]
+        }
+      ]
+    },
+    {
+      "direction": "E",
+      "source": "source-3.png",
+      "sourceRow": 0,
+      "referenceHeight": 283,
+      "scale": 0.254416961130742,
+      "targetHoodX": 47.27511961722488,
+      "frames": [
+        {
+          "frame": 0,
+          "sourceColumn": 1,
+          "sourceBounds": [
+            230,
+            80,
+            167,
+            283
+          ],
+          "bounds": [
+            25,
+            16,
+            42,
+            72
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceColumn": 2,
+          "sourceBounds": [
+            426,
+            80,
+            167,
+            283
+          ],
+          "bounds": [
+            26,
+            16,
+            42,
+            72
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceColumn": 3,
+          "sourceBounds": [
+            618,
+            80,
+            170,
+            283
+          ],
+          "bounds": [
+            25,
+            16,
+            43,
+            72
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceColumn": 4,
+          "sourceBounds": [
+            812,
+            80,
+            169,
+            283
+          ],
+          "bounds": [
+            25,
+            16,
+            43,
+            72
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceColumn": 5,
+          "sourceBounds": [
+            1011,
+            80,
+            163,
+            283
+          ],
+          "bounds": [
+            26,
+            16,
+            41,
+            72
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceColumn": 6,
+          "sourceBounds": [
+            1206,
+            80,
+            163,
+            283
+          ],
+          "bounds": [
+            25,
+            16,
+            41,
+            72
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceColumn": 7,
+          "sourceBounds": [
+            1403,
+            80,
+            166,
+            283
+          ],
+          "bounds": [
+            26,
+            16,
+            42,
+            72
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceColumn": 8,
+          "sourceBounds": [
+            1599,
+            80,
+            165,
+            279
+          ],
+          "bounds": [
+            25,
+            17,
+            42,
+            71
+          ]
+        }
+      ]
+    },
+    {
+      "direction": "SE",
+      "source": "source-3.png",
+      "sourceRow": 1,
+      "referenceHeight": 279,
+      "scale": 0.25806451612903225,
+      "targetHoodX": 44.74873096446701,
+      "frames": [
+        {
+          "frame": 0,
+          "sourceColumn": 1,
+          "sourceBounds": [
+            225,
+            519,
+            173,
+            278
+          ],
+          "bounds": [
+            23,
+            16,
+            45,
+            72
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceColumn": 2,
+          "sourceBounds": [
+            421,
+            519,
+            177,
+            278
+          ],
+          "bounds": [
+            23,
+            16,
+            46,
+            72
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceColumn": 3,
+          "sourceBounds": [
+            612,
+            520,
+            176,
+            277
+          ],
+          "bounds": [
+            23,
+            17,
+            45,
+            71
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceColumn": 4,
+          "sourceBounds": [
+            808,
+            519,
+            173,
+            279
+          ],
+          "bounds": [
+            23,
+            16,
+            45,
+            72
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceColumn": 5,
+          "sourceBounds": [
+            1006,
+            519,
+            175,
+            279
+          ],
+          "bounds": [
+            24,
+            16,
+            45,
+            72
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceColumn": 6,
+          "sourceBounds": [
+            1201,
+            519,
+            173,
+            279
+          ],
+          "bounds": [
+            23,
+            16,
+            45,
+            72
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceColumn": 7,
+          "sourceBounds": [
+            1399,
+            518,
+            173,
+            279
+          ],
+          "bounds": [
+            23,
+            16,
+            45,
+            72
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceColumn": 8,
+          "sourceBounds": [
+            1596,
+            519,
+            169,
+            278
+          ],
+          "bounds": [
+            23,
+            16,
+            44,
+            72
+          ]
+        }
+      ]
+    }
+  ]
+}

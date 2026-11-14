@@ -1,11 +1,11 @@
 import {getKnightFinal,knightFinalFrame} from './knight-final.js?v=0.67.1';
-import {getHunterProduction,hunterPose,HUNTER_STRIDE} from './hunter-production.js?v=0.73.1';
+import {getHunterProduction,hunterPose,HUNTER_STRIDE} from './hunter-production.js?v=0.73.4';
 import {heroRigReady,articulatedPose,RIG_ROWS,getHeroRig} from './articulated-hero.js?v=0.68.0';
-import {HeroSpriteAtlas} from './hero-sprites.js?v=0.73.1';
+import {HeroSpriteAtlas} from './hero-sprites.js?v=0.73.4';
 import {KnightSpriteAtlas} from './knight-sprites.js?v=0.67.1';
 import {heroPose,HERO_CLIPS} from './hero-animation.js?v=0.31.0';
 import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.67.1';
-import {heroShot} from './hero-aim.js?v=0.73.1';
+import {heroShot} from './hero-aim.js?v=0.73.4';
 import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.46.0';
 import {CLASSES} from './data.js?v=0.23.0';
 import {getMageProduction,magePose} from './mage-production.js?v=0.67.1';
@@ -44,7 +44,7 @@ export async function openAnimationLab(){
  const dialog=document.createElement('dialog');dialog.className='animation-lab';active=dialog;
  dialog.setAttribute('aria-labelledby','animation-lab-title');
  dialog.innerHTML=`<header><div><p class="lab-eyebrow">REALM RUNNERS · ANIMATIONEN</p><h2 id="animation-lab-title">Die Trainingshalle</h2></div><button type="button" data-lab="close" aria-label="Testszene schließen">Schließen ✕</button></header>
- <p class="lab-description">Alle sechs Klassen mit dem Renderer des Spiels. Diese Szene verändert weder Spielstände noch Statistiken. Ritter, Magier und Jäger nutzen komplette Pixel-Art-Frames in acht Richtungen; die übrigen Klassen verwenden weiterhin ihre bisherigen Modelle.</p>
+ <p class="lab-description">${new URLSearchParams(location.search).get('hunterShortbow')==='1'?'Kurzbogen-Versuch: neue Ansichten W/O/N, einhändiges Tragen. Nordschuss noch nicht visuell freigegeben. ':''}Alle sechs Klassen mit dem Renderer des Spiels. Diese Szene verändert weder Spielstände noch Statistiken. Ritter, Magier und Jäger nutzen komplette Pixel-Art-Frames in acht Richtungen; die übrigen Klassen verwenden weiterhin ihre bisherigen Modelle.</p>
  <div class="lab-controls"><label>Animation<select data-lab="state">${Object.entries(LAB_STATES).map(([id,name])=>`<option value="${id}">${name}</option>`).join('')}</select></label><label>Tempo<select data-lab="speed"><option value="0.25">¼ ×</option><option value="0.5">½ ×</option><option value="1" selected>1 ×</option></select></label>
  <label><input type="checkbox" data-lab="moving"> Gleichzeitig laufen</label><label><input type="checkbox" data-lab="anchors"> Anker anzeigen</label></div>
  <div class="lab-directions" role="group" aria-label="Blick- und Zielrichtung">${LAB_DIRECTIONS.map((d,i)=>`<button type="button" data-direction="${i}" aria-pressed="${i===4}">${d.name}</button>`).join('')}</div>

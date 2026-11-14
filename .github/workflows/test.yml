@@ -20,6 +20,9 @@ jobs:
           python3 -m http.server 8000 &
           sleep 2
           node tests/hunter-original-browser.cjs
+          node tests/hunter-identity-browser.cjs
+          node tests/hunter-shortbow-browser.cjs
+          node tests/hunter-locomotion-browser.cjs
           node tests/mage-production-browser.cjs
           node tests/knight-production-browser.cjs
           node tests/painted-knight-browser.cjs
