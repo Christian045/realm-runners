@@ -43,6 +43,22 @@ nicht als vollständiger Klassenrenderer in den normalen Dungeon geschaltet.
 
 ## Prüfung
 
+### Korrektur der Bogenreste beim Laufen
+
+Die Zeichenstudien sind als neun Figuren pro Reihe angeordnet, ihre Silhouetten
+liegen aber nicht vollständig innerhalb von neun gleich breiten Bildstreifen.
+Insbesondere bei S/SW und N/NO überschreiten Bogenspitzen diese rechnerischen
+Grenzen. Der alte Zuschnitt übernahm dann ein abgetrenntes Bogenstück der
+Nachbarfigur oder schnitt die eigene Bogenspitze ab.
+
+Der Packer trennt jetzt zuerst die vollständigen zusammenhängenden Figuren im
+Quellbild und ordnet sie je Reihe von links nach rechts zu. Erst dann werden sie
+in die Spielzellen übertragen. Auch die linke Rückdiagonale wird so als ganze
+Figur verarbeitet. Die freigegebene Standdatei und die Zeichenstudien bleiben
+unverändert. `atlas.json` dokumentiert die tatsächlichen Quellgrenzen jeder Phase.
+Ein Regressionstest prüft ausdrücklich Bogenenden jenseits der rechnerischen
+Zellengrenze sowie den Ausschluss fremder Bogenreste.
+
 Die neuen technischen Tests prüfen die unveränderte freigegebene Standdatei,
 die tatsächliche Standdarstellung in allen Richtungen, alle 64 Laufzellen,
 Transparenz, Randabstände, gemeinsame Sohlenlinie, begrenzten Körperhub und

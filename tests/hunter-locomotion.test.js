@@ -5,10 +5,27 @@ import {createHash} from 'node:crypto';
 import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {HunterLocomotionAtlas,hunterLocomotionPose,advanceHunterLocomotion,HUNTER_STRIDE} from '../src/hunter-locomotion.js';
 import {CLASSES} from '../src/data.js';
+import packer from '../tools/pack-hunter-locomotion.cjs';
 const idleBytes=await readFile(new URL('../assets/heroes/hunter/identity-idle-0733/idle.png',import.meta.url));
 const idle=await loadImage(idleBytes),walk=await loadImage(await readFile(new URL('../assets/heroes/hunter/identity-locomotion-0734/walk.png',import.meta.url)));
 const atlas=new HunterLocomotionAtlas(async clip=>clip==='idle'?idle:walk);await atlas.loading;
 const direction=row=>({x:Math.cos(Math.PI/2+row*Math.PI/4),y:Math.sin(Math.PI/2+row*Math.PI/4)});
+test('source isolation preserves a held bow crossing nominal columns without importing a neighbour fragment',()=>{
+ const source=createCanvas(920,400),g=source.getContext('2d');
+ for(let row=0;row<2;row++)for(let col=0;col<9;col++){
+  g.fillStyle='#74512d';g.fillRect(col*100+10,row*200+40,50,120);
+  g.fillStyle='#d6c6a2';g.fillRect(col*100+60,row*200+100,45,4);
+ }
+ const rows=packer.sourceFigures(source);
+ assert.deepEqual(rows.map(row=>row.length),[9,9]);
+ for(let row=0;row<2;row++)for(let col=0;col<9;col++){
+  const figure=rows[row][col];
+  assert.deepEqual(figure.sourceBounds,[col*100+10,row*200+40,95,120]);
+  const data=figure.c.getContext('2d').getImageData(0,0,95,120).data;
+  assert.equal(data.filter((_,i)=>i%4===3&&data[i]===255).length,6180);
+  assert.equal(data[(60*95+94)*4+3],255,'far bow tip must survive');
+ }
+});
 function pixels(row,frame=-1){
  const g=createCanvas(96,96).getContext('2d'),d=direction(row);
  assert.equal(atlas.draw(g,{kind:'hunter',hp:100,x:48,y:88,direction:d,heroMoveDirection:d,moving:frame>=0,hunterWalkDistance:Math.max(0,frame)*12+.001}),true);
