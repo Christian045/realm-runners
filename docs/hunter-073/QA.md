@@ -50,3 +50,18 @@ zu prüfen. Keine WebKit-Freigabe aus der lokalen Chrome-Prüfung ableiten.
 
 Die persistente Speicherstruktur, Spielstände, Balancing und Fähigkeiten wurden
 nicht verändert. Die Referenzgrafiken des Ritters und Magiers bleiben identisch.
+
+## Veröffentlichung bestätigt
+
+Der vollständige Chromium-/WebKit-Prüflauf für den veröffentlichten Spielcode
+ist erfolgreich: https://github.com/Christian045/realm-runners/actions/runs/43537789336
+(353 technische Tests; pro Browser 448 Frames und 56 Trainingszustände).
+
+GitHub Pages hat Version 0.73.0 erfolgreich bereitgestellt:
+https://github.com/Christian045/realm-runners/actions/runs/43538514185
+
+Anschließend wurde die öffentliche Seite geöffnet, Version 0.73.0 in der
+Oberfläche bestätigt und der neue Jäger im Dungeon gestartet.
+`screenshots/live-dungeon.jpg` zeigt diese tatsächliche öffentliche Version.
+
+Testlink: https://christian045.github.io/realm-runners/?v=0.73.0&debugAnimations=1
