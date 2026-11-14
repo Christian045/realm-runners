@@ -63,6 +63,20 @@ Die nativen W-/N-Blätter und vergrößerten tatsächlichen Spannbilder wurden
 visuell angesehen. Dabei wurde der verbleibende Handfehler ausdrücklich erkannt.
 Grüne technische Tests sind keine grafische Freigabe.
 
+Die externe Branch-Spielprobe wurde anschließend mit Chrome 156 geöffnet.
+Die browserinterne Prüfseite besteht mit 448/448 Bildern, 16/16 gezeichneten
+Ursprüngen und 16/16 Schussabläufen. Im tatsächlichen Spiel wurden die Nord-
+Tragehaltung und der Seitenlauf neben dem vollständig geladenen Magier sowie
+der Nordschuss bei 37,5 % angesehen; auch der normale Dungeon wurde gestartet.
+Die Aufnahmen `screenshots/shortbow-*.jpg` dokumentieren diese echte Ausgabe.
+`shortbow-north-attack-open.jpg` dokumentiert ausdrücklich den noch offenen
+Grifffehler und ist kein freigegebenes Schussbild.
+
+Spielprobe (separater Branch, normale Live-Version unverändert):
+https://rawcdn.githack.com/Christian045/realm-runners/ee8c64aff0bc1294dba31f9b008d188bb20da63a/index.html?hunterShortbow=1&debugAnimations=1
+
+Entwurf: https://github.com/Christian045/realm-runners/pull/67
+
 ## Grafikauftrag
 
 Mit dem eingebauten Bildwerkzeug erzeugt und als ganze Körperzellen importiert.
