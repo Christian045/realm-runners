@@ -6,6 +6,12 @@
   ],
   "stride": 96,
   "sourceIsolation": "whole-connected-figure",
+  "bowCorrection": {
+    "direction": "NW",
+    "image": "bow-nw.png",
+    "mask": "bow-nw-mask.png",
+    "mode": "baked-rigid-grip"
+  },
   "approvedIdle": "../identity-idle-0733/idle.png",
   "rows": [
     {

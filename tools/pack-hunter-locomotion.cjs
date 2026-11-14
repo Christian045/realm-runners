@@ -45,6 +45,8 @@ function hoodCentre(c){
 }
 if(require.main===module)(async()=>{
  const idle=await loadImage(path.join(root,'../identity-idle-0733/idle.png'));
+ const nwBow=await loadImage(path.join(root,'bow-nw.png'));
+ const nwMask=await loadImage(path.join(root,'bow-nw-mask.png'));
  const sheet=createCanvas(768,768),g=sheet.getContext('2d');g.imageSmoothingEnabled=false;
  const rows=[];
  for(let pair=0;pair<4;pair++){
@@ -63,14 +65,19 @@ if(require.main===module)(async()=>{
     t.drawImage(c.c,c.l,c.t,c.r-c.l+1,c.b-c.t+1,x,y,w,h);
     const d=t.getImageData(0,0,96,96).data;let bottom=0;
     for(let y=0;y<96;y++)for(let x=0;x<96;x++)if(d[(y*96+x)*4+3])bottom=y;
-    const shift=87-bottom;g.drawImage(tile,frame*96,row*96+shift);
+    const shift=87-bottom;
+    // The NW study also redrew the wood/string differently in each phase.
+    // Bake one retouched grip/bow into that small window in every frame.
+    // Head, torso, clothing and gait outside the mask remain original pixels.
+    if(row===3){t.save();t.globalCompositeOperation='destination-out';t.drawImage(nwMask,0,-shift);t.globalCompositeOperation='source-over';t.drawImage(nwBow,0,-shift);t.restore();}
+    g.drawImage(tile,frame*96,row*96+shift);
     frames.push({frame,sourceColumn:frame+1,sourceBounds:c.sourceBounds,bounds:[x,y+shift,w,h]});
    }
    rows.push({direction:facings[row],source:'source-'+pair+'.png',sourceRow:local,referenceHeight:reference.b-reference.t+1,scale,targetHoodX:targetX,frames});
   }
  }
  fs.writeFileSync(path.join(root,'walk.png'),sheet.toBuffer('image/png'));
- fs.writeFileSync(path.join(root,'atlas.json'),JSON.stringify({cell:96,anchor:[48,88],stride:96,sourceIsolation:'whole-connected-figure',approvedIdle:'../identity-idle-0733/idle.png',rows},null,2)+'\n');
+ fs.writeFileSync(path.join(root,'atlas.json'),JSON.stringify({cell:96,anchor:[48,88],stride:96,sourceIsolation:'whole-connected-figure',bowCorrection:{direction:'NW',image:'bow-nw.png',mask:'bow-nw-mask.png',mode:'baked-rigid-grip'},approvedIdle:'../identity-idle-0733/idle.png',rows},null,2)+'\n');
  console.log('Packed 64 authored whole-body walk frames; approved idle remains untouched.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
 module.exports={sourceFigures};

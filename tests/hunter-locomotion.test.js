@@ -26,6 +26,20 @@ test('source isolation preserves a held bow crossing nominal columns without imp
   assert.equal(data[(60*95+94)*4+3],255,'far bow tip must survive');
  }
 });
+test('northwest grip and bow stay rigid across every phase while all pixels outside the repair retain the approved walk',async()=>{
+ const image=await loadImage(await readFile(new URL('../assets/heroes/hunter/identity-locomotion-0734/bow-nw-mask.png',import.meta.url)));
+ const g=createCanvas(96,96).getContext('2d');g.drawImage(image,0,0);
+ const mask=g.getImageData(0,0,96,96).data,untouched=createHash('sha256');let reference;
+ for(let frame=0;frame<8;frame++){
+  const d=pixels(3,frame),bow=[];
+  for(let p=0;p<96*96;p++){
+   const rgba=Buffer.from(d.subarray(p*4,p*4+4));
+   if(mask[p*4+3])bow.push(...rgba);else untouched.update(rgba);
+  }
+  if(reference)assert.deepEqual(bow,reference,'bow changed shape at NW phase '+frame);else reference=bow;
+ }
+ assert.equal(untouched.digest('hex'),'b9c796d31d61a6ba4231f2c7d9ff20a0c54e7a3e578eba9ed3c4b1f97f7dbf13');
+});
 function pixels(row,frame=-1){
  const g=createCanvas(96,96).getContext('2d'),d=direction(row);
  assert.equal(atlas.draw(g,{kind:'hunter',hp:100,x:48,y:88,direction:d,heroMoveDirection:d,moving:frame>=0,hunterWalkDistance:Math.max(0,frame)*12+.001}),true);

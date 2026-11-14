@@ -59,6 +59,19 @@ unverändert. `atlas.json` dokumentiert die tatsächlichen Quellgrenzen jeder Ph
 Ein Regressionstest prüft ausdrücklich Bogenenden jenseits der rechnerischen
 Zellengrenze sowie den Ausschluss fremder Bogenreste.
 
+In NW lag zusätzlich ein Zeichenfehler vor: Holz und Sehne wurden je Laufphase
+leicht anders gezeichnet. Ein gezielter Bildwerkzeug-Edit der NW-Hand/Bogenstelle
+liefert jetzt `bow-nw.png`; `bow-nw-mask.png` begrenzt den Eingriff auf diesen
+kleinen Bereich. Der Packer überträgt dieselben Griff-/Bogenpixel in alle acht
+NW-Zellen. Das Ergebnis sind weiterhin vollständige Sprites; im Spiel wird keine
+Waffe separat zusammengesetzt. Ein Pixeltest sichert die starre Form und die
+unveränderten Originalpixel außerhalb der Korrektur, einschließlich der Beine.
+
+Grafikauftrag: Nur den tief getragenen Kurzbogen in der unteren NW-Laufreihe an
+die Standreferenz angleichen; gleiche Krümmung, Länge, Neigung, Sehne und Griff
+in jeder Phase; Kleidung, Kapuze, Körper, Positionen und Schritte beibehalten.
+Vom erzeugten Edit wurde nur der maskierte Hand-/Bogenbereich übernommen.
+
 Die neuen technischen Tests prüfen die unveränderte freigegebene Standdatei,
 die tatsächliche Standdarstellung in allen Richtungen, alle 64 Laufzellen,
 Transparenz, Randabstände, gemeinsame Sohlenlinie, begrenzten Körperhub und
