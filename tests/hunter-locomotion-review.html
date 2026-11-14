@@ -1,0 +1,17 @@
+<!doctype html><html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jäger · Laufprobe in acht Richtungen</title>
+<style>
+body{margin:0;background:#131e26;color:#e6e6d6;font:16px system-ui}main{max-width:960px;margin:26px auto;padding:0 16px}h1{font-size:26px}p{line-height:1.5;color:#bbc9c3}button,select{font:inherit;color:inherit;background:#263641;border:1px solid #607062;border-radius:6px;padding:9px 12px}button[aria-pressed=true]{background:#675330;border-color:#c6a66c}button{cursor:pointer}.controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:14px 0}#directions{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}canvas{display:block;image-rendering:pixelated;background:#1c2b2d;max-width:100%;height:auto}#stage{outline:1px solid #61735f;border-radius:6px;cursor:crosshair}#stage:focus{outline:2px solid #d6be82}#status{background:#233a30;padding:12px;border:1px solid #49624f}#readout{font:14px ui-monospace,monospace;padding:12px;background:#1b2b32}details{margin:20px 0}summary{cursor:pointer;padding:10px}#sheet-scroll{overflow:auto}#sheet{max-width:none;width:864px}a{color:#d4c895}label{display:flex;align-items:center;gap:8px}small{color:#b3c0bb}@media(max-width:620px){#directions{grid-template-columns:repeat(4,1fr)}button,select{padding:8px}}
+</style>
+<main><h1>Jäger · Laufprobe in acht Richtungen</h1>
+<p>Links bleibt das freigegebene Standbild, in der Mitte läuft derselbe Jäger, rechts der echte Magier als Vergleich. Alle Figuren im gleichen Maßstab. Der Kurzbogen bleibt einhändig tief getragen.</p>
+<p id="status">Stand- und Laufgrafiken werden geladen …</p>
+<div id="directions" aria-label="Bewegungsrichtung"></div>
+<div class="controls"><label>Ablauf <select id="mode"><option value="walk">Laufen</option><option value="idle">Stand</option><option value="cycle">Stand → Lauf → Stand</option><option value="manual">WASD / Pfeiltasten</option></select></label><label>Tempo <select id="rate"><option value=".25">¼ ×</option><option value=".5">½ ×</option><option value="1" selected>1 × Spieltempo</option></select></label><button id="pause">Pause</button><button id="step">Bild +</button><button id="idle">Anhalten</button></div>
+<div class="controls"><label>Laufbild <input id="phase" type="range" min="0" max="7" step="1" value="0"></label><small>WASD/Pfeiltasten bewegen die Figur selbst; Loslassen zeigt die freigegebene Standpose.</small></div>
+<canvas id="stage" width="900" height="300" tabindex="0" aria-label="Steuerbare Jäger-Laufprobe: WASD oder Pfeiltasten bewegen, loslassen hält an"></canvas>
+<div id="readout" aria-live="off"></div>
+<p><small>Dieser Entwicklungsstand enthält Stand und Lauf. Kampfanimationen und die normale Live-Version wurden damit noch nicht ersetzt.</small></p>
+<details id="frames"><summary>Alle 64 Laufbilder neben den acht freigegebenen Standbildern</summary><div id="sheet-scroll"><canvas id="sheet" width="864" height="1024" aria-label="Acht Richtungen mit Standvorlage und jeweils acht Laufbildern"></canvas></div></details>
+<p><a href="hunter-identity-review.html">Freigegebene Standansichten vergleichen</a></p></main>
+<script type="module" src="hunter-locomotion-review.js"></script></html>
