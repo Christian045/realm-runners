@@ -65,3 +65,7 @@ Oberfläche bestätigt und der neue Jäger im Dungeon gestartet.
 `screenshots/live-dungeon.jpg` zeigt diese tatsächliche öffentliche Version.
 
 Testlink: https://christian045.github.io/realm-runners/?v=0.73.0&debugAnimations=1
+
+## Korrektur 0.73.1
+
+72/96-Zyklusfehler durch eigenen tatsächlichen Distanzzähler behoben. Gemeinsame Stand-/Laufbilder mit vollständigem seitlichen Bogen integriert. 354 Tests und beide Chromium-/WebKit-CI-Läufe bestanden: https://github.com/Christian045/realm-runners/actions/runs/43539926177 . Öffentliche Version 0.73.1 im Dungeon geprüft, Seitenansicht in screenshots/fix-live.jpg dokumentiert.
