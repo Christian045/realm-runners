@@ -36,3 +36,19 @@ Vollständiger CI-Lauf erfolgreich, einschließlich beider Browser:
 https://github.com/Christian045/realm-runners/actions/runs/43600403349
 
 Veröffentlichung über PR #67; Spielversion 0.73.4.
+
+## Öffentliche Live-Prüfung abgeschlossen
+
+Die öffentliche GitHub-Pages-Version zeigt Alpha 0.73.4 und den freigegebenen
+Jäger im echten Dungeon. Bewegung nach oben/unten und in den linken Diagonalen,
+Anhalten, normaler Schuss, Pfeilhagel und Dash wurden dort erneut bedient.
+Die Abklingzeitanzeigen bestätigen ausgelösten Dash und Pfeilhagel.
+Screenshot: `screenshots/identity-0734-live.jpg`.
+
+Öffentlich geprüfter Spiellink:
+https://christian045.github.io/realm-runners/?v=0.73.4&debugAnimations=1
+
+Der vollständige Testlauf nach dem Merge ist ebenfalls erfolgreich:
+https://github.com/Christian045/realm-runners/actions/runs/43600921227
+Deployment des dokumentierten Hauptstands erfolgreich:
+https://github.com/Christian045/realm-runners/actions/runs/43600994053
