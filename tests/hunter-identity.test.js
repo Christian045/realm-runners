@@ -9,7 +9,8 @@ import {defaultProgress} from '../src/progression.js';
 const root=new URL('../assets/heroes/hunter/',import.meta.url);
 const idle=await loadImage(await readFile(new URL('identity-idle-0733/idle.png',root)));
 const walk=await loadImage(await readFile(new URL('identity-locomotion-0734/walk.png',root)));
-const requested=[],atlas=new HunterIdentityAtlas(async clip=>{requested.push(clip);return clip==='idle'?idle:walk;});await atlas.loading;
+const attack=await loadImage(await readFile(new URL('identity-attack-0735/attack.png',root)));
+const requested=[],atlas=new HunterIdentityAtlas(async clip=>{requested.push(clip);return clip==='idle'?idle:walk;},async()=>attack);await atlas.loading;
 const direction=row=>({x:Math.cos(Math.PI/2+row*Math.PI/4),y:Math.sin(Math.PI/2+row*Math.PI/4)});
 function draw(p){const c=createCanvas(200,200),g=c.getContext('2d');assert.equal(atlas.draw(g,{kind:'hunter',x:100,y:100,hp:100,...p}),true);return g.getImageData(0,0,200,200).data;}
 test('approved hunter is the browser default and loads only the two approved sheets',()=>{
@@ -27,8 +28,12 @@ test('all eight idle poses and 64 walk frames are drawn unchanged in production'
 test('attack, volley and hurt retain exactly the new identity; dash uses its actual walk frames',()=>{
  for(let row=0;row<8;row++){
   const d=direction(row),reference=draw({direction:d});
-  for(const clip of ['attack','special','hurt'])for(const elapsed of [0,.49,.51,1])
-   assert.deepEqual(draw({direction:d,moving:true,heroAction:{clip,elapsed,duration:1,direction:d}}),reference);
+  for(const clip of ['attack','special'])for(let frame=0;frame<8;frame++){
+   const g=createCanvas(200,200).getContext('2d');g.drawImage(attack,frame*96,row*96,96,96,52,12,96,96);
+   assert.deepEqual(draw({direction:d,heroAction:{clip,elapsed:(frame+.01)/8,duration:1,direction:d}}),g.getImageData(0,0,200,200).data);
+  }
+  assert.deepEqual(draw({direction:d,heroAction:{clip:'hurt',elapsed:.5,duration:1,direction:d}}),reference);
+  for(const frame of [0,7]){const g=createCanvas(200,200).getContext('2d');g.drawImage(attack,frame*96,row*96,96,96,52,12,96,96);assert.deepEqual(g.getImageData(0,0,200,200).data,reference);}
   for(let frame=0;frame<8;frame++)assert.deepEqual(
    draw({direction:d,heroAction:{clip:'dash',elapsed:(frame+.01)/8,duration:1,direction:d}}),
    draw({direction:d,heroMoveDirection:d,moving:true,hunterWalkDistance:(frame+.01)*12}));

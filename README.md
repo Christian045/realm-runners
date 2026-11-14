@@ -1,3 +1,12 @@
+## 0.73.5 – Bogenschuss des freigegebenen Jägers
+
+Der Jäger hebt seinen Kurzbogen an, zieht die Sehne, löst den Pfeil bei der
+halben Aktionsdauer und senkt den Bogen wieder. Acht Richtungen mit je acht
+Schussbildern; normaler Schuss und Pfeilhagel nutzen dieselbe Körperanimation.
+Stand und Lauf bleiben unverändert. Anfang und Ende jeder Schussreihe sind
+pixelgleich mit der freigegebenen Standpose. Der Pfeil entsteht an der letzten
+gezeichneten Pfeilspitze, beim Loslassen bleibt kein zweiter Pfeil auf dem Bogen.
+
 ## 0.73.4 – Freigegebener Jäger im Spiel
 
 Menü, Trainingshalle und Dungeon zeigen jetzt denselben freigegebenen Jäger

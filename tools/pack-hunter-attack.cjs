@@ -1,0 +1,10 @@
+const {createCanvas,loadImage}=require('@napi-rs/canvas');
+const {sourceFigures}=require('./pack-hunter-locomotion.cjs');
+const fs=require('fs'),path=require('path');
+const root=path.resolve(__dirname,'../assets/heroes/hunter/identity-attack-0735');
+function hood(c){const d=c.c.getContext('2d').getImageData(0,0,c.c.width,c.c.height).data;let total=0,n=0;for(let y=0;y<c.c.height*.38;y++)for(let x=0;x<c.c.width;x++){const k=(y*c.c.width+x)*4;if(d[k+3]&&d[k+1]>d[k]*.75&&d[k+1]<d[k]*1.15&&d[k+1]>d[k+2]*1.3){total+=x;n++;}}return n?total/n:c.c.width/2;}
+(async()=>{const idle=await loadImage(path.join(root,'../identity-idle-0733/idle.png')),sheet=createCanvas(768,768),g=sheet.getContext('2d');g.imageSmoothingEnabled=false;const rows=[];
+for(let pair=0;pair<4;pair++){const src=await loadImage(path.join(root,'source-'+pair+'.png')),figs=sourceFigures(src);for(let local=0;local<2;local++){const row=pair*2+local,reference=figs[local][0],scale=72/reference.c.height;const approved=createCanvas(96,96),ag=approved.getContext('2d');ag.drawImage(idle,row*96,0,96,96,0,0,96,96);const target=hood({c:approved});const frames=[];
+for(let frame=0;frame<8;frame++){if(frame===0||frame===7){g.drawImage(idle,row*96,0,96,96,frame*96,row*96,96,96);frames.push({frame,idle:true});continue;}const c=figs[local][frame],w=Math.round(c.c.width*scale),h=Math.round(c.c.height*scale),x=Math.round(target-hood(c)*scale),y=88-h;if(x<1||x+w>95||y<1)throw Error('Clipped attack '+row+'/'+frame+' '+[x,y,w,h]);g.drawImage(c.c,0,0,c.c.width,c.c.height,frame*96+x,row*96+y,w,h);frames.push({frame,sourceBounds:c.sourceBounds,bounds:[x,y,w,h]});}
+rows.push({row,source:'source-'+pair+'.png',scale,frames});}}
+fs.writeFileSync(path.join(root,'attack.png'),sheet.toBuffer('image/png'));fs.writeFileSync(path.join(root,'atlas.json'),JSON.stringify({cell:96,anchor:[48,88],releaseFrame:4,rows},null,2)+'\n');console.log('Packed 64 attack cells, with byte-identical ready endpoints.');})().catch(e=>{console.error(e);process.exitCode=1});

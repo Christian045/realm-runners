@@ -1,7 +1,8 @@
-import {HunterLocomotionAtlas} from './hunter-locomotion.js?v=0.73.4';
-import {hunterPose} from './hunter-motion.js?v=0.73.4';
+import {HUNTER_ATTACK_SOCKETS,loadHunterAttack} from './hunter-attack.js?v=0.73.5';
+import {HunterLocomotionAtlas} from './hunter-locomotion.js?v=0.73.5';
+import {hunterPose} from './hunter-motion.js?v=0.73.5';
 
-export const HUNTER_IDENTITY_VERSION='0.73.4';
+export const HUNTER_IDENTITY_VERSION='0.73.5';
 export const hunterIdentityEnabled=(params=typeof location==='undefined'?null:new URLSearchParams(location.search))=>
  Boolean(params)&&!['originalHunter','oldHunterArt','legacyHeroArt'].some(flag=>params.has(flag))&&params.get('hunterShortbow')!=='1';
 
@@ -16,7 +17,7 @@ const bounds=[[23,16,74,87],[24,16,73,87],[34,16,72,87],[27,16,70,87],
  [23,16,69,87],[22,16,67,87],[26,16,69,87],[23,16,74,87]];
 
 export function hunterIdentityShot(p,action=p.heroAction){
- const pose=hunterPose(p,0,action),socket=HUNTER_IDENTITY_SOCKETS[pose.row];
+ const pose=hunterPose(p,0,action),socket=(pose.clip==='attack'||pose.clip==='special'?HUNTER_ATTACK_SOCKETS:HUNTER_IDENTITY_SOCKETS)[pose.row];
  const x=Math.round(p.x)+socket.tip[0]-48,y=Math.round(p.y)+socket.tip[1]-88;
  const mount={x:Math.round(p.x)+socket.grip[0]-48,y:Math.round(p.y)+socket.grip[1]-88};
  const d=pose.direction,target=action?.target||{x:p.x+d.x*260,y:p.y+d.y*260-27};
@@ -26,19 +27,24 @@ export function hunterIdentityShot(p,action=p.heroAction){
   face:Math.abs(d.x)>Math.abs(d.y)?d.x<0?'left':'right':d.y<0?'up':'down'};
 }
 
-// Stand/walk are the approved artwork. Other actions retain the same identity
-// until authored bow-draw/action sheets exist; never swap to the older model.
+// Approved stand/walk and matching authored archery frames share the same root.
 export class HunterIdentityAtlas{
- constructor(loader){this.art=new HunterLocomotionAtlas(loader);this.loading=this.art.loading;this.identity=true;this.pendingCombatAnimation=true;}
- get ready(){return this.art.ready;}
- get failed(){return this.art.failed;}
+ constructor(loader,attackLoader=loadHunterAttack){
+  this.art=new HunterLocomotionAtlas(loader);this.identity=true;this.pendingCombatAnimation=false;this.attackReady=false;this.attackFailed=false;
+  this.loading=Promise.all([this.art.loading,attackLoader().then(image=>{if(image.width!==768||image.height!==768)throw Error('Invalid hunter attack sheet');this.attack=image;this.attackReady=true;}).catch(error=>{this.attackFailed=true;this.error=error;})]);
+ }
+ get ready(){return this.art.ready&&this.attackReady;}
+ get failed(){return this.art.failed||this.attackFailed;}
  get sheets(){return this.art.sheets;}
  draw(ctx,p,time=0){
   if(!this.ready)return false;
   const pose=hunterPose(p,time);
   ctx.save();
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha*=.65;
-  if(pose.clip==='death'){
+  if(pose.clip==='attack'||pose.clip==='special'){
+   ctx.imageSmoothingEnabled=false;
+   ctx.drawImage(this.attack,pose.frame*96,pose.row*96,96,96,Math.round(p.x)-48,Math.round(p.y)-88,96,96);
+  }else if(pose.clip==='death'){
    // A simple whole-body fall keeps the approved character and a grounded
    // silhouette; it is not presented as a newly authored death sprite set.
    const [l,t,r,b]=bounds[pose.row],cx=(l+r)/2,cy=(t+b)/2;

@@ -1,9 +1,9 @@
-import {HunterIdentityAtlas,hunterIdentityEnabled} from './hunter-identity.js?v=0.73.4';
-import {hunterPose} from './hunter-motion.js?v=0.73.4';
-export {HUNTER_ROWS,HUNTER_COUNTS,HUNTER_STRIDE,hunterFacing,hunterPose} from './hunter-motion.js?v=0.73.4';
-import {HUNTER_ROWS,HUNTER_COUNTS} from './hunter-motion.js?v=0.73.4';
-import {HUNTER_ANCHORS} from './hunter-anchors.js?v=0.73.4';
-import {HUNTER_SOCKETS} from './hunter-sockets.js?v=0.73.4';
+import {HunterIdentityAtlas,hunterIdentityEnabled} from './hunter-identity.js?v=0.73.5';
+import {hunterPose} from './hunter-motion.js?v=0.73.5';
+export {HUNTER_ROWS,HUNTER_COUNTS,HUNTER_STRIDE,hunterFacing,hunterPose} from './hunter-motion.js?v=0.73.5';
+import {HUNTER_ROWS,HUNTER_COUNTS} from './hunter-motion.js?v=0.73.5';
+import {HUNTER_ANCHORS} from './hunter-anchors.js?v=0.73.5';
+import {HUNTER_SOCKETS} from './hunter-sockets.js?v=0.73.5';
 import {hunterShortbowPreviewEnabled,SHORTBOW_ANCHORS,SHORTBOW_SOCKETS} from './hunter-shortbow.js?v=0.73.2';
 
 // Original whole-body artwork. No mage images, palette conversion or runtime limbs.
