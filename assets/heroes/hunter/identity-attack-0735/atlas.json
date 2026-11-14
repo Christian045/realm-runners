@@ -1,0 +1,850 @@
+{
+  "cell": 96,
+  "anchor": [
+    48,
+    88
+  ],
+  "releaseFrame": 4,
+  "rows": [
+    {
+      "row": 0,
+      "source": "source-0.png",
+      "scale": 0.27169811320754716,
+      "frames": [
+        {
+          "frame": 0,
+          "idle": true
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            291,
+            41,
+            155,
+            265
+          ],
+          "bounds": [
+            24,
+            16,
+            42,
+            72
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            536,
+            42,
+            147,
+            264
+          ],
+          "bounds": [
+            24,
+            16,
+            40,
+            72
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            771,
+            42,
+            163,
+            264
+          ],
+          "bounds": [
+            22,
+            16,
+            44,
+            72
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            1012,
+            42,
+            161,
+            264
+          ],
+          "bounds": [
+            24,
+            16,
+            44,
+            72
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            1238,
+            42,
+            173,
+            264
+          ],
+          "bounds": [
+            21,
+            16,
+            47,
+            72
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            1487,
+            42,
+            149,
+            264
+          ],
+          "bounds": [
+            23,
+            16,
+            40,
+            72
+          ]
+        },
+        {
+          "frame": 7,
+          "idle": true
+        }
+      ]
+    },
+    {
+      "row": 1,
+      "source": "source-0.png",
+      "scale": 0.2696629213483146,
+      "frames": [
+        {
+          "frame": 0,
+          "idle": true
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            291,
+            404,
+            145,
+            267
+          ],
+          "bounds": [
+            23,
+            16,
+            39,
+            72
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            532,
+            404,
+            157,
+            267
+          ],
+          "bounds": [
+            23,
+            16,
+            42,
+            72
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            767,
+            404,
+            159,
+            267
+          ],
+          "bounds": [
+            21,
+            16,
+            43,
+            72
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            1008,
+            404,
+            159,
+            267
+          ],
+          "bounds": [
+            23,
+            16,
+            43,
+            72
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            1238,
+            404,
+            158,
+            267
+          ],
+          "bounds": [
+            20,
+            16,
+            43,
+            72
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            1487,
+            404,
+            150,
+            267
+          ],
+          "bounds": [
+            23,
+            16,
+            40,
+            72
+          ]
+        },
+        {
+          "frame": 7,
+          "idle": true
+        }
+      ]
+    },
+    {
+      "row": 2,
+      "source": "source-1.png",
+      "scale": 0.2647058823529412,
+      "frames": [
+        {
+          "frame": 0,
+          "idle": true
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            297,
+            40,
+            161,
+            272
+          ],
+          "bounds": [
+            26,
+            16,
+            43,
+            72
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            520,
+            39,
+            192,
+            273
+          ],
+          "bounds": [
+            18,
+            16,
+            51,
+            72
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            772,
+            40,
+            189,
+            271
+          ],
+          "bounds": [
+            19,
+            16,
+            50,
+            72
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            1031,
+            39,
+            179,
+            272
+          ],
+          "bounds": [
+            22,
+            16,
+            47,
+            72
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            1278,
+            40,
+            182,
+            271
+          ],
+          "bounds": [
+            21,
+            16,
+            48,
+            72
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            1535,
+            40,
+            172,
+            271
+          ],
+          "bounds": [
+            23,
+            16,
+            46,
+            72
+          ]
+        },
+        {
+          "frame": 7,
+          "idle": true
+        }
+      ]
+    },
+    {
+      "row": 3,
+      "source": "source-1.png",
+      "scale": 0.2656826568265683,
+      "frames": [
+        {
+          "frame": 0,
+          "idle": true
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            285,
+            403,
+            176,
+            271
+          ],
+          "bounds": [
+            22,
+            16,
+            47,
+            72
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            511,
+            403,
+            200,
+            271
+          ],
+          "bounds": [
+            15,
+            16,
+            53,
+            72
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            755,
+            403,
+            205,
+            271
+          ],
+          "bounds": [
+            14,
+            16,
+            54,
+            72
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            1023,
+            403,
+            191,
+            271
+          ],
+          "bounds": [
+            19,
+            16,
+            51,
+            72
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            1272,
+            403,
+            192,
+            271
+          ],
+          "bounds": [
+            19,
+            16,
+            51,
+            72
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            1529,
+            403,
+            178,
+            271
+          ],
+          "bounds": [
+            21,
+            16,
+            47,
+            72
+          ]
+        },
+        {
+          "frame": 7,
+          "idle": true
+        }
+      ]
+    },
+    {
+      "row": 4,
+      "source": "source-2.png",
+      "scale": 0.27586206896551724,
+      "frames": [
+        {
+          "frame": 0,
+          "idle": true
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            309,
+            39,
+            151,
+            259
+          ],
+          "bounds": [
+            28,
+            17,
+            42,
+            71
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            545,
+            15,
+            160,
+            283
+          ],
+          "bounds": [
+            25,
+            10,
+            44,
+            78
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            792,
+            17,
+            162,
+            282
+          ],
+          "bounds": [
+            25,
+            10,
+            45,
+            78
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            1036,
+            39,
+            163,
+            260
+          ],
+          "bounds": [
+            25,
+            16,
+            45,
+            72
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            1283,
+            39,
+            169,
+            259
+          ],
+          "bounds": [
+            25,
+            17,
+            47,
+            71
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            1529,
+            39,
+            146,
+            259
+          ],
+          "bounds": [
+            27,
+            17,
+            40,
+            71
+          ]
+        },
+        {
+          "frame": 7,
+          "idle": true
+        }
+      ]
+    },
+    {
+      "row": 5,
+      "source": "source-2.png",
+      "scale": 0.2737642585551331,
+      "frames": [
+        {
+          "frame": 0,
+          "idle": true
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            298,
+            409,
+            161,
+            261
+          ],
+          "bounds": [
+            26,
+            17,
+            44,
+            71
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            538,
+            409,
+            168,
+            261
+          ],
+          "bounds": [
+            25,
+            17,
+            46,
+            71
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            786,
+            407,
+            164,
+            263
+          ],
+          "bounds": [
+            26,
+            16,
+            45,
+            72
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            1030,
+            409,
+            165,
+            261
+          ],
+          "bounds": [
+            26,
+            17,
+            45,
+            71
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            1270,
+            410,
+            178,
+            260
+          ],
+          "bounds": [
+            24,
+            17,
+            49,
+            71
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            1512,
+            409,
+            173,
+            261
+          ],
+          "bounds": [
+            24,
+            17,
+            47,
+            71
+          ]
+        },
+        {
+          "frame": 7,
+          "idle": true
+        }
+      ]
+    },
+    {
+      "row": 6,
+      "source": "source-3.png",
+      "scale": 0.2647058823529412,
+      "frames": [
+        {
+          "frame": 0,
+          "idle": true
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            296,
+            40,
+            177,
+            269
+          ],
+          "bounds": [
+            27,
+            17,
+            47,
+            71
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            533,
+            41,
+            198,
+            268
+          ],
+          "bounds": [
+            26,
+            17,
+            52,
+            71
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            771,
+            40,
+            204,
+            269
+          ],
+          "bounds": [
+            26,
+            17,
+            54,
+            71
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            1010,
+            40,
+            183,
+            269
+          ],
+          "bounds": [
+            26,
+            17,
+            48,
+            71
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            1248,
+            41,
+            182,
+            268
+          ],
+          "bounds": [
+            27,
+            17,
+            48,
+            71
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            1488,
+            41,
+            172,
+            268
+          ],
+          "bounds": [
+            27,
+            17,
+            46,
+            71
+          ]
+        },
+        {
+          "frame": 7,
+          "idle": true
+        }
+      ]
+    },
+    {
+      "row": 7,
+      "source": "source-3.png",
+      "scale": 0.2656826568265683,
+      "frames": [
+        {
+          "frame": 0,
+          "idle": true
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            287,
+            404,
+            180,
+            271
+          ],
+          "bounds": [
+            23,
+            16,
+            48,
+            72
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            526,
+            407,
+            192,
+            268
+          ],
+          "bounds": [
+            23,
+            17,
+            51,
+            71
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            762,
+            406,
+            198,
+            269
+          ],
+          "bounds": [
+            23,
+            17,
+            53,
+            71
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            1003,
+            406,
+            188,
+            269
+          ],
+          "bounds": [
+            24,
+            17,
+            50,
+            71
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            1241,
+            406,
+            181,
+            269
+          ],
+          "bounds": [
+            23,
+            17,
+            48,
+            71
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            1482,
+            407,
+            172,
+            268
+          ],
+          "bounds": [
+            23,
+            17,
+            46,
+            71
+          ]
+        },
+        {
+          "frame": 7,
+          "idle": true
+        }
+      ]
+    }
+  ]
+}
