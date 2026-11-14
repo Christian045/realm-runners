@@ -12,7 +12,7 @@ const assert=require('node:assert/strict');
    const result=await page.evaluate(async({capture})=>{
     const [{KnightSpriteAtlas},{KNIGHT_SHEET_CELL,KNIGHT_SHEET_FRAMES,knightFinalFrame}]=await Promise.all([
      import('./src/knight-sprites.js?v=0.68.0'),
-     import('./src/knight-final.js?v=0.73.6')
+     import('./src/knight-final.js?v=0.74.0')
     ]);
     const atlas=new KnightSpriteAtlas();await atlas.loading;
     if(!atlas.painted?.imageReady)throw Error('Missing transparent real full-body sheets');
@@ -70,7 +70,7 @@ const assert=require('node:assert/strict');
    const live=await page.evaluate(async()=>{
     const [{KnightSpriteAtlas},{KnightFinalAtlas}]=await Promise.all([
      import('./src/knight-sprites.js?v=0.68.0'),
-     import('./src/knight-final.js?v=0.73.6')
+     import('./src/knight-final.js?v=0.74.0')
     ]);
     const knight=new KnightSpriteAtlas();await knight.loading;
     if(!(knight.painted instanceof KnightFinalAtlas)||!knight.painted.ready)

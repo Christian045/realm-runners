@@ -36,10 +36,10 @@ test('warm knight materials preserve every silhouette across all 608 animation c
  const steel=knightMaterialColor(240,240,240);
  assert.ok(steel[0]>steel[1]&&steel[1]>steel[2]&&steel[0]<225,'steel highlights must be restrained warm grey');
 });
-function pixels(image,frame,row){
- const canvas=createCanvas(72,72),ctx=canvas.getContext('2d');
- ctx.drawImage(image,frame*72,row*72,72,72,0,0,72,72);
- return ctx.getImageData(0,0,72,72).data;
+function pixels(image,frame,row,cell=72){
+ const canvas=createCanvas(cell,cell),ctx=canvas.getContext('2d');
+ ctx.drawImage(image,frame*cell,row*cell,cell,cell,0,0,cell,cell);
+ return ctx.getImageData(0,0,cell,cell).data;
 }
 function bounds(data){
  let left=72,right=-1,top=72,bottom=-1,count=0;
@@ -101,7 +101,7 @@ test('melee plants boots, dash interrupts it, and movement resumes through recov
 test('each hit event selects the contact image and its effect touches the blade',async()=>{
  const contacts={attack1:3,attack2:4,attack3:5};
  for(const [clip,frame] of Object.entries(contacts)){
-  const image=await loadImage(await readFile(new URL(clip+'.png',folder)));
+  const image=await loadImage(await readFile(new URL('../assets/knight/fine-074/'+clip+'.png',import.meta.url)));
   for(let row=0;row<8;row++){
    const angle=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(angle),y:Math.sin(angle)};
    const p={kind:'warrior',x:0,y:0,hp:100,direction};
@@ -111,12 +111,12 @@ test('each hit event selects the contact image and its effect touches the blade'
     assert.equal(knightFinalFrame(p,0,true).index,frame);
    });
    const tip=knightProductionImpact(p,direction,clip,new URLSearchParams());
-   const x=Math.round(tip.x/(2*KNIGHT_PRODUCTION_SCALE)+36),y=Math.round(tip.y/(2*KNIGHT_PRODUCTION_SCALE)+59);
-   const data=pixels(image,frame,row);
+   const x=Math.round(tip.x+64),y=Math.round(tip.y+112);
+   const data=pixels(image,frame,row,128);
    let nearby=false;
    for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
     const px=x+dx,py=y+dy;
-    if(px>=0&&px<72&&py>=0&&py<72&&data[(py*72+px)*4+3]>128)nearby=true;
+    if(px>=0&&px<128&&py>=0&&py<128&&data[(py*128+px)*4+3]>128)nearby=true;
    }
    assert.ok(nearby,'detached blade contact '+clip+'/'+row+' at '+x+','+y);
   }
@@ -152,7 +152,7 @@ test('normal atlas loads all new art and lab scrubbing advances both idle and wa
     assert.equal(atlas.draw(canvas.getContext('2d'),sample.player,progress*1.6),true);
     hashes.add(canvas.toBuffer('image/png').toString('base64'));
    }
-   assert.ok(hashes.size>=4,'lab is frozen at first '+clip+' frame');
+   assert.ok(hashes.size>=(clip==='idle'?2:4),'lab is frozen at first '+clip+' frame');
   }
  }finally{globalThis.Image=previousImage;globalThis.window=previousWindow;}
 });

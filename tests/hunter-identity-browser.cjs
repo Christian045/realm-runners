@@ -10,9 +10,9 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
    page.on('response',r=>{if(r.status()>=400&&/\/(assets|src)\//.test(r.url()))missing.push(r.url());});
    await page.goto('http://127.0.0.1:8000/?debugAnimations=1');
    const result=await page.evaluate(async()=>{
-    const {getHunterProduction}=await import('./src/hunter-production.js?v=0.73.6');
-    const {heroShot}=await import('./src/hero-aim.js?v=0.73.6');
-    const {Game}=await import('./src/game.js?v=0.73.6');
+    const {getHunterProduction}=await import('./src/hunter-production.js?v=0.74.0');
+    const {heroShot}=await import('./src/hero-aim.js?v=0.74.0');
+    const {Game}=await import('./src/game.js?v=0.74.0');
     const {defaultProgress}=await import('./src/progression.js?v=0.21.0');
     const hunter=getHunterProduction();await hunter.loading;
     if(!hunter.ready||!hunter.identity)throw Error('Approved hunter is not the default');

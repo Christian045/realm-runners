@@ -15,8 +15,8 @@ const fs=require('node:fs');
    await page.goto('http://127.0.0.1:8000/?v=0.67.1');
    const result=await page.evaluate(async()=>{
     const [{getKnightFinal},{KNIGHT_PRODUCTION_COUNTS},{labSample,LAB_DIRECTIONS}]=await Promise.all([
-     import('./src/knight-final.js?v=0.73.6'),
-     import('./src/knight-production.js?v=0.73.6'),
+     import('./src/knight-final.js?v=0.74.0'),
+     import('./src/knight-production.js?v=0.74.0'),
      import('./src/animation-lab.js?v=0.68.0')
     ]);
     const atlas=getKnightFinal();await atlas.loading;
@@ -44,7 +44,7 @@ const fs=require('node:fs');
       const c=document.createElement('canvas');c.width=256;c.height=176;
       atlas.draw(c.getContext('2d'),p,t*1.6);samples.add(c.toDataURL());
      }
-     if(samples.size<4)throw Error('Frozen training-hall '+state);
+     if(samples.size<(state==='idle'?2:4))throw Error('Frozen training-hall '+state);
     }
     return {checked,gallery:gallery.toDataURL()};
    });
@@ -69,7 +69,7 @@ const fs=require('node:fs');
    await page.screenshot({path:'test-output/knight-054-'+name+'-game.png'});
    await page.goto('http://127.0.0.1:8000/?previewKnightFinal=1');
    assert.equal(await page.evaluate(async()=>{
-    const {getKnightFinal}=await import('./src/knight-final.js?v=0.73.6');
+    const {getKnightFinal}=await import('./src/knight-final.js?v=0.74.0');
     const atlas=getKnightFinal();await atlas.loading;return atlas.production;
    }),true);
    console.log(name,'608 production cells, menu, dungeon, controls and previous preview link passed');

@@ -65,9 +65,9 @@ export function knightPreviewPresentationFrame(player,time,raw,state,stride=KNIG
 
 // Expand the complete sprite by at most two display pixels over a slow breath.
 // The sole edge stays exactly fixed; no torso/leg seam or whole-body levitation.
-export function knightBreathingRect(x,y,width,height,seconds){
+export function knightBreathingRect(x,y,width,height,seconds,soleRatio=61/72){
  const phase=Math.max(0,Number(seconds)||0)*Math.PI*2/2.8;
  const expansion=1-Math.cos(phase);
- const sole=y+height*61/72;
- return {x,y:sole-(height+expansion)*61/72,width,height:height+expansion};
+ const sole=y+height*soleRatio;
+ return {x,y:sole-(height+expansion)*soleRatio,width,height:height+expansion};
 }
