@@ -42,7 +42,9 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
       }
       for(let n=0;n<8;n++){
        const angle=n*Math.PI/4,actor={kind,x:96,y:110,hp:100,direction:{x:Math.cos(angle),y:Math.sin(angle)}};
-       beginHeroAction(actor,'attack',.6);actor.heroAction.elapsed=.3;
+       beginHeroAction(actor,'attack',.6);
+       // The Jäger arrow is deliberately absent on the release frame.
+       actor.heroAction.elapsed=kind==='hunter'?.299:.3;
        ctx.clearRect(0,0,192,192);atlas.draw(ctx,actor,0);
        const shot=heroShot(actor);let nearMuzzle=0;
        const pixels=ctx.getImageData(Math.round(shot.x)-5,Math.round(shot.y)-5,11,11).data;

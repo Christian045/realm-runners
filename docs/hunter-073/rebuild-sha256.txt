@@ -1,0 +1,7 @@
+6b90e558e3c69745a9076ea72fb9fe43da081bbe777d007256ebbdb78bb98222  assets/heroes/hunter/original-073/idle.png
+52b9901320b416c4a774710a6266a1bf524c7759f311dd59c2a5573413060da8  assets/heroes/hunter/original-073/walk.png
+f5e71c9f76c2024b568941e5b2e8b5807c0c8dd8108130385ea345712bbba32e  assets/heroes/hunter/original-073/attack.png
+9a3c6b7843e8fa73e31c2d7483f7d2299b55f223f052269fee8f508bf61333f2  assets/heroes/hunter/original-073/special.png
+885d036e94f5ef592f4171c34da6ffd2b7ff042c94dc94f6134cf8a82409b6b8  assets/heroes/hunter/original-073/dash.png
+dc2d6ea376a548d37bca4dfa205c3be0439dc96f79172fe7476b4e4858421425  assets/heroes/hunter/original-073/hurt.png
+a44aff7b264491c3145cd679509b1a7351217c99cc0b36635064fc4542fd1a48  assets/heroes/hunter/original-073/death.png

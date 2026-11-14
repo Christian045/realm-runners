@@ -1,4 +1,19 @@
-# Realm Runners – Dungeon Reborn (Alpha 0.72.0)
+# Realm Runners – Dungeon Reborn (Alpha 0.73.0)
+
+## Alpha 0.73.0 – Eigenständiger Jäger
+
+Der Jäger verwendet eigene komplette 96×96-Pixel-Grafiken statt umgefärbter
+Magierbilder. Sieben Zustände in acht Richtungen: Stand, echter Schrittzyklus,
+Bogenschuss, Pfeilhagel, Dash, Treffer und Tod. Kurze Kleidung, sichtbare Beine,
+Lederrüstung, eigenes Gesicht, Köcher und Holzbogen ergeben eine eigene Silhouette.
+
+Pfeile verlassen den gemessenen Punkt der gezeichneten Pfeilspitze beim Loslassen
+der Sehne. Menü, Trainingshalle und Dungeon verwenden dieselben Spriteblätter.
+Schatten und Fußanker sind auf den Boden abgestimmt.
+
+353 technische Tests; browserinterne Prüfung aller 448 Zellen, 16 Pfeilursprünge
+und 16 Schussabläufe. Details und echte Screenshots: [Prüfprotokoll](docs/hunter-073/QA.md).
+Die [Grafikprüfung](tests/hunter-qa.html) verwendet dieselben Produktionsrenderer.
 
 ## Alpha 0.72.0 – Der Jäger erhält eine eigene Silhouette
 

@@ -1,0 +1,10 @@
+<!doctype html><html lang="de"><meta charset="utf-8"><title>Jäger 0.73 · Grafikprüfung</title>
+<style>body{margin:24px;background:#162029;color:#e3e9dc;font:16px system-ui}h1{font-size:25px}p{max-width:1000px}canvas{background:#1c2932;max-width:100%;image-rendering:pixelated;border:1px solid #43534a}select{font:inherit;padding:8px}#status{white-space:pre-wrap;padding:16px;background:#23372d}.comparison{width:900px}label{display:block;margin:20px 0}small{color:#adbdad}</style>
+<h1>Jäger 0.73 · Grafikprüfung</h1>
+<p>Originale Spielgrafiken im unveränderten Produktionsrenderer. Automatische Prüfungen ersetzen keine visuelle Freigabe.</p>
+<pre id="status">Grafiken und Tests werden geladen …</pre>
+<p>Ritter · Magier · Jäger, identischer Maßstab und gemeinsame Fußlinie</p><canvas id="comparison" width="900" height="320" class="comparison"></canvas>
+<label>Animation <select id="clip"><option>idle</option><option>walk</option><option>attack</option><option>special</option><option>dash</option><option>hurt</option><option>death</option></select></label>
+<p><small>Reihen: S, SW, W, NW, N, NO, O, SO. Spalten: acht aufeinanderfolgende Frames. Türkis markiert den gemessenen Pfeilursprung vor dem Loslassen.</small></p>
+<canvas id="gallery" width="1280" height="1024"></canvas>
+<script type="module" src="./hunter-qa.js"></script></html>
