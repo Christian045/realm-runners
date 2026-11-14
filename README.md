@@ -1,3 +1,7 @@
+## 0.73.6 – Ritter an Jäger und Magier angeglichen
+
+Gedämpfte, wärmere Stahlfarben und zurückhaltende Glanzlichter für sämtliche 608 Ritterbilder. Goldverzierungen und dunkler Stoff behalten ihre eigenen Farben. Die Materialpalette wird einmal beim Laden angewendet und anschließend für Menü, Trainingshalle und Dungeon wiederverwendet. Silhouetten, Größen, Bodenkontakt und Trefferzeitpunkte bleiben identisch.
+
 ## 0.73.5 – Bogenschuss des freigegebenen Jägers
 
 Der Jäger hebt seinen Kurzbogen an, zieht die Sehne, löst den Pfeil bei der

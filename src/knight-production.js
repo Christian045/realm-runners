@@ -1,5 +1,6 @@
 // One coherent illustrated set for the released knight, in all eight facings.
-export const KNIGHT_PRODUCTION_VERSION='0.67.1';
+import {prepareKnightMaterialSheet} from './knight-palette.js?v=0.73.6';
+export const KNIGHT_PRODUCTION_VERSION='0.73.6';
 export const KNIGHT_PRODUCTION_SCALE=.8;
 export const KNIGHT_PRODUCTION_COUNTS=Object.freeze({
  idle:6,walk:8,attack1:8,attack2:8,attack3:10,recovery:6,
@@ -9,7 +10,7 @@ export function knightProductionEnabled(params){
  return !['legacyHeroArt','oldKnightPixel','previewPaintedKnight',
   'previewKnightUp','previewKnight053'].some(flag=>params?.has(flag));
 }
-export async function loadKnightProductionSheets(){
+export async function loadKnightProductionSheets(factory){
  const sheets=await Promise.all(Object.entries(KNIGHT_PRODUCTION_COUNTS).map(
   ([clip,count])=>new Promise((resolve,reject)=>{
    const image=new Image();image.decoding='async';
@@ -23,7 +24,7 @@ export async function loadKnightProductionSheets(){
    image.src=new URL('../assets/knight/production-054/'+clip+'.png?v='+KNIGHT_PRODUCTION_VERSION,import.meta.url).href;
   })
  ));
- return Object.fromEntries(sheets);
+ return Object.fromEntries(sheets.map(([clip,image])=>[clip,prepareKnightMaterialSheet(image,factory)]));
 }
 export function knightStrikePlanted(player){
  return player?.kind==='warrior'&&Boolean(player.knightAction?.clip.startsWith('attack'));
