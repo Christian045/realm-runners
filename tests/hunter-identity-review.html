@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jäger · Acht zusammengehörige Standansichten</title>
+<style>
+body{margin:0;background:#131d25;color:#e6e5d7;font:16px system-ui}main{max-width:788px;margin:28px auto;padding:0 16px}h1{font-size:25px;margin-bottom:12px}p{line-height:1.5;color:#bdc9c5}#status{padding:12px;background:#23372d;border:1px solid #40534b}#views{display:grid;grid-template-columns:repeat(2,386px);gap:16px}article{border:1px solid #46524d;border-radius:8px;overflow:hidden;background:#1c2932}h2{font-size:16px;margin:12px 14px}canvas{display:block;width:384px;max-width:100%;height:auto;image-rendering:pixelated}.legend{display:flex;justify-content:space-around;color:#bfc9c0;font-size:14px;padding-bottom:12px}@media(max-width:850px){#views{grid-template-columns:1fr}}
+</style>
+<main><h1>Ein Jäger · acht Standansichten</h1>
+<p>Versuch mit derselben Kapuze, Lederrüstung, Statur und einem schlanken, einhändig getragenen Kurzbogen. Echte 96×96-Zellen: links der vorhandene Magier, rechts der Jäger, jeweils zweifach vergrößert und auf derselben Fußlinie.</p>
+<p id="status">Spielgrafiken werden geladen …</p>
+<p>Dieser Stand enthält acht Standposen. Lauf- und Schussanimationen sowie die normale Live-Version wurden damit noch nicht ersetzt.</p>
+<section id="views"></section></main>
+<script type="module">
+const load=src=>new Promise((resolve,reject)=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>resolve(im);im.onerror=()=>reject(Error('Grafik nicht geladen: '+src));im.src=src;});
+const status=document.querySelector('#status');
+try{
+ const [hunter,mage]=await Promise.all([load('../assets/heroes/hunter/identity-idle-0733/idle.png'),load('../assets/heroes/mage/locomotion-067/locomotion.png')]);
+ if(hunter.width!==768||hunter.height!==96)throw Error('Falsche Standatlas-Größe');
+ const names=['Süd','Südwest','West','Nordwest','Nord','Nordost','Ost','Südost'];
+ const probe=document.createElement('canvas');probe.width=probe.height=96;const pg=probe.getContext('2d');
+ for(let i=0;i<8;i++){
+  pg.clearRect(0,0,96,96);pg.drawImage(hunter,i*96,0,96,96,0,0,96,96);
+  const pixels=pg.getImageData(0,0,96,96).data;let n=0,bottom=-1;
+  for(let p=0;p<96*96;p++)if(pixels[p*4+3]){n++;bottom=Math.floor(p/96);}
+  if(n<400||bottom!==87)throw Error('Leere/versetzte Standzelle '+i);
+  const card=document.createElement('article'),heading=document.createElement('h2'),c=document.createElement('canvas'),legend=document.createElement('div');
+  heading.textContent=names[i];c.width=384;c.height=208;c.setAttribute('aria-label',names[i]+': Magier und Jäger im gleichen Maßstab');
+  legend.className='legend';legend.innerHTML='<span>Magier</span><span>Jäger</span>';card.append(heading,c,legend);document.querySelector('#views').append(card);
+  const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+  g.strokeStyle='#2d3c42';g.lineWidth=1;
+  for(let x=0;x<384;x+=16){g.beginPath();g.moveTo(x+.5,0);g.lineTo(x+.5,208);g.stroke();}
+  for(let y=0;y<208;y+=16){g.beginPath();g.moveTo(0,y+.5);g.lineTo(384,y+.5);g.stroke();}
+  g.strokeStyle='#839482';g.beginPath();g.moveTo(0,192.5);g.lineTo(384,192.5);g.stroke();
+  const mirrored=i>=6,sourceRow=mirrored?8-i:i;
+  g.save();g.translate(mirrored?192:0,16);if(mirrored)g.scale(-1,1);g.drawImage(mage,0,sourceRow*96,96,96,0,0,192,192);g.restore();
+  g.drawImage(hunter,i*96,0,96,96,192,16,192,192);
+ }
+ status.textContent='8/8 Standzellen geladen · transparente Grafiken · gemeinsame Fußlinie. Charaktertreue und Bogenhaltung werden visuell beurteilt.';
+ document.documentElement.dataset.identityReview='passed';
+}catch(error){status.textContent=error.message;document.documentElement.dataset.identityReview='failed';}
+</script></html>
