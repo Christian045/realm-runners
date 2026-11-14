@@ -13,7 +13,7 @@ export function knightProductionEnabled(params){
 export async function loadKnightProductionSheets(factory){
  const sheets=await Promise.all(Object.entries(KNIGHT_PRODUCTION_COUNTS).map(
   ([clip,count])=>new Promise((resolve,reject)=>{
-   const image=new Image();image.decoding='async';
+   const image=new Image();image.decoding='async';image.crossOrigin='anonymous';
    image.onload=()=>{
     if(image.naturalWidth!==count*72||image.naturalHeight!==576){
      reject(new Error('Invalid knight atlas '+clip));return;
