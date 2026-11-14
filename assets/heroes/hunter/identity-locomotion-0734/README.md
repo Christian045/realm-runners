@@ -1,8 +1,9 @@
 # Laufanimation auf Basis der freigegebenen Standansichten
 
-Arbeitsstand: Stand und Lauf in acht Richtungen. Die normale Live-Version
-verwendet weiterhin ihre bisherigen Grafiken. Dieser Satz wird noch nicht
-mit älteren Kampfanimationen zu einer scheinbar fertigen Klasse vermischt.
+Seit Version 0.73.4 im Hauptspiel: Stand und Lauf in acht Richtungen.
+Menü, Trainingshalle und Dungeon verwenden dieselben freigegebenen Grafiken.
+Offene Kampfbewegungen verwenden vorläufig dieselbe neue Figur; ältere
+Körpergrafiken werden dafür nicht eingeblendet.
 
 ## Dateien
 
@@ -37,9 +38,10 @@ WASD/Pfeiltasten. Das freigegebene Standbild und der echte Magier werden
 im gleichen Maßstab daneben gezeigt. Die Frameübersicht zeigt alle 64 Bilder.
 
 Kampf, Dash, Treffer und Tod gehören nicht zu diesem Laufarbeitsschritt.
-Der neue Renderer meldet diese Zustände ausdrücklich als nicht enthalten,
-statt eine anders gekleidete ältere Figur einzublenden. Er ist deshalb noch
-nicht als vollständiger Klassenrenderer in den normalen Dungeon geschaltet.
+Die isolierte Laufprobe meldet diese Zustände ausdrücklich als nicht enthalten.
+Der Spieladapter `src/hunter-identity.js` behält bei Schuss/Pfeilhagel/Treffer
+die neue Standpose, nutzt beim Dash ihre Laufbilder und beim Tod einen einfachen
+Fall derselben Figur. Die ausgearbeitete Bogenspannanimation steht noch aus.
 
 ## Prüfung
 

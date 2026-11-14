@@ -1,4 +1,9 @@
-# Gemeinsamer Standversuch – acht Richtungen
+# Freigegebene Standansichten – acht Richtungen
+
+Die acht unveränderten Ansichten sind freigegeben und seit 0.73.4 zusammen mit
+den korrigierten Laufbildern im Menü und Dungeon eingebunden. Das folgende
+Protokoll beschreibt die frühere Standprüfung vor der Animationsfreigabe.
+
 
 Arbeitsstand, keine Animations- oder Veröffentlichungsfreigabe. Alle acht neuen
 Standposen stammen aus einem gemeinsamen 4×2-Zeichensatz und verwenden denselben
