@@ -1,0 +1,3 @@
+// Measured arrowheads and bow grips in full-draw column 3 of the final 96px art.
+// Rows S, SW, W, NW, N, NE, E, SE; reflected together with complete sprites.
+export const HUNTER_SOCKETS={"attack":[{"tip":[42,78],"grip":[49,65]},{"tip":[26,72],"grip":[40,64]},{"tip":[5,49],"grip":[21,54]},{"tip":[17,28],"grip":[26,38]},{"tip":[49,9],"grip":[29,42]},{"tip":[78,28],"grip":[69,38]},{"tip":[90,49],"grip":[74,54]},{"tip":[69,72],"grip":[55,64]}],"special":[{"tip":[41,80],"grip":[48,65]},{"tip":[26,73],"grip":[37,63]},{"tip":[3,48],"grip":[20,51]},{"tip":[15,34],"grip":[26,45]},{"tip":[49,9],"grip":[29,40]},{"tip":[80,34],"grip":[69,45]},{"tip":[92,48],"grip":[75,51]},{"tip":[69,73],"grip":[58,63]}]};

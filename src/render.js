@@ -1,5 +1,5 @@
 import {CompanionSpriteAtlas,drawCompanionEffect,drawCompanionProjectile} from './companion-sprites.js?v=0.31.0';
-import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.72.0';
+import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.73.0';
 import {KNIGHT_PRODUCTION_SCALE} from './knight-production.js?v=0.67.1';
 import {KnightSpriteAtlas,drawKnightEffect} from './knight-sprites.js?v=0.67.1';
 import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.23.0';
@@ -210,7 +210,8 @@ export class Renderer {
   const c=this.ctx,k=CLASSES[p.kind],f=p.direction||{x:0,y:1};
   const face=weaponFacing(f);
   if(p.kind!=='warrior'&&this.heroes?.ready&&this.heroes.kind===p.kind){
-   if(p.kind==='mage'&&this.heroes.mage?.ready){c.save();c.fillStyle='#060e1399';c.beginPath();c.ellipse(p.x,p.y+1,19,4,0,0,Math.PI*2);c.fill();c.restore();}
+   const groundedHunter=p.kind==='hunter'&&this.heroes.hunter?.ready;
+   if(groundedHunter||p.kind==='mage'&&this.heroes.mage?.ready){c.save();c.fillStyle='#060e1399';c.beginPath();c.ellipse(p.x,p.y+1,groundedHunter?21:19,4,0,0,Math.PI*2);c.fill();c.restore();}
    else this.shadow(p.x,p.y,p.radius+5);
    this.heroes.draw(c,p,time);
    if(p.shield>0){c.save();c.strokeStyle='#bfb0ee';c.globalAlpha=.5;c.lineWidth=2;c.beginPath();c.arc(p.x,p.y,26,0,Math.PI*2);c.stroke();c.restore();}

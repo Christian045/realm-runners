@@ -1,11 +1,11 @@
 import {getKnightFinal,knightFinalFrame} from './knight-final.js?v=0.67.1';
-import {getHunterProduction,hunterPose} from './hunter-production.js?v=0.72.0';
+import {getHunterProduction,hunterPose,HUNTER_STRIDE} from './hunter-production.js?v=0.73.0';
 import {heroRigReady,articulatedPose,RIG_ROWS,getHeroRig} from './articulated-hero.js?v=0.68.0';
-import {HeroSpriteAtlas} from './hero-sprites.js?v=0.72.0';
+import {HeroSpriteAtlas} from './hero-sprites.js?v=0.73.0';
 import {KnightSpriteAtlas} from './knight-sprites.js?v=0.67.1';
 import {heroPose,HERO_CLIPS} from './hero-animation.js?v=0.31.0';
 import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.67.1';
-import {heroShot} from './hero-aim.js?v=0.72.0';
+import {heroShot} from './hero-aim.js?v=0.73.0';
 import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.46.0';
 import {CLASSES} from './data.js?v=0.23.0';
 import {getMageProduction,magePose} from './mage-production.js?v=0.67.1';
@@ -21,7 +21,7 @@ export function labSample(kind,state,direction,seconds,moving=false){
  if(!LAB_KINDS.includes(kind)||!Object.hasOwn(LAB_STATES,state))throw new RangeError('Unknown preview');
  const progress=Math.max(0,Math.min(1,seconds));
  const p={kind,x:128,y:121,hp:100,invulnerable:0,direction:{x:direction.x,y:direction.y},
-  knightPreviewProgress:progress,moving:state==='walk'||moving,walkDistance:progress*72,knightWalkDistance:progress*KNIGHT_VISUAL_STRIDE,mageWalkDistance:progress*KNIGHT_VISUAL_STRIDE,
+  knightPreviewProgress:progress,moving:state==='walk'||moving,walkDistance:progress*(kind==='hunter'?HUNTER_STRIDE:72),knightWalkDistance:progress*KNIGHT_VISUAL_STRIDE,mageWalkDistance:progress*KNIGHT_VISUAL_STRIDE,
   robedWalkDistance:progress*240,walkCycle:progress*.54*14,heroMoveDirection:{...direction},knightMoveDirection:{...direction},hurtTimer:0};
  const knight=kind==='warrior',clips=knight?KNIGHT_CLIPS:HERO_CLIPS;
  let clip=state;

@@ -1,101 +1,93 @@
-import {getMageProduction} from './mage-production.js?v=0.67.1';
-import {HUNTER_STYLE_CELL,HUNTER_STYLE_ANCHOR,HUNTER_STYLE_COUNTS,
- HUNTER_STYLE_FACINGS,hunterStyleFacing,hunterMageBowLayout,
- recolorMagierToHunter,hunterStyledSample} from './hunter-magestyle.js?v=0.72.0';
-const clamp=n=>Math.max(0,Math.min(1,n));
-export const HUNTER_PRODUCTION_VERSION='0.72.0';
+import {HUNTER_ANCHORS} from './hunter-anchors.js?v=0.73.0';
+import {HUNTER_SOCKETS} from './hunter-sockets.js?v=0.73.0';
+
+// Original whole-body artwork. No mage images, palette conversion or runtime limbs.
+export const HUNTER_PRODUCTION_VERSION='0.73.0';
+export const HUNTER_CELL=96;
+export const HUNTER_ANCHOR=Object.freeze({x:48,y:88});
 export const HUNTER_SCALE=1;
+export const hunterAnchor=row=>({x:HUNTER_ANCHORS[row][0],y:HUNTER_ANCHORS[row][1]});
+export const HUNTER_ROWS=Object.freeze(['S','SW','W','NW','N','NE','E','SE']);
+export const HUNTER_COUNTS=Object.freeze({idle:8,walk:8,attack:8,special:8,dash:8,hurt:8,death:8});
+export const HUNTER_STRIDE=96;
+export const hunterFacing=d=>((Math.round((Math.atan2(d?.y??1,d?.x??0)-Math.PI/2)/(Math.PI/4))%8)+8)%8;
+const clamp=n=>Math.max(0,Math.min(1,n));
 export const hunterProductionEnabled=(params=typeof location!=='undefined'?new URLSearchParams(location.search):null)=>
  !params?.has('legacyHeroArt')&&!params?.has('oldHunterArt');
+
 export function hunterPose(p,time=0,action=p.heroAction){
  let clip=action?.clip||(p.hurtTimer>0?'hurt':p.moving?'walk':'idle');
+ if(!Object.hasOwn(HUNTER_COUNTS,clip))clip='idle';
  let progress=action?clamp((action.elapsed||0)/Math.max(.001,action.duration||1)):0;
  if(p.hp<=0){clip='death';progress=clamp((p.heroDeathElapsed||0)/1.04);}
- else if(clip==='hurt')progress=clamp(1-(p.hurtTimer||0)/.34);
+ else if(clip==='hurt'&&!action)progress=clamp(1-(p.hurtTimer||0)/.34);
  const direction=(clip==='death'?p.heroDeathDirection:action?.direction)||
   (clip==='walk'?p.heroMoveDirection:null)||p.direction||{x:0,y:1};
- const row=hunterStyleFacing(direction),count=HUNTER_STYLE_COUNTS[clip]||HUNTER_STYLE_COUNTS.idle;
- let frame=clip==='walk'?Math.floor(((((p.walkDistance||0)%96)+96)%96)/96*count):
-  clip==='idle'?Math.floor(((((time%1.5)+1.5)%1.5)/1.5)*count):
-  Math.min(count-1,Math.floor(progress*count));
- frame=Math.min(count-1,Math.max(0,frame));
- return {clip,row,frame,count,progress,direction};
+ const row=hunterFacing(direction),count=HUNTER_COUNTS[clip];
+ const phase=clip==='walk'?((((p.walkDistance||0)%HUNTER_STRIDE)+HUNTER_STRIDE)%HUNTER_STRIDE)/HUNTER_STRIDE:
+  clip==='idle'?(((time%2.4)+2.4)%2.4)/2.4:progress;
+ return {clip,row,frame:Math.min(count-1,Math.floor(phase*count)),count,progress,direction};
 }
-const unit=(dx,dy,d)=>{
- const len=Math.hypot(dx,dy),fallback=Math.hypot(d.x,d.y)||1;
- return len>1e-8?{x:dx/len,y:dy/len}:{x:d.x/fallback,y:d.y/fallback};
-};
-// Same integer pixel point in the fully painted bow and physics. Movement
-// and all eight facings use the same body orientation and mirrored socket.
+
+// Authored arrow-tip and bow-grip measurements in the final 96px sheets.
+// At release (1/2) the arrow leaves the last drawn tip (full-draw column 3).
 export function hunterProductionShot(p,action=p.heroAction){
- const pose=hunterPose(p,0,action);
- const bow=hunterMageBowLayout(pose.row,pose.clip,pose.frame);
- const x=Math.round(p.x)+(bow.tip.x-HUNTER_STYLE_ANCHOR.x);
- const y=Math.round(p.y)+(bow.tip.y-HUNTER_STYLE_ANCHOR.y);
- const mount={x:Math.round(p.x)+(bow.grip.x-HUNTER_STYLE_ANCHOR.x),
-  y:Math.round(p.y)+(bow.grip.y-HUNTER_STYLE_ANCHOR.y)};
+ const pose=hunterPose(p,0,action),anchor=hunterAnchor(pose.row);
+ const socket=HUNTER_SOCKETS[pose.clip==='special'?'special':'attack'][pose.row];
+ const x=Math.round(p.x)+socket.tip[0]-anchor.x;
+ const y=Math.round(p.y)+socket.tip[1]-anchor.y;
+ const mount={x:Math.round(p.x)+socket.grip[0]-anchor.x,
+  y:Math.round(p.y)+socket.grip[1]-anchor.y};
  const d=pose.direction,target=action?.target||{x:p.x+d.x*260,y:p.y+d.y*260-27};
- const aim=unit(target.x-x,target.y-y,d);
+ const dx=target.x-x,dy=target.y-y,length=Math.hypot(dx,dy),fallback=Math.hypot(d.x,d.y)||1;
+ const aim=length>1e-8?{x:dx/length,y:dy/length}:{x:d.x/fallback,y:d.y/fallback};
  return {x,y,mount,aim,angle:Math.atan2(aim.y,aim.x),reach:Math.hypot(x-mount.x,y-mount.y),
   face:Math.abs(d.x)>Math.abs(d.y)?d.x<0?'left':'right':d.y<0?'up':'down'};
 }
-async function loadMageBase(){
- const mage=getMageProduction();
- if(!mage)throw Error('Mage reference disabled');
- await mage.loading;
- if(!mage.ready)throw Error('Mage original 96px artwork missing');
- return {image:mage.image,locomotionImage:mage.locomotionImage};
+
+async function loadSheet(clip){
+ const image=new Image();image.decoding='async';
+ await new Promise((resolve,reject)=>{
+  image.onload=resolve;image.onerror=()=>reject(Error('Missing original Jäger sheet: '+clip));
+  image.src=new URL('../assets/heroes/hunter/original-073/'+clip+'.png?v='+HUNTER_PRODUCTION_VERSION,import.meta.url).href;
+ });
+ await image.decode?.();return image;
 }
 export class HunterProductionAtlas{
- constructor(canvasFactory=null,sourceLoader=loadMageBase){
-  this.ready=false;this.failed=false;this.action=null;this.walk=null;
-  this.canvasFactory=canvasFactory||(()=>{
-   if(typeof OffscreenCanvas!=='undefined')return new OffscreenCanvas(1,1);
-   if(typeof document!=='undefined')return document.createElement('canvas');
-   throw Error('Hunter drawing surface unavailable');
-  });
-  this.sourceLoader=sourceLoader;
-  this.loading=this.load();
- }
- async load(){
+ constructor(imageLoader=loadSheet){this.ready=false;this.failed=false;this.sheets={};this.loading=this.load(imageLoader);}
+ async load(imageLoader){
   try{
-   const {image,locomotionImage}=await this.sourceLoader();
-   if(image.width!==1536||image.height!==768||
-      locomotionImage.width!==864||locomotionImage.height!==768)
-    throw Error('Production Magier source dimensions must be 96px 16×8 and 9×8');
-   this.action=recolorMagierToHunter(image,this.canvasFactory);
-   this.walk=recolorMagierToHunter(locomotionImage,this.canvasFactory);
-   this.ready=true;
-  }catch(error){
-   this.failed=true;console.warn('Ranger/Magier style atlas unavailable; retaining safe fallback',error);
-  }
+   const sheets=await Promise.all(Object.entries(HUNTER_COUNTS).map(async([clip,count])=>{
+    const image=await imageLoader(clip);
+    if(image.width!==count*HUNTER_CELL||image.height!==HUNTER_ROWS.length*HUNTER_CELL)
+     throw Error('Invalid original Jäger sheet dimensions: '+clip);
+    return [clip,image];
+   }));
+   this.sheets=Object.fromEntries(sheets);this.ready=true;
+  }catch(error){this.failed=true;console.warn('Original Jäger artwork unavailable; retaining fallback',error);}
  }
  draw(ctx,p,time=0){
   if(!this.ready||!ctx?.drawImage)return false;
-  const pose=hunterPose(p,time);
+  const pose=hunterPose(p,time),anchor=hunterAnchor(pose.row);
+  const stretch=pose.clip==='idle'?1+(1-Math.cos(time*Math.PI*2/2.8))*.0045:1;
   ctx.save();ctx.imageSmoothingEnabled=false;
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)ctx.globalAlpha*=.65;
-  ctx.translate(Math.round(p.x)-HUNTER_STYLE_ANCHOR.x,Math.round(p.y)-HUNTER_STYLE_ANCHOR.y);
-  hunterStyledSample(ctx,this.action,this.walk,pose.row,pose.clip,pose.frame);
+  ctx.drawImage(this.sheets[pose.clip],pose.frame*HUNTER_CELL,pose.row*HUNTER_CELL,HUNTER_CELL,HUNTER_CELL,
+   Math.round(p.x)-anchor.x,Math.round(p.y)-anchor.y*stretch,HUNTER_CELL,HUNTER_CELL*stretch);
   ctx.restore();return true;
  }
  preview(ctx,width,height,time=0){
   if(!this.ready)return false;
   ctx.clearRect(0,0,width,height);
-  const scale=Math.min((width-4)/72,(height-4)/82);
+  const scale=Math.min(width/100,height/100);
   ctx.save();ctx.imageSmoothingEnabled=false;
-  ctx.translate(Math.round(width/2-HUNTER_STYLE_ANCHOR.x*scale),
-   Math.round(height*.9-HUNTER_STYLE_ANCHOR.y*scale));
-  ctx.scale(scale,scale);
-  const frame=Math.floor(((((time%1.5)+1.5)%1.5)/1.5)*6);
-  hunterStyledSample(ctx,this.action,this.walk,0,'idle',frame);
+  ctx.translate(width/2,height*.9);ctx.scale(scale,scale);
+  this.draw(ctx,{kind:'hunter',x:0,y:0,hp:100,direction:{x:0,y:1}},time);
   ctx.restore();return true;
  }
 }
 let singleton;
 export function getHunterProduction(){
- if(!hunterProductionEnabled()||
-  typeof document==='undefined'&&typeof OffscreenCanvas==='undefined')return null;
+ if(!hunterProductionEnabled()||typeof document==='undefined'&&typeof OffscreenCanvas==='undefined')return null;
  return singleton??=new HunterProductionAtlas();
 }
-export {HUNTER_STYLE_COUNTS as HUNTER_COUNTS,HUNTER_STYLE_FACINGS as HUNTER_ROWS};

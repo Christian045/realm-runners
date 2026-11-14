@@ -19,6 +19,7 @@ jobs:
         run: |
           python3 -m http.server 8000 &
           sleep 2
+          node tests/hunter-original-browser.cjs
           node tests/mage-production-browser.cjs
           node tests/knight-production-browser.cjs
           node tests/painted-knight-browser.cjs

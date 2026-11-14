@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {labSample,LAB_KINDS,LAB_DIRECTIONS,LAB_STATES} from '../src/animation-lab.js';
+import {hunterPose} from '../src/hunter-production.js';
 import {magePose} from '../src/mage-production.js';
 import {knightPose} from '../src/knight-animation.js';
 
@@ -43,6 +44,8 @@ test('the mage preview completes all eight real-distance walk phases alongside t
    const progress=(step+.01)/24;
    const mage=labSample('mage','walk',direction,progress).player;
    const knight=labSample('warrior','walk',direction,progress).player;
+   const hunter=labSample('hunter','walk',direction,progress).player;
+   assert.equal(hunterPose(hunter).frame,Math.floor(progress*8));
    const frame=magePose(mage).walkFrame;
    assert.equal(frame,Math.floor(progress*8));
    assert.equal(frame,knightPose(knight).frame);
