@@ -1,5 +1,9 @@
-import {HUNTER_ANCHORS} from './hunter-anchors.js?v=0.73.1';
-import {HUNTER_SOCKETS} from './hunter-sockets.js?v=0.73.1';
+import {HunterIdentityAtlas,hunterIdentityEnabled} from './hunter-identity.js?v=0.73.4';
+import {hunterPose} from './hunter-motion.js?v=0.73.4';
+export {HUNTER_ROWS,HUNTER_COUNTS,HUNTER_STRIDE,hunterFacing,hunterPose} from './hunter-motion.js?v=0.73.4';
+import {HUNTER_ROWS,HUNTER_COUNTS} from './hunter-motion.js?v=0.73.4';
+import {HUNTER_ANCHORS} from './hunter-anchors.js?v=0.73.4';
+import {HUNTER_SOCKETS} from './hunter-sockets.js?v=0.73.4';
 import {hunterShortbowPreviewEnabled,SHORTBOW_ANCHORS,SHORTBOW_SOCKETS} from './hunter-shortbow.js?v=0.73.2';
 
 // Original whole-body artwork. No mage images, palette conversion or runtime limbs.
@@ -8,27 +12,8 @@ export const HUNTER_CELL=96;
 export const HUNTER_ANCHOR=Object.freeze({x:48,y:88});
 export const HUNTER_SCALE=1;
 export const hunterAnchor=(row,shortbow=hunterShortbowPreviewEnabled())=>{const a=(shortbow?SHORTBOW_ANCHORS:HUNTER_ANCHORS)[row];return {x:a[0],y:a[1]};};
-export const HUNTER_ROWS=Object.freeze(['S','SW','W','NW','N','NE','E','SE']);
-export const HUNTER_COUNTS=Object.freeze({idle:8,walk:8,attack:8,special:8,dash:8,hurt:8,death:8});
-export const HUNTER_STRIDE=96;
-export const hunterFacing=d=>((Math.round((Math.atan2(d?.y??1,d?.x??0)-Math.PI/2)/(Math.PI/4))%8)+8)%8;
-const clamp=n=>Math.max(0,Math.min(1,n));
 export const hunterProductionEnabled=(params=typeof location!=='undefined'?new URLSearchParams(location.search):null)=>
  !params?.has('legacyHeroArt')&&!params?.has('oldHunterArt');
-
-export function hunterPose(p,time=0,action=p.heroAction){
- let clip=action?.clip||(p.hurtTimer>0?'hurt':p.moving?'walk':'idle');
- if(!Object.hasOwn(HUNTER_COUNTS,clip))clip='idle';
- let progress=action?clamp((action.elapsed||0)/Math.max(.001,action.duration||1)):0;
- if(p.hp<=0){clip='death';progress=clamp((p.heroDeathElapsed||0)/1.04);}
- else if(clip==='hurt'&&!action)progress=clamp(1-(p.hurtTimer||0)/.34);
- const direction=(clip==='death'?p.heroDeathDirection:action?.direction)||
-  (clip==='walk'?p.heroMoveDirection:null)||p.direction||{x:0,y:1};
- const row=hunterFacing(direction),count=HUNTER_COUNTS[clip];
- const phase=clip==='walk'?((((p.hunterWalkDistance??p.walkDistance??0)%HUNTER_STRIDE)+HUNTER_STRIDE)%HUNTER_STRIDE)/HUNTER_STRIDE:
-  clip==='idle'?(((time%2.4)+2.4)%2.4)/2.4:progress;
- return {clip,row,frame:Math.min(count-1,Math.floor(phase*count)),count,progress,direction};
-}
 
 // Authored arrow-tip and bow-grip measurements in the final 96px sheets.
 // At release (1/2) the arrow leaves the last drawn tip (full-draw column 3).
@@ -93,5 +78,5 @@ export class HunterProductionAtlas{
 let singleton;
 export function getHunterProduction(){
  if(!hunterProductionEnabled()||typeof document==='undefined'&&typeof OffscreenCanvas==='undefined')return null;
- return singleton??=new HunterProductionAtlas();
+ return singleton??=(hunterIdentityEnabled()?new HunterIdentityAtlas():new HunterProductionAtlas());
 }

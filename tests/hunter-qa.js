@@ -1,10 +1,10 @@
-import {getHunterProduction,HUNTER_COUNTS,hunterPose} from '../src/hunter-production.js?v=0.73.1';
+import {HUNTER_COUNTS,hunterPose,HunterProductionAtlas,hunterProductionShot} from '../src/hunter-production.js?v=0.73.4';
 import {getMageProduction} from '../src/mage-production.js?v=0.67.1';
 import {getKnightFinal} from '../src/knight-final.js?v=0.67.1';
-import {heroShot} from '../src/hero-aim.js?v=0.73.1';
-import {Game} from '../src/game.js?v=0.73.1';
+import {heroShot} from '../src/hero-aim.js?v=0.73.4';
+import {Game} from '../src/game.js?v=0.73.4';
 import {defaultProgress} from '../src/progression.js?v=0.21.0';
-const status=document.querySelector('#status'),hunter=getHunterProduction(),mage=getMageProduction(),knight=getKnightFinal();
+const status=document.querySelector('#status'),hunter=new HunterProductionAtlas(),mage=getMageProduction(),knight=getKnightFinal();
 const assert=(condition,message)=>{if(!condition)throw Error(message);};
 const direction=row=>({x:Math.cos(Math.PI/2+row*Math.PI/4),y:Math.sin(Math.PI/2+row*Math.PI/4)});
 function actor(row,clip,frame,x=80,y=110){
@@ -27,7 +27,7 @@ try{
   let n=0;for(let i=3;i<pixels.length;i+=4)if(pixels[i]>128)n++;
   assert(n>400,'Leerer Frame '+clip+'/'+row+'/'+frame);frames++;
   if(['attack','special'].includes(clip)&&frame===3){
-   const shot=heroShot(p);assert(pc.getImageData(shot.x,shot.y,1,1).data[3]===255,'Pfeilursprung außerhalb der Grafik '+clip+'/'+row);sockets++;
+   const shot=hunterProductionShot(p);assert(pc.getImageData(shot.x,shot.y,1,1).data[3]===255,'Pfeilursprung außerhalb der Grafik '+clip+'/'+row);sockets++;
   }
  }
  const input={movement:()=>({x:0,y:0}),aiming:()=>({x:1,y:0}),attacking:()=>false,consumeDash:()=>false,consumeAbility:()=>false};
@@ -50,7 +50,7 @@ try{
   for(let row=0;row<8;row++)for(let frame=0;frame<8;frame++){
    const p=actor(row,clip,frame,frame*160+80,row*128+116);hunter.draw(ctx,p,time(clip,frame));
    ctx.fillStyle='#c8d8c2';ctx.font='12px monospace';ctx.fillText(clip+' '+row+'/'+frame,frame*160+8,row*128+16);
-   if(['attack','special'].includes(clip)&&frame===3){const shot=heroShot(p);ctx.fillStyle='#71e8ee';ctx.fillRect(shot.x-1,shot.y-1,3,3);}
+   if(['attack','special'].includes(clip)&&frame===3){const shot=hunterProductionShot(p);ctx.fillStyle='#71e8ee';ctx.fillRect(shot.x-1,shot.y-1,3,3);}
   }
  }
  document.querySelector('#clip').addEventListener('change',gallery);gallery();
