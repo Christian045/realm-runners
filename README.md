@@ -1,3 +1,7 @@
+## 0.73.1 – Jäger-Laufkorrektur
+
+Eigener 96-Pixel-Distanzzähler ohne den früheren 72-Pixel-Zyklussprung. Gemeinsame Stand-/Laufserie mit vollständig sichtbarem Bogen in Seitenansichten. 354 technische Tests.
+
 # Realm Runners – Dungeon Reborn (Alpha 0.73.0)
 
 ## Alpha 0.73.0 – Eigenständiger Jäger

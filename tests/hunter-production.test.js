@@ -7,6 +7,7 @@ import {HunterProductionAtlas,HUNTER_CELL,HUNTER_COUNTS,HUNTER_ROWS,
 import {HUNTER_SOCKETS} from '../src/hunter-sockets.js';
 import {heroShot} from '../src/hero-aim.js';
 import {Renderer} from '../src/render.js';
+import {advanceLocomotion} from '../src/locomotion.js';
 import {Game} from '../src/game.js';
 import {defaultProgress} from '../src/progression.js';
 const folder=new URL('../assets/heroes/hunter/original-073/',import.meta.url);
@@ -130,5 +131,19 @@ test('the production hunter shadow touches the same sole line as the mage',()=>{
   Renderer.prototype.player.call({ctx,heroes,shadow(){throw Error('legacy floating shadow');}},
    {kind,x:100,y:100,radius:17,hp:100,shield:0,direction:{x:0,y:1}},0);
   assert.equal(ellipses.length,1);assert.deepEqual(ellipses[0].slice(0,4),[100,101,kind==='hunter'?21:19,4]);
+ }
+});
+
+test('actual movement gives the hunter all eight phases without the legacy 72-unit reset',()=>{
+ for(let row=0;row<8;row++){
+  const d=direction(row),p={kind:'hunter',x:0,y:0,hp:100,direction:d};
+  const frames=[];
+  for(let step=0;step<8;step++){
+   const x=p.x,y=p.y;p.x+=d.x*12;p.y+=d.y*12;
+   advanceLocomotion(p,x,y,false,1/60);
+   frames.push(hunterPose(p).frame);
+  }
+  assert.equal(new Set(frames).size,8,'skips phases in direction '+row);
+  assert.ok(Math.abs(p.hunterWalkDistance)<1e-8||Math.abs(p.hunterWalkDistance-96)<1e-8);
  }
 });

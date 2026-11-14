@@ -1,8 +1,8 @@
-import {HUNTER_ANCHORS} from './hunter-anchors.js?v=0.73.0';
-import {HUNTER_SOCKETS} from './hunter-sockets.js?v=0.73.0';
+import {HUNTER_ANCHORS} from './hunter-anchors.js?v=0.73.1';
+import {HUNTER_SOCKETS} from './hunter-sockets.js?v=0.73.1';
 
 // Original whole-body artwork. No mage images, palette conversion or runtime limbs.
-export const HUNTER_PRODUCTION_VERSION='0.73.0';
+export const HUNTER_PRODUCTION_VERSION='0.73.1';
 export const HUNTER_CELL=96;
 export const HUNTER_ANCHOR=Object.freeze({x:48,y:88});
 export const HUNTER_SCALE=1;
@@ -24,7 +24,7 @@ export function hunterPose(p,time=0,action=p.heroAction){
  const direction=(clip==='death'?p.heroDeathDirection:action?.direction)||
   (clip==='walk'?p.heroMoveDirection:null)||p.direction||{x:0,y:1};
  const row=hunterFacing(direction),count=HUNTER_COUNTS[clip];
- const phase=clip==='walk'?((((p.walkDistance||0)%HUNTER_STRIDE)+HUNTER_STRIDE)%HUNTER_STRIDE)/HUNTER_STRIDE:
+ const phase=clip==='walk'?((((p.hunterWalkDistance??p.walkDistance??0)%HUNTER_STRIDE)+HUNTER_STRIDE)%HUNTER_STRIDE)/HUNTER_STRIDE:
   clip==='idle'?(((time%2.4)+2.4)%2.4)/2.4:progress;
  return {clip,row,frame:Math.min(count-1,Math.floor(phase*count)),count,progress,direction};
 }
