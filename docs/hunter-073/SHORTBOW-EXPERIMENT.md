@@ -77,6 +77,14 @@ https://rawcdn.githack.com/Christian045/realm-runners/ee8c64aff0bc1294dba31f9b00
 
 Entwurf: https://github.com/Christian045/realm-runners/pull/67
 
+Vollständiger CI-Lauf für den getesteten Spielcode erfolgreich:
+https://github.com/Christian045/realm-runners/actions/runs/43583703026
+(356 technische Tests, Chromium und WebKit einschließlich der zusätzlichen
+Kurzbogenprüfung). Der parallele Lauf 43583698827 bestand die Kurzbogen-,
+Magier- und Ritterprüfungen, brach später beim vorhandenen mobilen
+Trainingshallentest mit geschlossenem Browser ab. Der vollständige erfolgreiche
+Lauf verwendet denselben Spielcode; die grafische Einschränkung bleibt bestehen.
+
 ## Grafikauftrag
 
 Mit dem eingebauten Bildwerkzeug erzeugt und als ganze Körperzellen importiert.
