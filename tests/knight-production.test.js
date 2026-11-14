@@ -8,8 +8,34 @@ import {KNIGHT_PRODUCTION_COUNTS,KNIGHT_PRODUCTION_SCALE,knightProductionEnabled
 import {KnightFinalAtlas,knightFinalFrame} from '../src/knight-final.js';
 import {labSample,LAB_DIRECTIONS} from '../src/animation-lab.js';
 import {beginKnightAction,advanceKnightAction,knightPose,KNIGHT_CLIPS} from '../src/knight-animation.js';
+import {knightMaterialColor,prepareKnightMaterialSheet} from '../src/knight-palette.js';
 
 const folder=new URL('../assets/knight/production-054/',import.meta.url);
+test('warm knight materials preserve every silhouette across all 608 animation cells',async()=>{
+ let checked=0;
+ for(const [clip,count] of Object.entries(KNIGHT_PRODUCTION_COUNTS)){
+  const source=await loadImage(await readFile(new URL(clip+'.png',folder)));
+  const graded=prepareKnightMaterialSheet(source,()=>createCanvas(1,1));
+  const c=createCanvas(source.width,source.height),g=c.getContext('2d');g.drawImage(source,0,0);
+  const before=g.getImageData(0,0,c.width,c.height).data;
+  const after=graded.getContext('2d').getImageData(0,0,c.width,c.height).data;
+  let highlights=0,changed=0;
+  for(let i=0;i<before.length;i+=4){
+   assert.equal(after[i+3],before[i+3],clip+' silhouette/alpha changed at '+i);
+   if(before[i+3]!==255)continue;
+   if(before[i]!==after[i]||before[i+1]!==after[i+1]||before[i+2]!==after[i+2])changed++;
+   if(Math.min(before[i],before[i+1],before[i+2])>220){
+    highlights++;assert.ok(Math.max(after[i],after[i+1],after[i+2])<Math.max(before[i],before[i+1],before[i+2]));
+   }
+  }
+  assert.ok(changed>500,clip+' material grade absent');assert.ok(highlights>0);
+  checked+=count*8;
+ }
+ assert.equal(checked,608);
+ assert.deepEqual(knightMaterialColor(196,140,48),[196,140,48],'gold trim loses its identity');
+ const steel=knightMaterialColor(240,240,240);
+ assert.ok(steel[0]>steel[1]&&steel[1]>steel[2]&&steel[0]<225,'steel highlights must be restrained warm grey');
+});
 function pixels(image,frame,row){
  const canvas=createCanvas(72,72),ctx=canvas.getContext('2d');
  ctx.drawImage(image,frame*72,row*72,72,72,0,0,72,72);

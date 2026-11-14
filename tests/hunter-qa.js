@@ -1,8 +1,8 @@
-import {HUNTER_COUNTS,hunterPose,HunterProductionAtlas,hunterProductionShot} from '../src/hunter-production.js?v=0.73.5';
+import {HUNTER_COUNTS,hunterPose,HunterProductionAtlas,hunterProductionShot} from '../src/hunter-production.js?v=0.73.6';
 import {getMageProduction} from '../src/mage-production.js?v=0.67.1';
-import {getKnightFinal} from '../src/knight-final.js?v=0.67.1';
-import {heroShot} from '../src/hero-aim.js?v=0.73.5';
-import {Game} from '../src/game.js?v=0.73.5';
+import {getKnightFinal} from '../src/knight-final.js?v=0.73.6';
+import {heroShot} from '../src/hero-aim.js?v=0.73.6';
+import {Game} from '../src/game.js?v=0.73.6';
 import {defaultProgress} from '../src/progression.js?v=0.21.0';
 const status=document.querySelector('#status'),hunter=new HunterProductionAtlas(),mage=getMageProduction(),knight=getKnightFinal();
 const assert=(condition,message)=>{if(!condition)throw Error(message);};

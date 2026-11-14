@@ -1,6 +1,6 @@
-import {HUNTER_ATTACK_SOCKETS,loadHunterAttack} from './hunter-attack.js?v=0.73.5';
-import {HunterLocomotionAtlas} from './hunter-locomotion.js?v=0.73.5';
-import {hunterPose} from './hunter-motion.js?v=0.73.5';
+import {HUNTER_ATTACK_SOCKETS,loadHunterAttack} from './hunter-attack.js?v=0.73.6';
+import {HunterLocomotionAtlas} from './hunter-locomotion.js?v=0.73.6';
+import {hunterPose} from './hunter-motion.js?v=0.73.6';
 
 export const HUNTER_IDENTITY_VERSION='0.73.5';
 export const hunterIdentityEnabled=(params=typeof location==='undefined'?null:new URLSearchParams(location.search))=>

@@ -1,4 +1,4 @@
-import {knightProductionEnabled,loadKnightProductionSheets,KNIGHT_PRODUCTION_SCALE} from './knight-production.js?v=0.67.1';
+import {knightProductionEnabled,loadKnightProductionSheets,KNIGHT_PRODUCTION_SCALE} from './knight-production.js?v=0.73.6';
 import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.67.1';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
 import {knightPreviewActionFrame,knightPreviewPresentationFrame,knightBreathingRect} from './knight-preview-motion.js?v=0.67.1';
@@ -172,7 +172,7 @@ export class KnightFinalAtlas {
    const northPreview=params?.has('previewKnightUp')||allDirectionsPreview;
    const preview=params?.has('previewPaintedKnight')||northPreview;
    if(production&&typeof Image!=='undefined'){
-    this.images=await loadKnightProductionSheets();
+    this.images=await loadKnightProductionSheets(factory);
     this.production=true;this.reviewScale=KNIGHT_PRODUCTION_SCALE;
    }else if(northPreview&&typeof Image!=='undefined'){
     const base=await loadPaintedKnightSheets(factory);
