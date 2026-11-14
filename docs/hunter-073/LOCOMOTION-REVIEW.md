@@ -38,3 +38,22 @@ Chrome; eine lokale WebKit-Prüfung wurde nicht ausgeführt.
 ## Verifizierte Prüfseite
 
 https://rawcdn.githack.com/Christian045/realm-runners/502120a08f2bf5f7455e1972ee4f8d873d98b92c/tests/hunter-locomotion-review.html
+
+## Nachprüfung: Bogenfehler
+
+Der Nutzer hat zurecht Bogenfehler bei S, N, SW und NW gemeldet. Die erste
+Sichtprüfung hat diese übersehen. Der Zuschnitt nach starren Spalten übernahm
+fremde Bogenspitzen und schnitt eigene Spitzen ab. Die Quellfiguren werden jetzt
+vor dem Zuschneiden vollständig getrennt. Zusätzlich wurde die variierende
+NW-Holz-/Sehnenzeichnung durch einen begrenzten, mit dem Bildwerkzeug
+überarbeiteten Hand-/Bogenbereich vereinheitlicht. Alle acht NW-Phasen haben
+jetzt dieselben Griff-/Bogenpixel; die restlichen Körperpixel sind bytegleich
+mit der ursprünglichen Laufanimation.
+
+363 automatische Tests bestanden. Die aktualisierte öffentliche Probe wurde
+in Chrome geladen und alle 32 Einzelbilder der gemeldeten vier Richtungen
+sowie die Rückkehr zum Stand erneut bedient. NW wurde außerdem mit langsamem
+Tempo angesehen. Screenshot: `screenshots/locomotion-bow-fixed.jpg`.
+
+Aktuelle geprüfte Probe:
+https://rawcdn.githack.com/Christian045/realm-runners/97333e819709a8c4d22bff2d8c53a1db937a80d6/tests/hunter-locomotion-review.html
