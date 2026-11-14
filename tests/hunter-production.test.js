@@ -10,10 +10,12 @@ import {Renderer} from '../src/render.js';
 import {advanceLocomotion} from '../src/locomotion.js';
 import {Game} from '../src/game.js';
 import {defaultProgress} from '../src/progression.js';
+import {hunterShortbowPreviewEnabled,SHORTBOW_SOCKETS} from '../src/hunter-shortbow.js';
 const folder=new URL('../assets/heroes/hunter/original-073/',import.meta.url);
 const requested=[];
 const loader=async clip=>{requested.push(clip);return loadImage(await readFile(new URL(clip+'.png',folder)));};
 const atlas=new HunterProductionAtlas(loader);await atlas.loading;
+const preview=new HunterProductionAtlas(async clip=>loadImage(await readFile(new URL('../assets/heroes/hunter/shortbow-preview-0732/'+clip+'.png',import.meta.url))),true);await preview.loading;
 const direction=row=>({x:Math.cos(Math.PI/2+row*Math.PI/4),y:Math.sin(Math.PI/2+row*Math.PI/4)});
 function sample(row,clip,frame){
  const g=createCanvas(96,96).getContext('2d');
@@ -145,5 +147,31 @@ test('actual movement gives the hunter all eight phases without the legacy 72-un
   }
   assert.equal(new Set(frames).size,8,'skips phases in direction '+row);
   assert.ok(Math.abs(p.hunterWalkDistance)<1e-8||Math.abs(p.hunterWalkDistance-96)<1e-8);
+ }
+});
+
+test('shortbow is strictly opt-in, with unchanged released facings and complete padded preview frames',()=>{
+ assert.equal(hunterShortbowPreviewEnabled(new URLSearchParams()),false);
+ assert.equal(hunterShortbowPreviewEnabled(new URLSearchParams('hunterShortbow=0')),false);
+ assert.equal(hunterShortbowPreviewEnabled(new URLSearchParams('hunterShortbow=1')),true);
+ assert.equal(preview.ready,true);assert.equal(atlas.shortbow,false);assert.equal(preview.shortbow,true);
+ for(const clip of Object.keys(HUNTER_COUNTS))for(let row=0;row<8;row++)for(let frame=0;frame<8;frame++){
+  const g=createCanvas(96,96).getContext('2d');g.drawImage(preview.sheets[clip],frame*96,row*96,96,96,0,0,96,96);
+  const d=g.getImageData(0,0,96,96).data,b=bounds(d);
+  assert.ok(b.count>400&&b.left>=1&&b.right<=94&&b.top>=1&&b.bottom<=87,clip+'/'+row+'/'+frame+JSON.stringify(b));
+  if([2,4,6].includes(row))assert.equal(b.bottom,87,'preview ground moved '+clip+'/'+row+'/'+frame);
+  for(let i=3;i<d.length;i+=4)assert.ok(d[i]===0||d[i]===255,'matte in preview');
+  if(![2,4,6].includes(row))assert.deepEqual(d,sample(row,clip,frame),'unrequested facing changed');
+ }
+});
+
+test('shortbow preview arrowheads and grips touch the art and use the preview foot root',()=>{
+ for(const clip of ['attack','special'])for(const row of [2,4,6]){
+  const g=createCanvas(96,96).getContext('2d');g.drawImage(preview.sheets[clip],288,row*96,96,96,0,0,96,96);
+  const s=SHORTBOW_SOCKETS[clip][row];
+  for(const point of [s.tip,s.grip])assert.equal(g.getImageData(...point,1,1).data[3],255,clip+'/'+row+'/'+point);
+  const p={kind:'hunter',x:100,y:100,hp:100,direction:direction(row)},a={clip,elapsed:.5,duration:1,direction:direction(row)};
+  const shot=hunterProductionShot(p,a,true),anchor=hunterAnchor(row,true);
+  assert.equal(shot.x,100+s.tip[0]-anchor.x);assert.equal(shot.y,100+s.tip[1]-anchor.y);
  }
 });

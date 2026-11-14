@@ -17,6 +17,7 @@ import {SPECIALIZATIONS,specializationUnlocked} from './specializations.js?v=0.2
 
 const $=id=>document.getElementById(id);
 const canvas=$('gameCanvas');
+if(new URLSearchParams(location.search).get('hunterShortbow')==='1')document.querySelector('.identity small').textContent+=' · KURZBOGEN-TEST (W/O/N)';
 installTouchGuard(canvas);
 const progress=loadProgress();
 const renderer=new Renderer(canvas,progress.selectedClass),input=new Input(canvas);
