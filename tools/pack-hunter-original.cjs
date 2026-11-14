@@ -53,7 +53,7 @@ function isolate(image,col,row,rows=7,columns=8){
  }
  return {c,l,t,r,b,cx:n?sum/n:(l+r)/2,feetX:feetN?feetX/feetN:(l+r)/2};
 }
-(async()=>{
+if(require.main===module)(async()=>{
  const sheets=clips.map(()=>createCanvas(768,768));
  let manifest={cell:CELL,anchor:[48,SOLE],facings:['S','SW','W','NW','N','NE','E','SE'],clips:Object.fromEntries(clips.map(c=>[c,8])),sources:{},frames:{}};
  if(importing)for(let row=0;row<5;row++){
@@ -134,3 +134,5 @@ function isolate(image,col,row,rows=7,columns=8){
  fs.writeFileSync(path.join(root,'atlas.json'),JSON.stringify(manifest,null,2)+'\n');
  console.log('Packed 448 whole-body Jäger cells: seven clips × eight directions × eight frames.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
+
+module.exports={isolate};

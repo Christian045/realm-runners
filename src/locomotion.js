@@ -19,6 +19,7 @@ export function advanceLocomotion(p,fromX,fromY,dashing=false,dt=1/60){
   // Separate actual-distance clock for the opt-in illustrated animation.
   p.knightPreviewDistance=(p.knightPreviewDistance||0)+distance;
  }
+ if(p.kind==='hunter')p.hunterWalkDistance=((p.hunterWalkDistance||0)+distance)%KNIGHT_VISUAL_STRIDE;
  if(p.kind==='mage')p.mageWalkDistance=((p.mageWalkDistance||0)+distance)%KNIGHT_VISUAL_STRIDE;
  if(isRobedWalker(p.kind))p.robedWalkDistance=((p.robedWalkDistance||0)+distance)%ROBED_WALK_STRIDE;
  p.heroMoveDirection={x:dx/distance,y:dy/distance};

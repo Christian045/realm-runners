@@ -12,10 +12,10 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
    page.on('response',r=>{if(r.status()>=400&&/\/(assets|src)\/|styles\.css/.test(r.url()))missing.push(r.status()+' '+r.url());});
    await page.goto('http://127.0.0.1:8000/?debugAnimations=1');
    const result=await page.evaluate(async()=>{
-    const {getHunterProduction,HUNTER_COUNTS,hunterPose}=await import('./src/hunter-production.js?v=0.73.0');
+    const {getHunterProduction,HUNTER_COUNTS,hunterPose}=await import('./src/hunter-production.js?v=0.73.1');
     const {getMageProduction}=await import('./src/mage-production.js?v=0.67.1');
     const {getKnightFinal}=await import('./src/knight-final.js?v=0.67.1');
-    const {heroShot}=await import('./src/hero-aim.js?v=0.73.0');
+    const {heroShot}=await import('./src/hero-aim.js?v=0.73.1');
     const hunter=getHunterProduction(),mage=getMageProduction(),knight=getKnightFinal();
     await Promise.all([hunter.loading,mage.loading,knight.loading]);
     if(!hunter.ready||!mage.ready||!knight.ready)throw Error('Production art not ready');
