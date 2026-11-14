@@ -49,6 +49,7 @@ export function hunterProductionShot(p,action=p.heroAction,shortbow=hunterShortb
 
 async function loadSheet(clip,shortbow){
  const image=new Image();image.decoding='async';
+ if(shortbow)image.crossOrigin='anonymous';
  await new Promise((resolve,reject)=>{
   image.onload=resolve;image.onerror=()=>reject(Error('Missing original Jäger sheet: '+clip));
   const folder=shortbow?'shortbow-preview-0732':'original-073';

@@ -46,6 +46,13 @@ Neue Tests prüfen alle 448 Versuchszellen auf Transparenz, Randabstände und
 Bodenkontakt, die fünf unveränderten Ansichten auf Pixelgleichheit sowie die
 neuen Sockets auf tatsächliche Berührung der gezeichneten Grafik.
 
+356 lokale Tests bestanden; Wiederaufbau der neun nativen/Laufzeit-PNGs
+bytegleich. In der externen Branch-Vorschau leitet der Hoster Grafikdateien
+auf einen anderen Ursprung um. Nur bei aktivem Versuch werden die Jäger-,
+Magier- und allgemeinen Heldenbilder deshalb mit anonymem CORS geladen.
+Das verhindert einen fälschlichen Magier-Fallback durch die Palettenprüfung;
+ohne Versuch bleibt auch dieses Ladeverhalten unverändert.
+
 `tests/hunter-shortbow-browser.cjs` prüft in Chromium und WebKit die echte
 Produktionsdarstellung: 448 Bilder, 16 Pfeilursprünge und Schussabläufe,
 21 Trainingszustände und Dungeonstart. Screenshots landen in `test-output`.

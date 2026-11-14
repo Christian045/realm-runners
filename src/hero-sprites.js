@@ -28,6 +28,7 @@ export class HeroSpriteAtlas{
  }
  async loadImage(url){
   const image=new Image();image.decoding='async';
+  if(typeof location!=='undefined'&&new URLSearchParams(location.search).get('hunterShortbow')==='1')image.crossOrigin='anonymous';
   await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=url.href;});
   if(image.decode)await image.decode();return image;
  }

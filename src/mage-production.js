@@ -44,9 +44,10 @@ export function mageShot(p,action=p.heroAction){
 export class MageProductionAtlas{
  constructor(){this.ready=false;this.loading=this.load();}
  async load(){try{
-  const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/knight-style-063/atlas.png?v=0.67.1',import.meta.url).href;});
+  const preview=typeof location!=='undefined'&&new URLSearchParams(location.search).get('hunterShortbow')==='1';
+  const image=new Image();if(preview)image.crossOrigin='anonymous';await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=new URL('../assets/heroes/mage/knight-style-063/atlas.png?v=0.67.1',import.meta.url).href;});
   await image.decode?.();if(image.width!==1536||image.height!==768)throw Error('Mage atlas dimensions');
-  const locomotionImage=new Image();await new Promise((resolve,reject)=>{locomotionImage.onload=resolve;locomotionImage.onerror=reject;locomotionImage.src=new URL('../assets/heroes/mage/locomotion-067/locomotion.png?v=0.67.1',import.meta.url).href;});
+  const locomotionImage=new Image();if(preview)locomotionImage.crossOrigin='anonymous';await new Promise((resolve,reject)=>{locomotionImage.onload=resolve;locomotionImage.onerror=reject;locomotionImage.src=new URL('../assets/heroes/mage/locomotion-067/locomotion.png?v=0.67.1',import.meta.url).href;});
   await locomotionImage.decode?.();if(locomotionImage.width!==864||locomotionImage.height!==768)throw Error('Mage locomotion dimensions');
   this.image=alignMageRobePalette(image,locomotionImage);
   this.locomotionImage=alignMageRobePalette(locomotionImage,locomotionImage);
