@@ -1,7 +1,7 @@
-import {knightProductionEnabled,loadKnightProductionSheets,KNIGHT_PRODUCTION_SCALE} from './knight-production.js?v=0.73.6';
+import {knightProductionEnabled,loadKnightProductionSheets,KNIGHT_PRODUCTION_SCALE,KNIGHT_PRODUCTION_CELL,KNIGHT_PRODUCTION_ANCHOR} from './knight-production.js?v=0.74.0';
 import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.67.1';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
-import {knightPreviewActionFrame,knightPreviewPresentationFrame,knightBreathingRect} from './knight-preview-motion.js?v=0.67.1';
+import {knightPreviewActionFrame,knightPreviewPresentationFrame,knightBreathingRect} from './knight-preview-motion.js?v=0.74.0';
 import {KNIGHT_REBORN_FRAME_COUNTS,createKnightRebornSheets} from './knight-reborn.js?v=0.49.0';
 import {loadKnightNorthReviewSheets,KNIGHT_NORTH_051} from './knight-north-051.js?v=0.53.1';
 import {loadKnightSideReviewSheets,KNIGHT_SIDE_053} from './knight-side-053.js?v=0.53.1';
@@ -207,7 +207,8 @@ export class KnightFinalAtlas {
   canvas.width=canvas.height=144;
   const g=canvas.getContext('2d');g.imageSmoothingEnabled=false;
   const cell=KNIGHT_SHEET_CELL;
-  g.drawImage(this.images[clip],index*72,row*72,72,72,0,0,cell,cell);
+  const sourceCell=this.production?KNIGHT_PRODUCTION_CELL:72;
+  g.drawImage(this.images[clip],index*sourceCell,row*sourceCell,sourceCell,sourceCell,0,0,cell,cell);
   if(this.frames.size>=16)this.frames.delete(this.frames.keys().next().value);
   this.frames.set(key,canvas);
   return canvas;
@@ -228,11 +229,14 @@ export class KnightFinalAtlas {
   let rect={x:Math.round(p.x-KNIGHT_SHEET_ANCHOR.x*scale),
    y:Math.round(p.y-KNIGHT_SHEET_ANCHOR.y*scale),
    width:Math.round(c*scale),height:Math.round(c*scale)};
+  if(this.production)rect={x:Math.round(p.x-KNIGHT_PRODUCTION_ANCHOR.x),
+   y:Math.round(p.y-KNIGHT_PRODUCTION_ANCHOR.y),width:KNIGHT_PRODUCTION_CELL,height:KNIGHT_PRODUCTION_CELL};
   if(this.production&&clip==='idle'){
    rect=knightBreathingRect(rect.x,rect.y,rect.width,rect.height,
-    presentation.idleSeconds??time);
+    presentation.idleSeconds??time,KNIGHT_PRODUCTION_ANCHOR.y/KNIGHT_PRODUCTION_CELL);
   }
-  ctx.drawImage(this.images[clip],index*72,row*72,72,72,
+  const sourceCell=this.production?KNIGHT_PRODUCTION_CELL:72;
+  ctx.drawImage(this.images[clip],index*sourceCell,row*sourceCell,sourceCell,sourceCell,
    rect.x,rect.y,rect.width,rect.height);
   ctx.restore();
   return true;
@@ -240,11 +244,11 @@ export class KnightFinalAtlas {
  preview(ctx,width,height,time=0){
   if(!this.ready)return false;
   if(this.production){
-   const scale=Math.min((width-4)/52,(height-4)/52);
+   const scale=Math.min((width-4)/80,(height-4)/78),c=KNIGHT_PRODUCTION_CELL,a=KNIGHT_PRODUCTION_ANCHOR;
    ctx.clearRect(0,0,width,height);ctx.save();ctx.imageSmoothingEnabled=false;
-   ctx.drawImage(this.images.idle,(Math.floor(time*4)%6)*72,0,72,72,
-    Math.round(width/2-36*scale),Math.round(height-2-61*scale),
-    Math.round(72*scale),Math.round(72*scale));
+   ctx.drawImage(this.images.idle,(Math.floor(time*4)%6)*c,0,c,c,
+    Math.round(width/2-a.x*scale),Math.round(height-2-a.y*scale),
+    Math.round(c*scale),Math.round(c*scale));
    ctx.restore();return true;
   }
   const c=KNIGHT_SHEET_CELL,scale=Math.min(width/64,height/74)*(this.reviewScale||1);

@@ -1,5 +1,5 @@
-import {hunterPose,HUNTER_STRIDE} from './hunter-motion.js?v=0.73.6';
-import {advanceLocomotion} from './locomotion.js?v=0.73.6';
+import {hunterPose,HUNTER_STRIDE} from './hunter-motion.js?v=0.74.0';
+import {advanceLocomotion} from './locomotion.js?v=0.74.0';
 import {CLASSES,normalized} from './data.js?v=0.23.0';
 
 export {HUNTER_STRIDE};

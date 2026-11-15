@@ -1,4 +1,4 @@
-import {HunterLocomotionAtlas,hunterLocomotionPose,advanceHunterLocomotion,HUNTER_STRIDE} from '../src/hunter-locomotion.js?v=0.73.6';
+import {HunterLocomotionAtlas,hunterLocomotionPose,advanceHunterLocomotion,HUNTER_STRIDE} from '../src/hunter-locomotion.js?v=0.74.0';
 const $=id=>document.getElementById(id),rig=new HunterLocomotionAtlas();
 const labels=['S','SW','W','NW','N','NO','O','SO'];
 const direction=row=>({x:Math.cos(Math.PI/2+row*Math.PI/4),y:Math.sin(Math.PI/2+row*Math.PI/4)});

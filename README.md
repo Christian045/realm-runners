@@ -1,3 +1,7 @@
+## 0.74.0 – Fein gezeichneter Ritter
+
+Der freigegebene „Ritter neu“ ersetzt den groben Ritter mit neu gezeichneten Stand-, Lauf-, Schlag-, Dash-, Treffer- und Todesbildern in acht Richtungen. Feinere Konturen und Rüstungsdetails werden jetzt nativ dargestellt; der Körper bleibt ungefähr so groß wie Jäger und Magier. Alle 608 Spielzellen teilen feste Stand-/Erholungsposen und einen gemeinsamen Bodenkontakt. Treffereffekte sind an die neuen Schwertpositionen angepasst.
+
 ## 0.73.6 – Ritter an Jäger und Magier angeglichen
 
 Gedämpfte, wärmere Stahlfarben und zurückhaltende Glanzlichter für sämtliche 608 Ritterbilder. Goldverzierungen und dunkler Stoff behalten ihre eigenen Farben. Die Materialpalette wird einmal beim Laden angewendet und anschließend für Menü, Trainingshalle und Dungeon wiederverwendet. Silhouetten, Größen, Bodenkontakt und Trefferzeitpunkte bleiben identisch.
