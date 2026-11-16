@@ -1,3 +1,15 @@
+## 0.75.0 – Kreuzritter im freigegebenen Pixel-Art-Stil
+
+Der Ritter trägt jetzt in allen acht Blickrichtungen einen kantigen geschlossenen Helm,
+einen hellen Waffenrock mit rotem Brustkreuz und Stahlrüstung. Statt beim Angriff
+das Modell zu wechseln, nutzen Stand, acht echte Schrittphasen, drei Schwertkombos,
+Erholung, Spezial, Dash, Treffer und Tod einen zusammenhängenden Satz aus 608
+vollständigen, transparenten Pixel-Art-Zellen. Die Rückenansichten zeigen nur
+den hellen Stoff, kein rotes Brustkreuz oder Visier. Fußanker, Trefferzeiten,
+Spielfortschritt und Magier/Jäger bleiben unverändert. Die Grafiken liegen in
+`assets/knight/crusader-075/`; erzeugen lassen sich die Laufzeitblätter mit
+`node tools/pack-knight-fine.cjs crusader-075`.
+
 ## 0.74.0 – Fein gezeichneter Ritter
 
 Der freigegebene „Ritter neu“ ersetzt den groben Ritter mit neu gezeichneten Stand-, Lauf-, Schlag-, Dash-, Treffer- und Todesbildern in acht Richtungen. Feinere Konturen und Rüstungsdetails werden jetzt nativ dargestellt; der Körper bleibt ungefähr so groß wie Jäger und Magier. Alle 608 Spielzellen teilen feste Stand-/Erholungsposen und einen gemeinsamen Bodenkontakt. Treffereffekte sind an die neuen Schwertpositionen angepasst.

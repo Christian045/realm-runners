@@ -12,11 +12,11 @@ const fs=require('node:fs');
     isMobile:mobile,hasTouch:mobile
    });
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.goto('http://127.0.0.1:8000/?v=0.67.1');
+   await page.goto('http://127.0.0.1:8000/?v=0.75.0');
    const result=await page.evaluate(async()=>{
     const [{getKnightFinal},{KNIGHT_PRODUCTION_COUNTS},{labSample,LAB_DIRECTIONS}]=await Promise.all([
-     import('./src/knight-final.js?v=0.74.0'),
-     import('./src/knight-production.js?v=0.74.0'),
+     import('./src/knight-final.js?v=0.75.0'),
+     import('./src/knight-production.js?v=0.75.0'),
      import('./src/animation-lab.js?v=0.68.0')
     ]);
     const atlas=getKnightFinal();await atlas.loading;
@@ -49,9 +49,9 @@ const fs=require('node:fs');
     return {checked,gallery:gallery.toDataURL()};
    });
    assert.equal(result.checked,608);
-   fs.writeFileSync('test-output/knight-054-'+name+'-all-states.png',Buffer.from(result.gallery.split(',')[1],'base64'));
+   fs.writeFileSync('test-output/knight-075-'+name+'-all-states.png',Buffer.from(result.gallery.split(',')[1],'base64'));
    await page.locator('[data-action="class:warrior"]').click();
-   await page.screenshot({path:'test-output/knight-054-'+name+'-menu.png'});
+   await page.screenshot({path:'test-output/knight-075-'+name+'-menu.png'});
    await page.locator('[data-action="start"]').click();
    await page.locator('#overlay').waitFor({state:'hidden'});
    if(mobile){
@@ -66,10 +66,10 @@ const fs=require('node:fs');
     await page.keyboard.up('KeyD');await page.keyboard.press('Space');
    }
    assert.deepEqual(errors,[]);
-   await page.screenshot({path:'test-output/knight-054-'+name+'-game.png'});
+   await page.screenshot({path:'test-output/knight-075-'+name+'-game.png'});
    await page.goto('http://127.0.0.1:8000/?previewKnightFinal=1');
    assert.equal(await page.evaluate(async()=>{
-    const {getKnightFinal}=await import('./src/knight-final.js?v=0.74.0');
+    const {getKnightFinal}=await import('./src/knight-final.js?v=0.75.0');
     const atlas=getKnightFinal();await atlas.loading;return atlas.production;
    }),true);
    console.log(name,'608 production cells, menu, dungeon, controls and previous preview link passed');

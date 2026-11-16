@@ -101,7 +101,7 @@ test('melee plants boots, dash interrupts it, and movement resumes through recov
 test('each hit event selects the contact image and its effect touches the blade',async()=>{
  const contacts={attack1:3,attack2:4,attack3:5};
  for(const [clip,frame] of Object.entries(contacts)){
-  const image=await loadImage(await readFile(new URL('../assets/knight/fine-074/'+clip+'.png',import.meta.url)));
+  const image=await loadImage(await readFile(new URL('../assets/knight/crusader-075/'+clip+'.png',import.meta.url)));
   for(let row=0;row<8;row++){
    const angle=Math.PI/2+row*Math.PI/4,direction={x:Math.cos(angle),y:Math.sin(angle)};
    const p={kind:'warrior',x:0,y:0,hp:100,direction};

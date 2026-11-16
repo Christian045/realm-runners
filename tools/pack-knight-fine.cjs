@@ -3,17 +3,22 @@
 // cross nominal grid boundaries without collecting a neighbour's equipment.
 const {createCanvas,loadImage}=require('@napi-rs/canvas');
 const fs=require('node:fs'),path=require('node:path');
-const root=path.resolve(__dirname,'../assets/knight/fine-074');
+const variant=process.argv[2]??'fine-074';
+if(!['fine-074','crusader-075'].includes(variant))throw Error('Unknown knight variant '+variant);
+const preserveCross=variant==='crusader-075';
+const root=path.resolve(__dirname,'../assets/knight',variant);
 const dirs=['S','SW','W','NW','N','NE','E','SE'],cell=128;
 const sequences={idle:[0,0,0,0,0,0],walk:[8,9,10,11,12,13,14,15],
  attack1:[0,17,18,19,20,21,22,0],attack2:[0,25,26,27,28,29,30,0],
  attack3:[0,33,34,35,36,36,37,38,39,0],recovery:[0,0,0,0,0,0],
  special:[17,18,19,19,20,21,22,0],dash:[40,41,42,42,42,41,43,0],
  hurt:[0,4,5,5,6,0],death:[0,44,44,45,45,46,47,47]};
-function figures(image){
+function figures(image,{preserveCross=false}={}){
  const c=createCanvas(image.width,image.height),g=c.getContext('2d');g.drawImage(image,0,0);
  const p=g.getImageData(0,0,c.width,c.height).data,w=c.width,h=c.height,seen=new Uint8Array(w*h),rows=Array.from({length:6},()=>[]);
- const visible=k=>{const i=k*4,r=p[i],gg=p[i+1],b=p[i+2];return p[i+3]>=245&&!(r>150&&gg<85&&b<85&&r>gg*2.1&&r>b*2.1)&&!(gg>220&&r>220&&b<70);};
+ const visible=k=>{const i=k*4,r=p[i],gg=p[i+1],b=p[i+2];
+  const redMatte=preserveCross?r>237&&gg<55&&b<55:r>150&&gg<85&&b<85&&r>gg*2.1&&r>b*2.1;
+  return p[i+3]>=245&&!redMatte&&!(gg>220&&r>220&&b<70);};
  for(let start=0;start<seen.length;start++){
   if(seen[start]||!visible(start))continue;
   const q=[start];seen[start]=1;let l=w,t=h,r=-1,b=-1;
@@ -46,7 +51,7 @@ async function main(){
  fs.mkdirSync(root,{recursive:true});
  const sources=[],metadata=[];
  for(const d of dirs){
-  const raw=await loadImage(path.join(root,'source-'+d+'.png')),parts=figures(raw);
+  const raw=await loadImage(path.join(root,'source-'+d+'.png')),parts=figures(raw,{preserveCross});
   const scale=72/parts[0].image.height,referenceX=helmetCentre(parts[0].image);
   const out=createCanvas(8*cell,6*cell),g=out.getContext('2d');g.imageSmoothingEnabled=false;
   const entries=[];
@@ -90,7 +95,9 @@ async function main(){
     }
     // In crossing slashes the blade passes below the helmet or opposite the
     // facing vector. Use the visually measured blade end, not a bright boot.
-    const measured={attack2:{3:[22,109],5:[104,99],7:[115,64]},attack3:{5:[104,102]}}[clip]?.[row];
+    const measured=(preserveCross?
+     {attack2:{3:[25,111],5:[100,102],7:[112,76]},attack3:{5:[107,98]}}:
+     {attack2:{3:[22,109],5:[104,99],7:[115,64]},attack3:{5:[104,102]}})[clip]?.[row];
     if(measured){let best=Infinity;for(let y=measured[1]-7;y<=measured[1]+7;y++)for(let x=measured[0]-7;x<=measured[0]+7;x++){
      if(x<0||y<0||x>=cell||y>=cell||p[(y*cell+x)*4+3]!==255)continue;
      const distance=(x-measured[0])**2+(y-measured[1])**2;if(distance<best){best=distance;point=[x,y];}
@@ -100,8 +107,10 @@ async function main(){
   }
  }
  fs.writeFileSync(path.join(root,'atlas.json'),JSON.stringify({cell,anchor:[64,112],directions:dirs,sequences,contacts,rows:metadata},null,2)+'\n');
- fs.writeFileSync(path.join(root,'../../../src/knight-fine-contacts.js'),'// Generated from the visible steel at contact frames; see pack-knight-fine.cjs.\nexport const KNIGHT_FINE_CONTACTS='+JSON.stringify(contacts)+';\n');
- console.log('Packed fine knight: 608 cells, 128px padded cells, 72px native body, 8 directions.');
+ const contactsFile=preserveCross?'knight-crusader-contacts.js':'knight-fine-contacts.js';
+ const contactsExport=preserveCross?'KNIGHT_CRUSADER_CONTACTS':'KNIGHT_FINE_CONTACTS';
+ fs.writeFileSync(path.join(root,'../../../src',contactsFile),'// Generated from the visible steel at contact frames; see pack-knight-fine.cjs.\nexport const '+contactsExport+'='+JSON.stringify(contacts)+';\n');
+ console.log('Packed '+variant+': 608 cells, 128px padded cells, 72px native body, 8 directions.');
 }
 if(require.main===module)main().catch(e=>{console.error(e);process.exitCode=1;});
 module.exports={figures};

@@ -1,6 +1,6 @@
 // One coherent illustrated set for the released knight, in all eight facings.
-import {KNIGHT_FINE_CONTACTS} from './knight-fine-contacts.js?v=0.74.0';
-export const KNIGHT_PRODUCTION_VERSION='0.74.0';
+import {KNIGHT_CRUSADER_CONTACTS} from './knight-crusader-contacts.js?v=0.75.0';
+export const KNIGHT_PRODUCTION_VERSION='0.75.0';
 export const KNIGHT_PRODUCTION_CELL=128;
 export const KNIGHT_PRODUCTION_ANCHOR=Object.freeze({x:64,y:112});
 export const KNIGHT_PRODUCTION_SCALE=.8;
@@ -23,7 +23,7 @@ export async function loadKnightProductionSheets(factory){
     resolve([clip,image]);
    };
    image.onerror=()=>reject(new Error('Missing knight atlas '+clip));
-   image.src=new URL('../assets/knight/fine-074/'+clip+'.png?v='+KNIGHT_PRODUCTION_VERSION,import.meta.url).href;
+   image.src=new URL('../assets/knight/crusader-075/'+clip+'.png?v='+KNIGHT_PRODUCTION_VERSION,import.meta.url).href;
   })
  ));
  return Object.fromEntries(sheets);
@@ -36,7 +36,7 @@ export function knightStrikePlanted(player){
 export function knightProductionImpact(player,direction,clip,params){
  if(!knightProductionEnabled(params))return null;
  const row=((Math.round((Math.atan2(direction.y,direction.x)-Math.PI/2)/(Math.PI/4))%8)+8)%8;
- const point=KNIGHT_FINE_CONTACTS[clip]?.[row];
+ const point=KNIGHT_CRUSADER_CONTACTS[clip]?.[row];
  if(!point)return null;
  return {x:player.x+point[0]-KNIGHT_PRODUCTION_ANCHOR.x,
   y:player.y+point[1]-KNIGHT_PRODUCTION_ANCHOR.y,row,clip};
