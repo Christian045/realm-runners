@@ -55,7 +55,7 @@ export function knightPose(p,time=0){
  else if(p.moving){clip='walk';duration=KNIGHT_CLIPS.walk.duration;elapsed=p.knightWalkDistance===undefined?
   (p.walkDistance===undefined?(p.walkCycle||0)/14:p.walkDistance/WALK_STRIDE*duration):
   p.knightWalkDistance/KNIGHT_VISUAL_STRIDE*duration;
-  direction=p.knightMoveDirection||direction;}
+  direction=p.touchAiming?direction:p.knightMoveDirection||direction;}
  const spec=KNIGHT_CLIPS[clip];
  const progress=Math.max(0,elapsed/duration);
  const frame=spec.loop?Math.floor(progress*spec.frames)%spec.frames:Math.min(spec.frames-1,Math.floor(progress*spec.frames));

@@ -1,9 +1,9 @@
 import {knightStrikePlanted,knightProductionImpact} from './knight-production.js?v=0.75.0';
 import {beginCompanionAttack,advanceCompanion,companionShot} from './companion-animation.js?v=0.31.0';
 import {advanceLocomotion} from './locomotion.js?v=0.75.0';
-import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.75.0';
-import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.31.0';
-import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.67.1';
+import {heroShot,HERO_PROJECTILE_HEIGHT} from './hero-aim.js?v=0.75.1';
+import {HERO_KINDS,beginHeroAction,advanceHeroAction} from './hero-animation.js?v=0.75.1';
+import {beginKnightAction,advanceKnightAction} from './knight-animation.js?v=0.75.1';
 import {knightBladeTip} from './knight-reborn.js?v=0.49.0';
 import {knightNorth051Impact} from './knight-north-051.js?v=0.53.1';
 import {knightSide053Impact} from './knight-side-053.js?v=0.53.1';
@@ -492,6 +492,9 @@ export class Game {
   if(this.statisticsSaveClock>=8){this.statisticsSaveClock=0;this.saveStatistics()}
   const p=this.player,move=this.input.movement(),aim=this.input.aiming(p,camera);
   if(Number.isFinite(aim.x)&&Number.isFinite(aim.y))p.direction=aim;
+  // The right-hand attack stick owns facing while the left stick still moves.
+  p.touchAiming=Boolean((this.input.mobileAttack&&this.input.attackAim)||
+   (this.input.attackTapQueued&&this.input.attackTapAim));
   const moveFromX=p.x,moveFromY=p.y;
   let locomotionDash=p.dashTimer>0;
   p.attackTimer=Math.max(0,(p.attackTimer||0)-dt);
@@ -524,7 +527,7 @@ export class Game {
   }
   advanceLocomotion(p,moveFromX,moveFromY,locomotionDash,dt);
   if(p.kind==='warrior')this.updateKnightAction(dt);else this.updateHeroAction(dt);
-  const attacking=this.input.attacking();
+  const attacking=this.input.attacking(p.kind);
   if(p.kind==='hunter'){
    p.hunterCharge=attacking?(p.hunterCharge||0)+dt:0;
    if(attacking&&p.attackCooldown<=0&&!p.heroAction&&p.hurtTimer<=.20){

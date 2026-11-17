@@ -5,6 +5,7 @@ import {Game} from '../src/game.js?v=0.23.0';
 import {Input} from '../src/input.js?v=0.23.0';
 import {defaultProgress} from '../src/progression.js';
 import {drawCrystalRifle} from '../src/weapon-visuals.js';
+import {hunterPose} from '../src/hunter-motion.js';
 
 const idle={
  movement:()=>({x:0,y:0}),aiming:()=>({x:1,y:0}),attacking:()=>false,
@@ -69,10 +70,10 @@ function fakeControl(){
 test('touch tap throws once and hold-drag targets a precise location; PC mouse release is queued',()=>{
  const oldDocument=globalThis.document,oldWindow=globalThis.window;
  const attack=fakeControl(),canvas=fakeControl(),stick=fakeControl();
- const dash=fakeControl(),ability=fakeControl(),win=fakeControl(),doc=fakeControl();
+ const win=fakeControl(),doc=fakeControl();
  globalThis.window=win;
  globalThis.document={...doc,querySelector:sel=>({
-  '#attackTouch':attack,'#joystick':stick,'#dashTouch':dash,'#abilityTouch':ability
+  '#attackTouch':attack,'#joystick':stick
  })[sel]};
  try{
   const input=new Input(canvas);
@@ -94,6 +95,41 @@ test('touch tap throws once and hold-drag targets a precise location; PC mouse r
   canvas.dispatch('pointerdown',{pointerType:'mouse',clientX:600,clientY:200,button:0});
   win.dispatch('pointerup',{pointerType:'mouse'});
   assert.equal(input.consumeLobRelease(),true,'releasing mouse queues a single throw');
+
+  // Two simultaneous fingers: walking west must not steer shots west.
+  input.mouse.active=false;
+  stick.dispatch('pointerdown',{pointerId:2,clientX:150,clientY:270});
+  attack.dispatch('pointerdown',{pointerId:3,clientX:800,clientY:270});
+  assert.ok(input.movement().x<-.9,'left stick moves west');
+  assert.ok(input.aiming({x:400,y:260},{x:0,y:0,scale:1}).x>.9,
+   'right stick aims east, independently of movement');
+  assert.equal(input.attacking(),true,'holding attack stick fires while moving');
+  const game=new Game(defaultProgress(),input);game.start('hunter',37);
+  const startX=game.player.x;
+  game.update(1/30);
+  assert.ok(game.player.x<startX,'the hunter actually runs west');
+  assert.ok(game.player.direction.x>.9,'the hunter shoots and faces east');
+  for(let i=0;i<45&&!game.projectiles.length;i++)game.update(1/60);
+  assert.ok(game.projectiles.some(arrow=>arrow.vx>0),
+   'a fired arrow travels east while the hunter moves west');
+  const hunter={hp:100,moving:true,heroMoveDirection:{x:-1,y:0},
+   direction:{x:1,y:0},touchAiming:true};
+  assert.equal(hunterPose(hunter).direction.x,1,
+   'hunter faces the aim direction while strafing backwards');
+  attack.dispatch('pointermove',{pointerId:3,clientX:480,clientY:50});
+  assert.ok(input.aiming({x:400,y:260},{x:0,y:0,scale:1}).y<-.9,
+   'dragging the attack stick north changes the shot direction');
+  attack.dispatch('pointerup',{pointerId:3});
+  assert.equal(input.attacking(),false);
+  assert.equal(input.attackAim,null);
+  attack.dispatch('pointerdown',{pointerId:4,clientX:800,clientY:270});
+  attack.dispatch('pointerup',{pointerId:4,clientX:800,clientY:270});
+  assert.ok(input.aiming({x:400,y:260},{x:0,y:0,scale:1}).x>.9,
+   'even a quick eastward tap keeps its direction until the next game frame');
+  assert.equal(input.attacking('hunter'),true,'a quick tap fires one arrow');
+  assert.equal(input.attacking('hunter'),false,'the quick tap cannot fire twice');
+  stick.dispatch('pointerup',{pointerId:2});
+  assert.deepEqual(input.movement(),{x:0,y:0});
  }finally{
   if(oldDocument===undefined)delete globalThis.document;
   else globalThis.document=oldDocument;

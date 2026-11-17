@@ -11,7 +11,7 @@ export function hunterPose(p,time=0,action=p.heroAction){
  if(p.hp<=0){clip='death';progress=clamp((p.heroDeathElapsed||0)/1.04);}
  else if(clip==='hurt'&&!action)progress=clamp(1-(p.hurtTimer||0)/.34);
  const direction=(clip==='death'?p.heroDeathDirection:action?.direction)||
-  (clip==='walk'?p.heroMoveDirection:null)||p.direction||{x:0,y:1};
+  (clip==='walk'&&!p.touchAiming?p.heroMoveDirection:null)||p.direction||{x:0,y:1};
  const row=hunterFacing(direction),count=HUNTER_COUNTS[clip];
  const phase=clip==='walk'?((((p.hunterWalkDistance??p.walkDistance??0)%HUNTER_STRIDE)+HUNTER_STRIDE)%HUNTER_STRIDE)/HUNTER_STRIDE:
   clip==='idle'?(((time%2.4)+2.4)%2.4)/2.4:progress;

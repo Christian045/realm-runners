@@ -10,7 +10,7 @@ export function magePose(p,time=0,action=p.heroAction){
  let clip=action?.clip||(p.hurtTimer>0?'hurt':p.moving?'walk':'idle');
  let t=action?clamp(action.elapsed/action.duration):clip==='hurt'?clamp(1-p.hurtTimer/.34):0;
  if(p.hp<=0){clip='death';t=clamp((p.heroDeathElapsed||0)/1.04);}
- const direction=(clip==='death'?p.heroDeathDirection:action?.direction)||(clip==='walk'?p.heroMoveDirection:null)||p.direction;
+ const direction=(clip==='death'?p.heroDeathDirection:action?.direction)||(clip==='walk'&&!p.touchAiming?p.heroMoveDirection:null)||p.direction;
  const row=mageFacing(direction);let frame=0;
  if(clip==='walk')frame=[1,2,3,4][Math.floor((((p.walkDistance||0)%72)+72)%72/18)];
  if(clip==='attack')frame=t<.16?0:t<.5?5:t<.68?6:t<.9?7:0;

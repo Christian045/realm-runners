@@ -77,7 +77,8 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
     if(mobile){
      // Fixed game buttons need real touchscreen coordinates, not WebKit's
      // scroll-into-view machinery (which can stall on an animated viewport).
-     for(const id of ['attackTouch','abilityTouch','dashTouch']){
+     assert.equal(await page.locator('.mobile-actions button').count(),1);
+     for(const id of ['attackTouch']){
       const button=page.locator('#'+id);assert.ok(await button.isVisible());
       const box=await button.boundingBox(),viewport=page.viewportSize();
       assert.ok(box&&box.x>=0&&box.y>=0&&box.x+box.width<=viewport.width&&box.y+box.height<=viewport.height);

@@ -29,7 +29,7 @@ export function heroPose(p,time=0){
  if(p.hp<=0){clip='death';elapsed=p.heroDeathElapsed||0;duration=1.04;direction=p.heroDeathDirection||direction;}
  else if(p.heroAction){({clip,elapsed,duration,direction}=p.heroAction);}
  else if(p.hurtTimer>0){clip='hurt';elapsed=.34-p.hurtTimer;duration=.34;}
- else if(p.moving){clip='walk';duration=HERO_CLIPS.walk.duration;elapsed=p.walkDistance===undefined?(p.walkCycle||0)/14:p.walkDistance/WALK_STRIDE*duration;direction=p.heroMoveDirection||direction;}
+ else if(p.moving){clip='walk';duration=HERO_CLIPS.walk.duration;elapsed=p.walkDistance===undefined?(p.walkCycle||0)/14:p.walkDistance/WALK_STRIDE*duration;direction=p.touchAiming?direction:p.heroMoveDirection||direction;}
  const spec=HERO_CLIPS[clip],progress=Math.max(0,elapsed/duration);
  return {clip,row:spec.row,frame:spec.loop?Math.floor(progress*spec.frames)%spec.frames:Math.min(spec.frames-1,Math.floor(progress*spec.frames)),
   face:heroFacing(direction),direction,progress:Math.min(1,progress)};

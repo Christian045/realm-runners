@@ -2,8 +2,9 @@ import { normalized } from './data.js';
 export class Input {
  constructor(canvas){
   this.canvas=canvas;this.keys=new Set();this.mouse={x:0,y:0,down:false,active:false};
-  this.stick={x:0,y:0};this.aim={x:1,y:0};
-  this.dashQueued=false;this.abilityQueued=false;this.mobileAttack=false;
+  this.stick={x:0,y:0};this.aim={x:1,y:0};this.attackAim=null;
+  this.dashQueued=false;this.abilityQueued=false;this.mobileAttack=false;this.attackPointer=null;
+  this.attackTapQueued=false;this.attackTapAim=null;
   this.lobReleaseQueued=false;this.touchLobAim=null;
   const block=new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space']);
   window.addEventListener('keydown',e=>{
@@ -43,29 +44,51 @@ export class Input {
    if(e.pointerId!==pointer)return;pointer=null;this.stick={x:0,y:0};stick.style.setProperty('--sx','0px');stick.style.setProperty('--sy','0px');
   });
   const attack=document.querySelector('#attackTouch');
+  const updateAttackAim=e=>{
+   const r=attack.getBoundingClientRect();
+   const dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);
+   if(Math.hypot(dx,dy)<12){
+    this.attackAim=null;
+    attack.style.setProperty('--ax','0px');attack.style.setProperty('--ay','0px');
+    return;
+   }
+   this.attackAim=normalized(dx,dy);
+   this.aim={...this.attackAim};
+   this.attackTapAim={...this.attackAim};
+   const reach=Math.min(r.width*.24,Math.hypot(dx,dy));
+   attack.style.setProperty('--ax',(this.attackAim.x*reach)+'px');
+   attack.style.setProperty('--ay',(this.attackAim.y*reach)+'px');
+  };
   attack.addEventListener('pointerdown',e=>{
-   e.preventDefault();attack.setPointerCapture(e.pointerId);
+   if(this.attackPointer!==null)return;
+   e.preventDefault();this.attackPointer=e.pointerId;attack.setPointerCapture(e.pointerId);
    this.mobileAttack=true;
+   this.attackTapQueued=true;this.attackTapAim=null;
    this.touchLobAim={startX:e.clientX,startY:e.clientY,x:e.clientX,y:e.clientY};
+   updateAttackAim(e);
   });
   attack.addEventListener('pointermove',e=>{
-   if(!this.mobileAttack||!this.touchLobAim)return;
+   if(e.pointerId!==this.attackPointer||!this.mobileAttack||!this.touchLobAim)return;
    e.preventDefault();this.touchLobAim.x=e.clientX;this.touchLobAim.y=e.clientY;
+   updateAttackAim(e);
   });
   const stopAttack=e=>{
+   if(e.pointerId!==this.attackPointer)return;
    if(this.mobileAttack&&e.type==='pointerup')this.lobReleaseQueued=true;
-   this.mobileAttack=false;
+   this.mobileAttack=false;this.attackAim=null;this.attackPointer=null;
+   attack.style.setProperty('--ax','0px');attack.style.setProperty('--ay','0px');
   };
   for(const evt of ['pointerup','pointercancel','lostpointercapture'])
    attack.addEventListener(evt,stopAttack);
-  document.querySelector('#dashTouch').addEventListener('pointerdown',e=>{e.preventDefault();this.dashQueued=true});
-  document.querySelector('#abilityTouch').addEventListener('pointerdown',e=>{e.preventDefault();this.abilityQueued=true});
  }
  resetTransient(){
   this.keys.clear();
   this.mouse.down=false;
   this.mouse.active=false;
   this.mobileAttack=false;
+  this.attackAim=null;
+  this.attackPointer=null;
+  this.attackTapQueued=false;this.attackTapAim=null;
   this.lobReleaseQueued=false;this.touchLobAim=null;
   this.dashQueued=false;
   this.abilityQueued=false;
@@ -75,6 +98,11 @@ export class Input {
    stick.style.setProperty('--sx','0px');
    stick.style.setProperty('--sy','0px');
   }
+  const attack=document.querySelector('#attackTouch');
+  if(attack){
+   attack.style.setProperty('--ax','0px');
+   attack.style.setProperty('--ay','0px');
+  }
  }
  movement(){
   const x=Number(this.keys.has('KeyD')||this.keys.has('ArrowRight'))-Number(this.keys.has('KeyA')||this.keys.has('ArrowLeft'))+this.stick.x;
@@ -82,12 +110,14 @@ export class Input {
   const length=Math.min(1,Math.hypot(x,y));const n=normalized(x,y);return {x:n.x*length,y:n.y*length};
  }
  aiming(player,camera){
-  if(this.mouse.active){
+  if((this.mobileAttack&&this.attackAim)||(this.attackTapQueued&&this.attackTapAim)){
+   this.aim={...(this.attackAim||this.attackTapAim)};
+  }else if(!this.mobileAttack&&this.mouse.active){
    const rect=this.canvas.getBoundingClientRect();
    const wx=(this.mouse.x-rect.left)*this.canvas.width/rect.width/camera.scale+camera.x;
    const wy=(this.mouse.y-rect.top)*this.canvas.height/rect.height/camera.scale+camera.y;
    this.aim=normalized(wx-player.x,wy-player.y);
-  }else{
+  }else if(!this.mobileAttack){
    const m=this.movement();if(Math.hypot(m.x,m.y)>.15)this.aim=normalized(m.x,m.y);
   }
   return this.aim;
@@ -128,7 +158,13 @@ export class Input {
   const result=this.lobReleaseQueued;this.lobReleaseQueued=false;return result;
  }
  clearLobAim(){this.touchLobAim=null;}
- attacking(){return this.mouse.down||this.mobileAttack||this.keys.has('KeyF')||this.keys.has('KeyJ')}
+ attacking(kind){
+  // A quick tap may begin and end between game frames. Preserve one shot,
+  // without treating an alchemist's release-to-throw as a held attack.
+  const tapped=this.attackTapQueued&&kind!=='alchemist';
+  this.attackTapQueued=false;this.attackTapAim=null;
+  return this.mouse.down||this.mobileAttack||this.keys.has('KeyF')||this.keys.has('KeyJ')||tapped;
+ }
  consumeDash(){const result=this.dashQueued;this.dashQueued=false;return result}
  consumeAbility(){const result=this.abilityQueued;this.abilityQueued=false;return result}
 }

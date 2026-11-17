@@ -70,8 +70,9 @@ async function activate(page,selector,mobile){
      await activate(live,'[data-action="servant:'+kind+'"]',mobile);
      await activate(live,'[data-action="start"]',mobile);
      await live.locator('#overlay').waitFor({state:'hidden'});
-     if(mobile){const box=await live.locator('#abilityTouch').boundingBox();await live.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);}
-     else await live.keyboard.press('KeyQ');
+     // The summoner skill remains keyboard-accessible for this regression test;
+     // the mobile UI intentionally exposes only movement and directional attack.
+     await live.keyboard.press('KeyQ');
      await live.waitForTimeout(800);
      await live.screenshot({path:'test-output/companion-'+kind+'-live-'+engine+'.png'});
      assert.equal(await live.evaluate(()=>visualViewport.scale),1);

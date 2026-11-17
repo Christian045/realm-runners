@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {Input} from '../src/input.js';
+
+test('mobile presents exactly two thumb controls: movement and directional attack',()=>{
+ const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ const controls=html.match(/id="(?:joystick|attackTouch|dashTouch|abilityTouch)"/g)||[];
+ assert.deepEqual(controls,['id="joystick"','id="attackTouch"']);
+ assert.match(html,/class="attack-knob"/);
+});
 
 test('pause, inventory and focus loss cannot leave queued actions or held movement',()=>{
  const input=Object.create(Input.prototype);
@@ -13,7 +21,7 @@ test('pause, inventory and focus loss cannot leave queued actions or held moveme
  const moved=[];
  const original=globalThis.document;
  globalThis.document={querySelector(selector){
-  assert.equal(selector,'#joystick');
+  assert.ok(['#joystick','#attackTouch'].includes(selector));
   return {style:{setProperty:(name,value)=>moved.push([name,value])}};
  }};
  try{
@@ -28,7 +36,7 @@ test('pause, inventory and focus loss cannot leave queued actions or held moveme
   assert.equal(input.mouse.active,false);
   assert.deepEqual(input.stick,{x:0,y:0});
   assert.deepEqual(input.aim,{x:0,y:1},'aim direction should remain stable');
-  assert.deepEqual(moved,[['--sx','0px'],['--sy','0px']]);
+  assert.deepEqual(moved,[['--sx','0px'],['--sy','0px'],['--ax','0px'],['--ay','0px']]);
  }finally{
   if(original===undefined)delete globalThis.document;else globalThis.document=original;
  }

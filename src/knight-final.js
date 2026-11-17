@@ -1,5 +1,5 @@
 import {knightProductionEnabled,loadKnightProductionSheets,KNIGHT_PRODUCTION_SCALE,KNIGHT_PRODUCTION_CELL,KNIGHT_PRODUCTION_ANCHOR} from './knight-production.js?v=0.75.0';
-import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.67.1';
+import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.75.1';
 import {rigFacing} from './articulated-hero.js?v=0.40.0';
 import {knightPreviewActionFrame,knightPreviewPresentationFrame,knightBreathingRect} from './knight-preview-motion.js?v=0.75.0';
 import {KNIGHT_REBORN_FRAME_COUNTS,createKnightRebornSheets} from './knight-reborn.js?v=0.49.0';

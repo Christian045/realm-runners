@@ -1,3 +1,14 @@
+## 0.75.1 – Unabhängige Zwei-Stick-Steuerung auf Mobilgeräten
+
+Links steuert der Joystick die Bewegung. Der rechte runde Angriffs-Stick lässt
+sich in jede Richtung ziehen und löst beim Halten Angriffe aus. So kann der
+Jäger beispielsweise nach links laufen und nach rechts schießen; der Körper
+dreht sich beim Zielen auch während der Laufanimation in die Angriffsrichtung.
+Kurz antippen löst zuverlässig einen einzelnen Angriff aus. Beim Alchemisten
+bleibt das Werfen nach Loslassen erhalten. Dash- und Spezial-Buttons sowie ihre
+Abklingzeitanzeige entfallen ausschließlich auf der mobilen Oberfläche;
+Tastatur- und Maussteuerung auf dem PC bleiben bestehen.
+
 ## 0.75.0 – Kreuzritter im freigegebenen Pixel-Art-Stil
 
 Der Ritter trägt jetzt in allen acht Blickrichtungen einen kantigen geschlossenen Helm,

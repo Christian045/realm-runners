@@ -67,7 +67,7 @@ const fs=require('node:fs');
    fs.writeFileSync('test-output/knight-'+name+'.png',Buffer.from(result.screenshot.split(',')[1],'base64'));
    result.frames.forEach((data,i)=>fs.writeFileSync('test-output/knight-'+name+'-'+i+'.png',Buffer.from(data.split(',')[1],'base64')));
    if(mobile){
-    await page.locator('#attackTouch').tap();await page.locator('#abilityTouch').tap();await page.locator('#dashTouch').tap();
+    await page.locator('#attackTouch').tap();assert.equal(await page.locator('.mobile-actions button').count(),1);
     assert.ok(await page.locator('#mobileControls').isVisible());
     assert.equal(await page.evaluate(()=>visualViewport.scale),1);
    }else{await page.keyboard.press('KeyF');await page.keyboard.press('KeyQ');await page.keyboard.press('Space');}

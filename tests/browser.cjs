@@ -136,11 +136,11 @@ const assert=require('node:assert/strict');
   // A versioned main module alone does not bust an imported ./game.js URL.
   // Prevent an old cached combat engine from running after a release.
   const currentCombat=await page.evaluate(()=>performance.getEntriesByType('resource')
-    .some(entry=>entry.name.includes('/src/game.js?v=0.75.0')));
+    .some(entry=>entry.name.includes('/src/game.js?v=0.75.1')));
   assert.ok(currentCombat,'the browser must load the versioned combat engine');
   const realBattle=await page.evaluate(async()=>{
    const [{Game},{defaultProgress}]=await Promise.all([
-    import('./src/game.js?v=0.75.0'),import('./src/progression.js')]);
+    import('./src/game.js?v=0.75.1'),import('./src/progression.js')]);
    const input={movement:()=>({x:0,y:0}),aiming:()=>({x:1,y:0}),
     attacking:()=>false,consumeDash:()=>false,consumeAbility:()=>false};
    for(const seed of [5,71,150]){
@@ -260,13 +260,11 @@ const assert=require('node:assert/strict');
   assert.ok(recordUI.includes('Bestleistung'),'mobile tower records must be readable');
   await mobile.locator('[data-action="start"]').click();
   assert.ok(await mobile.locator('#mobileControls').isVisible());
+  assert.equal(await mobile.locator('.mobile-actions button').count(),1,
+   'mobile exposes movement and one directional attack stick only');
   assert.equal(await mobile.locator('#abilityHud span').count(),2);
-  const cooldownBox=await mobile.evaluate(()=>{
-   const box=document.querySelector('#abilityHud').getBoundingClientRect();
-   return {left:box.left,right:box.right,width:innerWidth};
-  });
-  assert.ok(cooldownBox.right<=cooldownBox.width-124,
-   'cooldown badges must leave room for the portrait minimap: '+JSON.stringify(cooldownBox));
+  assert.ok(await mobile.locator('#abilityHud').isHidden(),
+   'unavailable mobile actions should not show cooldown badges');
   await mobile.waitForTimeout(120);
   assert.match(await mobile.locator('#roomText').textContent(),/TURM 1\/10/);
   await mobile.locator('#inventoryBtn').tap();
@@ -287,8 +285,6 @@ const assert=require('node:assert/strict');
    'mobile bag should scroll items only: '+JSON.stringify(mobileInventoryLayout));
   await mobile.locator('[data-action="closeInventory"]').tap();
   await mobile.locator('#attackTouch').tap();
-  await mobile.locator('#dashTouch').tap();
-  await mobile.locator('#abilityTouch').tap();
   await mobile.waitForTimeout(400);
 
   // Desktop Chromium smoke remains intact; add real WebKit engine coverage for Safari.
@@ -346,8 +342,6 @@ const assert=require('node:assert/strict');
    assert.ok(await ios.locator('#overlay').isVisible());
    await ios.locator('[data-action="closeInventory"]').click();
    await tapInViewport('#attackTouch');
-   await tapInViewport('#dashTouch');
-   await tapInViewport('#abilityTouch');
    await tapInViewport('#pauseBtn');
    assert.ok(await ios.locator('#overlay').isVisible(),'pause still works on Safari');
    await ios.locator('[data-action="resume"]').click();

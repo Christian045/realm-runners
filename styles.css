@@ -54,12 +54,12 @@ canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
 .mobile-controls{position:fixed;z-index:5;inset:auto 0 max(18px,env(safe-area-inset-bottom));display:none;justify-content:space-between;align-items:end;pointer-events:none;padding:0 25px}
 .joystick{width:130px;height:130px;border-radius:50%;border:3px solid #9bc1ad88;background:#1234399e;pointer-events:auto;display:grid;place-items:center;touch-action:none;box-shadow:inset 0 0 24px #091b1f}
 .joystick-inner{width:62px;height:62px;border-radius:50%;border:3px solid #cae0c499;background:#638e7abf;transform:translate(var(--sx,0px),var(--sy,0px))}
-.mobile-actions{display:grid;grid-template-columns:repeat(2,59px);grid-template-rows:repeat(2,59px);gap:12px;pointer-events:auto}
+.mobile-actions{display:flex;align-items:center;justify-content:center;pointer-events:auto}
 .action{border:2px solid #b4cda0;box-shadow:4px 5px #071b1fbb;color:#f6e7bd;background:#23474dd9;font-size:24px;font-weight:900;border-radius:50%;touch-action:none}
-.action.attack{grid-column:2;grid-row:1/3;align-self:center;width:76px;height:76px;margin-left:-9px;background:#6d5d48e8}
-.action.ability{background:#574b70e8}.action.dash{grid-column:1;grid-row:2;background:#37666ae8}
+.action.attack{width:124px;height:124px;display:grid;place-items:center;background:#254249ba;border-color:#c9b78e88;box-shadow:inset 0 0 24px #091b1f,4px 5px #071b1fbb;overflow:visible}
+.attack-knob{display:grid;place-items:center;width:64px;height:64px;border:2px solid #f4d8a7;border-radius:50%;background:#846c4eea;color:#fff4d5;font-size:30px;box-shadow:0 3px 10px #0006;transform:translate(var(--ax,0px),var(--ay,0px));pointer-events:none}
 .toast{position:fixed;z-index:8;top:19%;left:50%;transform:translateX(-50%);padding:12px 18px;color:#ebefdd;background:#0e2f31dd;border:1px solid #9eb798;font-size:13px}
-@media(hover:none),(pointer:coarse){.mobile-controls{display:flex}.ability-hud{bottom:auto;top:max(84px,env(safe-area-inset-top));left:15px;gap:5px}.ability-hud span{padding:6px 7px;font-size:9px}}
+@media(hover:none),(pointer:coarse){.mobile-controls{display:flex}.ability-hud{display:none!important}}
 @media(max-width:700px){
  .game-top{left:9px;right:9px;top:max(7px,env(safe-area-inset-top));gap:5px}
  .identity{font-size:10px;letter-spacing:.2px;gap:2px}.identity small{font-size:6px;letter-spacing:.2px}.sigil{font-size:22px}
@@ -67,8 +67,8 @@ canvas{display:block;width:100vw;height:100dvh;image-rendering:pixelated}
  .mini-button{width:27px;height:30px;font-size:13px}
  .panel{padding:17px 13px;max-height:94dvh}.panel p{font-size:12px}
  .class-card{padding:7px 3px}.class-card strong{font-size:12px}.class-card small{font-size:9px}
- .meta-row{grid-template-columns:1fr 1fr}.mobile-controls{padding:0 15px}.joystick{width:110px;height:110px}.mobile-actions{gap:8px;grid-template-columns:repeat(2,51px);grid-template-rows:repeat(2,51px)}
- .action.attack{width:68px;height:68px}
+  .meta-row{grid-template-columns:1fr 1fr}.mobile-controls{padding:0 15px}.joystick{width:110px;height:110px}
+  .action.attack{width:110px;height:110px}.attack-knob{width:58px;height:58px;font-size:27px}
 }
 @media(max-height:540px){.panel h1{font-size:36px}.panel{max-height:94dvh}.ability-hud{display:none!important}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

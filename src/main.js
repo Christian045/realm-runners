@@ -1,10 +1,10 @@
-import {openAnimationLab,animationLabOpen} from './animation-lab.js?v=0.75.0';
+import {openAnimationLab,animationLabOpen} from './animation-lab.js?v=0.75.1';
 import {CLASSES} from './data.js?v=0.23.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.21.0';
 import {ENEMY_NAMES,totalKills,formatPlayTime} from './statistics.js?v=0.21.0';
-import {Input} from './input.js?v=0.23.0';
-import {Game} from './game.js?v=0.75.0';
-import {Renderer} from './render.js?v=0.75.0';
+import {Input} from './input.js?v=0.75.1';
+import {Game} from './game.js?v=0.75.1';
+import {Renderer} from './render.js?v=0.75.1';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.21.0';
 import {ITEM_SETS,RUN_POWERS,setPieces} from './buildcraft.js?v=0.21.0';
 import {installTouchGuard} from './touch-guard.js';
@@ -378,9 +378,9 @@ function updateHud(){
  $('inventoryBtn').textContent='RUCKSACK ('+hud.inventory+')';
  const aimFlask=game.player.kind==='alchemist';
  const attackButton=$('attackTouch');
- attackButton.textContent=aimFlask?'◎':'⚔';
- attackButton.setAttribute('aria-label',aimFlask?'Flasche zielen: gedrückt halten und ziehen, loslassen zum Werfen':'Angreifen');
- attackButton.title=aimFlask?'Halten und ziehen zum Zielen – loslassen zum Werfen':'Angreifen';
+  attackButton.querySelector('.attack-knob').textContent=aimFlask?'◎':'⚔';
+  attackButton.setAttribute('aria-label',aimFlask?'Flasche zielen: gedrückt halten und ziehen, loslassen zum Werfen':'Angriffsrichtung: zum Zielen ziehen und gedrückt halten');
+  attackButton.title=aimFlask?'Halten und ziehen zum Zielen – loslassen zum Werfen':'In die gewünschte Angriffsrichtung ziehen und halten';
  canvas.style.cursor=aimFlask&&game.mode==='playing'?'crosshair':'default';
  const dash=$('dashLabel'),ability=$('abilityLabel');
  dash.textContent=hud.dash>0?'DASH · '+hud.dash.toFixed(1)+'s':'DASH ✓';
