@@ -1,3 +1,4 @@
+import {rifleShot,riflemanEnabled} from './glass-rifleman.js?v=0.76.0';
 import {mageReady,mageShot} from './mage-production.js?v=0.75.1';
 import {hunterProductionEnabled,hunterProductionShot} from './hunter-production.js?v=0.75.1';
 import {hunterIdentityEnabled,hunterIdentityShot} from './hunter-identity.js?v=0.75.1';
@@ -28,6 +29,7 @@ export function castingIntensity(action){
   progress<.64?1:Math.cos((progress-.64)/.36*Math.PI/2);
 }
 export function heroShot(p,action=p.heroAction){
+ if(p.kind==='glasscannon'&&riflemanEnabled())return rifleShot(p,action);
  if(p.kind==='hunter'&&hunterProductionEnabled())return hunterIdentityEnabled()?hunterIdentityShot(p,action):hunterProductionShot(p,action);
  if(p.kind==='mage'&&mageReady())return mageShot(p,action);
  if(heroRigReady(p.kind))return articulatedShot(p,action);

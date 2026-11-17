@@ -1,11 +1,12 @@
+import {getGlassRifleman} from './glass-rifleman.js?v=0.76.0';
 import {getKnightFinal,knightFinalFrame} from './knight-final.js?v=0.75.0';
 import {getHunterProduction,hunterPose,HUNTER_STRIDE} from './hunter-production.js?v=0.75.1';
 import {heroRigReady,articulatedPose,RIG_ROWS,getHeroRig} from './articulated-hero.js?v=0.68.0';
-import {HeroSpriteAtlas} from './hero-sprites.js?v=0.75.1';
+import {HeroSpriteAtlas} from './hero-sprites.js?v=0.76.0';
 import {KnightSpriteAtlas} from './knight-sprites.js?v=0.75.1';
 import {heroPose,HERO_CLIPS} from './hero-animation.js?v=0.75.1';
 import {knightPose,KNIGHT_CLIPS} from './knight-animation.js?v=0.75.1';
-import {heroShot} from './hero-aim.js?v=0.75.1';
+import {heroShot} from './hero-aim.js?v=0.76.0';
 import {KNIGHT_VISUAL_STRIDE} from './knight-walk.js?v=0.46.0';
 import {CLASSES} from './data.js?v=0.23.0';
 import {getMageProduction,magePose} from './mage-production.js?v=0.75.1';
@@ -44,7 +45,7 @@ export async function openAnimationLab(){
  const dialog=document.createElement('dialog');dialog.className='animation-lab';active=dialog;
  dialog.setAttribute('aria-labelledby','animation-lab-title');
  dialog.innerHTML=`<header><div><p class="lab-eyebrow">REALM RUNNERS · ANIMATIONEN</p><h2 id="animation-lab-title">Die Trainingshalle</h2></div><button type="button" data-lab="close" aria-label="Testszene schließen">Schließen ✕</button></header>
- <p class="lab-description">${new URLSearchParams(location.search).get('hunterShortbow')==='1'?'Kurzbogen-Versuch: neue Ansichten W/O/N, einhändiges Tragen. Nordschuss noch nicht visuell freigegeben. ':''}Alle sechs Klassen mit dem Renderer des Spiels. Diese Szene verändert weder Spielstände noch Statistiken. Ritter, Magier und Jäger nutzen komplette Pixel-Art-Frames in acht Richtungen; die übrigen Klassen verwenden weiterhin ihre bisherigen Modelle.</p>
+ <p class="lab-description">${new URLSearchParams(location.search).get('hunterShortbow')==='1'?'Kurzbogen-Versuch: neue Ansichten W/O/N, einhändiges Tragen. Nordschuss noch nicht visuell freigegeben. ':''}Alle sechs Klassen mit dem Renderer des Spiels. Diese Szene verändert weder Spielstände noch Statistiken. Ritter, Magier und Jäger nutzen komplette Pixel-Art-Frames in acht Richtungen; der Glaskanonier führt sein Gewehr unabhängig von der Laufrichtung.</p>
  <div class="lab-controls"><label>Animation<select data-lab="state">${Object.entries(LAB_STATES).map(([id,name])=>`<option value="${id}">${name}</option>`).join('')}</select></label><label>Tempo<select data-lab="speed"><option value="0.25">¼ ×</option><option value="0.5">½ ×</option><option value="1" selected>1 ×</option></select></label>
  <label><input type="checkbox" data-lab="moving"> Gleichzeitig laufen</label><label><input type="checkbox" data-lab="anchors"> Anker anzeigen</label></div>
  <div class="lab-directions" role="group" aria-label="Blick- und Zielrichtung">${LAB_DIRECTIONS.map((d,i)=>`<button type="button" data-direction="${i}" aria-pressed="${i===4}">${d.name}</button>`).join('')}</div>
@@ -89,7 +90,7 @@ export async function openAnimationLab(){
    const groundedHunter=kind==='hunter'&&atlas?.ready&&atlas===getHunterProduction();
    const groundedMage=kind==='mage'&&atlas?.ready&&atlas===getMageProduction();
    const groundedKnight=kind==='warrior'&&atlas?.production;
-   const grounded=groundedHunter||groundedMage||groundedKnight;
+   const grounded=kind==='glasscannon'||groundedHunter||groundedMage||groundedKnight;
    const shadowWidth=groundedHunter?21:groundedMage?19:groundedKnight?23*KNIGHT_PRODUCTION_SCALE:27;
    const shadowHeight=groundedHunter?5:groundedMage?4:groundedKnight?5*KNIGHT_PRODUCTION_SCALE:8;
    c.fillStyle='#080d14';c.beginPath();c.ellipse(128,grounded?122:130,shadowWidth,shadowHeight,0,0,Math.PI*2);c.fill();
@@ -106,7 +107,7 @@ export async function openAnimationLab(){
     if(sample.shot){const s=sample.shot;c.setLineDash([3,4]);c.beginPath();c.moveTo(s.x,s.y);c.lineTo(s.x+s.aim.x*65,s.y+s.aim.y*65);c.stroke();c.setLineDash([]);}
    }
    if(releasing){c.strokeStyle='#ebc582';c.strokeRect(1,1,254,174);}
-   const facing=groundedHunter?RIG_ROWS[hunterPose(sample.player,clock*1.5).row]:mage?['S','SW','W','NW','N','NO','O','SO'][mage.row]:heroRigReady(kind)?RIG_ROWS[articulatedPose(sample.player).row]:sample.pose.face;
+   const facing=kind==='glasscannon'?LAB_DIRECTIONS[state.direction].name:groundedHunter?RIG_ROWS[hunterPose(sample.player,clock*1.5).row]:mage?['S','SW','W','NW','N','NO','O','SO'][mage.row]:heroRigReady(kind)?RIG_ROWS[articulatedPose(sample.player).row]:sample.pose.face;
    info.textContent=`${sample.pose.clip} · ${facing} · Bild ${displayed+1}${releasing?' · AUSLÖSEN':''}`;
   }
   raf=requestAnimationFrame(draw);
@@ -116,7 +117,7 @@ export async function openAnimationLab(){
   // The preview uses the very same production rig as gameplay. Do not load
   // six additional, superseded full-body fallback atlases on mobile: WebKit
   // can exhaust its graphics process with that duplicate decoding workload.
-  let rig=kind==='hunter'?getHunterProduction():kind==='mage'?getMageProduction():kind==='warrior'&&!new URLSearchParams(location.search).has('legacyHeroArt')&&!new URLSearchParams(location.search).has('oldKnightPixel')?getKnightFinal():getHeroRig(kind);
+  let rig=kind==='glasscannon'?getGlassRifleman():kind==='hunter'?getHunterProduction():kind==='mage'?getMageProduction():kind==='warrior'&&!new URLSearchParams(location.search).has('legacyHeroArt')&&!new URLSearchParams(location.search).has('oldKnightPixel')?getKnightFinal():getHeroRig(kind);
   try{await rig?.loading;}catch{/* Keep the legacy decoder as a safe fallback. */}
   if(kind==='mage'&&!rig?.ready){rig=getHeroRig(kind);try{await rig?.loading;}catch{/* Try the legacy atlas below. */}}
   if(rig?.ready){

@@ -1,3 +1,7 @@
+## 0.76.0 – Glaskanonier mit Gewehr
+
+Der Glaskanonier trägt Hut, Halstuch und Poncho. Sein Gewehr folgt beim Laufen der Zielrichtung. Projektil und Mündungsfeuer starten am sichtbaren Laufende.
+
 ## 0.75.2 – Dash und Ult oberhalb des mobilen Angriffs-Sticks
 
 Auf Mobilgeräten liegen jetzt **DASH** und **ULT** als zwei gut erreichbare

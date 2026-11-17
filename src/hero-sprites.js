@@ -1,14 +1,15 @@
+import {getGlassRifleman} from './glass-rifleman.js?v=0.76.0';
 import {getMageProduction} from './mage-production.js?v=0.75.1';
 import {getHunterProduction} from './hunter-production.js?v=0.75.1';
 import {getHeroRig,previewHeroRig} from './articulated-hero.js?v=0.68.0';
 import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.39.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';
-import {heroShot} from './hero-aim.js?v=0.75.1';
+import {heroShot} from './hero-aim.js?v=0.76.0';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.75.1';
 
 export class HeroSpriteAtlas{
  constructor(){
-  this.mage=getMageProduction();this.hunter=getHunterProduction();
+  this.rifleman=getGlassRifleman();this.mage=getMageProduction();this.hunter=getHunterProduction();
   this.rigs=Object.fromEntries(['warrior',...HERO_KINDS].map(kind=>[kind,getHeroRig(kind)]));
   this.kind=null;this.ready=false;this.failed=false;this.images={};this.previews={};this.generation=0;
   this.useLegacyRobedWalk=typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('oldRobedWalk');
@@ -38,6 +39,7 @@ export class HeroSpriteAtlas{
   this.kind=kind;this.ready=false;this.failed=false;this.images={};this.walkPivots={};const generation=++this.generation;
   this.loading=(async()=>{
    try{
+    if(kind==='glasscannon')await this.rifleman?.loading;
     if(kind==='mage')await this.mage?.loading;
     if(kind==='hunter')await this.hunter?.loading;
     await this.rigs?.[kind]?.loading;
@@ -65,6 +67,7 @@ export class HeroSpriteAtlas{
  }
  release(){this.generation++;this.kind=null;this.ready=false;this.images={};this.walkPivots={};this.manifest=null;}
  draw(ctx,p,time){
+  if(p.kind==='glasscannon'&&this.rifleman?.draw(ctx,p,time))return true;
   if(p.kind==='hunter'&&this.hunter?.draw(ctx,p,time))return true;
   if(p.kind==='mage'&&this.mage?.draw(ctx,p,time))return true;
   if(this.rigs?.[p.kind]?.draw(ctx,p,time))return true;
@@ -157,6 +160,7 @@ export class HeroSpriteAtlas{
   ctx.restore();
  }
  preview(ctx,kind,width,height,time){
+  if(kind==='glasscannon'&&this.rifleman?.preview(ctx,width,height,time))return true;
   if(kind==='hunter'&&this.hunter?.preview(ctx,width,height,time))return true;
   if(kind==='mage'&&this.mage?.preview(ctx,width,height,time))return true;
   if(previewHeroRig(ctx,this.rigs?.[kind],width,height,time))return true;

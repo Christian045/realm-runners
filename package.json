@@ -1,6 +1,6 @@
 {
  "name": "realm-runners-dungeon-reborn",
- "version": "0.75.2",
+ "version": "0.76.0",
  "type": "module",
  "private": true,
  "description": "HTML5 Canvas top-down roguelite / hack and slash",
@@ -12,7 +12,7 @@
   "test:browser": "node tests/browser.cjs",
   "test:knight-browser": "node tests/knight-browser.cjs",
   "test:knight-actions-browser": "node tests/knight-actions-browser.cjs",
-  "test:heroes-browser": "node tests/heroes-browser.cjs",
+  "test:heroes-browser": "node tests/glass-rifleman-browser.cjs && node tests/heroes-browser.cjs",
   "test:locomotion-browser": "node tests/locomotion-browser.cjs",
   "test:companions-browser": "node tests/companions-browser.cjs",
   "test:animation-lab-browser": "node tools/browser-test-server.cjs tests/animation-lab-browser.cjs",
