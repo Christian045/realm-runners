@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {Input} from '../src/input.js';
 
-test('mobile presents exactly two thumb controls: movement and directional attack',()=>{
+test('mobile has two thumb sticks with dash and ult buttons above attack',()=>{
  const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
  const controls=html.match(/id="(?:joystick|attackTouch|dashTouch|abilityTouch)"/g)||[];
- assert.deepEqual(controls,['id="joystick"','id="attackTouch"']);
+ assert.deepEqual(controls,['id="joystick"','id="dashTouch"','id="abilityTouch"','id="attackTouch"']);
  assert.match(html,/class="attack-knob"/);
 });
 

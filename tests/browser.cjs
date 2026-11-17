@@ -260,8 +260,8 @@ const assert=require('node:assert/strict');
   assert.ok(recordUI.includes('Bestleistung'),'mobile tower records must be readable');
   await mobile.locator('[data-action="start"]').click();
   assert.ok(await mobile.locator('#mobileControls').isVisible());
-  assert.equal(await mobile.locator('.mobile-actions button').count(),1,
-   'mobile exposes movement and one directional attack stick only');
+  assert.equal(await mobile.locator('.mobile-actions button').count(),3,
+   'mobile exposes movement, directional attack, dash and ult');
   assert.equal(await mobile.locator('#abilityHud span').count(),2);
   assert.ok(await mobile.locator('#abilityHud').isHidden(),
    'unavailable mobile actions should not show cooldown badges');
@@ -342,6 +342,8 @@ const assert=require('node:assert/strict');
    assert.ok(await ios.locator('#overlay').isVisible());
    await ios.locator('[data-action="closeInventory"]').click();
    await tapInViewport('#attackTouch');
+   await tapInViewport('#dashTouch');
+   await tapInViewport('#abilityTouch');
    await tapInViewport('#pauseBtn');
    assert.ok(await ios.locator('#overlay').isVisible(),'pause still works on Safari');
    await ios.locator('[data-action="resume"]').click();

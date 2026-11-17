@@ -40,7 +40,7 @@ const fs=require('node:fs');
  });assert.equal(result,56);
  await page.locator('[data-action="class:mage"]').click();await page.screenshot({path:`test-output/mage-${name}-menu.png`});
  await page.locator('[data-action="start"]').click();await page.locator('#overlay').waitFor({state:'hidden'});
- await page.locator('#attackTouch').tap();assert.equal(await page.locator('.mobile-actions button').count(),1);
+ await page.locator('#attackTouch').tap();assert.equal(await page.locator('.mobile-actions button').count(),3);
  await page.screenshot({path:`test-output/mage-${name}-dungeon.png`});assert.deepEqual(errors,[]);console.log(name,'mage: 56 directional states, robe colour continuity, crystal sockets, menu, dungeon and touch controls passed');
  }finally{await browser.close();}
 }})().catch(e=>{console.error(e);process.exitCode=1});

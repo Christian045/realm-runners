@@ -56,7 +56,7 @@ const fs=require('node:fs');
    await page.locator('#overlay').waitFor({state:'hidden'});
    if(mobile){
     await page.locator('#attackTouch').tap();
-    assert.equal(await page.locator('.mobile-actions button').count(),1);
+    assert.equal(await page.locator('.mobile-actions button').count(),3);
     assert.equal(await page.evaluate(()=>visualViewport.scale),1);
     assert.ok(await page.locator('#mobileControls').isVisible());
    }else{

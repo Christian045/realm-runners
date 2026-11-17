@@ -15,12 +15,14 @@ const {chromium}=require('playwright');
   await page.locator('[data-action="class:hunter"]').tap();
   await page.locator('[data-action="start"]').tap();
   await page.locator('#overlay').waitFor({state:'hidden'});
-  assert.equal(await page.locator('.mobile-actions button').count(),1);
+  assert.equal(await page.locator('.mobile-actions button').count(),3);
   assert.ok(await page.locator('#abilityHud').isHidden());
   assert.ok(await page.locator('#joystick').isVisible());
   assert.ok(await page.locator('#attackTouch').isVisible());
+  assert.ok(await page.locator('#dashTouch').isVisible());
+  assert.ok(await page.locator('#abilityTouch').isVisible());
   await page.evaluate(async()=>{
-   const {Input}=await import('./src/input.js?v=0.75.1');
+   const {Input}=await import('./src/input.js?v=0.75.2');
    window.__dualStickProbe=new Input(document.querySelector('#gameCanvas'));
   });
   const rect=async id=>{
@@ -48,6 +50,9 @@ const {chromium}=require('playwright');
   await page.screenshot({path:'test-output/mobile-dual-stick.png'});
   await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[
    touch(1,left.x-38,left.y),touch(2,right.x,right.y-38)]});
+  // CDP acknowledges the gesture before its DOM pointermove is always handled.
+  // Wait for the real input listener rather than sampling an old direction.
+  await page.waitForFunction(()=>window.__dualStickProbe.attackAim?.y<-.9,null,{timeout:4000});
   const up=await page.evaluate(()=>window.__dualStickProbe.aiming({x:100,y:100},{x:0,y:0,scale:1}));
   assert.ok(up.y<-.9,'attack direction can change while continuing to move west');
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
@@ -60,6 +65,10 @@ const {chromium}=require('playwright');
   assert.deepEqual(rest.move,{x:0,y:0});
   assert.equal(rest.attacking,false);
   assert.equal(rest.knob,'0px');
+  await page.touchscreen.tap((await rect('#dashTouch')).x,(await rect('#dashTouch')).y);
+  assert.equal(await page.evaluate(()=>window.__dualStickProbe.consumeDash()),true);
+  await page.touchscreen.tap((await rect('#abilityTouch')).x,(await rect('#abilityTouch')).y);
+  assert.equal(await page.evaluate(()=>window.__dualStickProbe.consumeAbility()),true);
   assert.equal(await page.evaluate(()=>visualViewport.scale),1);
   assert.deepEqual(errors,[]);
   console.log('PASS: two simultaneous mobile sticks, independent movement and directional shots');

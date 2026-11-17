@@ -2,7 +2,7 @@ import {openAnimationLab,animationLabOpen} from './animation-lab.js?v=0.75.1';
 import {CLASSES} from './data.js?v=0.23.0';
 import {loadProgress,upgradeCost} from './progression.js?v=0.21.0';
 import {ENEMY_NAMES,totalKills,formatPlayTime} from './statistics.js?v=0.21.0';
-import {Input} from './input.js?v=0.75.1';
+import {Input} from './input.js?v=0.75.2';
 import {Game} from './game.js?v=0.75.1';
 import {Renderer} from './render.js?v=0.75.1';
 import {TALENTS,RARITIES,describeStats,talentCost} from './loot.js?v=0.21.0';
@@ -389,6 +389,13 @@ function updateHud(){
  ability.textContent=hud.ability>0?'Q · '+hud.ability.toFixed(1)+'s':'Q · '+abilityName;
  ability.title=abilityName;
  ability.classList.toggle('ready',hud.ability<=0);
+  const dashTouch=$('dashTouch'),abilityTouch=$('abilityTouch');
+  dashTouch.disabled=hud.dash>0;
+  abilityTouch.disabled=hud.ability>0;
+  dashTouch.dataset.cooldown=hud.dash>0?hud.dash.toFixed(1):'';
+  abilityTouch.dataset.cooldown=hud.ability>0?hud.ability.toFixed(1):'';
+  dashTouch.title=hud.dash>0?'Dash in '+hud.dash.toFixed(1)+' Sekunden bereit':'Dash – Ausweichen';
+  abilityTouch.title=hud.ability>0?'Ult in '+hud.ability.toFixed(1)+' Sekunden bereit':'Ult – '+abilityName;
  const states=game.player?.statuses||{};
  const statusLabels={poison:'GIFT',burn:'FEUER',stun:'BETÄUBT',slow:'LANGSAM',rot:'FÄULNIS',mark:'TODESMARKE'};
  const statuses=Object.entries(statusLabels).filter(([key])=>states[key]>0)

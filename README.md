@@ -1,3 +1,11 @@
+## 0.75.2 – Dash und Ult oberhalb des mobilen Angriffs-Sticks
+
+Auf Mobilgeräten liegen jetzt **DASH** und **ULT** als zwei gut erreichbare
+kleine Tasten direkt oberhalb des rechten Zielen-/Angreifen-Sticks. Die beiden
+Sticks für Bewegung und Angriffsrichtung bleiben vollständig unabhängig.
+Laufende Abklingzeiten werden direkt auf den kleinen Tasten angezeigt, statt
+die mobile Spielfläche mit zusätzlichen HUD-Zeilen zu belegen.
+
 ## 0.75.1 – Unabhängige Zwei-Stick-Steuerung auf Mobilgeräten
 
 Links steuert der Joystick die Bewegung. Der rechte runde Angriffs-Stick lässt

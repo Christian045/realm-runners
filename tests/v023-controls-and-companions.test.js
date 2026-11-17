@@ -70,10 +70,10 @@ function fakeControl(){
 test('touch tap throws once and hold-drag targets a precise location; PC mouse release is queued',()=>{
  const oldDocument=globalThis.document,oldWindow=globalThis.window;
  const attack=fakeControl(),canvas=fakeControl(),stick=fakeControl();
- const win=fakeControl(),doc=fakeControl();
+ const dash=fakeControl(),ability=fakeControl(),win=fakeControl(),doc=fakeControl();
  globalThis.window=win;
  globalThis.document={...doc,querySelector:sel=>({
-  '#attackTouch':attack,'#joystick':stick
+  '#attackTouch':attack,'#joystick':stick,'#dashTouch':dash,'#abilityTouch':ability
  })[sel]};
  try{
   const input=new Input(canvas);
@@ -128,6 +128,9 @@ test('touch tap throws once and hold-drag targets a precise location; PC mouse r
    'even a quick eastward tap keeps its direction until the next game frame');
   assert.equal(input.attacking('hunter'),true,'a quick tap fires one arrow');
   assert.equal(input.attacking('hunter'),false,'the quick tap cannot fire twice');
+  dash.dispatch('pointerdown');ability.dispatch('pointerdown');
+  assert.equal(input.consumeDash(),true,'dash button queues an evasive move');
+  assert.equal(input.consumeAbility(),true,'ult button queues a special attack');
   stick.dispatch('pointerup',{pointerId:2});
   assert.deepEqual(input.movement(),{x:0,y:0});
  }finally{

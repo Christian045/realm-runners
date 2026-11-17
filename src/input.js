@@ -80,6 +80,12 @@ export class Input {
   };
   for(const evt of ['pointerup','pointercancel','lostpointercapture'])
    attack.addEventListener(evt,stopAttack);
+  document.querySelector('#dashTouch').addEventListener('pointerdown',e=>{
+   e.preventDefault();this.dashQueued=true;
+  });
+  document.querySelector('#abilityTouch').addEventListener('pointerdown',e=>{
+   e.preventDefault();this.abilityQueued=true;
+  });
  }
  resetTransient(){
   this.keys.clear();
