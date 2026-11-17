@@ -14,8 +14,8 @@ const fs=require('node:fs');
   await page.locator('#overlay').waitFor({state:'hidden'});
   for(const id of ['joystick','attackTouch','dashTouch','abilityTouch'])assert.ok(await page.locator('#'+id).isVisible());
   const result=await page.evaluate(async()=>{
-   const {HeroSpriteAtlas}=await import('./src/hero-sprites.js?v=0.76.0');
-   const {labSample,LAB_DIRECTIONS}=await import('./src/animation-lab.js?v=0.76.0');
+   const {HeroSpriteAtlas}=await import('./src/hero-sprites.js?v=0.76.1');
+   const {labSample,LAB_DIRECTIONS}=await import('./src/animation-lab.js?v=0.76.1');
    const atlas=new HeroSpriteAtlas();atlas.select('glasscannon');await atlas.loading;
    if(!atlas.ready||!atlas.rifleman.ready)throw Error('Rifleman failed to load');
    const gallery=document.createElement('canvas');gallery.width=8*104;gallery.height=7*94;

@@ -1,3 +1,7 @@
+## 0.76.1 – Glaskanonier mit Kristallkarabiner
+
+Der Glaskanonier folgt jetzt der freigegebenen Vergleichsskizze: weich gezeichneter Hut, dunkles Halstuch und kupferfarbener Poncho. Der kompakte Karabiner hat einen kräftigen Holzschaft, eine Messingfassung und einen kleinen violetten Kristall. Beide Hände bewegen sich mit der Waffe. Die Mündung verwendet denselben Punkt wie Projektil und Schusslicht; Bewegung und Zielrichtung bleiben unabhängig.
+
 ## 0.76.0 – Glaskanonier mit Gewehr
 
 Der Glaskanonier trägt Hut, Halstuch und Poncho. Sein Gewehr folgt beim Laufen der Zielrichtung. Projektil und Mündungsfeuer starten am sichtbaren Laufende.
