@@ -1,25 +1,50 @@
-import {heroPose} from './hero-animation.js?v=0.75.1';
+import {heroPose,heroFacing} from './hero-animation.js?v=0.75.1';
 import {WALK_STRIDE} from './locomotion.js?v=0.75.0';
 
 const cell=96, atlasScale=3, sole=88, hip=69;
 const turn=d=>Math.round(Math.atan2(d.x,d.y)/(Math.PI/4));
-const sign=x=>x<0?-1:1;
 const clamp=x=>Math.max(0,Math.min(1,x));
 
-// Keep the illustrated barrel, release flash and gameplay ray on one transform.
-export function rifleShot(p,action=p.heroAction){
- const d=action?.direction||p.direction||{x:0,y:1};
- const shoulder=d.y<-.38?(Math.abs(d.x)<.38?18:Math.sign(d.x)*9):0;
- const mount={x:p.x+shoulder,y:p.y-32};
- const dx=action?.target? action.target.x-mount.x:d.x;
- const dy=action?.target? action.target.y-mount.y:d.y;
- const distance=Math.hypot(dx,dy);
- const aim=distance>.001?{x:dx/distance,y:dy/distance}:d;
- const progress=clamp((action?.elapsed||0)/(action?.duration||1));
- const recoil=action?.clip==='attack'&&progress>.5?Math.sin((progress-.5)*2*Math.PI)*4:0;
- const reach=28-5*Math.abs(aim.y)-recoil-(action?.clip==='dash'?5:0);
- return {mount,aim,reach,x:mount.x+aim.x*reach,y:mount.y+aim.y*reach,
-  angle:Math.atan2(aim.y,aim.x),face:Math.abs(d.x)>Math.abs(d.y)?d.x<0?'left':'right':d.y<0?'up':'down'};
+// The same five views as the body atlas, mirrored for the three left views.
+const rifleViews = [
+ {carry: -12, fire: 90, shoulder: 0, reach: 23},
+ {carry: 10, fire: 45, shoulder: 0, reach: 24.5},
+ {carry: -12, fire: 0, shoulder: 0, reach: 28},
+ {carry: -32, fire: -45, shoulder: 9, reach: 24.5},
+ {carry: -65, fire: -90, shoulder: 18, reach: 23}
+];
+
+function riflePose(player, direction, clip, progress) {
+ const row = turn(direction);
+ // North is one view even when the cursor crosses the vertical centerline.
+ const facing = Math.abs(row) === 4 ? 4 : row;
+ const view = rifleViews[Math.abs(facing)];
+ const hand = facing < 0 ? -1 : 1;
+ const firing = clip === 'attack' || clip === 'special';
+ const raised = firing ? Math.min(clamp(progress / .32), clamp((1 - progress) / .32)) : 0;
+ const degrees = view.carry + raised * (view.fire - view.carry);
+ const angle = (hand === 1 ? degrees : 180 - degrees) * Math.PI / 180;
+ const kick = clip === 'attack' && progress > .5 ? 4 * Math.sin((progress - .5) * 2 * Math.PI) : 0;
+ const reach = view.reach - kick - (clip === 'dash' ? 5 : 0);
+ const mount = {x: player.x + hand * view.shoulder, y: player.y - 32};
+ return {facing, hand, angle, reach, mount,
+  x: mount.x + reach * Math.cos(angle), y: mount.y + reach * Math.sin(angle)};
+}
+
+export function rifleShot(player, action = player.heroAction) {
+ const pose = heroPose(player);
+ const direction = action?.direction ?? pose.direction ?? {x: 0, y: 1};
+ const clip = action?.clip ?? pose.clip;
+ const progress = action?.duration ? clamp(action.elapsed / action.duration) : pose.progress;
+ const muzzle = riflePose(player, direction, clip, progress);
+ // As with the hunter, the pose sets the origin and the selected target sets the trajectory.
+ const dx = action?.target ? action.target.x - muzzle.x : direction.x;
+ const dy = action?.target ? action.target.y - muzzle.y : direction.y;
+ const length = Math.hypot(dx, dy);
+ const aim = length > .001 ? {x: dx / length, y: dy / length}
+  : {x: Math.cos(muzzle.angle), y: Math.sin(muzzle.angle)};
+ return {x: muzzle.x, y: muzzle.y, mount: muzzle.mount, reach: muzzle.reach,
+  aim, angle: muzzle.angle, face: heroFacing(direction)};
 }
 
 function polygon(c,color,points){
@@ -30,9 +55,9 @@ function polygon(c,color,points){
 // The painted body and this articulated carbine share one logical 96px cell.
 // x=0 remains the muzzle tip in every pose, so release VFX need no guessed offsets.
 function weapon(c,p,shot,pose){
- const {aim,reach}=shot;
+ const {reach}=shot;
  c.save();c.translate(shot.mount.x-p.x,shot.mount.y-p.y);
- c.rotate(shot.angle);c.scale(1,aim.x<0?-1:1);c.translate(reach,0);
+ c.rotate(shot.angle);c.scale(1,shot.hand);c.translate(reach,0);
  const shaded=(top,bottom,y0,y1)=>{const g=c.createLinearGradient(0,y0,0,y1);g.addColorStop(0,top);g.addColorStop(1,bottom);return g;};
  // Rounded walnut stock, thicker forestock, subdued metal and brass highlights.
  polygon(c,'#493127',[[-39,-1],[-29,-3],[-24,-1],[-25,4],[-36,9],[-40,7]]);
@@ -80,8 +105,8 @@ export class GlassRifleman{
  draw(c,p,time=0){
   if(!this.ready)return false;
   const pose=heroPose(p,time),motion=p.heroMoveDirection||pose.direction;
-  const shot=rifleShot(p,p.heroAction||{direction:pose.direction});
-  const facing=turn(shot.aim), moving=p.moving&&!['dash','death'].includes(pose.clip);
+  const shot=riflePose(p,pose.direction,pose.clip,pose.progress);
+  const facing=shot.facing, moving=p.moving&&!['dash','death'].includes(pose.clip);
   const phase=(p.walkDistance||0)/WALK_STRIDE*2*Math.PI;
   const stride=moving?Math.sin(phase):0;
   const lower=moving?turn(motion):facing;
@@ -90,20 +115,12 @@ export class GlassRifleman{
    c.drawImage(this.image,(Math.abs(view)*cell+x)*atlasScale,y*atlasScale,w*atlasScale,h*atlasScale,dx,dy,dw,dh);c.restore();
   };
   c.save();c.translate(p.x,p.y);c.imageSmoothingEnabled=true;
-  if(pose.clip==='death'){c.rotate(sign(shot.aim.x)*1.47*pose.progress);c.scale(1,1-.2*pose.progress);}
-  if(pose.clip==='hurt')c.rotate(.11*Math.sin(Math.PI*pose.progress)*sign(shot.aim.x));
+  if(pose.clip==='death'){c.rotate(shot.hand*1.47*pose.progress);c.scale(1,1-.2*pose.progress);}
+  if(pose.clip==='hurt')c.rotate(.11*Math.sin(Math.PI*pose.progress)*shot.hand);
   if(pose.clip==='dash')c.transform(1,0,-.15*pose.direction.x,1,0,0);
   if(p.invulnerable>0&&p.hp>0&&Math.floor(time*24)%4===0)c.globalAlpha*=.66;
-  // In repose the rifle crosses the chest. Raise it onto the ray before release.
-  const attacking=['attack','special'].includes(pose.clip);
-  const weight=attacking?clamp(pose.progress/.34):0;
-  const handed=Math.abs(shot.aim.x)<.05?1:sign(shot.aim.x);
-  const carry=Math.atan2(-.24,handed);
-  const delta=Math.atan2(Math.sin(shot.angle-carry),Math.cos(shot.angle-carry));
-  const angle=carry+weight*delta;
-  const drawn={...shot,angle,aim:{x:Math.cos(angle),y:Math.sin(angle)}};
-  const behind=shot.aim.y<-.40;
-  if(behind)weapon(c,p,drawn,pose);
+  const behind = Math.abs(facing) >= 3;
+  if(behind)weapon(c,p,shot,pose);
   // A swing foot lifts while the other stays planted. Both meet the torso under the belt.
   for(const side of [-1,1]){
    const swing=stride*side, lift=Math.max(0,swing)*2.8;
@@ -113,7 +130,7 @@ export class GlassRifleman{
   const breath=pose.clip==='idle'?.45*Math.sin(time*3):0;
   const bob=breath-Math.abs(stride)*1.1;
   part(facing,0,0,96,hip+1,-48,-sole+bob,96,hip+1-bob);
-  if(!behind)weapon(c,p,drawn,pose);
+  if(!behind)weapon(c,p,shot,pose);
   c.restore();return true;
  }
  preview(c,w,h,time){

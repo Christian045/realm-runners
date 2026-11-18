@@ -35,3 +35,34 @@ test('painted carbine renders 280 action samples with opposite movement and aimi
  }
  if(process.env.CARBINE_GALLERY){const {writeFileSync}=await import('node:fs');writeFileSync(process.env.CARBINE_GALLERY,sheet.toBuffer('image/png'));}
 });
+
+test('cursor movement within each hunter-facing sector keeps the carbine and hands in one pose', async () => {
+ const model = new GlassRifleman();
+ model.image = await loadImage(new URL('../assets/heroes/glasscannon/rifleman/body-carbine.png', import.meta.url).pathname);
+ model.ready = true;
+ const canvas = createCanvas(128, 128);
+ const ctx = canvas.getContext('2d');
+ for (let sector = 0; sector < 8; sector++) {
+  for (const clip of ['idle', 'walk', 'attack', 'special']) {
+   let baseline;
+   for (const offset of [-.31, -.01, .01, .31]) {
+    const angle = sector * Math.PI / 4 + offset;
+    const direction = {x: Math.sin(angle), y: Math.cos(angle)};
+    const player = {x: 64, y: 96, hp: 1, direction, moving: clip === 'walk' || clip === 'attack',
+     touchAiming: true, heroMoveDirection: {x: -1, y: 0}, walkDistance: 16};
+    if (clip === 'attack' || clip === 'special') {
+     player.heroAction = {clip, elapsed: .5, duration: 1, direction,
+      target: {x: player.x + direction.x * 160, y: player.y + direction.y * 160}};
+    }
+    ctx.clearRect(0, 0, 128, 128);
+    model.draw(ctx, player, .25);
+    const pixels = Buffer.from(ctx.getImageData(0, 0, 128, 128).data);
+    const shot = rifleShot(player);
+    if (baseline) {
+     assert.ok(baseline.pixels.equals(pixels), clip + ' pixels changed in sector ' + sector);
+     assert.deepEqual([shot.x, shot.y, shot.angle], baseline.muzzle);
+    } else baseline = {pixels, muzzle: [shot.x, shot.y, shot.angle]};
+   }
+  }
+ }
+});

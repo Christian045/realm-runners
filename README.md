@@ -1,3 +1,7 @@
+## 0.76.2 – Feste Gewehrhaltung in acht Richtungen
+
+Der Glaskanonier dreht Oberkörper, Hände und Karabiner gemeinsam. Beim Schuss zählt die gewählte Blickrichtung für die Waffenhaltung. Das Projektil startet an der sichtbaren Mündung und fliegt zum Ziel.
+
 ## 0.76.1 – Glaskanonier mit Kristallkarabiner
 
 Der Glaskanonier folgt jetzt der freigegebenen Vergleichsskizze: weich gezeichneter Hut, dunkles Halstuch und kupferfarbener Poncho. Der kompakte Karabiner hat einen kräftigen Holzschaft, eine Messingfassung und einen kleinen violetten Kristall. Beide Hände bewegen sich mit der Waffe. Die Mündung verwendet denselben Punkt wie Projektil und Schusslicht; Bewegung und Zielrichtung bleiben unabhängig.
