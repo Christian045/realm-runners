@@ -1,8 +1,8 @@
 import {CompanionSpriteAtlas,drawCompanionEffect,drawCompanionProjectile} from './companion-sprites.js?v=0.31.0';
-import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.76.2';
+import {HeroSpriteAtlas,drawHeroRelease} from './hero-sprites.js?v=0.76.3';
 import {KNIGHT_PRODUCTION_SCALE} from './knight-production.js?v=0.75.0';
 import {KnightSpriteAtlas,drawKnightEffect} from './knight-sprites.js?v=0.75.1';
-import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.23.0';
+import {CLASSES,ENEMY_DATA,TILE,clamp} from './data.js?v=0.76.3';
 import {ROOM_W,ROOM_H,ROOM_COLS,ROOM_ROWS} from './dungeon.js?v=0.26.0';
 import {drawDungeonAtmosphere,drawBossWarnings,drawVignette} from './atmosphere.js?v=0.26.0';
 import {drawTowerVictory} from './tower-visuals.js';
@@ -370,8 +370,9 @@ export class Renderer {
   if(b.rifle){
    const a=Math.atan2(b.vy,b.vx);
    c.save();c.translate(b.x,b.y);c.rotate(a);
-   c.shadowColor='#c49aff';c.shadowBlur=9;c.fillStyle='#f4d6ff';
-   c.fillRect(-9,-2,18,4);c.fillStyle='#fff3dc';c.fillRect(0,-1,9,2);
+   c.shadowColor='#cb9ce5';c.shadowBlur=5;c.fillStyle='#ba85cf';
+   c.beginPath();c.moveTo(-9,0);c.lineTo(-2,-3);c.lineTo(9,0);c.lineTo(-2,3);c.closePath();c.fill();
+   c.fillStyle='#f8dfff';c.beginPath();c.moveTo(-5,0);c.lineTo(-2,-2);c.lineTo(8,0);c.closePath();c.fill();
    c.restore();return;
   }
   if(b.flask){

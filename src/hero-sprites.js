@@ -1,10 +1,10 @@
-import {getGlassRifleman} from './glass-rifleman.js?v=0.76.2';
+import {getGlassRifleman} from './glass-rifleman.js?v=0.76.3';
 import {getMageProduction} from './mage-production.js?v=0.75.1';
 import {getHunterProduction} from './hunter-production.js?v=0.75.1';
 import {getHeroRig,previewHeroRig} from './articulated-hero.js?v=0.68.0';
 import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.39.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';
-import {heroShot} from './hero-aim.js?v=0.76.2';
+import {heroShot} from './hero-aim.js?v=0.76.3';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.75.1';
 
 export class HeroSpriteAtlas{
@@ -179,13 +179,16 @@ export class HeroSpriteAtlas{
  }
 }
 
-const COLORS={hunter:['#daf1ba','#81b46d'],mage:['#eaffff','#75e8f0'],glasscannon:['#fff0e1','#ca8fe9'],summoner:['#ddc5ff','#8761c7'],alchemist:['#eeffce','#9fcd6a']};
+const COLORS={hunter:['#daf1ba','#81b46d'],mage:['#eaffff','#75e8f0'],glasscannon:['#fff3ff','#bb87d5'],summoner:['#ddc5ff','#8761c7'],alchemist:['#eeffce','#9fcd6a']};
 export function drawHeroRelease(ctx,e,alpha){
  const colors=COLORS[e.kind]||COLORS.mage,t=1-alpha;
  ctx.save();ctx.translate(e.x,e.y);ctx.rotate(e.angle||0);ctx.globalAlpha=alpha;
  if(e.kind==='glasscannon'){
-  ctx.fillStyle=colors[1];ctx.beginPath();ctx.moveTo(0,-5);ctx.lineTo(22+t*12,0);ctx.lineTo(0,5);ctx.fill();
-  ctx.fillStyle=colors[0];ctx.fillRect(0,-2,16,4);
+  const radius = 4 + alpha * 2;
+  ctx.fillStyle = colors[1];
+  ctx.beginPath();ctx.moveTo(-radius,0);ctx.lineTo(0,-radius);ctx.lineTo(radius*1.8,0);ctx.lineTo(0,radius);ctx.closePath();ctx.fill();
+  ctx.fillStyle = colors[0];
+  ctx.beginPath();ctx.moveTo(-2,0);ctx.lineTo(0,-2);ctx.lineTo(radius,0);ctx.lineTo(0,2);ctx.closePath();ctx.fill();
  }else if(e.kind==='hunter'){
   ctx.strokeStyle=colors[0];ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(18+t*24,0);ctx.stroke();
  }else if(e.kind==='alchemist'){

@@ -1,3 +1,7 @@
+## 0.76.3 – Amethystwerfer für den Glaskanonier
+
+Der Glaskanonier trägt einen geschnitzten Holzschaft mit einer Spitze aus violettem Kristall. Beim Schuss leuchtet die Spitze kurz auf und ein Kristallsplitter fliegt zum Ziel.
+
 ## 0.76.2 – Feste Gewehrhaltung in acht Richtungen
 
 Der Glaskanonier dreht Oberkörper, Hände und Karabiner gemeinsam. Beim Schuss zählt die gewählte Blickrichtung für die Waffenhaltung. Das Projektil startet an der sichtbaren Mündung und fliegt zum Ziel.

@@ -4,6 +4,15 @@ import {createCanvas,loadImage} from '@napi-rs/canvas';
 import {GlassRifleman,rifleShot} from '../src/glass-rifleman.js';
 import {beginHeroAction,advanceHeroAction} from '../src/hero-animation.js';
 
+async function paintedRifleman() {
+ const model = new GlassRifleman();
+ const base = new URL('../assets/heroes/glasscannon/rifleman/', import.meta.url);
+ [model.image, model.focus] = await Promise.all(['body-carbine.png', 'amethyst-focus.png']
+  .map(file => loadImage(new URL(file, base).pathname)));
+ model.ready = true;
+ return model;
+}
+
 const directions=Array.from({length:8},(_,i)=>({x:Math.sin(i*Math.PI/4),y:Math.cos(i*Math.PI/4)}));
 test('carbine release lies on target ray in eight directions, including recoil and dash',()=>{
  for(const d of directions)for(const clip of ['attack','dash','special'])for(const elapsed of [0,.25,.5,.7,1]){
@@ -22,7 +31,7 @@ test('low frame rate fires once at the pre-recoil muzzle',()=>{
  assert.equal(calls,1);assert.equal(p.heroAction,null);
 });
 test('painted carbine renders 280 action samples with opposite movement and aiming',async()=>{
- const model=new GlassRifleman();model.image=await loadImage(new URL('../assets/heroes/glasscannon/rifleman/body-carbine.png',import.meta.url).pathname);model.ready=true;
+ const model = await paintedRifleman();
  assert.equal(model.image.width,1440);assert.equal(model.image.height,288);
  const sheet=createCanvas(8*150,7*150),g=sheet.getContext('2d');g.fillStyle='#273a37';g.fillRect(0,0,sheet.width,sheet.height);
  for(const [row,clip] of ['idle','walk','attack','special','dash','hurt','death'].entries())for(const [col,d] of directions.entries())for(const elapsed of [0,.25,.5,.75,1]){
@@ -37,9 +46,7 @@ test('painted carbine renders 280 action samples with opposite movement and aimi
 });
 
 test('cursor movement within each hunter-facing sector keeps the carbine and hands in one pose', async () => {
- const model = new GlassRifleman();
- model.image = await loadImage(new URL('../assets/heroes/glasscannon/rifleman/body-carbine.png', import.meta.url).pathname);
- model.ready = true;
+ const model = await paintedRifleman();
  const canvas = createCanvas(128, 128);
  const ctx = canvas.getContext('2d');
  for (let sector = 0; sector < 8; sector++) {
