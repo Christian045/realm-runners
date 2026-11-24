@@ -27,7 +27,7 @@ test('carbine release lies on target ray in eight directions, including recoil a
 test('low frame rate fires once at the pre-recoil muzzle',()=>{
  const p={x:0,y:0,direction:{x:1,y:0}};let calls=0;
  beginHeroAction(p,'attack',.4);
- advanceHeroAction(p,.4,a=>{calls++;assert.ok(Math.abs(a.elapsed-.2)<1e-12);assert.ok(Math.abs(rifleShot(p,a).reach-28)<1e-12);});
+ advanceHeroAction(p,.4,a=>{calls++;assert.ok(Math.abs(a.elapsed-.2)<1e-12);assert.ok(Math.abs(rifleShot(p,a).reach-37)<1e-12);});
  assert.equal(calls,1);assert.equal(p.heroAction,null);
 });
 test('painted carbine renders 280 action samples with opposite movement and aiming',async()=>{

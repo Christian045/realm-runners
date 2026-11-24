@@ -14,4 +14,4 @@ The atlas retains 3 pixels per logical pixel. Each logical cell is 96×96, soles
 
 Verification: eight target rays through attack/recoil/dash; one release during a long frame; 280 rendered samples over seven states, eight directions and five phases, including opposed movement and aiming. Browser inspection uses the existing animation lab and real Dungeon renderer.
 
-The 0.76.3 weapon sprite `amethyst-focus.png` is a painted side view, cropped to the silhouette and packed at five pixels per game unit. Art direction: carved chestnut stock, oxblood leather grip, antique brass socket and an exposed forward-pointing amethyst. The hunter’s shortbow and the mage’s crystal staff informed the palette and surface finish.
+The 0.76.4 weapon sprite `amethyst-focus.png` is a painted side view, cropped to the silhouette and packed at five pixels per game unit. Art direction: carved chestnut stock, oxblood leather grip, antique brass socket and an exposed forward-pointing amethyst. The hunter’s shortbow and the mage’s crystal staff informed the palette and surface finish.

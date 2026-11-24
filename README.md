@@ -1,4 +1,4 @@
-## 0.76.3 – Amethystwerfer für den Glaskanonier
+## 0.76.4 – Amethystwerfer für den Glaskanonier
 
 Der Glaskanonier trägt einen geschnitzten Holzschaft mit einer Spitze aus violettem Kristall. Beim Schuss leuchtet die Spitze kurz auf und ein Kristallsplitter fliegt zum Ziel.
 

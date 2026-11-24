@@ -7,11 +7,11 @@ const clamp=x=>Math.max(0,Math.min(1,x));
 
 // The same five views as the body atlas, mirrored for the three left views.
 const rifleViews = [
- {carry: -12, fire: 90, shoulder: 0, reach: 23},
- {carry: 10, fire: 45, shoulder: 0, reach: 24.5},
- {carry: -12, fire: 0, shoulder: 0, reach: 28},
- {carry: -32, fire: -45, shoulder: 9, reach: 24.5},
- {carry: -65, fire: -90, shoulder: 18, reach: 23}
+ {carry: -12, fire: 90, shoulder: 0, reach: 30},
+ {carry: 10, fire: 45, shoulder: 0, reach: 33},
+ {carry: -12, fire: 0, shoulder: 0, reach: 37},
+ {carry: -32, fire: -45, shoulder: 9, reach: 31},
+ {carry: -65, fire: -90, shoulder: 18, reach: 26}
 ];
 
 function riflePose(player, direction, clip, progress) {
@@ -56,29 +56,52 @@ function drawFocus(ctx, player, shot, pose, image) {
  ctx.translate(shot.reach, 0);
  // The stock recedes in the front and back views while the tip stays on the release point.
  const depth = 1 - .34 * Math.sin(shot.angle) ** 2;
- const length = 48 * depth;
- ctx.drawImage(image, -length, -3.9, length, 10);
+ const length = 54 * depth;
+ // A thin warm outline separates the carved wood from the similarly colored poncho.
+ ctx.shadowColor = '#30202ce0';
+ ctx.shadowBlur = .9;
+ ctx.shadowOffsetY = .65;
+ ctx.drawImage(image, -length, -5.8, length, 15);
+ ctx.shadowColor = 'transparent';
 
- // Rear hand wraps the leather grip. Front hand cups the wood below the brass socket.
- for (const [x, y] of [[-34 * depth, 4.8], [-18 * depth, 2.6]]) {
-  const sleeve = ctx.createLinearGradient(0, y, 0, y + 7);
-  sleeve.addColorStop(0, '#826045');
-  sleeve.addColorStop(1, '#493830');
-  ctx.fillStyle = sleeve;
+ // One hand closes around the leather grip, the other supports the fore-end from below.
+ for (const [x, y, tilt] of [[-38 * depth, 7, -.38], [-22 * depth, 3.3, -.68]]) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(tilt);
+  const leather = ctx.createLinearGradient(0, -3, 0, 5);
+  leather.addColorStop(0, '#9d7152');
+  leather.addColorStop(.55, '#6c4b39');
+  leather.addColorStop(1, '#48332d');
+  ctx.fillStyle = leather;
+  ctx.strokeStyle = '#463026';
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.ellipse(x - 1.3, y + 2, 4.3, 4.7, -.45, 0, Math.PI * 2);
+  ctx.moveTo(-5, .5);
+  ctx.quadraticCurveTo(-4, -3, -1.5, -3);
+  ctx.quadraticCurveTo(1, -3.6, 3.3, -1.3);
+  ctx.quadraticCurveTo(4.1, .8, 1.6, 2.6);
+  ctx.lineTo(-1.7, 4.9);
+  ctx.lineTo(-5.4, 3.4);
+  ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = '#493831';
+  ctx.stroke();
+  const skin = ctx.createLinearGradient(0, -3.5, 0, 1.8);
+  skin.addColorStop(0, '#e2ad7e');
+  skin.addColorStop(1, '#ad7854');
+  ctx.fillStyle = skin;
   ctx.beginPath();
-  ctx.ellipse(x, y, 3.7, 3.4, -.4, 0, Math.PI * 2);
+  ctx.moveTo(-1.8, -2.2);
+  ctx.quadraticCurveTo(-.7, -4.2, .3, -3.2);
+  ctx.quadraticCurveTo(2.5, -4, 3.1, -2.1);
+  ctx.quadraticCurveTo(4.6, -.5, 2.5, 1.3);
+  ctx.quadraticCurveTo(.2, 2.4, -.8, .6);
+  ctx.closePath();
   ctx.fill();
-  const fingers = ctx.createLinearGradient(0, y - 3, 0, y + 2);
-  fingers.addColorStop(0, '#d6a477');
-  fingers.addColorStop(1, '#98694b');
-  ctx.fillStyle = fingers;
-  ctx.beginPath();
-  ctx.ellipse(x + .8, y - .6, 2.7, 2.4, -.4, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.strokeStyle = '#966a50';
+  ctx.lineWidth = .6;
+  ctx.beginPath();ctx.moveTo(.5,-2.6);ctx.lineTo(1.4,-1);ctx.stroke();
+  ctx.restore();
  }
  if (pose.clip === 'special') {
   ctx.globalAlpha *= .65 * Math.sin(pose.progress * Math.PI);
