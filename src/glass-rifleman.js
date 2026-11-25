@@ -47,7 +47,7 @@ export function rifleShot(player, action = player.heroAction) {
   aim, angle: muzzle.angle, face: heroFacing(direction)};
 }
 
-// The rightmost point of the painted crystal is the release anchor.
+// The rightmost point of the painted barrel is the release anchor.
 function drawFocus(ctx, player, shot, pose, image) {
  ctx.save();
  ctx.translate(shot.mount.x - player.x, shot.mount.y - player.y);
@@ -61,7 +61,7 @@ function drawFocus(ctx, player, shot, pose, image) {
  ctx.shadowColor = '#30202ce0';
  ctx.shadowBlur = .9;
  ctx.shadowOffsetY = .65;
- ctx.drawImage(image, -length, -5.8, length, 15);
+ ctx.drawImage(image, -length, -3.8, length, 15);
  ctx.shadowColor = 'transparent';
 
  // One hand closes around the leather grip, the other supports the fore-end from below.
@@ -105,7 +105,7 @@ function drawFocus(ctx, player, shot, pose, image) {
  }
  if (pose.clip === 'special') {
   ctx.globalAlpha *= .65 * Math.sin(pose.progress * Math.PI);
-  const center = -6 * depth;
+  const center = -35.5 * depth;
   const glint = ctx.createRadialGradient(center, 0, 0, center, 0, 6);
   glint.addColorStop(0, '#fff2ff');
   glint.addColorStop(1, 'rgba(221,176,249,0)');
@@ -122,7 +122,7 @@ export class GlassRifleman{
   this.image = new Image();
   this.focus = new Image();
   this.image.src = new URL('../assets/heroes/glasscannon/rifleman/body-carbine.png', import.meta.url).href;
-  this.focus.src = new URL('../assets/heroes/glasscannon/rifleman/amethyst-focus.png', import.meta.url).href;
+  this.focus.src = new URL('../assets/heroes/glasscannon/rifleman/enchanted-carbine.png', import.meta.url).href;
   this.loading = Promise.all([this.image.decode(), this.focus.decode()]).then(() => {
    this.ready = this.image.naturalWidth === 5 * cell * atlasScale && this.focus.naturalWidth === 240;
   }).catch(() => { this.ready = false; });

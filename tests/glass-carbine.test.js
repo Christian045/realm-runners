@@ -7,7 +7,7 @@ import {beginHeroAction,advanceHeroAction} from '../src/hero-animation.js';
 async function paintedRifleman() {
  const model = new GlassRifleman();
  const base = new URL('../assets/heroes/glasscannon/rifleman/', import.meta.url);
- [model.image, model.focus] = await Promise.all(['body-carbine.png', 'amethyst-focus.png']
+ [model.image, model.focus] = await Promise.all(['body-carbine.png', 'enchanted-carbine.png']
   .map(file => loadImage(new URL(file, base).pathname)));
  model.ready = true;
  return model;
