@@ -11,7 +11,7 @@ const rifleViews = [
  {carry: 10, fire: 45, shoulder: 0, reach: 33},
  {carry: -12, fire: 0, shoulder: 0, reach: 37},
  {carry: -32, fire: -45, shoulder: 9, reach: 31},
- {carry: -50, fire: -75, shoulder: 12, reach: 30}
+ {carry: -50, fire: -75, shoulder: 10, reach: 30}
 ];
 
 function riflePose(player, direction, clip, progress) {
@@ -57,6 +57,7 @@ function drawFocus(ctx, player, shot, pose, image) {
  // The stock recedes in the front and back views while the tip stays on the release point.
  const depth = 1 - .34 * Math.sin(shot.angle) ** 2;
  const length = 54 * depth;
+ const handScale = 1 - .18 * Math.max(0, Math.abs(shot.facing) - 2);
  // Connect each wrist to its shoulder before the torso occludes the upper arms.
  const shoulderX = shot.hand * 12 - (shot.mount.x - player.x);
  const shoulderY = -36 - (shot.mount.y - player.y);
@@ -68,10 +69,10 @@ function drawFocus(ctx, player, shot, pose, image) {
   ctx.moveTo(armX, armY);
   ctx.quadraticCurveTo((armX + x) / 2 - 2, Math.max(armY, y) + 3, x - 2, y + 2);
   ctx.strokeStyle = '#3e2c27';
-  ctx.lineWidth = 8;
+  ctx.lineWidth = 8 * handScale;
   ctx.stroke();
   ctx.strokeStyle = '#78513a';
-  ctx.lineWidth = 5.5;
+  ctx.lineWidth = 5.5 * handScale;
   ctx.stroke();
  }
 
@@ -87,6 +88,7 @@ function drawFocus(ctx, player, shot, pose, image) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(tilt);
+  ctx.scale(handScale, handScale);
   const leather = ctx.createLinearGradient(0, -3, 0, 5);
   leather.addColorStop(0, '#9d7152');
   leather.addColorStop(.55, '#6c4b39');

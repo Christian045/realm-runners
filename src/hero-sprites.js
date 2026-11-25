@@ -1,10 +1,10 @@
-import {getGlassRifleman} from './glass-rifleman.js?v=0.76.7';
+import {getGlassRifleman} from './glass-rifleman.js?v=0.76.8';
 import {getMageProduction} from './mage-production.js?v=0.75.1';
 import {getHunterProduction} from './hunter-production.js?v=0.75.1';
 import {getHeroRig,previewHeroRig} from './articulated-hero.js?v=0.68.0';
 import {drawRobedWalk,isRobedWalker} from './robed-walk.js?v=0.39.0';
 import {prepareWalkPivots,walkFrameAnchorY} from './grounded-walk.js?v=0.36.0';
-import {heroShot} from './hero-aim.js?v=0.76.7';
+import {heroShot} from './hero-aim.js?v=0.76.8';
 import {HERO_KINDS,heroPose} from './hero-animation.js?v=0.75.1';
 
 export class HeroSpriteAtlas{
