@@ -381,7 +381,7 @@ function updateHud(){
   attackButton.querySelector('.attack-knob').textContent=aimFlask?'◎':'⚔';
   attackButton.setAttribute('aria-label',aimFlask?'Flasche zielen: gedrückt halten und ziehen, loslassen zum Werfen':'Angriffsrichtung: zum Zielen ziehen und gedrückt halten');
   attackButton.title=aimFlask?'Halten und ziehen zum Zielen – loslassen zum Werfen':'In die gewünschte Angriffsrichtung ziehen und halten';
- canvas.style.cursor=aimFlask&&game.mode==='playing'?'crosshair':'default';
+ canvas.style.cursor=game.mode==='playing'?'crosshair':'default';
  const dash=$('dashLabel'),ability=$('abilityLabel');
  dash.textContent=hud.dash>0?'DASH · '+hud.dash.toFixed(1)+'s':'DASH ✓';
  dash.classList.toggle('ready',hud.dash<=0);
