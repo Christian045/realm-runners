@@ -11,7 +11,7 @@ const rifleViews = [
  {carry: 10, fire: 45, shoulder: 0, reach: 33},
  {carry: -12, fire: 0, shoulder: 0, reach: 37},
  {carry: -32, fire: -45, shoulder: 9, reach: 31},
- {carry: -65, fire: -90, shoulder: 18, reach: 26}
+ {carry: -50, fire: -75, shoulder: 12, reach: 30}
 ];
 
 function riflePose(player, direction, clip, progress) {
@@ -57,6 +57,24 @@ function drawFocus(ctx, player, shot, pose, image) {
  // The stock recedes in the front and back views while the tip stays on the release point.
  const depth = 1 - .34 * Math.sin(shot.angle) ** 2;
  const length = 54 * depth;
+ // Connect each wrist to its shoulder before the torso occludes the upper arms.
+ const shoulderX = shot.hand * 12 - (shot.mount.x - player.x);
+ const shoulderY = -36 - (shot.mount.y - player.y);
+ const armX = shoulderX * Math.cos(shot.angle) + shoulderY * Math.sin(shot.angle) - shot.reach;
+ const armY = (-shoulderX * Math.sin(shot.angle) + shoulderY * Math.cos(shot.angle)) * shot.hand;
+ ctx.lineCap = 'round';
+ for (const [x, y] of [[-38 * depth, 7], [-22 * depth, 3.3]]) {
+  ctx.beginPath();
+  ctx.moveTo(armX, armY);
+  ctx.quadraticCurveTo((armX + x) / 2 - 2, Math.max(armY, y) + 3, x - 2, y + 2);
+  ctx.strokeStyle = '#3e2c27';
+  ctx.lineWidth = 8;
+  ctx.stroke();
+  ctx.strokeStyle = '#78513a';
+  ctx.lineWidth = 5.5;
+  ctx.stroke();
+ }
+
  // A thin warm outline separates the carved wood from the similarly colored poncho.
  ctx.shadowColor = '#30202ce0';
  ctx.shadowBlur = .9;

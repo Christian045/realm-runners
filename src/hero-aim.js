@@ -1,4 +1,4 @@
-import {rifleShot,riflemanEnabled} from './glass-rifleman.js?v=0.76.6';
+import {rifleShot,riflemanEnabled} from './glass-rifleman.js?v=0.76.7';
 import {mageReady,mageShot} from './mage-production.js?v=0.75.1';
 import {hunterProductionEnabled,hunterProductionShot} from './hunter-production.js?v=0.75.1';
 import {hunterIdentityEnabled,hunterIdentityShot} from './hunter-identity.js?v=0.75.1';
